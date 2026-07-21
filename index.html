@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodePractice — Luyện thuật toán</title>
+
+<!-- CodeMirror: editor có highlight cú pháp (CDN). Nếu offline sẽ tự fallback sang textarea. -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">&gt;_</span>
+    <span class="brand-name">CodePractice</span>
+  </div>
+  <div class="topbar-sub">Luyện thuật toán trực tiếp trên trình duyệt — không cần đăng nhập</div>
+</header>
+
+<main class="layout">
+
+  <!-- Cột 1: danh sách bài -->
+  <aside class="pane problem-list" id="problem-list">
+    <div class="pane-title">Danh sách bài (<span id="problem-count">0</span>)</div>
+    <div id="problem-items"></div>
+  </aside>
+
+  <!-- Cột 2: đề bài -->
+  <section class="pane problem-desc">
+    <div class="pane-title" id="desc-title">Chọn một bài để bắt đầu</div>
+    <div class="difficulty-row" id="desc-meta"></div>
+    <div id="desc-body" class="markdown-body"></div>
+  </section>
+
+  <!-- Cột 3: editor + console -->
+  <section class="pane editor-pane">
+    <div class="editor-toolbar">
+      <select id="lang-select" class="lang-select">
+        <option value="cpp">C++ (Docker)</option>
+        <option value="python">Python (Docker)</option>
+      </select>
+      <div class="toolbar-actions">
+        <button id="btn-reset" class="btn btn-ghost" title="Khôi phục code mẫu">↺ Reset</button>
+        <button id="btn-run" class="btn btn-secondary">▶ Run</button>
+        <button id="btn-submit" class="btn btn-primary">Submit</button>
+      </div>
+    </div>
+
+    <div id="editor-host" class="editor-host"></div>
+
+    <div class="console">
+      <div class="console-header">
+        <span>Kết quả</span>
+        <span id="console-status" class="console-status"></span>
+      </div>
+      <div id="console-body" class="console-body">
+        <div class="console-empty">Nhấn <strong>Run</strong> để chạy thử với vài test case, hoặc <strong>Submit</strong> để chạy toàn bộ.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+<script src="js/problems.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
