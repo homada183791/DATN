@@ -12,7 +12,7 @@ services:
       POSTGRES_PASSWORD: rootpassword
       POSTGRES_DB: online_judge_db
     ports:
-      - "5433:5432" # Host mapping ra 5433 như thiết lập hiện tại của bạn
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
@@ -62,7 +62,7 @@ services:
       - postgres
       - redis
       - rabbitmq
-    command: npm run start:dev # Đổi thành lệnh chuẩn của NestJS
+    command: npm run start:dev
 
   frontend:
     build:
@@ -104,7 +104,6 @@ services:
     mem_limit: 256m
     cpus: 0.5
     pids_limit: 64
-    # network_mode: none # ĐÃ COMMENT: Docker sẽ báo lỗi nếu vừa map port 4000 vừa tắt network
     restart: unless-stopped
 
 volumes:
