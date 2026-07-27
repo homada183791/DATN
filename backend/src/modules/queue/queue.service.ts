@@ -5,7 +5,7 @@ import { ClientProxy } from '@nestjs/microservices';
 export class QueueService {
   private readonly logger = new Logger(QueueService.name);
 
-  constructor(@Inject('RABBITMQ_SERVICE') private readonly client: ClientProxy) {}
+  constructor(@Inject('RABBITMQ_SERVICE') private readonly client: ClientProxy) { }
 
   publishJudgeJob(payload: any) {
     try {
