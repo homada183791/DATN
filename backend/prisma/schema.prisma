@@ -23,6 +23,8 @@ model User {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
+  submissions Submission[]
+
   @@map("users") // Đặt tên table trong DB là "users" thay vì "User"
 }
 
@@ -43,6 +45,7 @@ model Problem {
   updated_at   DateTime   @updatedAt
 
   test_cases   TestCase[]
+  submissions  Submission[]
 
   @@map("problems")
 }
@@ -57,4 +60,40 @@ model TestCase {
   problem         Problem  @relation(fields: [problem_id], references: [id], onDelete: Cascade)
 
   @@map("test_cases")
+}
+
+enum Language {
+  C
+  CPP
+  PYTHON
+  GO
+  JAVA
+}
+
+enum SubmissionStatus {
+  PENDING
+  IN_QUEUE
+  ACCEPTED
+  WRONG_ANSWER
+  TIME_LIMIT_EXCEEDED
+  COMPILE_ERROR
+  RUNTIME_ERROR
+}
+
+model Submission {
+  id             String           @id @default(uuid())
+  user_id        String
+  problem_id     String
+  language       Language
+  source_code    String           @db.Text
+  status         SubmissionStatus @default(PENDING)
+  execution_time Int?             // ms
+  memory_used    Int?             // MB
+  created_at     DateTime         @default(now())
+  updated_at     DateTime         @updatedAt
+
+  user           User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  problem        Problem          @relation(fields: [problem_id], references: [id], onDelete: Cascade)
+
+  @@map("submissions")
 }
