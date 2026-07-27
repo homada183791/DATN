@@ -1,11 +1,53 @@
 version: '3.8'
 
 services:
-  # ---- Backend API ----
+  # ==========================================
+  # 1. HẠ TẦNG CƠ SỞ (INFRASTRUCTURE)
+  # ==========================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: datn_postgres
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_DB: online_judge_db
+    ports:
+      - "5433:5432" # Host mapping ra 5433 như thiết lập hiện tại của bạn
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: datn_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: datn_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: root
+      RABBITMQ_DEFAULT_PASS: rootpassword
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+    restart: unless-stopped
+
+
+  # ==========================================
+  # 2. KHỐI ỨNG DỤNG (APPLICATIONS)
+  # ==========================================
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    container_name: datn_backend
     ports:
       - "3001:3001"
     volumes:
@@ -13,17 +55,20 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=postgresql://judge:judge@db:5432/judgehub
+      # LƯU Ý: Chạy trong Docker network nên trỏ tới host là 'postgres' và port nội bộ 5432
+      - DATABASE_URL=postgresql://root:rootpassword@postgres:5432/online_judge_db?schema=public
       - JUDGE_RUNNER_URL=http://judge-runner:4000
     depends_on:
-      - db
-    command: npm run dev   # hoặc: node dist/server.js khi production
+      - postgres
+      - redis
+      - rabbitmq
+    command: npm run start:dev # Đổi thành lệnh chuẩn của NestJS
 
-  # ---- Frontend Next.js ----
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    container_name: datn_frontend
     ports:
       - "3000:3000"
     volumes:
@@ -36,11 +81,15 @@ services:
       - backend
     command: npm run dev
 
-  # ---- Judge runner: nơi DUY NHẤT compile/chạy code người dùng ----
+
+  # ==========================================
+  # 3. KHỐI CHẤM BÀI (JUDGE SANDBOX)
+  # ==========================================
   judge-runner:
     build:
       context: ./judge-runner
       dockerfile: Dockerfile
+    container_name: datn_judge_runner
     ports:
       - "4000:4000"
     volumes:
@@ -55,20 +104,11 @@ services:
     mem_limit: 256m
     cpus: 0.5
     pids_limit: 64
-    network_mode: none     # cách ly hoàn toàn internet cho code chạy bên trong
+    # network_mode: none # ĐÃ COMMENT: Docker sẽ báo lỗi nếu vừa map port 4000 vừa tắt network
     restart: unless-stopped
 
-  db:
-    image: postgres:16-alpine
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=judge
-      - POSTGRES_PASSWORD=judge
-      - POSTGRES_DB=judgehub
-    volumes:
-      - db-data:/var/lib/postgresql/data
-
 volumes:
-  db-data:
+  pgdata:
+  redisdata:
+  rabbitmqdata:
   judge-tmp:
