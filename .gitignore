@@ -1,0 +1,91 @@
+# ===== Dependencies =====
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+judge-runner/node_modules/
+.pnp
+.pnp.js
+.yarn/
+
+# ===== Build output =====
+dist/
+build/
+out/
+.next/
+frontend/.next/
+frontend/out/
+backend/dist/
+judge-runner/dist/
+*.tsbuildinfo
+
+# ===== Environment variables =====
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+frontend/.env*
+backend/.env*
+judge-runner/.env*
+
+# ===== Judge runtime (KHÔNG commit thư mục chạy code người dùng) =====
+tmp-run/
+**/tmp-run/
+judge-runner/tmp/
+judge-runner/sandbox/
+*.tmp
+*.temp
+
+# ===== Compiled binaries từ việc chấm bài =====
+main
+main.out
+main.exe
+*.o
+*.obj
+a.out
+*.class
+__pycache__/
+*.pyc
+
+# ===== Logs =====
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===== Database =====
+*.sqlite
+*.sqlite3
+*.db
+prisma/dev.db
+backend/prisma/migrations/dev/
+
+# ===== Docker =====
+docker-compose.override.yml
+*.pid
+
+# ===== Editor / OS =====
+.vscode/
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ===== Testing / Coverage =====
+coverage/
+.nyc_output/
+
+# ===== Cache =====
+.cache/
+.turbo/
+.eslintcache
+
+# ===== Uploads =====
+uploads/
+backend/uploads/
+storage/

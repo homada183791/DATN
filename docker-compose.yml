@@ -1,10 +1,74 @@
 version: '3.8'
+
 services:
-  app:
-    build: .
+  # ---- Backend API ----
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app:delegated
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://judge:judge@db:5432/judgehub
+      - JUDGE_RUNNER_URL=http://judge-runner:4000
+    depends_on:
+      - db
+    command: npm run dev   # hoặc: node dist/server.js khi production
+
+  # ---- Frontend Next.js ----
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     volumes:
-      - .:/app:delegated
+      - ./frontend:/app:delegated
       - /app/node_modules
-    command: node server.js
+      - /app/.next
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+    depends_on:
+      - backend
+    command: npm run dev
+
+  # ---- Judge runner: nơi DUY NHẤT compile/chạy code người dùng ----
+  judge-runner:
+    build:
+      context: ./judge-runner
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    volumes:
+      - judge-tmp:/tmp/judge
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp/judge:size=100m
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 64
+    network_mode: none     # cách ly hoàn toàn internet cho code chạy bên trong
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=judge
+      - POSTGRES_PASSWORD=judge
+      - POSTGRES_DB=judgehub
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:
+  judge-tmp:
