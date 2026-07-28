@@ -10,9 +10,10 @@ import { SubmissionsModule } from './modules/submissions/submissions.module';
 import { WebhookModule } from './modules/webhook/webhook.module';
 import { EventsModule } from './events/events.module';
 import { ContestsModule } from './modules/contests/contests.module';
+import { LeaderboardModule } from './modules/leaderboard/leaderboard.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuthModule, ProblemsModule, QueueModule, SubmissionsModule, WebhookModule, EventsModule, ContestsModule],
+  imports: [PrismaModule, UsersModule, AuthModule, ProblemsModule, QueueModule, SubmissionsModule, WebhookModule, EventsModule, ContestsModule, LeaderboardModule],
   controllers: [AppController],
   providers: [AppService],
 })
