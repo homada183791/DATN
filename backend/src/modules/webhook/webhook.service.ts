@@ -1,48 +1,48 @@
-import { Injectable, NotFoundException, Logger, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JudgeResultDto } from './dto/judge-result.dto';
+import { EventsGateway } from '../../events/events.gateway';
 
 @Injectable()
 export class WebhookService {
   private readonly logger = new Logger(WebhookService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventsGateway: EventsGateway,
+  ) {}
 
   async processJudgeResult(judgeResultDto: JudgeResultDto) {
     const { submission_id, status, execution_time, memory_used } = judgeResultDto;
 
-    try {
-      const submission = await this.prisma.submission.findUnique({
-        where: { id: submission_id },
-      });
+    const submission = await this.prisma.submission.findUnique({
+      where: { id: submission_id },
+    });
 
-      if (!submission) {
-        throw new NotFoundException('Không tìm thấy bài nộp với mã cung cấp.');
-      }
-
-      await this.prisma.submission.update({
-        where: { id: submission_id },
-        data: {
-          status,
-          execution_time,
-          memory_used,
-        },
-      });
-
-      this.logger.log(`[Judge Webhook] Submission ${submission_id} updated to ${status}`);
-
-      return { success: true };
-    } catch (error) {
-     
-      if (error instanceof NotFoundException) { // Bỏ qua nếu lỗi đã được ném ra từ trước (NotFoundException)
-        throw error;
-      }
-      
-      // Log lỗi để debug
-      this.logger.error(`[Judge Webhook] Error updating submission ${submission_id}: ${error.message}`, error.stack);
-      
-      
-      throw new InternalServerErrorException('Đã xảy ra lỗi khi cập nhật kết quả chấm bài.');// Exception chung cho hệ thống
+    if (!submission) {
+      throw new NotFoundException('Không tìm thấy bài nộp với mã cung cấp.');
     }
+
+    const updatedSubmission = await this.prisma.submission.update({
+      where: { id: submission_id },
+      data: {
+        status,
+        execution_time,
+        memory_used,
+      },
+    });
+
+    this.logger.log(`[Judge Webhook] Submission ${submission_id} updated to ${status}`);
+
+    // Bắn sự kiện realtime xuống Frontend qua Socket.io
+    this.eventsGateway.emitSubmissionUpdate(submission_id, {
+      submission_id,
+      status: updatedSubmission.status,
+      execution_time: updatedSubmission.execution_time,
+      memory_used: updatedSubmission.memory_used,
+      updated_at: updatedSubmission.updated_at,
+    });
+
+    return { success: true };
   }
 }
