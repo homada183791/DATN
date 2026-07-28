@@ -7,9 +7,10 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ProblemsModule } from './modules/problems/problems.module';
 import { QueueModule } from './modules/queue/queue.module';
 import { SubmissionsModule } from './modules/submissions/submissions.module';
+import { WebhookModule } from './modules/webhook/webhook.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuthModule, ProblemsModule, QueueModule, SubmissionsModule],
+  imports: [PrismaModule, UsersModule, AuthModule, ProblemsModule, QueueModule, SubmissionsModule, WebhookModule],
   controllers: [AppController],
   providers: [AppService],
 })
