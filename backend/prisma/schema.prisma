@@ -46,6 +46,7 @@ model Problem {
 
   test_cases   TestCase[]
   submissions  Submission[]
+  contests     ContestProblem[]
 
   @@map("problems")
 }
@@ -96,4 +97,31 @@ model Submission {
   problem        Problem          @relation(fields: [problem_id], references: [id], onDelete: Cascade)
 
   @@map("submissions")
+}
+
+model Contest {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  start_time  DateTime
+  end_time    DateTime
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  problems    ContestProblem[]
+
+  @@map("contests")
+}
+
+model ContestProblem {
+  id         String   @id @default(uuid())
+  contest_id String
+  problem_id String
+  created_at DateTime @default(now())
+
+  contest    Contest  @relation(fields: [contest_id], references: [id], onDelete: Cascade)
+  problem    Problem  @relation(fields: [problem_id], references: [id], onDelete: Cascade)
+
+  @@unique([contest_id, problem_id])
+  @@map("contest_problems")
 }
