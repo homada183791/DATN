@@ -2,7 +2,7 @@ import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { LeaderboardService } from './leaderboard.service';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('api/v1/contests')
+@Controller('contests')
 export class LeaderboardController {
   constructor(private readonly leaderboardService: LeaderboardService) {}
 
