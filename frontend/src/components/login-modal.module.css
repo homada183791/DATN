@@ -1,7 +1,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(15, 23, 42, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -13,12 +13,12 @@
   position: relative;
   width: 440px;
   max-width: 100%;
-  background: #ffffff;
+  background: var(--bg-surface);
   border-radius: 16px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
   padding: 28px 28px 24px;
   font-family: -apple-system, "Segoe UI", Inter, system-ui, sans-serif;
-  color: #111827;
+  color: var(--text);
 }
 
 .closeBtn {
@@ -27,13 +27,13 @@
   right: 20px;
   background: none;
   border: none;
-  color: #6b7280;
+  color: var(--text-muted);
   padding: 2px;
   line-height: 0;
 }
 
 .closeBtn:hover {
-  color: #111827;
+  color: var(--text);
 }
 
 .title {
@@ -44,7 +44,7 @@
 
 .subtitle {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--text-muted);
   margin: 4px 0 0;
 }
 
@@ -64,7 +64,7 @@
 .label {
   font-size: 13px;
   font-weight: 500;
-  color: #374151;
+  color: var(--text-muted);
   margin-bottom: 6px;
 }
 
@@ -74,18 +74,19 @@
 
 .field input {
   width: 100%;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 14px;
-  color: #111827;
+  color: var(--text);
+  background: var(--bg-app);
   font-family: inherit;
 }
 
 .field input:focus {
   outline: none;
-  border-color: #0e9f6e;
-  box-shadow: 0 0 0 3px rgba(14, 159, 110, 0.15);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(14, 159, 110, 0.2);
 }
 
 .passwordWrap {
@@ -103,18 +104,18 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #6b7280;
+  color: var(--text-muted);
   padding: 4px;
   line-height: 0;
 }
 
 .eyeBtn:hover {
-  color: #111827;
+  color: var(--text);
 }
 
 .submitBtn {
   width: 100%;
-  background: #0e9f6e;
+  background: var(--accent);
   color: #ffffff;
   font-size: 15px;
   font-weight: 600;
@@ -137,11 +138,11 @@
 }
 
 .linkRowText {
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .link {
-  color: #0e9f6e;
+  color: var(--accent);
   text-decoration: none;
   background: none;
   border: none;
@@ -160,7 +161,7 @@
   gap: 12px;
   margin: 22px 0 16px;
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--text-faint);
 }
 
 .divider::before,
@@ -168,7 +169,7 @@
   content: "";
   flex: 1;
   height: 1px;
-  background: #e5e7eb;
+  background: var(--border);
 }
 
 /* SSO buttons */
@@ -178,11 +179,11 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px;
-  background: #ffffff;
-  color: #111827;
+  background: var(--bg-surface);
+  color: var(--text);
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 10px;
@@ -194,5 +195,5 @@
 }
 
 .ssoBtn:hover {
-  background: #f9fafb;
+  background: var(--bg-hover);
 }

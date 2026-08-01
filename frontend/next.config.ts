@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
+  // Tắt icon Dev Tools (chữ "N") ở góc dưới trái khi chạy `next dev`.
+  devIndicators: false,
+
   // Cho phép frontend gọi "/api/..." nội bộ và tự động
   // forward sang backend, tránh lỗi CORS khi dev.
   async rewrites() {

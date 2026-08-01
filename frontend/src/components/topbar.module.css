@@ -1,0 +1,66 @@
+.topbar {
+  height: 64px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 24px;
+}
+
+.breadcrumb {
+  font-size: 14px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.breadcrumbActive {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-app);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--text-faint);
+  font-size: 13px;
+  width: 320px;
+  max-width: 40vw;
+}
+
+.search kbd {
+  margin-left: auto;
+  font-size: 11px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.loginBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.loginBtn:hover {
+  background: #0c8760;
+}
