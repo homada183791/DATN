@@ -106,7 +106,7 @@
 }
 
 .table th {
-  text-align: left;
+  text-align: center;
   font-size: 12px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -116,6 +116,48 @@
   background: var(--bg-app);
   border-bottom: 2px solid var(--border);
   white-space: nowrap;
+}
+
+.table td {
+  text-align: center;
+}
+
+.th {
+  position: relative;
+}
+
+.thLabel {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 10px;
+}
+
+.resizeHandle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 8px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.resizeHandle::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  right: 3px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--border);
+}
+
+.resizeHandle:hover::after,
+.resizeHandle:active::after {
+  background: var(--accent);
 }
 
 .emptyRow td {

@@ -1,10 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import styles from "./problems-panel.module.css";
 import { useToast } from "./toast-context";
+import { useResizableColumns, type ColumnDef } from "@/lib/use-resizable-columns";
 
 type Tab = "problems" | "problem-sets";
+
+const columns: ColumnDef[] = [
+  { key: "title", label: "Bài tập", width: 280, minWidth: 160 },
+  { key: "difficulty", label: "Độ khó", width: 120, minWidth: 90 },
+  { key: "points", label: "Điểm", width: 100, minWidth: 70 },
+  { key: "problemSet", label: "Bộ bài tập", width: 140, minWidth: 100 },
+  { key: "uploadedAt", label: "Ngày tải lên", width: 160, minWidth: 120 },
+  { key: "tags", label: "Tags", width: 220, minWidth: 140 },
+];
 
 // TODO: thay bằng dữ liệu thật từ GET /api/problems khi backend sẵn sàng
 const problems: unknown[] = [];
@@ -16,6 +26,8 @@ export function ProblemsPanel() {
   const [tab, setTab] = useState<Tab>("problems");
   const [search, setSearch] = useState("");
   const { showToast } = useToast();
+  const tableWrapRef = useRef<HTMLDivElement>(null);
+  const { widths, startResize } = useResizableColumns(columns, tableWrapRef);
 
   function handleTabClick(nextTab: Tab) {
     setTab(nextTab);
@@ -73,22 +85,41 @@ export function ProblemsPanel() {
             </button>
           </div>
 
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
+          <div className={styles.tableWrap} ref={tableWrapRef}>
+            <table className={styles.table} style={{ width: "100%", tableLayout: "fixed" }}>
+              <colgroup>
+                {columns.map((c, i) => (
+                  <col
+                    key={c.key}
+                    style={i === columns.length - 1 ? undefined : { width: widths[c.key] }}
+                  />
+                ))}
+              </colgroup>
               <thead>
                 <tr>
-                  <th>Bài tập</th>
-                  <th>Độ khó</th>
-                  <th>Điểm</th>
-                  <th>Bộ bài tập</th>
-                  <th>Ngày tải lên</th>
-                  <th>Tags</th>
+                  {columns.map((c, i) => {
+                    const isLast = i === columns.length - 1;
+                    return (
+                      <th key={c.key} className={styles.th}>
+                        <span className={styles.thLabel}>{c.label}</span>
+                        {!isLast && (
+                          <span
+                            className={styles.resizeHandle}
+                            onMouseDown={startResize(c.key, c.minWidth)}
+                            role="separator"
+                            aria-orientation="vertical"
+                            aria-label={`Kéo để đổi độ rộng cột ${c.label}`}
+                          />
+                        )}
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
                 {problems.length === 0 && (
                   <tr className={styles.emptyRow}>
-                    <td colSpan={6}>Không tìm thấy bài tập nào</td>
+                    <td colSpan={columns.length}>Không tìm thấy bài tập nào</td>
                   </tr>
                 )}
               </tbody>
