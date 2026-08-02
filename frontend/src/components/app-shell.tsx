@@ -6,6 +6,8 @@ import { Topbar } from "./topbar";
 import { LoginModal } from "./login-modal";
 import { RegisterModal } from "./register-modal";
 import { ForgotPasswordModal } from "./forgot-password-modal";
+import { ToastProvider } from "./toast-context";
+import { SystemClock } from "./system-clock";
 import styles from "./app-shell.module.css";
 
 type AuthView = "login" | "register" | "forgot" | null;
@@ -31,8 +33,10 @@ export function AppShell({
       />
 
       <div className={styles.main}>
-        <Topbar pageTitle={pageTitle} onLoginClick={() => setAuthView("login")} />
-        <div className={styles.content}>{children}</div>
+        <ToastProvider>
+          <Topbar pageTitle={pageTitle} onLoginClick={() => setAuthView("login")} />
+          <div className={styles.content}>{children}</div>
+        </ToastProvider>
       </div>
 
       {authView === "login" && (
@@ -54,6 +58,8 @@ export function AppShell({
           onSwitchToLogin={() => setAuthView("login")}
         />
       )}
+
+      <SystemClock leftOffset={(collapsed ? 72 : 240) + 16} />
     </div>
   );
 }
