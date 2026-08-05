@@ -44,25 +44,20 @@ services:
   # 2. KHỐI ỨNG DỤNG (APPLICATIONS)
   # ==========================================
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    build: ./backend
     container_name: datn_backend
     ports:
-      - "3001:3001"
-    volumes:
-      - ./backend:/app:delegated
-      - /app/node_modules
+      - "3001:3000"
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       # LƯU Ý: Chạy trong Docker network nên trỏ tới host là 'postgres' và port nội bộ 5432
       - DATABASE_URL=postgresql://root:rootpassword@postgres:5432/online_judge_db?schema=public
+      - REDIS_URL=redis://redis:6379
       - JUDGE_RUNNER_URL=http://judge-runner:4000
     depends_on:
       - postgres
       - redis
       - rabbitmq
-    command: npm run start:dev
 
   frontend:
     build:

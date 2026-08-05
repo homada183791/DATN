@@ -1,21 +1,43 @@
-# ---- Stage 1: build ----
+# Stage 1: Builder
 FROM node:20-alpine AS builder
+
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
+
+# Copy package files
+COPY package*.json ./
+
+# Install ALL dependencies (bao gồm devDependencies để build)
+RUN npm install
+
+# Copy mã nguồn và cấu trúc DB
 COPY . .
-RUN npm run build          # tsc build ra dist/
 
-# ---- Stage 2: runtime ----
-FROM node:20-alpine
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Build ứng dụng NestJS (kết quả nằm trong thư mục dist)
+RUN npm run build
+
+# Xóa devDependencies để giảm nhẹ dung lượng thư mục node_modules
+RUN npm prune --production
+
+# ==========================================
+
+# Stage 2: Production
+FROM node:20-alpine AS production
+
 WORKDIR /app
-ENV NODE_ENV=production
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+
+# Copy package.json
+COPY --from=builder /app/package*.json ./
+
+# Chỉ copy những thành phần cần thiết cho production
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
+# Mở port 3000
+EXPOSE 3000
 
-EXPOSE 3001
-CMD ["node", "dist/server.js"]
+# Khởi động ứng dụng
+CMD ["npm", "run", "start:prod"]
