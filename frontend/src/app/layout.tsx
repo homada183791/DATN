@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AuthProvider } from "@/lib/auth/auth-context";
 
 export const metadata: Metadata = {
-  title: "JudgeHub — Online Judge",
+  title: "JudgeHub",
   description: "Hệ thống chấm bài lập trình trực tuyến",
   icons: {
     icon: "/logo-hcmus.png",
@@ -18,7 +19,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi">
-      <body>{children}</body>
+      <body>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   );
 }

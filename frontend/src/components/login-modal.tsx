@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./login-modal.module.css";
+import { useAuth } from "@/lib/auth/auth-context";
 
 export function LoginModal({
   onClose,
@@ -13,11 +15,31 @@ export function LoginModal({
   onSwitchToForgotPassword: () => void;
 }) {
   const [showPassword, setShowPassword] = useState(false);
+  const { login } = useAuth();
+  const router = useRouter();
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // TODO: nối API backend
-    // POST /api/auth/login { identifier, password }
+
+    // TODO: thay toàn bộ khối này bằng POST /api/auth/login { identifier, password }
+    // khi backend sẵn sàng, rồi login() với user thật trả về từ API.
+    // Mock tạm để xem trước giao diện theo vai trò: gõ email/tên đăng nhập
+    // có chứa "instructor" sẽ được coi là giảng viên, còn lại là sinh viên.
+    const identifier = String(new FormData(e.currentTarget).get("identifier") ?? "");
+    const role = identifier.toLowerCase().includes("instructor") ? "instructor" : "student";
+    login({
+      id: "mock-user",
+      name: role === "instructor" ? "Instructor One" : "Student One",
+      email: identifier,
+      role,
+    });
+    onClose();
+
+    // Giảng viên vào thẳng Bảng điều khiển, giống hành vi thật khi đăng nhập.
+    // Sinh viên ở lại trang hiện tại vì trang "/" vốn đã là màn hình của sinh viên.
+    if (role === "instructor") {
+      router.push("/instructor/dashboard");
+    }
   }
 
   return (

@@ -4,28 +4,53 @@ import { useRef, useState } from "react";
 import styles from "./problems-panel.module.css";
 import { useToast } from "./toast-context";
 import { useResizableColumns, type ColumnDef } from "@/lib/use-resizable-columns";
+import { useAuth } from "@/lib/auth/auth-context";
 
 type Tab = "problems" | "problem-sets";
 
-const columns: ColumnDef[] = [
-  { key: "title", label: "Bài tập", width: 280, minWidth: 160 },
+const baseColumns: ColumnDef[] = [
+  { key: "title", label: "Bài tập", width: 260, minWidth: 160 },
   { key: "difficulty", label: "Độ khó", width: 120, minWidth: 90 },
   { key: "points", label: "Điểm", width: 100, minWidth: 70 },
   { key: "problemSet", label: "Bộ bài tập", width: 140, minWidth: 100 },
-  { key: "uploadedAt", label: "Ngày tải lên", width: 160, minWidth: 120 },
-  { key: "tags", label: "Tags", width: 220, minWidth: 140 },
+  { key: "uploadedAt", label: "Ngày tải lên", width: 150, minWidth: 120 },
+  { key: "tags", label: "Tags", width: 200, minWidth: 140 },
 ];
+
+const statusColumn: ColumnDef = {
+  key: "status",
+  label: "Trạng thái",
+  width: 140,
+  minWidth: 110,
+};
 
 // TODO: thay bằng dữ liệu thật từ GET /api/problems khi backend sẵn sàng
 const problems: unknown[] = [];
 
-// TODO: thay bằng trạng thái đăng nhập thật (context/hook auth) khi nối API
-const isLoggedIn = false;
+interface ProblemSet {
+  code: string;
+  title: string;
+  status: "published" | "draft" | "hidden";
+  classCount: number;
+  problemCount: number;
+  dateRangeLabel: string | null;
+  progressLabel: string;
+  progressPercent: number;
+}
+
+// TODO: thay bằng dữ liệu thật từ GET /api/problem-sets khi backend sẵn sàng
+const problemSets: ProblemSet[] = [];
 
 export function ProblemsPanel() {
   const [tab, setTab] = useState<Tab>("problems");
   const [search, setSearch] = useState("");
+  const [onlyMine, setOnlyMine] = useState(false);
   const { showToast } = useToast();
+  const { user } = useAuth();
+  const isInstructor = user?.role === "instructor";
+  const isLoggedIn = !!user;
+
+  const columns = isInstructor ? [...baseColumns, statusColumn] : baseColumns;
   const tableWrapRef = useRef<HTMLDivElement>(null);
   const { widths, startResize } = useResizableColumns(columns, tableWrapRef);
 
@@ -38,7 +63,32 @@ export function ProblemsPanel() {
 
   return (
     <div>
-      <h1 className={styles.header}>Bài tập</h1>
+      <div className={styles.headerRow}>
+        <h1 className={styles.header}>Bài tập</h1>
+
+        {isInstructor && tab === "problems" && (
+          <div className={styles.instructorToolbar}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={onlyMine}
+                onChange={(e) => setOnlyMine(e.target.checked)}
+              />
+              Bài tôi đóng góp
+            </label>
+
+            <button type="button" className={styles.importBtn}>
+              <ImportIcon />
+              Import
+            </button>
+
+            <a href="/instructor/problems/new" className={styles.createBtn}>
+              <PlusIcon />
+              Tạo đề bài
+            </a>
+          </div>
+        )}
+      </div>
 
       <div className={styles.controlsRow}>
         <div className={styles.tabs} role="tablist">
@@ -88,13 +138,15 @@ export function ProblemsPanel() {
           <div className={styles.tableWrap} ref={tableWrapRef}>
             <table className={styles.table} style={{ width: "100%", tableLayout: "fixed" }}>
               <colgroup>
-                {columns.map((c, i) => (
-                  <col
-                    key={c.key}
-                    style={i === columns.length - 1 ? undefined : { width: widths[c.key] }}
-                  />
-                ))}
-              </colgroup>
+                  {columns.map((c) => (
+                    <col
+                      key={c.key}
+                      style={{
+                        width: `${widths[c.key]}px`,
+                      }}
+                    />
+                  ))}
+                </colgroup>
               <thead>
                 <tr>
                   {columns.map((c, i) => {
@@ -102,15 +154,15 @@ export function ProblemsPanel() {
                     return (
                       <th key={c.key} className={styles.th}>
                         <span className={styles.thLabel}>{c.label}</span>
-                        {!isLast && (
-                          <span
-                            className={styles.resizeHandle}
-                            onMouseDown={startResize(c.key, c.minWidth)}
-                            role="separator"
-                            aria-orientation="vertical"
-                            aria-label={`Kéo để đổi độ rộng cột ${c.label}`}
-                          />
-                        )}
+                          {!isLast && (
+                            <span
+                              className={styles.resizeHandle}
+                              onMouseDown={startResize(c.key, c.minWidth)}
+                              role="separator"
+                              aria-orientation="vertical"
+                              aria-label={`Kéo để đổi độ rộng cột ${c.label}`}
+                            />
+                          )}
                       </th>
                     );
                   })}
@@ -127,11 +179,70 @@ export function ProblemsPanel() {
           </div>
         </div>
       ) : (
-        <div className={styles.emptySection}>
-          <InboxIcon />
-          <p className={styles.emptySectionText}>Chưa có bộ bài tập nào</p>
+        <div>
+          {isInstructor && (
+            <div className={styles.newSetRow}>
+              <a href="/instructor/problem-sets/new" className={styles.createBtn}>
+                <PlusIcon />
+                Bộ bài tập mới
+              </a>
+            </div>
+          )}
+
+          {problemSets.length === 0 ? (
+            <div className={styles.emptySection}>
+              <InboxIcon />
+              <p className={styles.emptySectionText}>Chưa có bộ bài tập nào</p>
+            </div>
+          ) : (
+            <div className={styles.setsGrid}>
+              {problemSets.map((s) => (
+                <ProblemSetCard key={s.code} set={s} />
+              ))}
+            </div>
+          )}
         </div>
       )}
+    </div>
+  );
+}
+
+function ProblemSetCard({ set }: { set: ProblemSet }) {
+  const statusLabel =
+    set.status === "published" ? "Đã xuất bản" : set.status === "draft" ? "Nháp" : "Đã ẩn";
+  const statusClass =
+    set.status === "published"
+      ? styles.statusBadgePublished
+      : set.status === "draft"
+        ? styles.statusBadgeDraft
+        : styles.statusBadgeHidden;
+
+  return (
+    <div className={styles.setCard}>
+      <div className={styles.setCardTop}>
+        <span className={styles.setCode}>{set.code}</span>
+        <span className={`${styles.statusBadge} ${statusClass}`}>{statusLabel}</span>
+      </div>
+
+      <p className={styles.setMeta}>{set.classCount > 0 ? `${set.classCount} lớp` : "—"}</p>
+      <h3 className={styles.setTitle}>{set.title}</h3>
+      <p className={styles.setSub}>
+        {set.problemCount} Bài · {set.dateRangeLabel ?? "-"}
+      </p>
+
+      <div className={styles.setProgress}>
+        <div className={styles.setProgressTrack}>
+          <div
+            className={styles.setProgressFill}
+            style={{ width: `${set.progressPercent}%` }}
+          />
+        </div>
+        <span className={styles.setProgressLabel}>{set.progressLabel}</span>
+      </div>
+
+      <button type="button" className={styles.setEditBtn}>
+        Sửa
+      </button>
     </div>
   );
 }
@@ -154,6 +265,28 @@ function FilterIcon() {
         strokeWidth="1.8"
         strokeLinecap="round"
       />
+    </svg>
+  );
+}
+
+function ImportIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M12 3v12M7 10l5 5 5-5M4 19h16"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function PlusIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+      <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }

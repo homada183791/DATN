@@ -1,6 +1,11 @@
+"use client";
+
 import styles from "./topbar.module.css";
 import { ThemeSwitcher } from "./theme-switcher";
 import { LanguageSwitcher } from "./language-switcher";
+import { NotificationBell } from "./notification-bell";
+import { UserMenu } from "./user-menu";
+import { useAuth } from "@/lib/auth/auth-context";
 
 export function Topbar({
   pageTitle,
@@ -9,6 +14,8 @@ export function Topbar({
   pageTitle: string;
   onLoginClick: () => void;
 }) {
+  const { isLoggedIn } = useAuth();
+
   return (
     <header className={styles.topbar}>
       <span className={styles.breadcrumb}>
@@ -26,10 +33,17 @@ export function Topbar({
       <ThemeSwitcher />
       <LanguageSwitcher />
 
-      <button type="button" className={styles.loginBtn} onClick={onLoginClick}>
-        <LoginIcon />
-        Đăng nhập
-      </button>
+      {isLoggedIn ? (
+        <>
+          <NotificationBell />
+          <UserMenu />
+        </>
+      ) : (
+        <button type="button" className={styles.loginBtn} onClick={onLoginClick}>
+          <LoginIcon />
+          Đăng nhập
+        </button>
+      )}
     </header>
   );
 }

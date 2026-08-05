@@ -1,0 +1,296 @@
+.welcomeTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.welcomeSubtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 4px 0 24px;
+}
+
+/* Stat cards */
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .statsRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.statCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.statIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--bg-hover);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.statValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+/* 2-column layout */
+.grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Shared panel look */
+.panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panelTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.panelHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.linkBtn {
+  font-size: 13px;
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.linkBtn:hover {
+  text-decoration: underline;
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+}
+
+.addBtn:hover {
+  background: var(--bg-hover);
+}
+
+/* Contributed problems table */
+.tableWrap {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th {
+  position: sticky;
+  top: 0;
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-weight: 600;
+  padding: 10px 18px;
+  background: var(--bg-app);
+  border-bottom: 1px solid var(--border);
+}
+
+.table td {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.problemTitle {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.problemCode {
+  display: block;
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 2px;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+.badgeMedium {
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.14);
+}
+
+.badgeEasy {
+  color: var(--accent);
+  background: rgba(14, 159, 110, 0.12);
+}
+
+.badgeHard {
+  color: #dc2626;
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.statusDotWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.statusDraft {
+  color: var(--text-muted);
+}
+
+.statusDraft .statusDot {
+  background: var(--text-faint);
+}
+
+.statusPublished {
+  color: var(--accent);
+}
+
+.statusPublished .statusDot {
+  background: var(--accent);
+}
+
+.updatedCell {
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.emptyCell {
+  text-align: center;
+  color: var(--text-faint);
+  padding: 40px 16px;
+}
+
+/* Upcoming contests / quick actions */
+.emptyPanelBody {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 13px;
+}
+
+.quickActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+
+.quickActionBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  background: var(--bg-app);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.quickActionBtn:hover {
+  background: var(--bg-hover);
+}
+
+.quickActionIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: rgba(14, 159, 110, 0.12);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
