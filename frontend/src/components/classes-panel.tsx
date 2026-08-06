@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./classes-panel.module.css";
 import { useResizableColumns, type ColumnDef } from "@/lib/use-resizable-columns";
+import { CreateClassModal } from "./create-class-modal";
+import { ClassImportModal } from "./class-import-modal";
 
 interface ClassItem {
   id: string;
@@ -15,10 +17,14 @@ interface ClassItem {
   memberCount: number;
 }
 
+// "Mô tả" cố tình để cuối mảng — cột cuối cùng trong danh sách này sẽ tự
+// giãn lấp khoảng trống còn lại bên phải (không có tay kéo riêng), y hệt
+// cách cột "Tags" hoạt động ở bảng Bài tập. "Thao tác" không nằm trong
+// mảng này vì nó là cột cố định 64px, không tham gia kéo giãn.
 const columns: ColumnDef[] = [
   { key: "name", label: "Tên lớp", width: 220, minWidth: 160 },
   { key: "teachers", label: "Giảng viên", width: 110, minWidth: 90 },
-  { key: "students", label: "Sinh viên", width: 110, minWidth: 90 },
+  { key: "students", label: "Học sinh", width: 110, minWidth: 90 },
   { key: "problemSets", label: "Bộ bài", width: 100, minWidth: 80 },
   { key: "exams", label: "Kỳ thi", width: 100, minWidth: 80 },
   { key: "members", label: "Thành viên", width: 120, minWidth: 90 },
@@ -30,11 +36,10 @@ const classes: ClassItem[] = [];
 
 export function ClassesPanel() {
   const [search, setSearch] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const tableWrapRef = useRef<HTMLDivElement>(null);
-  const { widths, startResize } = useResizableColumns(
-        columns,
-        tableWrapRef
-    );
+  const { widths, startResize } = useResizableColumns(columns, tableWrapRef);
 
   return (
     <div>
@@ -54,7 +59,11 @@ export function ClassesPanel() {
           <a href="/instructor/format-guide" className={styles.outlineBtn}>
             Hướng dẫn định dạng
           </a>
-          <button type="button" className={styles.outlineBtn}>
+          <button
+            type="button"
+            className={styles.outlineBtn}
+            onClick={() => setImportOpen(true)}
+          >
             <ImportIcon />
             Import lớp học
           </button>
@@ -62,10 +71,10 @@ export function ClassesPanel() {
       </div>
 
       <div className={styles.newRow}>
-        <a href="/instructor/classes/new" className={styles.createBtn}>
+        <button type="button" className={styles.createBtn} onClick={() => setCreateOpen(true)}>
           <PlusIcon />
           Tạo lớp
-        </a>
+        </button>
       </div>
 
       <div className={styles.panel}>
@@ -78,81 +87,53 @@ export function ClassesPanel() {
         </div>
 
         <div className={styles.tableWrap} ref={tableWrapRef}>
-            <table
-                className={styles.table}
-                style={{
-                    width: "100%",
-                    tableLayout: "fixed",
-                }}
-                >
-                <colgroup>
-                    {columns.map((c) => (
-                    <col
-                        key={c.key}
-                        style={{
-                        width: `${widths[c.key]}px`,
-                        }}
-                    />
-                    ))}
-
-                    <col style={{ width: "64px" }} />
-                </colgroup>
-
-                <thead>
-                    <tr>
-                    {columns.map((c, i) => {
-                        const isLast = false;
-
-                        return (
-                        <th
-                            key={c.key}
-                            className={styles.th}
-                        >
-                            <span className={styles.thLabel}>
-                            {c.label}
-                            </span>
-
-                            {!isLast && (
-                            <span
-                                className={styles.resizeHandle}
-                                onMouseDown={startResize(
-                                c.key,
-                                c.minWidth
-                                )}
-                                role="separator"
-                                aria-orientation="vertical"
-                                aria-label={`Kéo để đổi độ rộng cột ${c.label}`}
-                            />
-                            )}
-                        </th>
-                        );
-                    })}
-
-                    <th className={styles.thAction}>
-                        Thao tác
-                    </th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {classes.length === 0 ? (
-                    <tr className={styles.emptyRow}>
-                        <td colSpan={columns.length + 1}>
-                        Không tìm thấy lớp học nào
-                        </td>
-                    </tr>
-                    ) : (
-                    classes.map((c) => (
-                        <ClassRow
-                        key={c.id}
-                        item={c}
+          <table className={styles.table} style={{ width: "100%", tableLayout: "fixed" }}>
+            <colgroup>
+              {columns.map((c, i) => (
+                <col
+                  key={c.key}
+                  style={i === columns.length - 1 ? undefined : { width: widths[c.key] }}
+                />
+              ))}
+              <col style={{ width: 64 }} />
+            </colgroup>
+            <thead>
+              <tr>
+                {columns.map((c, i) => {
+                  const isLast = i === columns.length - 1;
+                  return (
+                    <th key={c.key} className={styles.th}>
+                      <span className={styles.thLabel}>{c.label}</span>
+                      {!isLast && (
+                        <span
+                          className={styles.resizeHandle}
+                          onMouseDown={startResize(c.key, c.minWidth)}
+                          role="separator"
+                          aria-orientation="vertical"
+                          aria-label={`Kéo để đổi độ rộng cột ${c.label}`}
                         />
-                    ))
-                    )}
-                </tbody>
-            </table>
+                      )}
+                    </th>
+                  );
+                })}
+                <th className={styles.thAction}>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {classes.length === 0 ? (
+                <tr className={styles.emptyRow}>
+                  <td colSpan={columns.length + 1}>Không tìm thấy lớp học nào</td>
+                </tr>
+              ) : (
+                classes.map((c) => <ClassRow key={c.id} item={c} />)
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
+
+      <CreateClassModal open={createOpen} onClose={() => setCreateOpen(false)} />
+      <ClassImportModal open={importOpen} onClose={() => setImportOpen(false)} />
     </div>
   );
 }
@@ -160,9 +141,7 @@ export function ClassesPanel() {
 function ClassRow({ item }: { item: ClassItem }) {
   return (
     <tr>
-        <td className={styles.nameCell}>
-            {item.name}
-        </td>
+      <td>{item.name}</td>
       <td className={styles.numCell}>{item.teacherCount}</td>
       <td className={styles.numCell}>{item.studentCount}</td>
       <td className={styles.numCell}>{item.problemSetCount}</td>
@@ -203,41 +182,26 @@ function ClassRowActions() {
 
       {open && (
         <div className={styles.actionMenu} role="menu">
-                    <button
-            type="button"
-            className={styles.actionMenuItem}
-            onClick={() => setOpen(false)}
-            >
+          <button type="button" className={styles.actionMenuItem} onClick={() => setOpen(false)}>
             <DownloadIcon />
             Tải lớp học (.zip)
-            </button>
-
-            <button
-            type="button"
-            className={styles.actionMenuItem}
-            onClick={() => setOpen(false)}
-            >
+          </button>
+          <button type="button" className={styles.actionMenuItem} onClick={() => setOpen(false)}>
             <EditIcon />
             Chỉnh sửa lớp
-            </button>
-
-            <button
-            type="button"
-            className={styles.actionMenuItem}
-            onClick={() => setOpen(false)}
-            >
+          </button>
+          <button type="button" className={styles.actionMenuItem} onClick={() => setOpen(false)}>
             <DuplicateIcon />
-            Nhân bản lớp học
-            </button>
-
-            <button
+            Nhân bản
+          </button>
+          <button
             type="button"
             className={`${styles.actionMenuItem} ${styles.actionMenuItemDanger}`}
             onClick={() => setOpen(false)}
-            >
+          >
             <TrashIcon />
-            Xóa lớp học
-            </button>
+            Xóa
+          </button>
         </div>
       )}
     </div>

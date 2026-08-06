@@ -3,7 +3,7 @@
 import { useState } from "react";
 import styles from "./contests-panel.module.css";
 import { useAuth } from "@/lib/auth/auth-context";
-import { SystemClock } from "./system-clock";
+import { ContestImportModal } from "./contest-import-modal";
 
 type StatusTab = "ongoing" | "upcoming" | "ended";
 
@@ -29,6 +29,7 @@ const contests: Contest[] = [];
 
 export function ContestsPanel() {
   const [tab, setTab] = useState<StatusTab>("ongoing");
+  const [showImportModal, setShowImportModal] = useState(false);
   const { user } = useAuth();
   const isInstructor = user?.role === "instructor";
 
@@ -45,7 +46,11 @@ export function ContestsPanel() {
             <a href="/instructor/format-guide" className={styles.outlineBtn}>
               Hướng dẫn định dạng
             </a>
-            <button type="button" className={styles.outlineBtn}>
+            <button
+              type="button"
+              className={styles.outlineBtn}
+              onClick={() => setShowImportModal(true)}
+            >
               <ImportIcon />
               Import cuộc thi
             </button>
@@ -87,6 +92,10 @@ export function ContestsPanel() {
         </div>
       )}
 
+      <ContestImportModal
+        open={showImportModal}
+        onClose={() => setShowImportModal(false)}
+      />
     </div>
   );
 }

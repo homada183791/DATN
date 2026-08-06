@@ -1,0 +1,201 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+
+  background: rgba(15, 23, 42, 0.45);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 1000;
+}
+
+.modal {
+  width: 480px;
+  max-width: calc(100vw - 32px);
+
+  background: var(--bg-surface);
+
+  border-radius: 12px;
+
+  padding: 22px;
+
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.15),
+    0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 18px;
+}
+
+.header h2 {
+  margin: 0;
+
+  font-size: 20px;
+  font-weight: 700;
+
+  color: var(--text);
+}
+
+.closeBtn {
+  border: none;
+  background: none;
+
+  width: 32px;
+  height: 32px;
+
+  font-size: 22px;
+  line-height: 1;
+
+  color: var(--text-muted);
+
+  cursor: pointer;
+}
+
+.closeBtn:hover {
+  color: var(--text);
+}
+
+.uploadBox {
+  border: 1px dashed var(--border);
+
+  border-radius: 12px;
+
+  min-height: 200px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 12px;
+
+  color: var(--accent);
+
+  cursor: pointer;
+}
+
+.uploadBox:hover,
+.uploadBoxActive {
+  background: rgba(14, 159, 110, 0.06);
+  border-color: var(--accent);
+}
+
+.uploadBox h3 {
+  margin: 0;
+
+  font-size: 18px;
+  font-weight: 500;
+
+  color: var(--text);
+}
+
+.uploadBox p {
+  margin: 0;
+
+  font-size: 13px;
+
+  color: var(--text-faint);
+}
+
+.fileRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+
+  margin-top: 4px;
+}
+
+.fileIcon {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.fileInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.fileName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileSize {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.removeFileBtn {
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  padding: 4px;
+  cursor: pointer;
+}
+
+.removeFileBtn:hover {
+  color: #ef4444;
+}
+
+.errorText {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: #ef4444;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cancelBtn {
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.cancelBtn:hover {
+  background: var(--bg-hover);
+}
+
+.confirmBtn {
+  border: none;
+  background: var(--accent);
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.confirmBtn:hover {
+  background: #0c8760;
+}
+
+.confirmBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

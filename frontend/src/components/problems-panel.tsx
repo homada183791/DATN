@@ -5,6 +5,7 @@ import styles from "./problems-panel.module.css";
 import { useToast } from "./toast-context";
 import { useResizableColumns, type ColumnDef } from "@/lib/use-resizable-columns";
 import { useAuth } from "@/lib/auth/auth-context";
+import { ProblemImportModal } from "./problem-import-modal";
 
 type Tab = "problems" | "problem-sets";
 
@@ -45,6 +46,7 @@ export function ProblemsPanel() {
   const [tab, setTab] = useState<Tab>("problems");
   const [search, setSearch] = useState("");
   const [onlyMine, setOnlyMine] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const { showToast } = useToast();
   const { user } = useAuth();
   const isInstructor = user?.role === "instructor";
@@ -77,7 +79,11 @@ export function ProblemsPanel() {
               Bài tôi đóng góp
             </label>
 
-            <button type="button" className={styles.importBtn}>
+            <button
+              type="button"
+              className={styles.importBtn}
+              onClick={() => setImportOpen(true)}
+            >
               <ImportIcon />
               Import
             </button>
@@ -138,15 +144,13 @@ export function ProblemsPanel() {
           <div className={styles.tableWrap} ref={tableWrapRef}>
             <table className={styles.table} style={{ width: "100%", tableLayout: "fixed" }}>
               <colgroup>
-                  {columns.map((c) => (
-                    <col
-                      key={c.key}
-                      style={{
-                        width: `${widths[c.key]}px`,
-                      }}
-                    />
-                  ))}
-                </colgroup>
+                {columns.map((c, i) => (
+                  <col
+                    key={c.key}
+                    style={i === columns.length - 1 ? undefined : { width: widths[c.key] }}
+                  />
+                ))}
+              </colgroup>
               <thead>
                 <tr>
                   {columns.map((c, i) => {
@@ -154,15 +158,17 @@ export function ProblemsPanel() {
                     return (
                       <th key={c.key} className={styles.th}>
                         <span className={styles.thLabel}>{c.label}</span>
-                          {!isLast && (
-                            <span
-                              className={styles.resizeHandle}
-                              onMouseDown={startResize(c.key, c.minWidth)}
-                              role="separator"
-                              aria-orientation="vertical"
-                              aria-label={`Kéo để đổi độ rộng cột ${c.label}`}
-                            />
-                          )}
+                        {!isLast && (
+                          <span
+                            className={styles.resizeHandle}
+                            onMouseDown={startResize(c.key, c.minWidth)}
+                            draggable={false}
+                            onDragStart={(e) => e.preventDefault()}
+                            role="separator"
+                            aria-orientation="vertical"
+                            aria-label={`Kéo để đổi độ rộng cột ${c.label}`}
+                          />
+                        )}
                       </th>
                     );
                   })}
@@ -203,6 +209,8 @@ export function ProblemsPanel() {
           )}
         </div>
       )}
+
+      <ProblemImportModal open={importOpen} onClose={() => setImportOpen(false)} />
     </div>
   );
 }
