@@ -18,7 +18,7 @@ interface ClassItem {
 const columns: ColumnDef[] = [
   { key: "name", label: "Tên lớp", width: 220, minWidth: 160 },
   { key: "teachers", label: "Giảng viên", width: 110, minWidth: 90 },
-  { key: "students", label: "Học sinh", width: 110, minWidth: 90 },
+  { key: "students", label: "Sinh viên", width: 110, minWidth: 90 },
   { key: "problemSets", label: "Bộ bài", width: 100, minWidth: 80 },
   { key: "exams", label: "Kỳ thi", width: 100, minWidth: 80 },
   { key: "members", label: "Thành viên", width: 120, minWidth: 90 },
