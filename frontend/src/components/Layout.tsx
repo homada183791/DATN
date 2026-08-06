@@ -328,7 +328,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
           <button
             onClick={toggleTheme}
             className="p-2 rounded-lg text-[#8a8073] hover:text-[#193a2b] hover:bg-[#eadecc]/60 transition-colors"
-            title={dark ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'}
+            title={dark ? 'Chế độ sáng' : 'Chế độ tối'}
           >
             {dark ? <Sun size={18} /> : <Moon size={18} />}
           </button>
