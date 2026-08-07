@@ -2,7 +2,7 @@
 
 Hệ thống chấm bài lập trình trực tuyến, gồm 3 thành phần chính:
 
-- **frontend/** — Next.js (TypeScript)
+- **frontend/** — React.js (TypeScript)
 - **backend/** — Node.js + TypeScript (Express/Fastify), quản lý bài tập, người dùng, submissions
 - **judge-runner/** — service cô lập, chịu trách nhiệm compile & chạy code người dùng nộp trong container riêng
 
