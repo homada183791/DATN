@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./problem-editor.module.css";
 import { InfoTab, type ProblemFormState } from "./info-tab";
+import { StatementTab } from "./statement-tab";
 import { useToast } from "@/components/toast-context";
 
 const DRAFT_KEY = "judgehub_problem_draft";
@@ -32,6 +33,9 @@ const emptyForm: ProblemFormState = {
   gradingEnabled: true,
   gradeHiddenTests: true,
   hiddenTestExecMode: "background",
+
+  statementMarkdown: "",
+  statementPdfFileName: null,
 };
 
 const tabs = [
@@ -144,6 +148,8 @@ export function ProblemEditor() {
       <div className={styles.tabPanel}>
         {tab === "info" ? (
           <InfoTab form={form} setForm={setForm} />
+        ) : tab === "statement" ? (
+          <StatementTab form={form} setForm={setForm} />
         ) : (
           <div className={styles.stubPanel}>
             Phần &quot;{tabs.find((t) => t.key === tab)?.label}&quot; đang được xây dựng.

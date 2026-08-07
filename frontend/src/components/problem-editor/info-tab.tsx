@@ -1,6 +1,7 @@
 "use client";
 
 import { ToggleSwitch } from "@/components/toggle-switch";
+import { InfoTooltip } from "@/components/info-tooltip";
 import styles from "./info-tab.module.css";
 
 export interface ProblemFormState {
@@ -28,6 +29,9 @@ export interface ProblemFormState {
   gradingEnabled: boolean;
   gradeHiddenTests: boolean;
   hiddenTestExecMode: string;
+
+  statementMarkdown: string;
+  statementPdfFileName: string | null;
 }
 
 const LANGUAGES = [
@@ -286,21 +290,19 @@ export function InfoTab({
             label="Bật chấm bài"
             checked={form.gradingEnabled}
             onChange={(v) => update("gradingEnabled", v)}
-            withInfoIcon
+            tooltip="Sinh viên vẫn nộp được bài nhưng KHÔNG được chấm (bài giữ trạng thái chờ). Bật lại KHÔNG tự động chấm các bài đã nộp trong lúc tắt."
           />
           <ConfigToggle
             label="Chấm test ẩn"
             checked={form.gradeHiddenTests}
             onChange={(v) => update("gradeHiddenTests", v)}
-            withInfoIcon
+            tooltip="Chỉ chạy và chấm nhóm test mẫu (sample); test ẩn không được chấm."
           />
 
           <div>
             <div className={styles.configSelectLabel}>
               Chế độ thực thi test ẩn
-              <span className={styles.infoIcon}>
-                <InfoIcon />
-              </span>
+              <InfoTooltip text="Áp dụng khi 'Chấm test ẩn' đang TẮT. [Chạy nền]: test ẩn vẫn chạy ngầm mỗi lần nộp bài (không tính điểm/không hiện) để có thể bật lại + tính điểm ngay sau đó, KHÔNG cần chấm lại. [Chờ chấm lại]: test ẩn KHÔNG chạy; muốn lấy kết quả phải bấm chấm lại (chạy lại toàn bộ)." />
             </div>
             <select
               className={styles.configSelect}
@@ -308,8 +310,7 @@ export function InfoTab({
               onChange={(e) => update("hiddenTestExecMode", e.target.value)}
             >
               <option value="background">Chạy nền (mặc định)</option>
-              <option value="foreground">Chạy ngay khi nộp</option>
-              <option value="manual">Chạy thủ công</option>
+              <option value="wait_regrade">Chờ chấm lại</option>
             </select>
           </div>
         </div>
@@ -323,13 +324,13 @@ function ConfigToggle({
   checked,
   onChange,
   help,
-  withInfoIcon,
+  tooltip,
 }: {
   label: string;
   checked: boolean;
   onChange: (v: boolean) => void;
   help?: string;
-  withInfoIcon?: boolean;
+  tooltip?: string;
 }) {
   return (
     <div className={styles.configOption}>
@@ -337,11 +338,7 @@ function ConfigToggle({
       <div className={styles.configOptionText}>
         <div className={styles.configOptionLabelRow}>
           {label}
-          {withInfoIcon && (
-            <span className={styles.infoIcon}>
-              <InfoIcon />
-            </span>
-          )}
+          {tooltip && <InfoTooltip text={tooltip} />}
         </div>
         {help && <p className={styles.configOptionHelp}>{help}</p>}
       </div>
@@ -359,16 +356,6 @@ function CheckIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-    </svg>
-  );
-}
-
-function InfoIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M12 11v5.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <circle cx="12" cy="8" r="0.9" fill="currentColor" />
     </svg>
   );
 }
