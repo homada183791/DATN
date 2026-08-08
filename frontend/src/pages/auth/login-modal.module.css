@@ -1,0 +1,216 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 10, 9, 0.64);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 50;
+}
+
+.modal {
+  position: relative;
+  width: 440px;
+  max-width: 100%;
+  max-height: min(90vh, 760px);
+  overflow-y: auto;
+  background: var(--ws-panel);
+  border: 1px solid var(--ws-border);
+  border-radius: 20px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+  padding: 28px 28px 24px;
+  font-family: -apple-system, "Segoe UI", Inter, system-ui, sans-serif;
+  color: var(--ws-text);
+}
+
+.closeBtn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: var(--ws-muted);
+  padding: 2px;
+  line-height: 0;
+  cursor: pointer;
+}
+
+.closeBtn:hover {
+  color: var(--ws-text);
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ws-text);
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--ws-muted);
+  margin: 4px 0 0;
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+.errorMessage {
+  margin: 0 0 10px;
+  color: #ef4444;
+  font-size: 13px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ws-muted);
+  margin-bottom: 6px;
+}
+
+.required {
+  color: #ef4444;
+}
+
+.field input {
+  width: 100%;
+  border: 1px solid var(--ws-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--ws-text);
+  background: var(--ws-editor);
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--ws-accent);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16);
+}
+
+.passwordWrap {
+  position: relative;
+}
+
+.passwordWrap input {
+  padding-right: 40px;
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--ws-muted);
+  padding: 4px;
+  line-height: 0;
+  cursor: pointer;
+}
+
+.eyeBtn:hover {
+  color: var(--ws-text);
+}
+
+.submitBtn {
+  width: 100%;
+  background: var(--ws-accent);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 6px;
+  cursor: pointer;
+}
+
+.submitBtn:hover {
+  background: var(--ws-accent-strong);
+}
+
+.linkRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 13px;
+}
+
+.linkRowText {
+  color: var(--ws-muted);
+}
+
+.link {
+  color: var(--ws-accent);
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+/* Divider */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0 16px;
+  font-size: 12px;
+  color: var(--ws-faint);
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--ws-border);
+}
+
+/* SSO buttons */
+.ssoBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid var(--ws-border);
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--ws-panel);
+  color: var(--ws-text);
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.ssoBtn:last-child {
+  margin-bottom: 0;
+}
+
+.ssoBtn:hover {
+  background: var(--ws-hover);
+}
