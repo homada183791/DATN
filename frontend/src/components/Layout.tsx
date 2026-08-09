@@ -156,13 +156,13 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
         {/* Logo */}
         <div className="flex items-center h-16 px-4 border-b border-[#e5dac9]">
           <div className="flex items-center gap-3 overflow-hidden w-full">
-            <div className="flex-shrink-0 w-10 h-10 bg-[#193a2b] rounded-xl flex items-center justify-center">
-              <Code2 size={22} className="text-[#f7f4eb]" />
+            <div className="flex-shrink-0 w-10 h-10 rounded-xl overflow-hidden bg-white border border-[#e5dac9] flex items-center justify-center">
+              <img src="/logo-hcmus.png" alt="HCMUS" className="w-full h-full object-contain p-1" />
             </div>
             {sidebarOpen && (
               <div className="leading-tight whitespace-nowrap">
                 <p className="text-[17px] font-bold text-[#191919] font-serif tracking-tight">JudgeHub</p>
-                <p className="text-[10.5px] text-[#8a8073]">University Online Judge</p>
+                <p className="text-[10.5px] text-[#8a8073]">University Of Science</p>
               </div>
             )}
           </div>
