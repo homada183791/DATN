@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -27,6 +27,7 @@ import {
   Bug,
   FlaskConical,
   Loader2,
+  MessageCircle,
 } from 'lucide-react';
 
 /* ---------------- syntax highlighting ---------------- */
@@ -80,6 +81,7 @@ type LayoutMode = 'split' | 'statement' | 'editor';
 type BottomTab = 'tests' | 'console' | 'results' | 'debug';
 interface ConsoleLine { time: string; msg: string; kind: 'info' | 'ok' | 'err' | 'sys' }
 interface TestVerdict { id: number; status: 'AC' | 'WA' | 'TLE'; time: number; memory: number }
+interface AssistantMessage { id: number; role: 'user' | 'assistant'; content: string }
 
 const now = () => new Date().toLocaleTimeString('en-GB', { hour12: false });
 
@@ -154,10 +156,22 @@ export default function ProblemSolve() {
   const [judgeProgress, setJudgeProgress] = useState(0);
   const [testVerdicts, setTestVerdicts] = useState<TestVerdict[]>([]);
   const [finalVerdict, setFinalVerdict] = useState<string | null>(null);
+  const [showAssistant, setShowAssistant] = useState(false);
+  const [showAssistantMobile, setShowAssistantMobile] = useState(false);
+  const [assistantInput, setAssistantInput] = useState('');
+  const [assistantBusy, setAssistantBusy] = useState(false);
+  const [assistantMessages, setAssistantMessages] = useState<AssistantMessage[]>([
+    {
+      id: 1,
+      role: 'assistant',
+      content: `Xin chào! Tôi là trợ lý học tập cho bài “${problem.title}”. Bạn có thể hỏi về đề bài, gợi ý thuật toán hoặc cách viết code.`,
+    },
+  ]);
 
   const taRef = useRef<HTMLTextAreaElement>(null);
   const preRef = useRef<HTMLPreElement>(null);
   const gutterRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<number | null>(null);
 
   /* load code when problem/lang changes */
@@ -171,6 +185,23 @@ export default function ProblemSolve() {
     setSamples(detail.samples.map((s) => ({ ...s })));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [problem.id, lang]);
+
+  useEffect(() => {
+    setAssistantMessages([
+      {
+        id: Date.now(),
+        role: 'assistant',
+        content: `Xin chào! Tôi là trợ lý học tập cho bài “${problem.title}”. Bạn có thể hỏi về đề bài, gợi ý thuật toán hoặc cách viết code.`,
+      },
+    ]);
+    setShowAssistant(false);
+    setShowAssistantMobile(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [problem.id]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [assistantMessages, showAssistant]);
 
   const pushConsole = useCallback((msg: string, kind: ConsoleLine['kind'] = 'info') => {
     setConsoleLines((prev) => [...prev, { time: now(), msg, kind }]);
@@ -315,6 +346,39 @@ export default function ProblemSolve() {
     URL.revokeObjectURL(a.href);
   };
 
+  const getAssistantReply = (text: string) => {
+    const input = text.toLowerCase();
+    if (input.includes('gợi ý') || input.includes('hint') || input.includes('ý tưởng')) {
+      return `Gợi ý cho ${problem.title}: hãy bắt đầu bằng cách phân tích đầu vào, đầu ra và các trường hợp biên. Sau đó, thử xây dựng một giải pháp đơn giản trước khi tối ưu.`;
+    }
+    if (input.includes('độ phức tạp') || input.includes('complex')) {
+      return `Bạn có thể ưu tiên giải pháp có độ phức tạp tuyến tính hoặc logarit nếu phù hợp. Hãy chú ý đến số lần duyệt dữ liệu và bộ nhớ sử dụng.`;
+    }
+    if (input.includes('code') || input.includes('viết') || input.includes('c++') || input.includes('python') || input.includes('java')) {
+      return `Mình có thể hỗ trợ viết khung code cho ${detail.code}. Hãy cho mình ngôn ngữ bạn đang dùng để mình đưa template phù hợp.`;
+    }
+    if (input.includes('đề bài') || input.includes('ý nghĩa')) {
+      return `Đây là bài tập về ${problem.title}. Hãy đọc kỹ ví dụ và xác định hành vi mong muốn trước khi viết code.`;
+    }
+    return `Mình có thể hỗ trợ bạn hiểu bài “${problem.title}” và gợi ý cách giải. Hãy thử hỏi: “gợi ý”, “độ phức tạp” hoặc “viết code mẫu”.`;
+  };
+
+  const askAssistant = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const text = assistantInput.trim();
+    if (!text) return;
+
+    setAssistantMessages((prev) => [...prev, { id: Date.now(), role: 'user', content: text }]);
+    setAssistantInput('');
+    setAssistantBusy(true);
+
+    window.setTimeout(() => {
+      const reply = getAssistantReply(text);
+      setAssistantMessages((prev) => [...prev, { id: Date.now() + 1, role: 'assistant', content: reply }]);
+      setAssistantBusy(false);
+    }, 450);
+  };
+
   const solved = submissions.some((s) => s.userId === user?.id && s.problemId === problem.id && s.verdict === 'AC');
 
   const lineCount = code.split('\n').length;
@@ -367,6 +431,12 @@ export default function ProblemSolve() {
               </button>
             ))}
           </div>
+          <button
+            onClick={() => setShowAssistant((v) => !v)}
+            className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[12.5px] font-medium transition-colors ${showAssistant ? 'border-[var(--ws-accent)] text-[var(--ws-accent)] bg-[var(--ws-accent-soft)]' : 'border-[var(--ws-border)] text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:border-[var(--ws-accent)]'}`}
+          >
+            <MessageCircle size={14} /> {showAssistant ? 'Ẩn trợ lý' : 'Mở trợ lý'}
+          </button>
         </div>
 
         {/* mobile pane switch */}
@@ -384,15 +454,16 @@ export default function ProblemSolve() {
 
         {/* ============ SPLIT BODY ============ */}
         <div className="flex-1 flex min-h-0">
-          {/* ---- statement pane ---- */}
-          {(layout !== 'editor') && (
-            <section
-              className={`overflow-y-auto ws-editor-scroll bg-[var(--ws-bg)] ${
-                layout === 'split'
-                  ? `${mobilePane === 'statement' ? 'block' : 'hidden'} md:block md:w-1/2 border-r border-[var(--ws-border)]`
-                  : 'w-full'
-              }`}
-            >
+          <div className="flex-1 flex min-h-0 min-w-0">
+            {/* ---- statement pane ---- */}
+            {(layout !== 'editor') && (
+              <section
+                className={`overflow-y-auto ws-editor-scroll bg-[var(--ws-bg)] ${
+                  layout === 'split'
+                    ? `${mobilePane === 'statement' ? 'block' : 'hidden'} md:block md:w-1/2 border-r border-[var(--ws-border)]`
+                    : 'w-full'
+                }`}
+              >
               <div className="px-7 py-6 max-w-3xl">
                 {/* limits */}
                 <div className="grid grid-cols-3 gap-6 pb-5 border-b border-[var(--ws-border)]">
@@ -474,18 +545,18 @@ export default function ProblemSolve() {
                   </div>
                 ))}
               </div>
-            </section>
-          )}
+              </section>
+            )}
 
-          {/* ---- editor pane ---- */}
-          {(layout !== 'statement') && (
-            <section
-              className={`min-w-0 bg-[var(--ws-editor)] ${
-                layout === 'split'
-                  ? `${mobilePane === 'editor' ? 'flex' : 'hidden'} md:flex md:w-1/2 flex-col`
-                  : 'flex w-full flex-col'
-              }`}
-            >
+            {/* ---- editor pane ---- */}
+            {(layout !== 'statement') && (
+              <section
+                className={`min-w-0 bg-[var(--ws-editor)] ${
+                  layout === 'split'
+                    ? `${mobilePane === 'editor' ? 'flex' : 'hidden'} md:flex md:w-1/2 flex-col`
+                    : 'flex w-full flex-col'
+                }`}
+              >
               {/* editor toolbar */}
               <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--ws-border)] flex-wrap">
                 <div className="flex items-center rounded-lg border border-[var(--ws-border)] overflow-hidden text-[12.5px] font-semibold">
@@ -747,9 +818,116 @@ export default function ProblemSolve() {
                   )}
                 </div>
               </div>
-            </section>
+              </section>
+            )}
+          </div>
+
+          {showAssistant && (
+            <aside className="hidden lg:flex w-[360px] border-l border-[var(--ws-border)] bg-[var(--ws-panel)] flex-col">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--ws-border)] bg-[var(--ws-panel2)]">
+                <div className="flex items-center gap-2">
+                  <MessageCircle size={15} className="text-[var(--ws-accent)]" />
+                  <div>
+                    <p className="text-[13px] font-semibold text-[var(--ws-text)]">AI Assistant</p>
+                    <p className="text-[11px] text-[var(--ws-faint)]">Trợ lý AI cho bài hiện tại</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowAssistant(false)}
+                  className="rounded-lg p-1.5 text-[var(--ws-muted)] hover:bg-[var(--ws-panel)] hover:text-[var(--ws-text)]"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto ws-editor-scroll p-3 space-y-2 bg-[var(--ws-bg)]">
+                {assistantMessages.map((msg) => (
+                  <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-[var(--ws-accent)] text-[#062a25]' : 'bg-[var(--ws-panel)] text-[var(--ws-text)] border border-[var(--ws-border)]'}`}>
+                      {msg.content}
+                    </div>
+                  </div>
+                ))}
+                {assistantBusy && (
+                  <div className="flex justify-start">
+                    <div className="rounded-2xl border border-[var(--ws-border)] bg-[var(--ws-panel)] px-3 py-2 text-[13px] text-[var(--ws-muted)]">
+                      Đang suy nghĩ...
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              <form onSubmit={askAssistant} className="border-t border-[var(--ws-border)] bg-[var(--ws-panel)] p-3">
+                <div className="flex items-center gap-2 rounded-xl border border-[var(--ws-border)] bg-[var(--ws-editor)] px-3 py-2">
+                  <input
+                    value={assistantInput}
+                    onChange={(e) => setAssistantInput(e.target.value)}
+                    placeholder="Hỏi về đề bài hoặc cách giải..."
+                    className="flex-1 bg-transparent text-[13px] text-[var(--ws-text)] outline-none placeholder:text-[var(--ws-faint)]"
+                  />
+                  <button type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-[var(--ws-accent)] p-2 text-[#062a25] disabled:opacity-50">
+                    <Send size={14} />
+                  </button>
+                </div>
+              </form>
+            </aside>
           )}
         </div>
+
+      <button
+        onClick={() => setShowAssistantMobile(true)}
+        className="fixed bottom-4 right-4 z-[85] flex lg:hidden items-center gap-2 rounded-full bg-[var(--ws-accent)] px-4 py-3 text-[13px] font-semibold text-[#062a25] shadow-xl transition-transform hover:scale-105"
+      >
+        <MessageCircle size={16} />
+        Trợ lý AI
+      </button>
+
+      {showAssistantMobile && (
+        <div className="fixed inset-0 z-[90] bg-black/55 backdrop-blur-[2px] lg:hidden" onClick={() => setShowAssistantMobile(false)}>
+          <div className="absolute bottom-0 left-0 right-0 h-[72vh] rounded-t-2xl border-t border-x border-[var(--ws-border)] bg-[var(--ws-panel)] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--ws-border)]">
+              <div className="flex items-center gap-2">
+                <MessageCircle size={15} className="text-[var(--ws-accent)]" />
+                <p className="text-[13px] font-semibold">Leet Coach</p>
+              </div>
+              <button onClick={() => setShowAssistantMobile(false)} className="rounded-lg p-1.5 text-[var(--ws-muted)] hover:bg-[var(--ws-panel2)] hover:text-[var(--ws-text)]">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto ws-editor-scroll p-3 space-y-2 bg-[var(--ws-bg)]">
+              {assistantMessages.map((msg) => (
+                <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-[var(--ws-accent)] text-[#062a25]' : 'bg-[var(--ws-panel)] text-[var(--ws-text)] border border-[var(--ws-border)]'}`}>
+                    {msg.content}
+                  </div>
+                </div>
+              ))}
+              {assistantBusy && (
+                <div className="flex justify-start">
+                  <div className="rounded-2xl border border-[var(--ws-border)] bg-[var(--ws-panel)] px-3 py-2 text-[13px] text-[var(--ws-muted)]">
+                    Đang suy nghĩ...
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+            <form onSubmit={askAssistant} className="border-t border-[var(--ws-border)] bg-[var(--ws-panel)] p-3">
+              <div className="flex items-center gap-2 rounded-xl border border-[var(--ws-border)] bg-[var(--ws-editor)] px-3 py-2">
+                <input
+                  value={assistantInput}
+                  onChange={(e) => setAssistantInput(e.target.value)}
+                  placeholder="Hỏi về đề bài hoặc cách giải..."
+                  className="flex-1 bg-transparent text-[13px] text-[var(--ws-text)] outline-none placeholder:text-[var(--ws-faint)]"
+                />
+                <button type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-[var(--ws-accent)] p-2 text-[#062a25] disabled:opacity-50">
+                  <Send size={14} />
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* ============ SOLUTION MODAL ============ */}
       {showSolution && hasDocument && createPortal((
