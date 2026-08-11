@@ -24,18 +24,26 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/mapped-types": "^2.1.1",
+    "@nestjs/microservices": "^11.1.28",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-socket.io": "^11.1.28",
+    "@nestjs/swagger": "^11.4.6",
+    "@nestjs/websockets": "^11.1.28",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
+    "amqp-connection-manager": "^5.0.0",
+    "amqplib": "^2.0.1",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
+    "ioredis": "^5.11.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.22.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -82,5 +90,12 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "allowScripts": {
+    "ioredis@5.11.1": true,
+    "@prisma/engines@7.9.1": true,
+    "prisma@7.9.1": true,
+    "bcrypt@6.0.0": true,
+    "unrs-resolver@1.12.2": true
   }
 }
