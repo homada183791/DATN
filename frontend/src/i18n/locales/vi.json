@@ -1,0 +1,48 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "problems": "Bài tập",
+    "contest": "Kỳ thi",
+    "submission": "Nộp bài",
+    "class": "Lớp học",
+    "homework": "Giao bài tập",
+    "students": "Sinh viên",
+    "problemBank": "Ngân hàng bài tập"
+  },
+  "breadcrumb": {
+    "student": "Sinh viên",
+    "instructor": "Giảng viên",
+    "dashboard": "Dashboard",
+    "problems": "Bài tập",
+    "problem": "Làm bài",
+    "homework": "Bài tập về nhà",
+    "contest": "Kỳ thi",
+    "submission": "Nộp bài",
+    "class": "Lớp học",
+    "profile": "Hồ sơ",
+    "settings": "Cài đặt",
+    "students": "Sinh viên"
+  },
+  "topbar": {
+    "searchPlaceholder": "Tìm bài tập, người dùng…",
+    "searchResults": "Kết quả",
+    "searchEmpty": "Không tìm thấy bài nào.",
+    "palette": "Bảng màu",
+    "paletteTitle": "Bảng màu giao diện",
+    "themeToLight": "Chuyển sang chế độ sáng",
+    "themeToDark": "Chuyển sang chế độ tối",
+    "language": "Ngôn ngữ",
+    "langVi": "Tiếng Việt",
+    "langEn": "English",
+    "notifications": "Thông báo",
+    "notifContestTitle": "Kỳ thi \"Luyện tập Đồ thị\" đang diễn ra",
+    "notifContestMeta": "5 phút trước • {{count}} người tham gia",
+    "notifSubmissionPrefix": "Bài nộp {{id}} đã được chấm:",
+    "notifSubmissionMeta": "1 giờ trước"
+  },
+  "userMenu": {
+    "myProfile": "Hồ sơ của tôi",
+    "settings": "Cài đặt",
+    "logout": "Đăng xuất"
+  }
+}
