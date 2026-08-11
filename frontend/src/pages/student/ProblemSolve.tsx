@@ -28,6 +28,8 @@ import {
   FlaskConical,
   Loader2,
   MessageCircle,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 /* ---------------- syntax highlighting ---------------- */
@@ -149,6 +151,52 @@ export default function ProblemSolve() {
 
   /* judge state */
   const [bottomTab, setBottomTab] = useState<BottomTab>('tests');
+  const [bottomHeight, setBottomHeight] = useState(256);
+  const COLLAPSED_HEIGHT = 45;
+  const bottomCollapsed = bottomHeight <= COLLAPSED_HEIGHT + 1;
+  const prevHeightRef = useRef(256);
+  const resizingRef = useRef<{ startY: number; startHeight: number } | null>(null);
+
+  const startBottomResize = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    // Đo đúng khoảng trống thực tế còn lại từ vị trí thanh kéo tới đáy màn
+    // hình — tránh trường hợp trừ cứng 1 con số ước lượng khiến hàng tab bị
+    // đẩy chìm khỏi vùng nhìn thấy khi các thanh phía trên (topbar, tiêu đề
+    // bài, thanh công cụ...) cao thấp khác nhau tuỳ màn hình.
+    const maxHeight = window.innerHeight * 0.6;
+
+    resizingRef.current = { startY: e.clientY, startHeight: bottomHeight };
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+
+    function onMouseMove(ev: MouseEvent) {
+      const drag = resizingRef.current;
+      if (!drag) return;
+      const delta = drag.startY - ev.clientY;
+      const next = Math.min(Math.max(drag.startHeight + delta, COLLAPSED_HEIGHT), maxHeight);
+      setBottomHeight(next);
+      if (next > COLLAPSED_HEIGHT) prevHeightRef.current = next;
+    }
+    function onMouseUp() {
+      resizingRef.current = null;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    }
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  }, [bottomHeight]);
+
+  function toggleBottomCollapsed() {
+    if (bottomCollapsed) {
+      setBottomHeight(prevHeightRef.current || 256);
+    } else {
+      prevHeightRef.current = bottomHeight;
+      setBottomHeight(COLLAPSED_HEIGHT);
+    }
+  }
+
   const [samples, setSamples] = useState(detail.samples.map((s) => ({ ...s })));
   const [consoleLines, setConsoleLines] = useState<ConsoleLine[]>([]);
   const [running, setRunning] = useState(false);
@@ -453,18 +501,18 @@ export default function ProblemSolve() {
         </div>
 
         {/* ============ SPLIT BODY ============ */}
-        <div className="flex-1 flex min-h-0">
+        <div className="flex-1 flex min-h-0 overflow-hidden">
           <div className="flex-1 flex min-h-0 min-w-0">
             {/* ---- statement pane ---- */}
             {(layout !== 'editor') && (
               <section
-                className={`overflow-y-auto ws-editor-scroll bg-[var(--ws-bg)] ${
+                className={`overflow-y-auto overflow-x-hidden ws-editor-scroll bg-[var(--ws-bg)] ${
                   layout === 'split'
                     ? `${mobilePane === 'statement' ? 'block' : 'hidden'} md:block md:w-1/2 border-r border-[var(--ws-border)]`
                     : 'w-full'
                 }`}
               >
-              <div className="px-7 py-6 max-w-3xl">
+              <div className="px-7 py-6 max-w-3xl pb-20">
                 {/* limits */}
                 <div className="grid grid-cols-3 gap-6 pb-5 border-b border-[var(--ws-border)]">
                   <div>
@@ -551,7 +599,7 @@ export default function ProblemSolve() {
             {/* ---- editor pane ---- */}
             {(layout !== 'statement') && (
               <section
-                className={`min-w-0 bg-[var(--ws-editor)] ${
+                className={`min-w-0 min-h-0 bg-[var(--ws-editor)] ${
                   layout === 'split'
                     ? `${mobilePane === 'editor' ? 'flex' : 'hidden'} md:flex md:w-1/2 flex-col`
                     : 'flex w-full flex-col'
@@ -661,9 +709,56 @@ export default function ProblemSolve() {
                 />
               </div>
 
+              {/* ============ resize handle ============ */}
+              <div
+                onMouseDown={startBottomResize}
+                className="
+                group
+                h-2
+                shrink-0
+                cursor-row-resize
+                bg-transparent
+                hover:bg-[var(--ws-accent-soft)]
+                active:bg-[var(--ws-accent)]
+                transition-colors
+                relative
+                z-20
+                "
+                role="separator"
+                aria-orientation="horizontal"
+                aria-label="Kéo để đổi chiều cao khung bên dưới"
+              >
+                <div
+                  className="
+                  absolute
+                  inset-x-0
+                  top-1/2
+                  -translate-y-1/2
+                  h-px
+                  bg-[var(--ws-border)]
+                  group-hover:bg-[var(--ws-accent)]
+                  "
+                />
+              </div>
+
               {/* ============ bottom panel ============ */}
-              <div className="border-t border-[var(--ws-border)] bg-[var(--ws-panel)] flex flex-col h-64">
-                <div className="flex items-center gap-1 px-3 pt-2 border-b border-[var(--ws-border-soft)]">
+              <div
+                 className="
+                border-t
+                border-[var(--ws-border)]
+                bg-[var(--ws-panel)]
+                flex
+                flex-col
+                shrink-0
+                overflow-hidden
+                shadow-[0_-1px_0_rgba(0,0,0,0.08)]
+                "
+                style={{
+                  height: bottomHeight,
+                  minHeight: bottomCollapsed ? 0 : undefined,
+                }}
+              >
+                <div className="flex items-center gap-1 px-3 pt-2 border-b border-[var(--ws-border-soft)] shrink-0">
                   {([
                     ['tests', 'Test mẫu', <FlaskConical size={13} key="i" />],
                     ['console', 'Console', <Terminal size={13} key="i" />],
@@ -703,9 +798,17 @@ export default function ProblemSolve() {
                     >
                       {judging ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />} Nộp bài
                     </button>
+                    <button
+                      onClick={toggleBottomCollapsed}
+                      title={bottomCollapsed ? 'Mở rộng khung' : 'Thu gọn khung'}
+                      className="flex items-center justify-center w-7 h-7 rounded-lg border border-[var(--ws-border)] text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:border-[var(--ws-accent)] transition-colors"
+                    >
+                      {bottomCollapsed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    </button>
                   </div>
                 </div>
 
+                {!bottomCollapsed && (
                 <div className="flex-1 overflow-y-auto ws-editor-scroll p-4">
                   {judging && (
                     <div className="mb-4">
@@ -817,6 +920,7 @@ export default function ProblemSolve() {
                     </div>
                   )}
                 </div>
+                )}
               </div>
               </section>
             )}

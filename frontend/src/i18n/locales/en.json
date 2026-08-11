@@ -1,0 +1,48 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "problems": "Problems",
+    "contest": "Contests",
+    "submission": "Submissions",
+    "class": "Classes",
+    "homework": "Assign Homework",
+    "students": "Students",
+    "problemBank": "Problem Bank"
+  },
+  "breadcrumb": {
+    "student": "Student",
+    "instructor": "Instructor",
+    "dashboard": "Dashboard",
+    "problems": "Problems",
+    "problem": "Solve",
+    "homework": "Homework",
+    "contest": "Contest",
+    "submission": "Submissions",
+    "class": "Class",
+    "profile": "Profile",
+    "settings": "Settings",
+    "students": "Students"
+  },
+  "topbar": {
+    "searchPlaceholder": "Search problems, users…",
+    "searchResults": "Results",
+    "searchEmpty": "No problems found.",
+    "palette": "Color palette",
+    "paletteTitle": "Interface color palette",
+    "themeToLight": "Switch to light mode",
+    "themeToDark": "Switch to dark mode",
+    "language": "Language",
+    "langVi": "Tiếng Việt",
+    "langEn": "English",
+    "notifications": "Notifications",
+    "notifContestTitle": "Contest \"Graph Practice\" is running",
+    "notifContestMeta": "5 minutes ago • {{count}} participants",
+    "notifSubmissionPrefix": "Submission {{id}} has been judged:",
+    "notifSubmissionMeta": "1 hour ago"
+  },
+  "userMenu": {
+    "myProfile": "My Profile",
+    "settings": "Settings",
+    "logout": "Log out"
+  }
+}
