@@ -1,0 +1,78 @@
+import { Controller, Get, Post, Body, Param, Patch, Delete, UseGuards } from '@nestjs/common';
+import { ContestsService } from './contests.service';
+import { CreateContestDto } from './dto/create-contest.dto';
+import { UpdateContestDto } from './dto/update-contest.dto';
+import { AddProblemDto } from './dto/add-problem.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { Role } from '@prisma/client';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+
+@ApiTags('Contests')
+@Controller('contests')
+@UseGuards(AuthGuard('jwt'), RolesGuard)
+export class ContestsController {
+  constructor(private readonly contestsService: ContestsService) {}
+
+  @Post()
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Tạo mới một kỳ thi' })
+  @ApiResponse({ status: 201, description: 'Kỳ thi đã được tạo thành công.' })
+  @ApiResponse({ status: 403, description: 'Forbidden. Chỉ Admin mới có quyền.' })
+  create(@Body() createContestDto: CreateContestDto) {
+    return this.contestsService.create(createContestDto);
+  }
+
+  @Get()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Lấy danh sách tất cả kỳ thi' })
+  @ApiResponse({ status: 200, description: 'Danh sách các kỳ thi.' })
+  // Không gán Roles -> Bất kỳ ai có JWT đều xem được
+  findAll() {
+    return this.contestsService.findAll();
+  }
+
+  @Get(':id')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Lấy thông tin chi tiết một kỳ thi' })
+  @ApiResponse({ status: 200, description: 'Thông tin chi tiết của kỳ thi.' })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy kỳ thi.' })
+  findOne(@Param('id') id: string) {
+    return this.contestsService.findOne(id);
+  }
+
+  @Patch(':id')
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Cập nhật thông tin kỳ thi' })
+  @ApiResponse({ status: 200, description: 'Kỳ thi đã được cập nhật thành công.' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy kỳ thi.' })
+  update(@Param('id') id: string, @Body() updateContestDto: UpdateContestDto) {
+    return this.contestsService.update(id, updateContestDto);
+  }
+
+  @Delete(':id')
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Xóa một kỳ thi' })
+  @ApiResponse({ status: 200, description: 'Kỳ thi đã được xóa thành công.' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy kỳ thi.' })
+  remove(@Param('id') id: string) {
+    return this.contestsService.remove(id);
+  }
+
+  @Post(':id/problems')
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Thêm bài tập vào kỳ thi' })
+  @ApiResponse({ status: 201, description: 'Bài tập đã được thêm thành công.' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy kỳ thi hoặc bài tập.' })
+  addProblem(@Param('id') id: string, @Body() addProblemDto: AddProblemDto) {
+    return this.contestsService.addProblem(id, addProblemDto);
+  }
+}
