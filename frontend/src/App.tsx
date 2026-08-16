@@ -22,6 +22,7 @@ import ClassPage from './pages/student/Class';
 import InstructorDashboard from './pages/instructor/Dashboard';
 import InstructorContest from './pages/instructor/Contest';
 import InstructorStudent from './pages/instructor/Student';
+import NotFoundPage from './pages/NotFound';
 
 export default function App() {
   return (
@@ -63,7 +64,7 @@ export default function App() {
           <Route path="/join/:code" element={<JoinClass />} />
 
           {/* Catch all */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
         </BrowserRouter>
         </ContributedProvider>

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
-import { homeworks as mockHomeworks, Homework } from '../data/mockData';
+import { homeworks as mockHomeworks, Homework } from '../data/legacyData';
 
 export interface HomeworkProblem {
   id: string;

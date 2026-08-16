@@ -9,13 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.101.4",
     "clsx": "2.1.1",
-    "i18next": "^26.3.6",
     "lucide-react": "^1.28.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
-    "react-i18next": "^17.0.11",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.18.2",
+    "remark-gfm": "^4.0.1",
     "tailwind-merge": "3.4.0"
   },
   "devDependencies": {

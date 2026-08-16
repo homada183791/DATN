@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
-import { classes as mockClasses, students, ClassInfo } from '../data/mockData';
+import { classes as mockClasses, students, ClassInfo } from '../data/legacyData';
 
 export interface Member {
   username: string;

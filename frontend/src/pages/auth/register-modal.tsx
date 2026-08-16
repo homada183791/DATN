@@ -81,10 +81,11 @@ export function RegisterModal({
       return;
     }
 
-    const success = register(username.trim(), email.trim(), password, fullName.trim());
-    if (!success) {
-      setError("Vui lòng nhập đầy đủ thông tin bắt buộc.");
-    }
+    register(username.trim(), email.trim(), password, fullName.trim()).then((result) => {
+      if (!result.ok) {
+        setError(result.message ?? "Vui lòng nhập đầy đủ thông tin bắt buộc.");
+      }
+    });
   }
 
   return (

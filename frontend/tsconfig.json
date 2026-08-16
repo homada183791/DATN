@@ -15,10 +15,10 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Path mapping — không cần baseUrl nữa, paths tự tính theo vị trí
-       file tsconfig.json này khi dùng moduleResolution: "bundler" */
+    /* Path mapping */
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["src/*"]
     },
 
     /* Linting */

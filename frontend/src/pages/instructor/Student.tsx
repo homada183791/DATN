@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { students, classes, submissions } from '../../data/mockData';
+import { students, classes, submissions } from '../../data/legacyData';
 import {
   Users,
   Search,

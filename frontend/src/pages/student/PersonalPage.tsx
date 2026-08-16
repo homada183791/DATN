@@ -11,7 +11,7 @@ import {
   CheckCircle2,
   BarChart3,
 } from 'lucide-react';
-import { submissions, problems, skillRadar } from '../../data/mockData';
+import { submissions, problems, skillRadar } from '../../data/legacyData';
 
 export default function PersonalPage() {
   const { user } = useAuth();

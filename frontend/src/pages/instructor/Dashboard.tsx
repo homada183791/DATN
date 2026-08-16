@@ -11,7 +11,7 @@ import {
   BarChart3,
   ArrowRight,
 } from 'lucide-react';
-import { classes, homeworks, contests, submissions } from '../../data/mockData';
+import { classes, homeworks, contests, submissions } from '../../data/legacyData';
 import { Link } from 'react-router-dom';
 
 export default function InstructorDashboard() {

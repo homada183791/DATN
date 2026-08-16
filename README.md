@@ -2,7 +2,7 @@
 
 Hệ thống chấm bài lập trình trực tuyến, gồm 3 thành phần chính:
 
-- **frontend/** — Vite - React.js (TypeScript)
+- **frontend/** — React.js (TypeScript)
 - **backend/** — Node.js + TypeScript (Express/Fastify), quản lý bài tập, người dùng, submissions
 - **judge-runner/** — service cô lập, chịu trách nhiệm compile & chạy code người dùng nộp trong container riêng
 
@@ -164,4 +164,3 @@ DATN/
 - Container `judge-runner` chạy với `network_mode: none`, `cap_drop: ALL`, giới hạn CPU/RAM/pids — **không tự ý bỏ các giới hạn này** khi debug, vì đây là lớp bảo vệ chính chống code độc hại từ người dùng nộp bài.
 - Không commit file `.env` hoặc bất kỳ secret nào lên Git.
 - Thư mục tạm chứa code khi chấm bài (`/tmp/judge` trong container) tự sinh và tự xoá theo từng submission, không lưu trữ lâu dài.
-

@@ -25,15 +25,15 @@ export function LoginModal({
     e.preventDefault();
     setError("");
 
-    const success = login(identifier.trim(), password);
-    if (!success) {
-      const message = "Sai tài khoản hoặc mật khẩu.";
-      setError(message);
-      showToast(message, "error");
-      return;
-    }
-
-    showToast("Đăng nhập thành công.", "success");
+    login(identifier.trim(), password).then((result) => {
+      if (!result.ok) {
+        const message = result.message ?? "Sai tài khoản hoặc mật khẩu.";
+        setError(message);
+        showToast(message, "error");
+        return;
+      }
+      showToast("Đăng nhập thành công.", "success");
+    });
   }
 
   return (

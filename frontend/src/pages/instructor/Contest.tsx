@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { contests } from '../../data/mockData';
+import { contests } from '../../data/legacyData';
 import {
   Trophy,
   Users,

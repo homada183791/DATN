@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { submissions } from '../../data/mockData';
+import { submissions } from '../../data/legacyData';
 import { useAuth } from '../../context/AuthContext';
 import {
   Search,

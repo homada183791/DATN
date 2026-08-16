@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { useAuth } from '../../context/AuthContext';
-import { useContributed } from '../../context/ContributedContext';
-import { problems, submissions } from '../../data/mockData';
+import ReactMarkdown from 'react-markdown';
 import { getDetail, LANG_LABELS, Lang, ProblemDetail } from '../../data/problemDetails';
+import { ApiError, apiFetch } from '../../api/http';
+import { useProblemQuery } from '../../api/problems';
+import { useToast } from '../../context/ToastContext';
 import {
   HelpCircle,
   Send,
@@ -28,8 +29,6 @@ import {
   FlaskConical,
   Loader2,
   MessageCircle,
-  ChevronDown,
-  ChevronUp,
 } from 'lucide-react';
 
 /* ---------------- syntax highlighting ---------------- */
@@ -89,48 +88,20 @@ const now = () => new Date().toLocaleTimeString('en-GB', { hour12: false });
 
 export default function ProblemSolve() {
   const { id } = useParams();
-  const { user } = useAuth();
-  const { contributed } = useContributed();
+  const { showToast } = useToast();
+  const { data: apiProblem, isLoading, error } = useProblemQuery(id);
 
-  const defaultProblem = problems[2];
-  const builtinProblem = problems.find((p) => p.id === id);
-  const contributedProblem = contributed.find((p) => p.id === id);
-  const problem = builtinProblem
-    ?? (contributedProblem
-      ? {
-          id: contributedProblem.id,
-          title: contributedProblem.title,
-          difficulty: contributedProblem.difficulty,
-          category: contributedProblem.category,
-          solvedCount: 0,
-          submissionCount: 0,
-          points: contributedProblem.points,
-          tags: [contributedProblem.category.toLowerCase().replace(/\s+/g, '-')],
-        }
-      : defaultProblem);
+  const problemId = apiProblem?.id ?? id ?? 'unknown-problem';
+  const problemTitle = apiProblem?.title ?? 'Bài tập';
+  const problemDifficulty = apiProblem?.difficulty ?? 'MEDIUM';
+  const problemDescription = apiProblem?.description ?? '';
+  const problemPoints = useMemo(() => {
+    if (problemDifficulty === 'EASY') return 100;
+    if (problemDifficulty === 'HARD') return 300;
+    return 200;
+  }, [problemDifficulty]);
 
-  const detail: ProblemDetail = useMemo(() => {
-    const base = getDetail(problem.id, problem.title, problem.points);
-    if (!contributedProblem || builtinProblem) return base;
-    return {
-      ...base,
-      code: `COMM-${contributedProblem.id.slice(-4).toUpperCase()}`,
-      points: contributedProblem.points,
-      sections: [
-        {
-          paragraphs: [
-            contributedProblem.statement || 'Đề bài cộng đồng chưa có nội dung chi tiết.',
-          ],
-        },
-      ],
-      samples: [
-        {
-          input: contributedProblem.sampleInput || 'Không có input mẫu.',
-          output: contributedProblem.sampleOutput || 'Không có output mẫu.',
-        },
-      ],
-    };
-  }, [problem.id, problem.title, problem.points, contributedProblem, builtinProblem]);
+  const detail: ProblemDetail = useMemo(() => getDetail(problemId, problemTitle, problemPoints), [problemId, problemTitle, problemPoints]);
 
   /* ui state */
   const [layout, setLayout] = useState<LayoutMode>('split');
@@ -142,7 +113,7 @@ export default function ProblemSolve() {
   /* editor state */
   const [lang, setLang] = useState<Lang>('cpp');
   const [code, setCode] = useState(() =>
-    localStorage.getItem(`jh-code-${problem.id}-cpp`) ?? detail.templates.cpp
+    localStorage.getItem(`jh-code-${problemId}-cpp`) ?? detail.templates.cpp
   );
   const [wrap, setWrap] = useState(false);
   const [fontSize, setFontSize] = useState(14);
@@ -151,52 +122,6 @@ export default function ProblemSolve() {
 
   /* judge state */
   const [bottomTab, setBottomTab] = useState<BottomTab>('tests');
-  const [bottomHeight, setBottomHeight] = useState(256);
-  const COLLAPSED_HEIGHT = 45;
-  const bottomCollapsed = bottomHeight <= COLLAPSED_HEIGHT + 1;
-  const prevHeightRef = useRef(256);
-  const resizingRef = useRef<{ startY: number; startHeight: number } | null>(null);
-
-  const startBottomResize = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    // Đo đúng khoảng trống thực tế còn lại từ vị trí thanh kéo tới đáy màn
-    // hình — tránh trường hợp trừ cứng 1 con số ước lượng khiến hàng tab bị
-    // đẩy chìm khỏi vùng nhìn thấy khi các thanh phía trên (topbar, tiêu đề
-    // bài, thanh công cụ...) cao thấp khác nhau tuỳ màn hình.
-    const maxHeight = window.innerHeight * 0.6;
-
-    resizingRef.current = { startY: e.clientY, startHeight: bottomHeight };
-    document.body.style.cursor = 'row-resize';
-    document.body.style.userSelect = 'none';
-
-    function onMouseMove(ev: MouseEvent) {
-      const drag = resizingRef.current;
-      if (!drag) return;
-      const delta = drag.startY - ev.clientY;
-      const next = Math.min(Math.max(drag.startHeight + delta, COLLAPSED_HEIGHT), maxHeight);
-      setBottomHeight(next);
-      if (next > COLLAPSED_HEIGHT) prevHeightRef.current = next;
-    }
-    function onMouseUp() {
-      resizingRef.current = null;
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-    }
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-  }, [bottomHeight]);
-
-  function toggleBottomCollapsed() {
-    if (bottomCollapsed) {
-      setBottomHeight(prevHeightRef.current || 256);
-    } else {
-      prevHeightRef.current = bottomHeight;
-      setBottomHeight(COLLAPSED_HEIGHT);
-    }
-  }
-
   const [samples, setSamples] = useState(detail.samples.map((s) => ({ ...s })));
   const [consoleLines, setConsoleLines] = useState<ConsoleLine[]>([]);
   const [running, setRunning] = useState(false);
@@ -204,6 +129,8 @@ export default function ProblemSolve() {
   const [judgeProgress, setJudgeProgress] = useState(0);
   const [testVerdicts, setTestVerdicts] = useState<TestVerdict[]>([]);
   const [finalVerdict, setFinalVerdict] = useState<string | null>(null);
+  const [cooldownUntil, setCooldownUntil] = useState(0);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const [showAssistant, setShowAssistant] = useState(false);
   const [showAssistantMobile, setShowAssistantMobile] = useState(false);
   const [assistantInput, setAssistantInput] = useState('');
@@ -212,7 +139,7 @@ export default function ProblemSolve() {
     {
       id: 1,
       role: 'assistant',
-      content: `Xin chào! Tôi là trợ lý học tập cho bài “${problem.title}”. Bạn có thể hỏi về đề bài, gợi ý thuật toán hoặc cách viết code.`,
+      content: `Xin chào! Tôi là trợ lý học tập cho bài “${problemTitle}”. Bạn có thể hỏi về đề bài, gợi ý thuật toán hoặc cách viết code.`,
     },
   ]);
 
@@ -222,9 +149,28 @@ export default function ProblemSolve() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<number | null>(null);
 
+  useEffect(() => {
+    if (!cooldownUntil) {
+      setCooldownSeconds(0);
+      return;
+    }
+
+    const updateCooldown = () => {
+      const remaining = Math.max(0, Math.ceil((cooldownUntil - Date.now()) / 1000));
+      setCooldownSeconds(remaining);
+      if (remaining === 0) {
+        setCooldownUntil(0);
+      }
+    };
+
+    updateCooldown();
+    const timer = window.setInterval(updateCooldown, 1000);
+    return () => window.clearInterval(timer);
+  }, [cooldownUntil]);
+
   /* load code when problem/lang changes */
   useEffect(() => {
-    const saved = localStorage.getItem(`jh-code-${problem.id}-${lang}`);
+    const saved = localStorage.getItem(`jh-code-${problemId}-${lang}`);
     setCode(saved ?? detail.templates[lang]);
     setSaveState(saved ? 'saved' : 'unsaved');
     setTestVerdicts([]);
@@ -232,20 +178,20 @@ export default function ProblemSolve() {
     setConsoleLines([]);
     setSamples(detail.samples.map((s) => ({ ...s })));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [problem.id, lang]);
+  }, [problemId, lang, detail]);
 
   useEffect(() => {
     setAssistantMessages([
       {
         id: Date.now(),
         role: 'assistant',
-        content: `Xin chào! Tôi là trợ lý học tập cho bài “${problem.title}”. Bạn có thể hỏi về đề bài, gợi ý thuật toán hoặc cách viết code.`,
+        content: `Xin chào! Tôi là trợ lý học tập cho bài “${problemTitle}”. Bạn có thể hỏi về đề bài, gợi ý thuật toán hoặc cách viết code.`,
       },
     ]);
     setShowAssistant(false);
     setShowAssistantMobile(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [problem.id]);
+  }, [problemId, problemTitle]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -261,7 +207,7 @@ export default function ProblemSolve() {
     if (saveTimer.current) window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
       setSaveState('saving');
-      localStorage.setItem(`jh-code-${problem.id}-${lang}`, v);
+      localStorage.setItem(`jh-code-${problemId}-${lang}`, v);
       window.setTimeout(() => setSaveState('saved'), 350);
     }, 700);
   };
@@ -329,6 +275,39 @@ export default function ProblemSolve() {
     setJudgeProgress(0);
     pushConsole(`$ judge --submit ${detail.code} --lang ${LANG_LABELS[lang]}`, 'sys');
     pushConsole('Đang gửi bài lên máy chấm...', 'info');
+    try {
+      await apiFetch('/api/v1/submissions', {
+        method: 'POST',
+        body: JSON.stringify({
+          problemId,
+          language: lang,
+          code,
+        }),
+      });
+    } catch (submitError) {
+      if (submitError instanceof ApiError) {
+        if (submitError.status === 429) {
+          showToast('Bạn thao tác quá nhanh, vui lòng chờ 60 giây trước khi nộp lại.', 'error');
+          setCooldownUntil(Date.now() + 60_000);
+          pushConsole('error: throttled by server (429 Too Many Requests)', 'err');
+        } else if (submitError.status === 403) {
+          showToast('Kỳ thi đã đóng, bạn không thể nộp bài lúc này.', 'error');
+          pushConsole('error: deadline passed (403 Forbidden)', 'err');
+        } else if (submitError.status === 409) {
+          showToast('Bài nộp của bạn bị trùng hoặc không hợp lệ.', 'error');
+          pushConsole('error: conflict detected (409 Conflict)', 'err');
+        } else {
+          showToast(submitError.message || 'Không thể gửi bài lên máy chấm.', 'error');
+          pushConsole('error: không thể gửi bài lên máy chấm.', 'err');
+        }
+      } else {
+        showToast('Không thể gửi bài lên máy chấm.', 'error');
+        pushConsole('error: không thể gửi bài lên máy chấm.', 'err');
+      }
+      setJudging(false);
+      return;
+    }
+
     await new Promise((r) => setTimeout(r, 600));
     pushConsole('Compiling... OK', 'ok');
     const total = 8;
@@ -386,7 +365,8 @@ export default function ProblemSolve() {
     const text = detail.sections
       .map((s) => `${s.heading ? `## ${s.heading}\n` : ''}${(s.paragraphs ?? []).join('\n')}${(s.bullets ?? []).map((b) => `\n- ${b}`).join('')}`)
       .join('\n\n');
-    const blob = new Blob([`# ${problem.title} (${detail.code})\n\n${text}`], { type: 'text/markdown' });
+    const markdown = problemDescription ? `${problemDescription}\n\n${text}` : text;
+    const blob = new Blob([`# ${problemTitle} (${detail.code})\n\n${markdown}`], { type: 'text/markdown' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `${detail.code}.md`;
@@ -397,7 +377,7 @@ export default function ProblemSolve() {
   const getAssistantReply = (text: string) => {
     const input = text.toLowerCase();
     if (input.includes('gợi ý') || input.includes('hint') || input.includes('ý tưởng')) {
-      return `Gợi ý cho ${problem.title}: hãy bắt đầu bằng cách phân tích đầu vào, đầu ra và các trường hợp biên. Sau đó, thử xây dựng một giải pháp đơn giản trước khi tối ưu.`;
+      return `Gợi ý cho ${problemTitle}: hãy bắt đầu bằng cách phân tích đầu vào, đầu ra và các trường hợp biên. Sau đó, thử xây dựng một giải pháp đơn giản trước khi tối ưu.`;
     }
     if (input.includes('độ phức tạp') || input.includes('complex')) {
       return `Bạn có thể ưu tiên giải pháp có độ phức tạp tuyến tính hoặc logarit nếu phù hợp. Hãy chú ý đến số lần duyệt dữ liệu và bộ nhớ sử dụng.`;
@@ -406,9 +386,9 @@ export default function ProblemSolve() {
       return `Mình có thể hỗ trợ viết khung code cho ${detail.code}. Hãy cho mình ngôn ngữ bạn đang dùng để mình đưa template phù hợp.`;
     }
     if (input.includes('đề bài') || input.includes('ý nghĩa')) {
-      return `Đây là bài tập về ${problem.title}. Hãy đọc kỹ ví dụ và xác định hành vi mong muốn trước khi viết code.`;
+      return `Đây là bài tập về ${problemTitle}. Hãy đọc kỹ ví dụ và xác định hành vi mong muốn trước khi viết code.`;
     }
-    return `Mình có thể hỗ trợ bạn hiểu bài “${problem.title}” và gợi ý cách giải. Hãy thử hỏi: “gợi ý”, “độ phức tạp” hoặc “viết code mẫu”.`;
+    return `Mình có thể hỗ trợ bạn hiểu bài “${problemTitle}” và gợi ý cách giải. Hãy thử hỏi: “gợi ý”, “độ phức tạp” hoặc “viết code mẫu”.`;
   };
 
   const askAssistant = (e: FormEvent<HTMLFormElement>) => {
@@ -427,17 +407,57 @@ export default function ProblemSolve() {
     }, 450);
   };
 
-  const solved = submissions.some((s) => s.userId === user?.id && s.problemId === problem.id && s.verdict === 'AC');
+  const solved = false;
 
   const lineCount = code.split('\n').length;
   const highlighted = useMemo(() => highlight(code, lang), [code, lang]);
 
   const diffChip =
-    problem.difficulty === 'Easy'
+    problemDifficulty === 'EASY'
       ? 'text-[var(--ws-ok)] bg-[color:var(--ws-accent-soft)]'
-      : problem.difficulty === 'Medium'
+      : problemDifficulty === 'MEDIUM'
       ? 'text-[var(--ws-warn)] bg-[color:var(--ws-accent-soft)]'
       : 'text-[var(--ws-danger)] bg-[color:var(--ws-accent-soft)]';
+
+  const isSubmitLocked = running || judging || cooldownSeconds > 0;
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center h-full bg-[var(--ws-bg)] text-[var(--ws-text)]">
+        <div className="w-full max-w-3xl px-6">
+          <div className="h-5 w-44 rounded bg-[var(--ws-panel2)] animate-pulse mb-4" />
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="h-[28rem] rounded-2xl border border-[var(--ws-border)] bg-[var(--ws-panel)] animate-pulse" />
+            <div className="h-[28rem] rounded-2xl border border-[var(--ws-border)] bg-[var(--ws-panel)] animate-pulse" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error instanceof ApiError && error.status === 404) {
+    return (
+      <div className="flex-1 flex items-center justify-center h-full bg-[var(--ws-bg)] text-[var(--ws-text)] px-6">
+        <div className="max-w-lg w-full rounded-3xl border border-[var(--ws-border)] bg-[var(--ws-panel)] p-8 text-center shadow-sm">
+          <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-[var(--ws-faint)]">404</p>
+          <h1 className="mt-3 text-2xl font-bold">Không tìm thấy bài tập</h1>
+          <p className="mt-3 text-sm text-[var(--ws-muted)]">Mã bài này không tồn tại hoặc đã bị xóa.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 flex items-center justify-center h-full bg-[var(--ws-bg)] text-[var(--ws-text)] px-6">
+        <div className="max-w-lg w-full rounded-3xl border border-[var(--ws-border)] bg-[var(--ws-panel)] p-8 text-center shadow-sm">
+          <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-[var(--ws-faint)]">Lỗi tải dữ liệu</p>
+          <h1 className="mt-3 text-2xl font-bold">Không thể tải đề bài</h1>
+          <p className="mt-3 text-sm text-[var(--ws-muted)]">Vui lòng thử lại sau.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col min-h-0 h-full text-[var(--ws-text)]">
@@ -446,8 +466,8 @@ export default function ProblemSolve() {
           <span className="text-[11px] font-bold tracking-wider px-2.5 py-1 rounded-md bg-[var(--ws-accent-soft)] text-[var(--ws-accent)]">
             {detail.code}
           </span>
-          <h1 className="text-[17px] font-bold">{problem.title}</h1>
-          <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-md ${diffChip}`}>{problem.difficulty === 'Easy' ? 'Dễ' : problem.difficulty === 'Medium' ? 'Trung bình' : 'Khó'}</span>
+          <h1 className="text-[17px] font-bold">{problemTitle}</h1>
+          <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-md ${diffChip}`}>{problemDifficulty === 'EASY' ? 'Dễ' : problemDifficulty === 'MEDIUM' ? 'Trung bình' : 'Khó'}</span>
           {solved && (
             <span className="flex items-center gap-1 text-[12px] font-semibold text-[var(--ws-ok)]">
               <CheckCircle2 size={14} /> Đã hoàn thành
@@ -501,18 +521,18 @@ export default function ProblemSolve() {
         </div>
 
         {/* ============ SPLIT BODY ============ */}
-        <div className="flex-1 flex min-h-0 overflow-hidden">
+        <div className="flex-1 flex min-h-0">
           <div className="flex-1 flex min-h-0 min-w-0">
             {/* ---- statement pane ---- */}
             {(layout !== 'editor') && (
               <section
-                className={`overflow-y-auto overflow-x-hidden ws-editor-scroll bg-[var(--ws-bg)] ${
+                className={`overflow-y-auto ws-editor-scroll bg-[var(--ws-bg)] ${
                   layout === 'split'
                     ? `${mobilePane === 'statement' ? 'block' : 'hidden'} md:block md:w-1/2 border-r border-[var(--ws-border)]`
                     : 'w-full'
                 }`}
               >
-              <div className="px-7 py-6 max-w-3xl pb-20">
+              <div className="px-7 py-6 max-w-3xl">
                 {/* limits */}
                 <div className="grid grid-cols-3 gap-6 pb-5 border-b border-[var(--ws-border)]">
                   <div>
@@ -536,7 +556,13 @@ export default function ProblemSolve() {
                   <Download size={14} /> Tải đề gốc
                 </button>
 
-                <h2 className="mt-6 mb-5 text-[26px] font-extrabold leading-tight">{problem.title}</h2>
+                <h2 className="mt-6 mb-5 text-[26px] font-extrabold leading-tight">{problemTitle}</h2>
+
+                {problemDescription && (
+                  <div className="mb-7 rounded-xl border border-[var(--ws-border)] bg-[var(--ws-panel)] p-5">
+                    <ReactMarkdown>{problemDescription}</ReactMarkdown>
+                  </div>
+                )}
 
                 {detail.sections.map((sec, i) => (
                   <div key={i} className="mb-7">
@@ -599,7 +625,7 @@ export default function ProblemSolve() {
             {/* ---- editor pane ---- */}
             {(layout !== 'statement') && (
               <section
-                className={`min-w-0 min-h-0 bg-[var(--ws-editor)] ${
+                className={`min-w-0 bg-[var(--ws-editor)] ${
                   layout === 'split'
                     ? `${mobilePane === 'editor' ? 'flex' : 'hidden'} md:flex md:w-1/2 flex-col`
                     : 'flex w-full flex-col'
@@ -709,56 +735,9 @@ export default function ProblemSolve() {
                 />
               </div>
 
-              {/* ============ resize handle ============ */}
-              <div
-                onMouseDown={startBottomResize}
-                className="
-                group
-                h-2
-                shrink-0
-                cursor-row-resize
-                bg-transparent
-                hover:bg-[var(--ws-accent-soft)]
-                active:bg-[var(--ws-accent)]
-                transition-colors
-                relative
-                z-20
-                "
-                role="separator"
-                aria-orientation="horizontal"
-                aria-label="Kéo để đổi chiều cao khung bên dưới"
-              >
-                <div
-                  className="
-                  absolute
-                  inset-x-0
-                  top-1/2
-                  -translate-y-1/2
-                  h-px
-                  bg-[var(--ws-border)]
-                  group-hover:bg-[var(--ws-accent)]
-                  "
-                />
-              </div>
-
               {/* ============ bottom panel ============ */}
-              <div
-                 className="
-                border-t
-                border-[var(--ws-border)]
-                bg-[var(--ws-panel)]
-                flex
-                flex-col
-                shrink-0
-                overflow-hidden
-                shadow-[0_-1px_0_rgba(0,0,0,0.08)]
-                "
-                style={{
-                  height: bottomHeight,
-                  minHeight: bottomCollapsed ? 0 : undefined,
-                }}
-              >
-                <div className="flex items-center gap-1 px-3 pt-2 border-b border-[var(--ws-border-soft)] shrink-0">
+              <div className="border-t border-[var(--ws-border)] bg-[var(--ws-panel)] flex flex-col h-64">
+                <div className="flex items-center gap-1 px-3 pt-2 border-b border-[var(--ws-border-soft)]">
                   {([
                     ['tests', 'Test mẫu', <FlaskConical size={13} key="i" />],
                     ['console', 'Console', <Terminal size={13} key="i" />],
@@ -793,22 +772,14 @@ export default function ProblemSolve() {
                     </button>
                     <button
                       onClick={submit}
-                      disabled={running || judging}
+                      disabled={isSubmitLocked}
                       className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[var(--ws-accent)] text-[#062a25] text-[12.5px] font-bold hover:brightness-110 transition-all disabled:opacity-50 shadow-[0_0_20px_var(--ws-accent-soft)]"
                     >
-                      {judging ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />} Nộp bài
-                    </button>
-                    <button
-                      onClick={toggleBottomCollapsed}
-                      title={bottomCollapsed ? 'Mở rộng khung' : 'Thu gọn khung'}
-                      className="flex items-center justify-center w-7 h-7 rounded-lg border border-[var(--ws-border)] text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:border-[var(--ws-accent)] transition-colors"
-                    >
-                      {bottomCollapsed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      {judging ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />} {cooldownSeconds > 0 ? `Nộp bài (${cooldownSeconds}s)` : 'Nộp bài'}
                     </button>
                   </div>
                 </div>
 
-                {!bottomCollapsed && (
                 <div className="flex-1 overflow-y-auto ws-editor-scroll p-4">
                   {judging && (
                     <div className="mb-4">
@@ -920,7 +891,6 @@ export default function ProblemSolve() {
                     </div>
                   )}
                 </div>
-                )}
               </div>
               </section>
             )}
@@ -1038,7 +1008,7 @@ export default function ProblemSolve() {
         <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-[90] flex items-center justify-center p-4" onClick={() => setShowSolution(false)}>
           <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--ws-border)]">
-              <h3 className="font-bold text-[15px]">Lời giải tham khảo — {problem.title}</h3>
+              <h3 className="font-bold text-[15px]">Lời giải tham khảo — {problemTitle}</h3>
               <button onClick={() => setShowSolution(false)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={18} /></button>
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(80vh-64px)]">

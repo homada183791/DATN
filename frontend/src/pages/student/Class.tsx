@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useClass } from '../../context/ClassContext';
 import { useHomework, deadlineProgress } from '../../context/HomeworkContext';
-import { contests } from '../../data/mockData';
+import { contests } from '../../data/legacyData';
 import {
   GraduationCap,
   Users,
