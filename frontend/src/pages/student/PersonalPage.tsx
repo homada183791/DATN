@@ -1,4 +1,5 @@
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import {
   MapPin,
   Calendar,
@@ -14,6 +15,7 @@ import {
 import { submissions, problems, skillRadar } from '../../data/mockData';
 
 export default function PersonalPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const mySubmissions = submissions.filter((s) => s.userId === user?.id);
   const acSubmissions = mySubmissions.filter((s) => s.verdict === 'AC');
@@ -40,11 +42,11 @@ export default function PersonalPage() {
   });
 
   const ratingHistory = [
-    { month: 'T9', rating: 1200 },
-    { month: 'T10', rating: 1350 },
-    { month: 'T11', rating: 1520 },
-    { month: 'T12', rating: 1680 },
-    { month: 'T1', rating: 1847 },
+    { month: t('months.9'), rating: 1200 },
+    { month: t('months.10'), rating: 1350 },
+    { month: t('months.11'), rating: 1520 },
+    { month: t('months.12'), rating: 1680 },
+    { month: t('months.1'), rating: 1847 },
   ];
 
   const maxRating = Math.max(...ratingHistory.map((r) => r.rating));
@@ -69,7 +71,7 @@ export default function PersonalPage() {
                   <MapPin size={14} className="text-[#8a8073]" /> {user?.institution}
                 </span>
                 <span className="flex items-center gap-1">
-                  <Calendar size={14} className="text-[#8a8073]" /> Tham gia {user?.joinDate}
+                  <Calendar size={14} className="text-[#8a8073]" /> {t('personal.joined', { date: user?.joinDate })}
                 </span>
               </div>
             </div>
@@ -88,12 +90,12 @@ export default function PersonalPage() {
         <div className="bg-white border border-[#e5dac9] rounded-xl p-5 text-center shadow-sm">
           <CheckCircle2 size={24} className="text-[#193a2b] mx-auto mb-2" />
           <p className="text-2xl font-bold font-serif text-[#191919]">{solvedProblemIds.length}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Bài đã giải</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorContest.colSolved')}</p>
         </div>
         <div className="bg-white border border-[#e5dac9] rounded-xl p-5 text-center shadow-sm">
           <Send size={24} className="text-blue-600 mx-auto mb-2" />
           <p className="text-2xl font-bold font-serif text-[#191919]">{mySubmissions.length}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Lượt nộp</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorStudent.sortSubmissions')}</p>
         </div>
         <div className="bg-white border border-[#e5dac9] rounded-xl p-5 text-center shadow-sm">
           <Award size={24} className="text-yellow-600 mx-auto mb-2" />
@@ -105,7 +107,7 @@ export default function PersonalPage() {
           <p className="text-2xl font-bold font-serif text-[#191919]">
             {mySubmissions.length ? Math.round((acSubmissions.length / mySubmissions.length) * 100) : 0}%
           </p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Tỷ lệ AC</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorDashboard.acRate')}</p>
         </div>
       </div>
 
@@ -113,7 +115,7 @@ export default function PersonalPage() {
         {/* Rating History */}
         <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
           <h3 className="text-lg font-bold text-[#191919] font-serif mb-4 flex items-center gap-2">
-            <TrendingUp size={20} className="text-[#193a2b]" /> Lịch sử Rating
+            <TrendingUp size={20} className="text-[#193a2b]" /> {t('personal.ratingHistory')}
           </h3>
           <div className="flex items-end gap-4 h-40">
             {ratingHistory.map((r, i) => (
@@ -132,7 +134,7 @@ export default function PersonalPage() {
         {/* Verdict Distribution */}
         <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
           <h3 className="text-lg font-bold text-[#191919] font-serif mb-4 flex items-center gap-2">
-            <BarChart3 size={20} className="text-purple-600" /> Phân bố kết quả
+            <BarChart3 size={20} className="text-purple-600" /> {t('personal.verdictDistribution')}
           </h3>
           <div className="space-y-3">
             {Object.entries(verdictStats).map(([verdict, count]) => {
@@ -175,7 +177,7 @@ export default function PersonalPage() {
         {/* Skills */}
         <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
           <h3 className="text-lg font-bold text-[#191919] font-serif mb-4 flex items-center gap-2">
-            <Code2 size={20} className="text-emerald-600" /> Kỹ năng
+            <Code2 size={20} className="text-emerald-600" /> {t('personal.skills')}
           </h3>
           <div className="space-y-3">
             {skillRadar.map((s) => (
@@ -198,7 +200,7 @@ export default function PersonalPage() {
         {/* Category Progress */}
         <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
           <h3 className="text-lg font-bold text-[#191919] font-serif mb-4 flex items-center gap-2">
-            <BookOpen size={20} className="text-yellow-600" /> Tiến độ theo chủ đề
+            <BookOpen size={20} className="text-yellow-600" /> {t('personal.progressByTopic')}
           </h3>
           <div className="space-y-3">
             {Object.entries(categoryStats).map(([category, stats]) => (
@@ -221,7 +223,7 @@ export default function PersonalPage() {
 
       {/* Solved Problems */}
       <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
-        <h3 className="text-lg font-bold text-[#191919] font-serif mb-4">Bài đã giải</h3>
+        <h3 className="text-lg font-bold text-[#191919] font-serif mb-4">{t('personal.solvedProblems')}</h3>
         <div className="flex flex-wrap gap-2">
           {solvedProblems.map((p) => {
             const colors: Record<string, string> = {
@@ -239,7 +241,7 @@ export default function PersonalPage() {
             );
           })}
           {solvedProblems.length === 0 && (
-            <p className="text-sm text-[#8a8073]">Chưa giải bài nào</p>
+            <p className="text-sm text-[#8a8073]">{t('personal.noSolvedYet')}</p>
           )}
         </div>
       </div>

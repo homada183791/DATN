@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { contests } from '../../data/mockData';
 import {
   Trophy,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 
 export default function InstructorContest() {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'running' | 'ended'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -35,9 +37,9 @@ export default function InstructorContest() {
   };
 
   const statusLabels: Record<string, string> = {
-    upcoming: 'Sắp diễn ra',
-    running: 'Đang diễn ra',
-    ended: 'Đã kết thúc',
+    upcoming: t('instructorContest.statusUpcoming'),
+    running: t('instructorContest.statusRunning'),
+    ended: t('instructorContest.statusEnded'),
   };
 
   const typeColors: Record<string, string> = {
@@ -57,12 +59,12 @@ export default function InstructorContest() {
   return (
     <div className="space-y-6 text-[#191919]">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold font-serif text-[#191919]">Quản lý kỳ thi</h2>
+        <h2 className="text-2xl font-bold font-serif text-[#191919]">{t('instructorContest.pageTitle')}</h2>
         <button
           onClick={() => setShowCreateModal(true)}
           className="flex items-center gap-2 px-4 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] transition-all shadow-md"
         >
-          <Plus size={18} /> Tạo kỳ thi mới
+          <Plus size={18} /> {t('instructorContest.createNew')}
         </button>
       </div>
 
@@ -70,15 +72,15 @@ export default function InstructorContest() {
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white border border-[#e5dac9] rounded-xl p-4 text-center shadow-sm">
           <p className="text-2xl font-bold font-serif text-yellow-600">{contests.filter((c) => c.status === 'upcoming').length}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Sắp diễn ra</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorContest.statUpcoming')}</p>
         </div>
         <div className="bg-white border border-[#e5dac9] rounded-xl p-4 text-center shadow-sm">
           <p className="text-2xl font-bold font-serif text-emerald-700">{contests.filter((c) => c.status === 'running').length}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Đang chạy</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorContest.statRunning')}</p>
         </div>
         <div className="bg-white border border-[#e5dac9] rounded-xl p-4 text-center shadow-sm">
           <p className="text-2xl font-bold font-serif text-[#8a8073]">{contests.filter((c) => c.status === 'ended').length}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Đã kết thúc</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorContest.statEnded')}</p>
         </div>
       </div>
 
@@ -90,7 +92,7 @@ export default function InstructorContest() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm kiếm kỳ thi..."
+            placeholder={t('instructorContest.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
           />
         </div>
@@ -105,7 +107,7 @@ export default function InstructorContest() {
                   : 'bg-white text-[#5c5446] hover:text-[#191919] border border-[#e5dac9]'
               }`}
             >
-              {f === 'all' ? 'Tất cả' : statusLabels[f]}
+              {f === 'all' ? t('instructorContest.filterAll') : statusLabels[f]}
             </button>
           ))}
         </div>
@@ -133,32 +135,32 @@ export default function InstructorContest() {
 
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] shadow-xs">
-                  <p className="text-xs text-[var(--ws-muted)] font-semibold uppercase tracking-wider">Bắt đầu</p>
+                  <p className="text-xs text-[var(--ws-muted)] font-semibold uppercase tracking-wider">{t('instructorContest.fieldStart')}</p>
                   <p className="text-sm text-[var(--ws-text)] font-semibold mt-1">{selectedContestData.startTime}</p>
                 </div>
                 <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] shadow-xs">
-                  <p className="text-xs text-[var(--ws-muted)] font-semibold uppercase tracking-wider">Kết thúc</p>
+                  <p className="text-xs text-[var(--ws-muted)] font-semibold uppercase tracking-wider">{t('instructorContest.fieldEnd')}</p>
                   <p className="text-sm text-[var(--ws-text)] font-semibold mt-1">{selectedContestData.endTime}</p>
                 </div>
                 <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] shadow-xs">
-                  <p className="text-xs text-[var(--ws-muted)] font-semibold uppercase tracking-wider">Người tham gia</p>
+                  <p className="text-xs text-[var(--ws-muted)] font-semibold uppercase tracking-wider">{t('instructorContest.fieldParticipants')}</p>
                   <p className="text-sm text-[var(--ws-text)] font-semibold mt-1">{selectedContestData.participantCount}</p>
                 </div>
                 <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] shadow-xs">
-                  <p className="text-xs text-[var(--ws-muted)] font-semibold uppercase tracking-wider">Số bài</p>
+                  <p className="text-xs text-[var(--ws-muted)] font-semibold uppercase tracking-wider">{t('instructorContest.fieldProblemCount')}</p>
                   <p className="text-sm text-[var(--ws-text)] font-semibold mt-1">{selectedContestData.problemCount}</p>
                 </div>
               </div>
 
               {/* Standings */}
-              <h4 className="text-sm font-bold font-serif text-[var(--ws-text)] mb-3">Bảng xếp hạng</h4>
+              <h4 className="text-sm font-bold font-serif text-[var(--ws-text)] mb-3">{t('instructorContest.standings')}</h4>
               <div className="bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] overflow-hidden shadow-xs">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-[var(--ws-border)] bg-[var(--ws-hover)]">
                       <th className="text-left text-xs font-semibold text-[var(--ws-muted)] py-2.5 px-3 uppercase tracking-wider">#</th>
-                      <th className="text-left text-xs font-semibold text-[var(--ws-muted)] py-2.5 px-3 uppercase tracking-wider">Người dùng</th>
-                      <th className="text-right text-xs font-semibold text-[var(--ws-muted)] py-2.5 px-3 uppercase tracking-wider">Đã giải</th>
+                      <th className="text-left text-xs font-semibold text-[var(--ws-muted)] py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colUser')}</th>
+                      <th className="text-right text-xs font-semibold text-[var(--ws-muted)] py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colSolved')}</th>
                       <th className="text-right text-xs font-semibold text-[var(--ws-muted)] py-2.5 px-3 uppercase tracking-wider">Penalty</th>
                     </tr>
                   </thead>
@@ -177,13 +179,13 @@ export default function InstructorContest() {
 
               <div className="flex gap-3 mt-6">
                 <button className="flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-sm font-medium rounded-xl hover:bg-[#143022] transition-colors shadow-sm">
-                  <Edit3 size={14} /> Chỉnh sửa
+                  <Edit3 size={14} /> {t('common.edit')}
                 </button>
                 <button className="flex items-center gap-2 px-4 py-2 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-text)] text-sm font-medium rounded-xl hover:bg-[var(--ws-hover)] transition-colors">
-                  <Eye size={14} /> Xem bài
+                  <Eye size={14} /> {t('instructorContest.viewProblems')}
                 </button>
                 <button className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 border border-red-200 text-sm font-medium rounded-xl hover:bg-red-100 transition-colors">
-                  <Trash2 size={14} /> Xoá
+                  <Trash2 size={14} /> {t('common.delete')}
                 </button>
               </div>
             </div>
@@ -196,33 +198,33 @@ export default function InstructorContest() {
         <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-[80] flex items-center justify-center p-4" onClick={() => setShowCreateModal(false)}>
           <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-[var(--ws-border)]">
-              <h3 className="text-lg font-serif font-bold text-[var(--ws-text)]">Tạo kỳ thi mới</h3>
+              <h3 className="text-lg font-serif font-bold text-[var(--ws-text)]">{t('instructorContest.createNew')}</h3>
               <button onClick={() => setShowCreateModal(false)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]">
                 <X size={20} />
               </button>
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)] space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Tên kỳ thi</label>
-                <input type="text" className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]" placeholder="Nhập tên kỳ thi" />
+                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">{t('instructorContest.fieldName')}</label>
+                <input type="text" className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]" placeholder={t('instructorContest.fieldNamePlaceholder')} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Mô tả</label>
-                <textarea rows={3} className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none" placeholder="Mô tả kỳ thi" />
+                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">{t('instructorClass.fieldDescription')}</label>
+                <textarea rows={3} className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none" placeholder={t('instructorContest.fieldDescPlaceholder')} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Thời gian bắt đầu</label>
+                  <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">{t('instructorContest.fieldStartAt')}</label>
                   <input type="datetime-local" className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Thời gian kết thúc</label>
+                  <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">{t('instructorContest.fieldEndAt')}</label>
                   <input type="datetime-local" className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Loại kỳ thi</label>
+                  <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">{t('instructorContest.fieldType')}</label>
                   <select className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]">
                     <option>ICPC</option>
                     <option>OI</option>
@@ -230,7 +232,7 @@ export default function InstructorContest() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Lớp học</label>
+                  <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">{t('nav.class')}</label>
                   <select className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]">
                     <option>CTDL&GT - INT1009</option>
                     <option>Lập trình C++ - INT1008</option>
@@ -243,13 +245,13 @@ export default function InstructorContest() {
                   onClick={() => setShowCreateModal(false)}
                   className="flex-1 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] transition-colors shadow-md"
                 >
-                  Tạo kỳ thi
+                  {t('instructorContest.createNew')}
                 </button>
                 <button
                   onClick={() => setShowCreateModal(false)}
                   className="px-6 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] font-medium rounded-xl hover:bg-[var(--ws-hover)] transition-colors"
                 >
-                  Huỷ
+                  {t('common.cancel')}
                 </button>
               </div>
             </div>
@@ -292,14 +294,14 @@ export default function InstructorContest() {
                   <button
                     onClick={() => setSelectedContest(contest.id)}
                     className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-[#191919] hover:bg-[#f7f4eb] transition-colors"
-                    title="Xem chi tiết"
+                    title={t('instructorContest.viewDetail')}
                   >
                     <Eye size={16} />
                   </button>
-                  <button className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-blue-600 hover:bg-[#f7f4eb] transition-colors" title="Chỉnh sửa">
+                  <button className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-blue-600 hover:bg-[#f7f4eb] transition-colors" title={t('common.edit')}>
                     <Edit3 size={16} />
                   </button>
-                  <button className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-red-600 hover:bg-[#f7f4eb] transition-colors" title="Xoá">
+                  <button className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-red-600 hover:bg-[#f7f4eb] transition-colors" title={t('common.delete')}>
                     <Trash2 size={16} />
                   </button>
                 </div>

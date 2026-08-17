@@ -1,4 +1,5 @@
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import {
   Users,
   BookOpen,
@@ -16,6 +17,7 @@ import { Link } from 'react-router-dom';
 
 export default function InstructorDashboard() {
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const totalStudents = classes.reduce((sum, c) => sum + c.studentCount, 0);
   const activeHomeworks = homeworks.filter((h) => h.status === 'active').length;
@@ -40,10 +42,10 @@ export default function InstructorDashboard() {
       {/* Welcome */}
       <div className="bg-gradient-to-r from-[#cc5a37]/10 via-[#e5dac9]/20 to-[#193a2b]/10 border border-[#e5dac9] rounded-2xl p-6 shadow-sm">
         <h2 className="text-2xl font-bold font-serif text-[#191919] mb-1">
-          Xin chào, {user?.fullName}! 👋
+          {t('instructorDashboard.welcome', { name: user?.fullName })}
         </h2>
         <p className="text-[#5c5446] text-sm">
-          Quản lý học thuật, theo dõi tiến độ nộp bài và giám sát kỳ thi trực tuyến của sinh viên.
+          {t('instructorDashboard.subtitle')}
         </p>
       </div>
 
@@ -57,7 +59,7 @@ export default function InstructorDashboard() {
             <TrendingUp size={16} className="text-emerald-600" />
           </div>
           <p className="text-2xl font-bold font-serif text-[#191919]">{totalStudents}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Tổng sinh viên</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorDashboard.totalStudents')}</p>
         </div>
         <div className="bg-white border border-[#e5dac9] rounded-xl p-5 hover:shadow-md transition-all shadow-sm">
           <div className="flex items-center justify-between mb-3">
@@ -66,7 +68,7 @@ export default function InstructorDashboard() {
             </div>
           </div>
           <p className="text-2xl font-bold font-serif text-[#191919]">{activeHomeworks}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Bài tập đang mở</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorDashboard.activeHomeworks')}</p>
         </div>
         <div className="bg-white border border-[#e5dac9] rounded-xl p-5 hover:shadow-md transition-all shadow-sm">
           <div className="flex items-center justify-between mb-3">
@@ -75,7 +77,7 @@ export default function InstructorDashboard() {
             </div>
           </div>
           <p className="text-2xl font-bold font-serif text-[#191919]">{runningContests}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Kỳ thi đang chạy</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorDashboard.runningContests')}</p>
         </div>
         <div className="bg-white border border-[#e5dac9] rounded-xl p-5 hover:shadow-md transition-all shadow-sm">
           <div className="flex items-center justify-between mb-3">
@@ -84,7 +86,7 @@ export default function InstructorDashboard() {
             </div>
           </div>
           <p className="text-2xl font-bold font-serif text-[#191919]">{acRate}%</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Tỷ lệ AC</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorDashboard.acRate')}</p>
         </div>
       </div>
 
@@ -92,9 +94,9 @@ export default function InstructorDashboard() {
         {/* Classes Overview */}
         <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold font-serif text-[#191919]">Lớp học</h3>
+            <h3 className="text-lg font-bold font-serif text-[#191919]">{t('instructorDashboard.classesTitle')}</h3>
             <Link to="/instructor/students" className="text-sm text-[#193a2b] hover:text-[#2d5a3f] font-medium flex items-center gap-1">
-              Xem tất cả <ArrowRight size={14} />
+              {t('instructorDashboard.viewAll')} <ArrowRight size={14} />
             </Link>
           </div>
           <div className="space-y-3">
@@ -110,11 +112,11 @@ export default function InstructorDashboard() {
                       <p className="text-xs text-[#8a8073] mt-0.5">{cls.code} • {cls.semester}</p>
                     </div>
                   </div>
-                  <span className="text-xs font-semibold text-[#8a8073] bg-[#f0ebd9] px-2 py-0.5 rounded-full border border-[#e5dac9]">{cls.studentCount} SV</span>
+                  <span className="text-xs font-semibold text-[#8a8073] bg-[#f0ebd9] px-2 py-0.5 rounded-full border border-[#e5dac9]">{cls.studentCount} {t('instructorDashboard.studentsAbbr')}</span>
                 </div>
                 <div className="flex items-center gap-4 text-xs text-[#8a8073] mt-3">
-                  <span className="flex items-center gap-1"><BookOpen size={12} /> {cls.homeworkCount} bài tập</span>
-                  <span className="flex items-center gap-1"><Trophy size={12} /> {cls.contestCount} kỳ thi</span>
+                  <span className="flex items-center gap-1"><BookOpen size={12} /> {cls.homeworkCount} {t('instructorDashboard.homeworkCount')}</span>
+                  <span className="flex items-center gap-1"><Trophy size={12} /> {cls.contestCount} {t('instructorDashboard.contestCount')}</span>
                 </div>
               </div>
             ))}
@@ -124,9 +126,9 @@ export default function InstructorDashboard() {
         {/* Recent Submissions */}
         <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold font-serif text-[#191919]">Bài nộp gần đây</h3>
+            <h3 className="text-lg font-bold font-serif text-[#191919]">{t('instructorDashboard.recentSubmissions')}</h3>
             <Link to="/student/submission" className="text-sm text-[#193a2b] hover:text-[#2d5a3f] font-medium flex items-center gap-1">
-              Xem tất cả <ArrowRight size={14} />
+              {t('instructorDashboard.viewAll')} <ArrowRight size={14} />
             </Link>
           </div>
           <div className="space-y-2">
@@ -154,7 +156,7 @@ export default function InstructorDashboard() {
       {/* Submission Stats */}
       <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
         <h3 className="text-lg font-bold font-serif text-[#191919] mb-4 flex items-center gap-2">
-          <BarChart3 size={20} className="text-[#193a2b]" /> Thống kê nộp bài
+          <BarChart3 size={20} className="text-[#193a2b]" /> {t('instructorDashboard.submissionStats')}
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
           {Object.entries(
@@ -199,7 +201,7 @@ export default function InstructorDashboard() {
 
       {/* Upcoming Deadlines */}
       <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
-        <h3 className="text-lg font-bold font-serif text-[#191919] mb-4">Hạn chót sắp tới</h3>
+        <h3 className="text-lg font-bold font-serif text-[#191919] mb-4">{t('instructorDashboard.upcomingDeadlines')}</h3>
         <div className="space-y-3">
           {homeworks.filter((h) => h.status === 'active').map((hw) => (
             <div key={hw.id} className="flex items-center justify-between p-3 bg-[#f7f4eb]/50 rounded-xl border border-[#e5dac9]/50">
@@ -216,7 +218,7 @@ export default function InstructorDashboard() {
                 <p className="text-sm text-yellow-700 font-semibold flex items-center gap-1 justify-end">
                   <Clock size={14} /> {hw.deadline}
                 </p>
-                <p className="text-xs text-[#8a8073] mt-0.5">{hw.submittedStudents}/{hw.totalStudents} đã nộp</p>
+                <p className="text-xs text-[#8a8073] mt-0.5">{hw.submittedStudents}/{hw.totalStudents} {t('instructorDashboard.submittedSuffix')}</p>
               </div>
             </div>
           ))}

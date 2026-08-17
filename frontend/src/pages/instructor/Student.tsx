@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { students, classes, submissions } from '../../data/mockData';
 import {
   Users,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 
 export default function InstructorStudent() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [classFilter, setClassFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'rating' | 'solved' | 'submissions'>('rating');
@@ -68,8 +70,8 @@ export default function InstructorStudent() {
   return (
     <div className="space-y-6 text-[#191919]">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold font-serif text-[#191919]">Quản lý sinh viên</h2>
-        <span className="text-sm text-[#8a8073]">{filteredStudents.length} sinh viên</span>
+        <h2 className="text-2xl font-bold font-serif text-[#191919]">{t('instructorStudent.pageTitle')}</h2>
+        <span className="text-sm text-[#8a8073]">{t('instructorStudent.countSuffix', { count: filteredStudents.length })}</span>
       </div>
 
       {/* Stats */}
@@ -77,22 +79,22 @@ export default function InstructorStudent() {
         <div className="bg-white border border-[#e5dac9] rounded-xl p-4 text-center shadow-sm">
           <Users size={20} className="text-blue-600 mx-auto mb-2" />
           <p className="text-2xl font-bold font-serif text-[#191919]">{students.length}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Tổng sinh viên</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorDashboard.totalStudents')}</p>
         </div>
         <div className="bg-white border border-[#e5dac9] rounded-xl p-4 text-center shadow-sm">
           <CheckCircle2 size={20} className="text-[#193a2b] mx-auto mb-2" />
           <p className="text-2xl font-bold font-serif text-[#191919]">{students.filter((s) => s.solvedCount > 100).length}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Trên 100 bài</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorStudent.statOver100')}</p>
         </div>
         <div className="bg-white border border-[#e5dac9] rounded-xl p-4 text-center shadow-sm">
           <TrendingUp size={20} className="text-[#cc5a37] mx-auto mb-2" />
           <p className="text-2xl font-bold font-serif text-[#191919]">{Math.round(students.reduce((sum, s) => sum + s.rating, 0) / students.length)}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Rating TB</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorStudent.statAvgRating')}</p>
         </div>
         <div className="bg-white border border-[#e5dac9] rounded-xl p-4 text-center shadow-sm">
           <GraduationCap size={20} className="text-yellow-600 mx-auto mb-2" />
           <p className="text-2xl font-bold font-serif text-[#191919]">{classes.length}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Lớp học</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('nav.class')}</p>
         </div>
       </div>
 
@@ -104,7 +106,7 @@ export default function InstructorStudent() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm kiếm sinh viên..."
+            placeholder={t('instructorStudent.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
           />
         </div>
@@ -114,35 +116,35 @@ export default function InstructorStudent() {
             showFilters ? 'bg-[#193a2b]/10 border-[#193a2b]/30 text-[#193a2b]' : 'bg-white border-[#e5dac9] text-[#5c5446] hover:text-[#191919]'
           }`}
         >
-          <Filter size={16} /> Bộ lọc <ChevronDown size={14} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+          <Filter size={16} /> {t('instructorStudent.filterButton')} <ChevronDown size={14} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
         </button>
       </div>
 
       {showFilters && (
         <div className="flex flex-wrap gap-4 p-4 bg-white border border-[#e5dac9] rounded-xl shadow-sm">
           <div>
-            <label className="block text-xs text-[#8a8073] mb-1.5 font-semibold uppercase tracking-wider">Lớp học</label>
+            <label className="block text-xs text-[#8a8073] mb-1.5 font-semibold uppercase tracking-wider">{t('nav.class')}</label>
             <select
               value={classFilter}
               onChange={(e) => setClassFilter(e.target.value)}
               className="px-3 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-lg text-sm text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
             >
-              <option value="all">Tất cả</option>
+              <option value="all">{t('instructorContest.filterAll')}</option>
               {classes.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-xs text-[#8a8073] mb-1.5 font-semibold uppercase tracking-wider">Sắp xếp</label>
+            <label className="block text-xs text-[#8a8073] mb-1.5 font-semibold uppercase tracking-wider">{t('instructorStudent.sortLabel')}</label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as 'rating' | 'solved' | 'submissions')}
               className="px-3 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-lg text-sm text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
             >
               <option value="rating">Rating</option>
-              <option value="solved">Bài đã giải</option>
-              <option value="submissions">Lượt nộp</option>
+              <option value="solved">{t('instructorContest.colSolved')}</option>
+              <option value="submissions">{t('instructorStudent.sortSubmissions')}</option>
             </select>
           </div>
         </div>
@@ -171,11 +173,11 @@ export default function InstructorStudent() {
               <div className="grid grid-cols-4 gap-4 mb-6">
                 <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] text-center shadow-xs">
                   <p className="text-lg font-serif font-bold text-[var(--ws-text)]">{selectedStudentData.solvedCount}</p>
-                  <p className="text-xs text-[var(--ws-muted)] mt-0.5">Bài đã giải</p>
+                  <p className="text-xs text-[var(--ws-muted)] mt-0.5">{t('instructorContest.colSolved')}</p>
                 </div>
                 <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] text-center shadow-xs">
                   <p className="text-lg font-serif font-bold text-[var(--ws-text)]">{selectedStudentData.submissionCount}</p>
-                  <p className="text-xs text-[var(--ws-muted)] mt-0.5">Lượt nộp</p>
+                  <p className="text-xs text-[var(--ws-muted)] mt-0.5">{t('instructorStudent.sortSubmissions')}</p>
                 </div>
                 <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] text-center shadow-xs">
                   <p className={`text-lg font-serif font-bold ${getRatingColor(selectedStudentData.rating)}`}>{selectedStudentData.rating}</p>
@@ -185,7 +187,7 @@ export default function InstructorStudent() {
                   <p className="text-lg font-serif font-bold text-emerald-700">
                     {selectedStudentSubs.length ? Math.round((acCount / selectedStudentSubs.length) * 100) : 0}%
                   </p>
-                  <p className="text-xs text-[var(--ws-muted)] mt-0.5">Tỷ lệ AC</p>
+                  <p className="text-xs text-[var(--ws-muted)] mt-0.5">{t('instructorDashboard.acRate')}</p>
                 </div>
               </div>
 
@@ -199,11 +201,11 @@ export default function InstructorStudent() {
               {/* Contact */}
               <div className="mb-6 p-4 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] shadow-xs leading-relaxed">
                 <p className="text-sm text-[var(--ws-muted)] font-medium">Email: <span className="text-[var(--ws-text)]">{selectedStudentData.email}</span></p>
-                <p className="text-sm text-[var(--ws-muted)] font-medium mt-1.5">Hoạt động gần nhất: <span className="text-[var(--ws-text)]">{selectedStudentData.lastActive}</span></p>
+                <p className="text-sm text-[var(--ws-muted)] font-medium mt-1.5">{t('instructorStudent.lastActive')}: <span className="text-[var(--ws-text)]">{selectedStudentData.lastActive}</span></p>
               </div>
 
               {/* Recent Submissions */}
-              <h4 className="text-sm font-bold font-serif text-[var(--ws-text)] mb-3">Bài nộp gần đây</h4>
+              <h4 className="text-sm font-bold font-serif text-[var(--ws-text)] mb-3">{t('instructorDashboard.recentSubmissions')}</h4>
               <div className="space-y-2">
                 {selectedStudentSubs.map((sub) => (
                   <div key={sub.id} className="flex items-center justify-between p-3 bg-[var(--ws-panel2)] rounded-lg border border-[var(--ws-border)]">
@@ -220,7 +222,7 @@ export default function InstructorStudent() {
                   </div>
                 ))}
                 {selectedStudentSubs.length === 0 && (
-                  <p className="text-sm text-[var(--ws-muted)] text-center py-4">Chưa có bài nộp</p>
+                  <p className="text-sm text-[var(--ws-muted)] text-center py-4">{t('instructorStudent.noSubmissions')}</p>
                 )}
               </div>
             </div>
@@ -235,12 +237,12 @@ export default function InstructorStudent() {
             <thead>
               <tr className="border-b border-[#e5dac9] bg-[#f0ebd9]/50">
                 <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">#</th>
-                <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">Sinh viên</th>
-                <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">Lớp</th>
-                <th className="text-right text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">Bài đã giải</th>
-                <th className="text-right text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">Lượt nộp</th>
+                <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">{t('instructorClass.colStudent')}</th>
+                <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">{t('instructorStudent.colClass')}</th>
+                <th className="text-right text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">{t('instructorContest.colSolved')}</th>
+                <th className="text-right text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">{t('instructorStudent.sortSubmissions')}</th>
                 <th className="text-right text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">Rating</th>
-                <th className="text-center text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">Hành động</th>
+                <th className="text-center text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">{t('instructorStudent.colAction')}</th>
               </tr>
             </thead>
             <tbody>
@@ -277,7 +279,7 @@ export default function InstructorStudent() {
                       <button
                         onClick={() => setSelectedStudent(student.id)}
                         className="p-1.5 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-[#193a2b] hover:bg-[#f7f4eb] transition-colors shadow-xs"
-                        title="Xem chi tiết"
+                        title={t('instructorContest.viewDetail')}
                       >
                         <Eye size={14} />
                       </button>
@@ -291,7 +293,7 @@ export default function InstructorStudent() {
         {filteredStudents.length === 0 && (
           <div className="p-12 text-center">
             <Users size={48} className="text-[#bfae99] mx-auto mb-4" />
-            <p className="text-[#8a8073]">Không tìm thấy sinh viên nào</p>
+            <p className="text-[#8a8073]">{t('instructorStudent.emptyState')}</p>
           </div>
         )}
       </div>

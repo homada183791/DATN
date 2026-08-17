@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useClass } from '../../context/ClassContext';
 import { useAuth } from '../../context/AuthContext';
 import { GraduationCap, Loader2 } from 'lucide-react';
@@ -10,6 +11,7 @@ import { GraduationCap, Loader2 } from 'lucide-react';
  * - Chưa đăng nhập / giảng viên: chuyển về trang phù hợp kèm thông báo.
  */
 export default function JoinClass() {
+  const { t } = useTranslation();
   const { code } = useParams();
   const { isAuthenticated, user } = useAuth();
   const { joinByCode, allClasses } = useClass();
@@ -21,7 +23,7 @@ export default function JoinClass() {
       return;
     }
     if (user?.role === 'instructor') {
-      sessionStorage.setItem('jh-joined-error', 'Giảng viên không thể tham gia lớp qua link mời.');
+      sessionStorage.setItem('jh-joined-error', t('joinClass.instructorCannotJoin'));
       setRedirect('/instructor/classes');
       return;
     }
@@ -46,11 +48,11 @@ export default function JoinClass() {
         <div className="w-16 h-16 mx-auto mb-5 bg-gradient-to-br from-[#193a2b] to-[#2d5a3f] rounded-2xl flex items-center justify-center shadow-lg">
           <GraduationCap size={30} className="text-white" />
         </div>
-        <p className="font-semibold font-serif text-lg">Đang tham gia lớp {code?.toUpperCase()}…</p>
+        <p className="font-semibold font-serif text-lg">{t('joinClass.joining', { code: code?.toUpperCase() })}</p>
         <p className="text-sm text-[var(--ws-muted)] mt-2 flex items-center justify-center gap-2">
-          <Loader2 size={14} className="animate-spin" /> Kiểm tra mã mời và ghi danh
+          <Loader2 size={14} className="animate-spin" /> {t('joinClass.checking')}
         </p>
-        <p className="text-[11px] text-[var(--ws-faint)] mt-4 font-mono">{allClasses.length} lớp trên hệ thống</p>
+        <p className="text-[11px] text-[var(--ws-faint)] mt-4 font-mono">{t('joinClass.classCount', { count: allClasses.length })}</p>
       </div>
     </div>
   );
