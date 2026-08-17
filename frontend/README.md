@@ -45,7 +45,6 @@ npm run dev
 ```
 
 Frontend chạy tại:
-
 - http://localhost:5173
 
 Vite proxy các request bắt đầu bằng `/api` tới `http://localhost:3000`. Cấu hình nằm trong `vite.config.ts`.
