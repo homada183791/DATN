@@ -92,8 +92,6 @@ services:
     container_name: datn_judge_runner
     ports:
       - "4000:4000"
-    volumes:
-      - judge-tmp:/tmp/judge
     cap_drop:
       - ALL
     security_opt:
