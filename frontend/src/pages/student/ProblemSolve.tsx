@@ -6,6 +6,7 @@ import { getDetail, LANG_LABELS, Lang, ProblemDetail } from '../../data/problemD
 import { ApiError, apiFetch } from '../../api/http';
 import { useProblemQuery } from '../../api/problems';
 import { useToast } from '../../context/ToastContext';
+import { io, type Socket } from 'socket.io-client';
 import {
   HelpCircle,
   Send,
@@ -83,6 +84,12 @@ type BottomTab = 'tests' | 'console' | 'results' | 'debug';
 interface ConsoleLine { time: string; msg: string; kind: 'info' | 'ok' | 'err' | 'sys' }
 interface TestVerdict { id: number; status: 'AC' | 'WA' | 'TLE'; time: number; memory: number }
 interface AssistantMessage { id: number; role: 'user' | 'assistant'; content: string }
+interface SubmissionStatusPayload {
+  submission_id: string;
+  status: string;
+  execution_time?: number | null;
+  memory_used?: number | null;
+}
 
 const now = () => new Date().toLocaleTimeString('en-GB', { hour12: false });
 
@@ -148,6 +155,14 @@ export default function ProblemSolve() {
   const gutterRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<number | null>(null);
+  const submissionSocketRef = useRef<Socket | null>(null);
+
+  useEffect(() => {
+    return () => {
+      submissionSocketRef.current?.disconnect();
+      submissionSocketRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     if (!cooldownUntil) {
@@ -235,7 +250,7 @@ export default function ProblemSolve() {
     }
   };
 
-  /* -------- simulated judging -------- */
+  /* -------- local sample run -------- */
   const codeLooksCorrect = detail.successPattern.test(code) && code.trim().length > 30;
 
   const hashTime = (seed: number) => 4 + ((code.length * 7 + seed * 13) % 46);
@@ -275,8 +290,9 @@ export default function ProblemSolve() {
     setJudgeProgress(0);
     pushConsole(`$ judge --submit ${detail.code} --lang ${LANG_LABELS[lang]}`, 'sys');
     pushConsole('Đang gửi bài lên máy chấm...', 'info');
+    let submissionId: string;
     try {
-      await apiFetch('/api/v1/submissions', {
+      const response = await apiFetch<{ submission_id: string }>('/api/v1/submissions', {
         method: 'POST',
         body: JSON.stringify({
           problem_id: problemId,
@@ -284,6 +300,10 @@ export default function ProblemSolve() {
           source_code: code,
         }),
       });
+      submissionId = response.submission_id;
+      if (!submissionId) {
+        throw new Error('Backend không trả về mã bài nộp.');
+      }
     } catch (submitError) {
       if (submitError instanceof ApiError) {
         if (submitError.status === 429) {
@@ -308,32 +328,46 @@ export default function ProblemSolve() {
       return;
     }
 
-    await new Promise((r) => setTimeout(r, 600));
-    pushConsole('Compiling... OK', 'ok');
-    const total = 8;
-    const verdicts: TestVerdict[] = [];
-    for (let i = 0; i < total; i++) {
-      await new Promise((r) => setTimeout(r, 300));
-      setJudgeProgress(((i + 1) / total) * 100);
-      const fail = !codeLooksCorrect && i >= 2;
-      const tle = !fail && codeLooksCorrect === false && i === 5;
-      const status: TestVerdict['status'] = fail ? 'WA' : tle ? 'TLE' : 'AC';
-      const t = hashTime(i + 11);
-      verdicts.push({ id: i + 1, status, time: t, memory: +(1.2 + (i % 4) * 0.7).toFixed(1) });
-      pushConsole(
-        status === 'AC'
-          ? `Test ${i + 1}/${total}: Accepted (${t}ms)`
-          : status === 'WA'
-          ? `Test ${i + 1}/${total}: Wrong Answer`
-          : `Test ${i + 1}/${total}: Time Limit Exceeded`,
-        status === 'AC' ? 'ok' : 'err'
-      );
-    }
-    setTestVerdicts(verdicts);
-    const allAC = verdicts.every((v) => v.status === 'AC');
-    setFinalVerdict(allAC ? 'AC' : verdicts.some((v) => v.status === 'TLE') ? 'TLE' : 'WA');
-    setBottomTab('results');
-    setJudging(false);
+    const socketUrl = (import.meta.env.VITE_SOCKET_URL as string | undefined) ?? window.location.origin;
+    const socket = io(socketUrl, { transports: ['websocket'] });
+    submissionSocketRef.current?.disconnect();
+    submissionSocketRef.current = socket;
+
+    const terminalVerdicts: Record<string, string> = {
+      ACCEPTED: 'AC',
+      WRONG_ANSWER: 'WA',
+      TIME_LIMIT_EXCEEDED: 'TLE',
+      COMPILE_ERROR: 'CE',
+      RUNTIME_ERROR: 'RTE',
+    };
+
+    socket.on('connect', () => {
+      socket.emit('join_submission', { submission_id: submissionId });
+      pushConsole(`Đã kết nối theo dõi bài nộp ${submissionId}.`, 'info');
+    });
+
+    socket.on('submission_status_changed', (payload: SubmissionStatusPayload) => {
+      const status = payload.status.toUpperCase();
+      const verdict = terminalVerdicts[status];
+      setJudgeProgress(verdict ? 100 : status === 'IN_QUEUE' ? 35 : 15);
+      pushConsole(`Trạng thái bài nộp: ${status}.`, verdict === 'AC' ? 'ok' : verdict ? 'err' : 'info');
+
+      if (!verdict) return;
+
+      setFinalVerdict(verdict);
+      setBottomTab('results');
+      setJudging(false);
+      socket.disconnect();
+      submissionSocketRef.current = null;
+    });
+
+    socket.on('connect_error', () => {
+      showToast('Không thể kết nối máy chủ chấm bài.', 'error');
+      pushConsole('error: không thể kết nối Socket.io.', 'err');
+      setJudging(false);
+      socket.disconnect();
+      submissionSocketRef.current = null;
+    });
   };
 
   /* -------- misc actions -------- */

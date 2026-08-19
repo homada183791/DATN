@@ -56,4 +56,13 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
       this.logger.error(`[EventsGateway] Error emitting update: ${error.message}`);
     }
   }
+
+  public emitLeaderboardUpdate(payload: any) {
+    try {
+      this.server.emit('leaderboard_updated', payload);
+      this.logger.log('[EventsGateway] Emitted leaderboard update');
+    } catch (error) {
+      this.logger.error(`[EventsGateway] Error emitting leaderboard update: ${error.message}`);
+    }
+  }
 }

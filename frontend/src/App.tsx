@@ -1,4 +1,7 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { io } from 'socket.io-client';
+import { queryClient } from './api/queryClient';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
@@ -25,6 +28,19 @@ import InstructorStudent from './pages/instructor/Student';
 import NotFoundPage from './pages/NotFound';
 
 export default function App() {
+  useEffect(() => {
+    const socketUrl = (import.meta.env.VITE_SOCKET_URL as string | undefined) ?? window.location.origin;
+    const socket = io(socketUrl, { transports: ['websocket'] });
+
+    socket.on('leaderboard_updated', () => {
+      queryClient.invalidateQueries({ queryKey: ['contests'] });
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
   return (
     <ThemeProvider>
       <ToastProvider>

@@ -42,6 +42,7 @@ export class WebhookService {
       memory_used: updatedSubmission.memory_used,
       updated_at: updatedSubmission.updated_at,
     });
+    this.eventsGateway.emitLeaderboardUpdate({ submission_id });
 
     return { success: true };
   }
