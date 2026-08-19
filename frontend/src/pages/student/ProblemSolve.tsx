@@ -279,9 +279,9 @@ export default function ProblemSolve() {
       await apiFetch('/api/v1/submissions', {
         method: 'POST',
         body: JSON.stringify({
-          problemId,
-          language: lang,
-          code,
+          problem_id: problemId,
+          language: lang === 'cpp' ? 'CPP' : lang === 'python' ? 'PYTHON' : 'JAVA',
+          source_code: code,
         }),
       });
     } catch (submitError) {

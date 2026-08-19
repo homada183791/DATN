@@ -32,6 +32,14 @@ enum Difficulty {
   HARD
 }
 
+enum Language {
+  C
+  CPP
+  PYTHON
+  GO
+  JAVA
+}
+
 model Problem {
   id           String     @id @default(uuid())
   title        String
