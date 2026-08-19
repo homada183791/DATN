@@ -10,7 +10,7 @@ import { Role } from '@prisma/client';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('Contests')
-@Controller('contests')
+@Controller('api/v1/contests')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class ContestsController {
   constructor(private readonly contestsService: ContestsService) {}

@@ -3,7 +3,7 @@ import { SubmissionsService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('submissions')
+@Controller('api/v1/submissions')
 @UseGuards(AuthGuard('jwt'))
 export class SubmissionsController {
   constructor(private readonly submissionsService: SubmissionsService) {}
