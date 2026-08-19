@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { QueueService } from '../queue/queue.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
-import { SubmissionStatus } from '@prisma/client';
+import { Role, SubmissionStatus } from '@prisma/client';
 
 @Injectable()
 export class SubmissionsService {
@@ -10,6 +10,31 @@ export class SubmissionsService {
     private readonly prisma: PrismaService,
     private readonly queueService: QueueService,
   ) {}
+
+  async findAll(userId: string, userRole: Role) {
+    const submissions = await this.prisma.submission.findMany({
+      where: userRole === Role.INSTRUCTOR ? undefined : { user_id: userId },
+      orderBy: { created_at: 'desc' },
+      include: {
+        problem: { select: { id: true, title: true } },
+        user: { select: { id: true, email: true } },
+      },
+    });
+
+    return submissions.map((submission) => ({
+      id: submission.id,
+      problem_id: submission.problem_id,
+      problem_title: submission.problem.title,
+      user_id: submission.user_id,
+      username: submission.user.email.split('@')[0],
+      language: submission.language,
+      status: submission.status,
+      execution_time: submission.execution_time,
+      memory_used: submission.memory_used,
+      source_code: submission.source_code,
+      created_at: submission.created_at,
+    }));
+  }
 
   async submitCode(userId: string, createSubmissionDto: CreateSubmissionDto) {
     const { problem_id, language, source_code } = createSubmissionDto;

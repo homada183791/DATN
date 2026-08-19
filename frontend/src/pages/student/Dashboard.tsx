@@ -4,6 +4,7 @@ import { ArrowRight, Calendar, CheckCircle2, Loader2, Send, Target, Trophy, XCir
 import { ApiError } from '../../api/http';
 import { useContestsQuery } from '../../api/contests';
 import { useLeaderboardQuery } from '../../api/contests';
+import { useSubmissionsQuery } from '../../api/submissions';
 import { useAuth } from '../../context/AuthContext';
 
 const verdictColors: Record<string, string> = {
@@ -24,6 +25,7 @@ export default function StudentDashboard() {
     [contests]
   );
   const { data: leaderboard, isLoading: leaderboardLoading, error: leaderboardError } = useLeaderboardQuery(activeContestId);
+  const { data: submissions, isLoading: submissionsLoading, error: submissionsError } = useSubmissionsQuery();
 
   const leaderboardRows = Array.isArray(leaderboard)
     ? leaderboard
@@ -31,10 +33,23 @@ export default function StudentDashboard() {
 
   const runningContests = (contests ?? []).filter((contest) => contest.status === 'running');
   const upcomingContests = (contests ?? []).filter((contest) => contest.status === 'upcoming');
-  const recentSubmissions = [];
-  const solvedCount = 0;
-  const submissionCount = 0;
-  const successRate = 0;
+  const recentSubmissions = (submissions ?? []).slice(0, 5).map((submission) => ({
+    id: submission.id,
+    problemTitle: submission.problem_title,
+    language: submission.language,
+    verdict: submission.status === 'ACCEPTED' ? 'AC' : submission.status,
+    timestamp: submission.created_at,
+    executionTime: submission.execution_time,
+    memory: submission.memory_used,
+  }));
+  const solvedCount = new Set(
+    (submissions ?? [])
+      .filter((submission) => submission.status === 'ACCEPTED')
+      .map((submission) => submission.problem_id)
+  ).size;
+  const submissionCount = submissions?.length ?? 0;
+  const acceptedCount = (submissions ?? []).filter((submission) => submission.status === 'ACCEPTED').length;
+  const successRate = submissionCount ? Math.round((acceptedCount / submissionCount) * 100) : 0;
 
   if (contestsError instanceof ApiError) {
     return (
@@ -168,7 +183,15 @@ export default function StudentDashboard() {
             <h3 className="text-lg font-bold text-[#191919] font-serif">Bài nộp gần đây</h3>
             <span className="text-sm text-[#8a8073]">Live view</span>
           </div>
-          {recentSubmissions.length === 0 ? (
+          {submissionsLoading ? (
+            <div className="flex items-center justify-center py-6 text-sm text-[#8a8073]">
+              <Loader2 size={16} className="mr-2 animate-spin" /> Đang tải bài nộp...
+            </div>
+          ) : submissionsError ? (
+            <div className="rounded-xl border border-dashed border-[#e5dac9] p-6 text-center text-sm text-[#8a8073]">
+              Không thể tải dữ liệu bài nộp.
+            </div>
+          ) : recentSubmissions.length === 0 ? (
             <div className="rounded-xl border border-dashed border-[#e5dac9] p-6 text-center text-sm text-[#8a8073]">
               Chưa có dữ liệu bài nộp từ API.
             </div>

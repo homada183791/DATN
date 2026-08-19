@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { submissions } from '../../data/legacyData';
 import { useAuth } from '../../context/AuthContext';
+import { ApiError } from '../../api/http';
+import { useSubmissionsQuery } from '../../api/submissions';
 import {
   Search,
   Filter,
@@ -13,9 +14,34 @@ import {
   ExternalLink,
 } from 'lucide-react';
 
+interface SubmissionRow {
+  id: string;
+  problemId: string;
+  problemTitle: string;
+  userId: string;
+  username: string;
+  language: string;
+  verdict: string;
+  executionTime: number | null;
+  memory: number | null;
+  timestamp: string;
+  code: string;
+}
+
+const verdictByStatus: Record<string, string> = {
+  PENDING: 'PENDING',
+  IN_QUEUE: 'IN_QUEUE',
+  ACCEPTED: 'AC',
+  WRONG_ANSWER: 'WA',
+  TIME_LIMIT_EXCEEDED: 'TLE',
+  COMPILE_ERROR: 'CE',
+  RUNTIME_ERROR: 'RTE',
+};
+
 export default function Submission() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { data, isLoading, error } = useSubmissionsQuery();
   const [searchQuery, setSearchQuery] = useState('');
   const [verdictFilter, setVerdictFilter] = useState<string>('all');
   const [languageFilter, setLanguageFilter] = useState<string>('all');
@@ -23,7 +49,19 @@ export default function Submission() {
   const [showFilters, setShowFilters] = useState(false);
   const hasDocument = typeof document !== 'undefined';
 
-  const allSubmissions = user?.role === 'instructor' ? submissions : submissions.filter((s) => s.userId === user?.id);
+  const allSubmissions: SubmissionRow[] = (data ?? []).map((submission) => ({
+    id: submission.id,
+    problemId: submission.problem_id,
+    problemTitle: submission.problem_title,
+    userId: submission.user_id,
+    username: submission.username,
+    language: submission.language,
+    verdict: verdictByStatus[submission.status] ?? submission.status,
+    executionTime: submission.execution_time,
+    memory: submission.memory_used,
+    timestamp: submission.created_at,
+    code: submission.source_code,
+  }));
 
   const filteredSubmissions = allSubmissions.filter((s) => {
     const matchesSearch = s.problemTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -33,7 +71,7 @@ export default function Submission() {
     return matchesSearch && matchesVerdict && matchesLanguage;
   });
 
-  const selectedSub = submissions.find((s) => s.id === selectedSubmission);
+  const selectedSub = allSubmissions.find((s) => s.id === selectedSubmission);
 
   const verdictColors: Record<string, string> = {
     AC: 'text-emerald-800 bg-emerald-100 border-emerald-300',
@@ -55,7 +93,21 @@ export default function Submission() {
     PE: 'Presentation Error',
   };
 
-  const languages = [...new Set(submissions.map((s) => s.language))];
+  const languages = [...new Set(allSubmissions.map((s) => s.language))];
+
+  if (isLoading) {
+    return <div className="p-10 text-center text-sm text-[#8a8073]">Đang tải lịch sử bài nộp...</div>;
+  }
+
+  if (error instanceof ApiError) {
+    return (
+      <div className="rounded-2xl border border-[#e5dac9] bg-white p-10 text-center shadow-sm">
+        <AlertTriangle size={40} className="text-[#bfae99] mx-auto mb-3" />
+        <h2 className="text-xl font-bold text-[#191919]">Không thể tải lịch sử bài nộp</h2>
+        <p className="mt-2 text-sm text-[#8a8073]">{error.message}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 text-[#191919]">

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { SubmissionsService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -13,5 +13,10 @@ export class SubmissionsController {
     // JWT Strategy trả về userId thông qua payload.sub
     const userId = req.user.userId;
     return this.submissionsService.submitCode(userId, createSubmissionDto);
+  }
+
+  @Get()
+  findAll(@Request() req) {
+    return this.submissionsService.findAll(req.user.userId, req.user.role);
   }
 }
