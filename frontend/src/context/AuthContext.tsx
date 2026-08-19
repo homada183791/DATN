@@ -30,9 +30,11 @@ interface AuthResponse {
   user: {
     id: string;
     email: string;
-    role: 'student' | 'instructor';
+    role: BackendRole;
   };
 }
+
+type BackendRole = 'STUDENT' | 'INSTRUCTOR';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const ACCESS_TOKEN_KEY = 'accessToken';
@@ -80,7 +82,11 @@ const demoUsers: Record<string, { password: string; user: User }> = {
   },
 };
 
-function normalizeUser(identifier: string, role: 'student' | 'instructor', fullName?: string): User {
+function normalizeRole(role: BackendRole): User['role'] {
+  return role === 'INSTRUCTOR' ? 'instructor' : 'student';
+}
+
+function normalizeUser(identifier: string, role: User['role'], fullName?: string): User {
   const username = identifier.includes('@') ? identifier.split('@')[0] : identifier;
   return {
     id: `${role}-${username}`,
@@ -93,11 +99,11 @@ function normalizeUser(identifier: string, role: 'student' | 'instructor', fullN
 }
 
 async function hydrateProfile(token: string) {
-  const profile = await apiFetch<{ id: string; email: string; role: 'student' | 'instructor' }>('/api/v1/auth/profile', {
+  const profile = await apiFetch<{ id: string; email: string; role: BackendRole }>('/api/v1/auth/profile', {
     headers: { Authorization: `Bearer ${token}` },
   });
 
-  return normalizeUser(profile.email, profile.role);
+  return normalizeUser(profile.email, normalizeRole(profile.role));
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -123,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
       window.localStorage.setItem(ACCESS_TOKEN_KEY, response.access_token);
-      setUser(normalizeUser(response.user.email, response.user.role));
+      setUser(normalizeUser(response.user.email, normalizeRole(response.user.role)));
       return { ok: true };
     } catch (error) {
       if (error instanceof ApiError) {

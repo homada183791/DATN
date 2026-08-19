@@ -12,9 +12,9 @@ import { Role } from '@prisma/client';
 export class ProblemsController {
   constructor(private readonly problemsService: ProblemsService) {}
 
-  // POST: Chỉ ADMIN
+  // POST: Chỉ INSTRUCTOR
   @Post()
-  @Roles(Role.ADMIN)
+  @Roles(Role.INSTRUCTOR)
   create(@Body() createProblemDto: CreateProblemDto) {
     return this.problemsService.create(createProblemDto);
   }
@@ -31,16 +31,16 @@ export class ProblemsController {
     return this.problemsService.findOne(id, req.user.role);
   }
 
-  // PUT: Chỉ ADMIN
+  // PUT: Chỉ INSTRUCTOR
   @Put(':id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.INSTRUCTOR)
   update(@Param('id') id: string, @Body() updateProblemDto: UpdateProblemDto) {
     return this.problemsService.update(id, updateProblemDto);
   }
 
-  // DELETE: Chỉ ADMIN
+  // DELETE: Chỉ INSTRUCTOR
   @Delete(':id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.INSTRUCTOR)
   remove(@Param('id') id: string) {
     return this.problemsService.remove(id);
   }

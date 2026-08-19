@@ -12,7 +12,7 @@ datasource db {
 // Định nghĩa Enum cho Role theo chuẩn
 enum Role {
   STUDENT
-  ADMIN
+  INSTRUCTOR
 }
 
 model User {

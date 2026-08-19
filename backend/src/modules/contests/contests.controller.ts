@@ -16,11 +16,11 @@ export class ContestsController {
   constructor(private readonly contestsService: ContestsService) {}
 
   @Post()
-  @Roles(Role.ADMIN)
+  @Roles(Role.INSTRUCTOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Tạo mới một kỳ thi' })
   @ApiResponse({ status: 201, description: 'Kỳ thi đã được tạo thành công.' })
-  @ApiResponse({ status: 403, description: 'Forbidden. Chỉ Admin mới có quyền.' })
+  @ApiResponse({ status: 403, description: 'Forbidden. Chỉ Instructor mới có quyền.' })
   create(@Body() createContestDto: CreateContestDto) {
     return this.contestsService.create(createContestDto);
   }
@@ -44,7 +44,7 @@ export class ContestsController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.INSTRUCTOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Cập nhật thông tin kỳ thi' })
   @ApiResponse({ status: 200, description: 'Kỳ thi đã được cập nhật thành công.' })
@@ -55,7 +55,7 @@ export class ContestsController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.INSTRUCTOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Xóa một kỳ thi' })
   @ApiResponse({ status: 200, description: 'Kỳ thi đã được xóa thành công.' })
@@ -66,7 +66,7 @@ export class ContestsController {
   }
 
   @Post(':id/problems')
-  @Roles(Role.ADMIN)
+  @Roles(Role.INSTRUCTOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Thêm bài tập vào kỳ thi' })
   @ApiResponse({ status: 201, description: 'Bài tập đã được thêm thành công.' })

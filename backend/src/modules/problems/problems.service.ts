@@ -52,8 +52,8 @@ export class ProblemsService {
       throw new NotFoundException('Không tìm thấy bài tập');
     }
 
-    // RBAC logic: Nếu không phải ADMIN, lọc bỏ các test cases bị ẩn
-    if (userRole !== Role.ADMIN) {
+    // RBAC logic: Nếu không phải INSTRUCTOR, lọc bỏ các test cases bị ẩn
+    if (userRole !== Role.INSTRUCTOR) {
       problem.test_cases = problem.test_cases.filter(tc => !tc.is_hidden);
     }
 
