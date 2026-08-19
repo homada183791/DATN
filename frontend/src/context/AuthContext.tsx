@@ -21,7 +21,6 @@ interface AuthContextType {
   login: (identifier: string, password: string) => Promise<{ ok: boolean; message?: string }>;
   register: (username: string, email: string, password: string, fullName: string) => Promise<{ ok: boolean; message?: string }>;
   logout: () => void;
-  switchRole: (role: 'student' | 'instructor') => void;
   isAuthenticated: boolean;
 }
 
@@ -47,39 +46,6 @@ const baseUserFields = {
   rating: 0,
   joinDate: new Date().toISOString().slice(0, 10),
   bio: '',
-};
-
-const demoUsers: Record<string, { password: string; user: User }> = {
-  'nguyenvana@university.edu.vn': {
-    password: '123456',
-    user: {
-      id: 'demo-student',
-      username: 'nguyenvana',
-      email: 'nguyenvana@university.edu.vn',
-      fullName: 'Nguyễn Văn A',
-      role: 'student',
-      ...baseUserFields,
-      solvedCount: 156,
-      submissionCount: 489,
-      rating: 1847,
-      bio: 'Sinh viên năm 3, chuyên ngành Khoa học Máy tính.',
-    },
-  },
-  'tranducb@university.edu.vn': {
-    password: '123456',
-    user: {
-      id: 'demo-instructor',
-      username: 'tranducb',
-      email: 'tranducb@university.edu.vn',
-      fullName: 'Trần Đức B',
-      role: 'instructor',
-      ...baseUserFields,
-      solvedCount: 842,
-      submissionCount: 2100,
-      rating: 2450,
-      bio: 'Giảng viên khoa Công nghệ Thông tin.',
-    },
-  },
 };
 
 function normalizeRole(role: BackendRole): User['role'] {
@@ -133,12 +99,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { ok: true };
     } catch (error) {
       if (error instanceof ApiError) {
-        const demo = demoUsers[email];
-        if (demo && demo.password === password) {
-          setUser({ ...demo.user });
-          window.localStorage.setItem(ACCESS_TOKEN_KEY, `demo-${demo.user.id}`);
-          return { ok: true };
-        }
         return {
           ok: false,
           message: error.status === 401 ? 'Sai tài khoản hoặc mật khẩu.' : error.message,
@@ -154,15 +114,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         method: 'POST',
         body: JSON.stringify({ email: email.trim(), password }),
       });
-      setUser(normalizeUser(email.trim().toLowerCase(), 'student', fullName));
       return { ok: true };
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         return { ok: false, message: 'Email đã tồn tại.' };
-      }
-      if (email.trim() && fullName.trim()) {
-        setUser(normalizeUser(email.trim().toLowerCase(), 'student', fullName));
-        return { ok: true };
       }
       return { ok: false, message: error instanceof ApiError ? error.message : 'Vui lòng nhập đầy đủ thông tin bắt buộc.' };
     }
@@ -173,13 +128,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  const switchRole = (role: 'student' | 'instructor') => {
-    const fallback = role === 'student' ? demoUsers['nguyenvana@university.edu.vn'].user : demoUsers['tranducb@university.edu.vn'].user;
-    setUser({ ...fallback, role });
-  };
-
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, switchRole, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );
