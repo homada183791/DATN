@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 type ToastType = 'success' | 'error';
 
@@ -13,6 +13,11 @@ interface ToastContextType {
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
+const toastListeners = new Set<(message: string, type: ToastType) => void>();
+
+export function notifyGlobalToast(message: string, type: ToastType = 'error') {
+  toastListeners.forEach((listener) => listener(message, type));
+}
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
@@ -27,6 +32,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(() => ({ showToast }), [showToast]);
+
+  useEffect(() => {
+    const listener = (message: string, type: ToastType) => showToast(message, type);
+    toastListeners.add(listener);
+
+    return () => {
+      toastListeners.delete(listener);
+    };
+  }, [showToast]);
 
   return (
     <ToastContext.Provider value={value}>

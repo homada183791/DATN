@@ -1,3 +1,5 @@
+import { notifyGlobalToast } from '../context/ToastContext';
+
 export interface ApiResponse<T> {
   success?: boolean;
   data?: T;
@@ -36,18 +38,35 @@ export function getAuthHeaders() {
 }
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(getApiUrl(path), {
-    ...init,
-    headers: {
-      ...getAuthHeaders(),
-      ...(init.headers ?? {}),
-    },
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(getApiUrl(path), {
+      ...init,
+      headers: {
+        ...getAuthHeaders(),
+        ...(init.headers ?? {}),
+      },
+    });
+  } catch (error) {
+    notifyGlobalToast('Không thể kết nối máy chủ', 'error');
+    throw new ApiError(0, 'Không thể kết nối máy chủ', error);
+  }
 
   const contentType = response.headers.get('content-type') ?? '';
   const payload = contentType.includes('application/json') ? await response.json() : await response.text();
 
   if (!response.ok) {
+    if (response.status === 401) {
+      window.localStorage.removeItem('accessToken');
+      notifyGlobalToast('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'error');
+      if (window.location.pathname !== '/login') {
+        window.location.assign('/login');
+      }
+    } else if (response.status === 429) {
+      notifyGlobalToast('Bạn thao tác quá nhanh, vui lòng thử lại sau.', 'error');
+    }
+
     const message =
       typeof payload === 'string'
         ? payload
