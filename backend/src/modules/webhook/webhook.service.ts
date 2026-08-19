@@ -13,7 +13,8 @@ export class WebhookService {
   ) {}
 
   async processJudgeResult(judgeResultDto: JudgeResultDto) {
-    const { submission_id, status, execution_time, memory_used } = judgeResultDto;
+    const { submission_id, status, execution_time, memory_used } =
+      judgeResultDto;
 
     const submission = await this.prisma.submission.findUnique({
       where: { id: submission_id },
@@ -32,7 +33,9 @@ export class WebhookService {
       },
     });
 
-    this.logger.log(`[Judge Webhook] Submission ${submission_id} updated to ${status}`);
+    this.logger.log(
+      `[Judge Webhook] Submission ${submission_id} updated to ${status}`,
+    );
 
     // Bắn sự kiện realtime xuống Frontend qua Socket.io
     this.eventsGateway.emitSubmissionUpdate(submission_id, {
