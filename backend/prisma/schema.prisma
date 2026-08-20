@@ -24,6 +24,8 @@ model User {
   updated_at DateTime @updatedAt
 
   submissions Submission[]
+  managed_classes  Class[]
+  enrolled_classes ClassStudent[]
 
   @@map("users") // Đặt tên table trong DB là "users" thay vì "User"
 }
@@ -124,4 +126,31 @@ model ContestProblem {
 
   @@unique([contest_id, problem_id])
   @@map("contest_problems")
+}
+
+model Class {
+  id          String   @id @default(uuid())
+  name        String
+  description String?  @db.Text
+  invite_code String   @unique
+  admin_id    String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  admin       User           @relation(fields: [admin_id], references: [id], onDelete: Cascade)
+  students    ClassStudent[]
+
+  @@map("classes")
+}
+
+model ClassStudent {
+  class_id   String
+  student_id String
+  joined_at  DateTime @default(now())
+
+  class      Class @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  student    User  @relation(fields: [student_id], references: [id], onDelete: Cascade)
+
+  @@id([class_id, student_id])
+  @@map("class_students")
 }

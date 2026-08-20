@@ -11,9 +11,10 @@ import { WebhookModule } from './modules/webhook/webhook.module';
 import { EventsModule } from './events/events.module';
 import { ContestsModule } from './modules/contests/contests.module';
 import { LeaderboardModule } from './modules/leaderboard/leaderboard.module';
+import { ClassesModule } from './modules/classes/classes.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuthModule, ProblemsModule, QueueModule, SubmissionsModule, WebhookModule, EventsModule, ContestsModule, LeaderboardModule],
+  imports: [PrismaModule, UsersModule, AuthModule, ProblemsModule, QueueModule, SubmissionsModule, WebhookModule, EventsModule, ContestsModule, LeaderboardModule, ClassesModule],
   controllers: [AppController],
   providers: [AppService],
 })
