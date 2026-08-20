@@ -1,9 +1,9 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.get('/', (req, res) => {
+app.get('/', (_req: Request, res: Response) => {
   res.send('Judge Runner API is running!');
 });
 
