@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsOptional, IsDateString } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsDateString, IsBoolean, ValidateIf, IsUUID } from 'class-validator';
 import { IsAfter } from '../../../common/validators/is-after.validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -23,4 +23,15 @@ export class CreateContestDto {
   @IsNotEmpty({ message: 'Thời gian kết thúc không được để trống' })
   @IsAfter('start_time', { message: 'Thời gian kết thúc phải lớn hơn thời gian bắt đầu' })
   end_time: string;
+
+  @ApiPropertyOptional({ example: false, description: 'Đánh dấu đây là kỳ thi nội bộ của một lớp học' })
+  @IsOptional()
+  @IsBoolean()
+  is_private?: boolean;
+
+  @ApiPropertyOptional({ example: 'uuid-1234', description: 'ID của lớp học nếu là kỳ thi nội bộ' })
+  @ValidateIf(o => o.is_private === true)
+  @IsNotEmpty({ message: 'Phải chọn lớp học khi tạo kỳ thi nội bộ' })
+  @IsUUID('all', { message: 'class_id phải là UUID hợp lệ' })
+  class_id?: string;
 }

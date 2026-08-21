@@ -107,10 +107,13 @@ model Contest {
   description String?  @db.Text
   start_time  DateTime
   end_time    DateTime
+  is_private  Boolean  @default(false)
+  class_id    String?
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
   problems    ContestProblem[]
+  class       Class?   @relation(fields: [class_id], references: [id], onDelete: SetNull)
 
   @@map("contests")
 }
@@ -139,6 +142,7 @@ model Class {
 
   admin       User           @relation(fields: [admin_id], references: [id], onDelete: Cascade)
   students    ClassStudent[]
+  contests    Contest[]
 
   @@map("classes")
 }

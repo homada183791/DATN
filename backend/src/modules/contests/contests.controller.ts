@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, UseGuards, Request } from '@nestjs/common';
 import { ContestsService } from './contests.service';
 import { CreateContestDto } from './dto/create-contest.dto';
 import { UpdateContestDto } from './dto/update-contest.dto';
@@ -29,9 +29,8 @@ export class ContestsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Lấy danh sách tất cả kỳ thi' })
   @ApiResponse({ status: 200, description: 'Danh sách các kỳ thi.' })
-  // Không gán Roles -> Bất kỳ ai có JWT đều xem được
-  findAll() {
-    return this.contestsService.findAll();
+  findAll(@Request() req: any) {
+    return this.contestsService.findAll(req.user.id);
   }
 
   @Get(':id')

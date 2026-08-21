@@ -19,8 +19,30 @@ export class ContestsService {
     });
   }
 
-  async findAll() {
+  async findAll(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Không tìm thấy người dùng');
+
+    if (user.role === 'ADMIN') {
+      return this.prisma.contest.findMany({
+        orderBy: { created_at: 'desc' },
+      });
+    }
+
+    // STUDENT: Chỉ thấy Public hoặc Private thuộc lớp đã tham gia
+    const enrolledClasses = await this.prisma.classStudent.findMany({
+      where: { student_id: userId },
+      select: { class_id: true }
+    });
+    const classIds = enrolledClasses.map(c => c.class_id);
+
     return this.prisma.contest.findMany({
+      where: {
+        OR: [
+          { is_private: false },
+          { is_private: true, class_id: { in: classIds } }
+        ]
+      },
       orderBy: { created_at: 'desc' },
     });
   }
