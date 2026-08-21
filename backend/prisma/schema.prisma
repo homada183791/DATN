@@ -90,6 +90,7 @@ model Submission {
   language       Language
   source_code    String           @db.Text
   status         SubmissionStatus @default(PENDING)
+  score          Float            @default(0)
   execution_time Int?             // ms
   memory_used    Int?             // MB
   created_at     DateTime         @default(now())
@@ -97,8 +98,23 @@ model Submission {
 
   user           User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
   problem        Problem          @relation(fields: [problem_id], references: [id], onDelete: Cascade)
+  test_results   SubmissionTestResult[]
 
   @@map("submissions")
+}
+
+model SubmissionTestResult {
+  id             String           @id @default(uuid())
+  submission_id  String
+  testcase_index Int
+  status         SubmissionStatus
+  execution_time Int?             // ms
+  memory_used    Int?             // MB
+  created_at     DateTime         @default(now())
+
+  submission     Submission       @relation(fields: [submission_id], references: [id], onDelete: Cascade)
+
+  @@map("submission_test_results")
 }
 
 model Contest {

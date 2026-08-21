@@ -13,7 +13,7 @@ export class WebhookService {
   ) {}
 
   async processJudgeResult(judgeResultDto: JudgeResultDto) {
-    const { submission_id, status, execution_time, memory_used } = judgeResultDto;
+    const { submission_id, status, execution_time, memory_used, test_results } = judgeResultDto;
 
     const submission = await this.prisma.submission.findUnique({
       where: { id: submission_id },
@@ -30,16 +30,39 @@ export class WebhookService {
       throw new NotFoundException('Không tìm thấy bài nộp với mã cung cấp.');
     }
 
-    const updatedSubmission = await this.prisma.submission.update({
-      where: { id: submission_id },
-      data: {
-        status,
-        execution_time,
-        memory_used,
-      },
+    // Dùng transaction để vừa cập nhật submission, vừa tạo test results
+    const updatedSubmission = await this.prisma.$transaction(async (tx) => {
+      let score = 0;
+
+      if (test_results && test_results.length > 0) {
+        // Tính điểm: (số testcase ACCEPTED / tổng số) * 100
+        const acceptedCount = test_results.filter(t => t.status === 'ACCEPTED').length;
+        score = (acceptedCount / test_results.length) * 100;
+
+        // Lưu danh sách test_results vào CSDL
+        await tx.submissionTestResult.createMany({
+          data: test_results.map(t => ({
+            submission_id,
+            testcase_index: t.testcase_index,
+            status: t.status,
+            execution_time: t.execution_time,
+            memory_used: t.memory_used,
+          }))
+        });
+      }
+
+      return tx.submission.update({
+        where: { id: submission_id },
+        data: {
+          status,
+          execution_time,
+          memory_used,
+          score,
+        },
+      });
     });
 
-    this.logger.log(`[Judge Webhook] Submission ${submission_id} updated to ${status}`);
+    this.logger.log(`[Judge Webhook] Submission ${submission_id} updated to ${status} with score ${updatedSubmission.score}`);
 
     // Bắn sự kiện realtime xuống Frontend qua Socket.io
     this.eventsGateway.emitSubmissionUpdate(submission_id, {
@@ -58,8 +81,10 @@ export class WebhookService {
           user_id: submission.user_id,
           problem_id: submission.problem_id,
           status: updatedSubmission.status,
+          score: updatedSubmission.score,
           execution_time: updatedSubmission.execution_time,
           memory_used: updatedSubmission.memory_used,
+          test_results: test_results || [],
         };
         for (const cp of submission.problem.contests) {
           this.eventsGateway.emitAdminDashboardUpdate(cp.contest_id, adminPayload);
