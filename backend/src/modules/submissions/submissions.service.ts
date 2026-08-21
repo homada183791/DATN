@@ -48,7 +48,7 @@ export class SubmissionsService {
             }
           });
           if (!isMember) {
-            throw new ForbiddenException('Bạn không có quyền nộp bài cho bài tập thuộc lớp học khác (Private Contest).');
+            throw new ForbiddenException('Bạn không có quyền nộp bài cho bài tập thuộc lớp học khác.');
           }
         }
 

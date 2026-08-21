@@ -11,6 +11,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { JoinSubmissionRoomDto } from './dto/join-submission-room.dto';
+import { JoinAdminDashboardDto } from './dto/join-admin-dashboard.dto';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -47,6 +48,22 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
     }
   }
 
+  @SubscribeMessage('join_admin_dashboard')
+  handleJoinAdminDashboard(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: JoinAdminDashboardDto,
+  ) {
+    try {
+      const roomName = `admin_dashboard_${payload.contest_id}`;
+      client.join(roomName);
+      this.logger.log(`[EventsGateway] Admin ${client.id} joined dashboard for contest ${payload.contest_id}`);
+      return { success: true, event: 'joined_admin', room: roomName };
+    } catch (error) {
+      this.logger.error(`[EventsGateway] Error joining admin room: ${error.message}`);
+      return { success: false, error: 'Cannot join admin room' };
+    }
+  }
+
   public emitSubmissionUpdate(submission_id: string, payload: any) {
     try {
       const roomName = `submission_${submission_id}`;
@@ -54,6 +71,16 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
       this.logger.log(`[EventsGateway] Emitted status update to room ${roomName}`);
     } catch (error) {
       this.logger.error(`[EventsGateway] Error emitting update: ${error.message}`);
+    }
+  }
+
+  public emitAdminDashboardUpdate(contest_id: string, payload: any) {
+    try {
+      const roomName = `admin_dashboard_${contest_id}`;
+      this.server.to(roomName).emit('admin_contest_update', payload);
+      this.logger.log(`[EventsGateway] Emitted admin update to room ${roomName}`);
+    } catch (error) {
+      this.logger.error(`[EventsGateway] Error emitting admin update: ${error.message}`);
     }
   }
 }

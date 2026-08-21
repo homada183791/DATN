@@ -17,6 +17,13 @@ export class WebhookService {
 
     const submission = await this.prisma.submission.findUnique({
       where: { id: submission_id },
+      include: {
+        problem: {
+          include: {
+            contests: true
+          }
+        }
+      }
     });
 
     if (!submission) {
@@ -42,6 +49,25 @@ export class WebhookService {
       memory_used: updatedSubmission.memory_used,
       updated_at: updatedSubmission.updated_at,
     });
+
+    // Bắn sự kiện realtime cho Giảng viên (Admin Dashboard) nếu bài tập thuộc kỳ thi
+    try {
+      if (submission.problem && submission.problem.contests.length > 0) {
+        const adminPayload = {
+          submission_id: submission.id,
+          user_id: submission.user_id,
+          problem_id: submission.problem_id,
+          status: updatedSubmission.status,
+          execution_time: updatedSubmission.execution_time,
+          memory_used: updatedSubmission.memory_used,
+        };
+        for (const cp of submission.problem.contests) {
+          this.eventsGateway.emitAdminDashboardUpdate(cp.contest_id, adminPayload);
+        }
+      }
+    } catch (e) {
+      this.logger.error(`[Judge Webhook] Failed to emit admin update: ${e.message}`);
+    }
 
     return { success: true };
   }
