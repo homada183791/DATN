@@ -17,7 +17,7 @@ export class ClassesController {
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   create(@Body() createClassDto: CreateClassDto, @Request() req: any) {
-    return this.classesService.create(createClassDto, req.user.id);
+    return this.classesService.create(createClassDto, req.user.userId);
   }
 
   @Get()

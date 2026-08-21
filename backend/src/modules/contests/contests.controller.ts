@@ -30,7 +30,7 @@ export class ContestsController {
   @ApiOperation({ summary: 'Lấy danh sách tất cả kỳ thi' })
   @ApiResponse({ status: 200, description: 'Danh sách các kỳ thi.' })
   findAll(@Request() req: any) {
-    return this.contestsService.findAll(req.user.id);
+    return this.contestsService.findAll(req.user.userId);
   }
 
   @Get(':id')

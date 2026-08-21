@@ -15,6 +15,8 @@ export class ContestsService {
         description: createContestDto.description,
         start_time: new Date(createContestDto.start_time),
         end_time: new Date(createContestDto.end_time),
+        is_private: createContestDto.is_private,
+        class_id: createContestDto.class_id,
       },
     });
   }
