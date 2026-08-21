@@ -83,4 +83,14 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
       this.logger.error(`[EventsGateway] Error emitting admin update: ${error.message}`);
     }
   }
+
+  public emitCheatWarning(contest_id: string, payload: any) {
+    try {
+      const roomName = `admin_dashboard_${contest_id}`;
+      this.server.to(roomName).emit('cheat_warning', payload);
+      this.logger.log(`[EventsGateway] Emitted cheat warning to room ${roomName}`);
+    } catch (error) {
+      this.logger.error(`[EventsGateway] Error emitting cheat warning: ${error.message}`);
+    }
+  }
 }

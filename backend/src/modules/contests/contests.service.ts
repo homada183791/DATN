@@ -1,12 +1,16 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { EventsGateway } from '../../events/events.gateway';
 import { CreateContestDto } from './dto/create-contest.dto';
 import { UpdateContestDto } from './dto/update-contest.dto';
 import { AddProblemDto } from './dto/add-problem.dto';
 
 @Injectable()
 export class ContestsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventsGateway: EventsGateway,
+  ) {}
 
   async create(createContestDto: CreateContestDto) {
     return this.prisma.contest.create({
@@ -128,5 +132,56 @@ export class ContestsService {
         problem_id: problem_id,
       },
     });
+  }
+
+  async reportCheatWarning(contestId: string, studentId: string) {
+    const contest = await this.prisma.contest.findUnique({ where: { id: contestId } });
+    if (!contest) throw new NotFoundException('Không tìm thấy kỳ thi');
+
+    // Tìm kiếm session hiện tại, nếu chưa có thì tạo mới (upsert)
+    const session = await this.prisma.contestSession.upsert({
+      where: {
+        contest_id_student_id: {
+          contest_id: contestId,
+          student_id: studentId,
+        },
+      },
+      update: {
+        cheat_warnings: { increment: 1 },
+      },
+      create: {
+        contest_id: contestId,
+        student_id: studentId,
+        cheat_warnings: 1,
+        is_disqualified: false,
+      },
+      include: {
+        student: { select: { email: true } }
+      }
+    });
+
+    let isDisqualified = session.is_disqualified;
+
+    // Nếu số lần cảnh báo >= 3, truất quyền thi cử
+    if (session.cheat_warnings >= 3 && !isDisqualified) {
+      isDisqualified = true;
+      await this.prisma.contestSession.update({
+        where: { id: session.id },
+        data: { is_disqualified: true }
+      });
+    }
+
+    // Bắn socket realtime cho Giảng viên thông qua admin_contest_update
+    this.eventsGateway.emitAdminDashboardUpdate(contestId, {
+      student_id: studentId,
+      cheat_warnings: session.cheat_warnings,
+      is_disqualified: isDisqualified,
+    });
+
+    return {
+      success: true,
+      cheat_warnings: session.cheat_warnings,
+      is_disqualified: isDisqualified,
+    };
   }
 }

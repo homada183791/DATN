@@ -74,4 +74,14 @@ export class ContestsController {
   addProblem(@Param('id') id: string, @Body() addProblemDto: AddProblemDto) {
     return this.contestsService.addProblem(id, addProblemDto);
   }
+
+  @Post(':id/anti-cheat/warning')
+  @Roles(Role.STUDENT)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Báo cáo hành vi gian lận (chuyển tab, thu nhỏ cửa sổ)' })
+  @ApiResponse({ status: 201, description: 'Đã ghi nhận cảnh báo.' })
+  @ApiResponse({ status: 403, description: 'Forbidden. Chỉ sinh viên mới có thể báo cáo cho chính mình.' })
+  reportCheatWarning(@Param('id') id: string, @Request() req: any) {
+    return this.contestsService.reportCheatWarning(id, req.user.userId);
+  }
 }

@@ -23,9 +23,10 @@ model User {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  submissions Submission[]
+  submissions      Submission[]
   managed_classes  Class[]
   enrolled_classes ClassStudent[]
+  contest_sessions ContestSession[]
 
   @@map("users") // Đặt tên table trong DB là "users" thay vì "User"
 }
@@ -41,26 +42,26 @@ model Problem {
   title        String
   description  String     @db.Text
   difficulty   Difficulty @default(MEDIUM)
-  time_limit   Int        // ms
-  memory_limit Int        // MB
+  time_limit   Int // ms
+  memory_limit Int // MB
   created_at   DateTime   @default(now())
   updated_at   DateTime   @updatedAt
 
-  test_cases   TestCase[]
-  submissions  Submission[]
-  contests     ContestProblem[]
+  test_cases  TestCase[]
+  submissions Submission[]
+  contests    ContestProblem[]
 
   @@map("problems")
 }
 
 model TestCase {
-  id              String   @id @default(uuid())
+  id              String  @id @default(uuid())
   problem_id      String
-  input           String   @db.Text
-  expected_output String   @db.Text
-  is_hidden       Boolean  @default(true)
+  input           String  @db.Text
+  expected_output String  @db.Text
+  is_hidden       Boolean @default(true)
 
-  problem         Problem  @relation(fields: [problem_id], references: [id], onDelete: Cascade)
+  problem Problem @relation(fields: [problem_id], references: [id], onDelete: Cascade)
 
   @@map("test_cases")
 }
@@ -91,14 +92,14 @@ model Submission {
   source_code    String           @db.Text
   status         SubmissionStatus @default(PENDING)
   score          Float            @default(0)
-  execution_time Int?             // ms
-  memory_used    Int?             // MB
+  execution_time Int? // ms
+  memory_used    Int? // MB
   created_at     DateTime         @default(now())
   updated_at     DateTime         @updatedAt
 
-  user           User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  problem        Problem          @relation(fields: [problem_id], references: [id], onDelete: Cascade)
-  test_results   SubmissionTestResult[]
+  user         User                   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  problem      Problem                @relation(fields: [problem_id], references: [id], onDelete: Cascade)
+  test_results SubmissionTestResult[]
 
   @@map("submissions")
 }
@@ -108,11 +109,11 @@ model SubmissionTestResult {
   submission_id  String
   testcase_index Int
   status         SubmissionStatus
-  execution_time Int?             // ms
-  memory_used    Int?             // MB
+  execution_time Int? // ms
+  memory_used    Int? // MB
   created_at     DateTime         @default(now())
 
-  submission     Submission       @relation(fields: [submission_id], references: [id], onDelete: Cascade)
+  submission Submission @relation(fields: [submission_id], references: [id], onDelete: Cascade)
 
   @@map("submission_test_results")
 }
@@ -128,8 +129,9 @@ model Contest {
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
-  problems    ContestProblem[]
-  class       Class?   @relation(fields: [class_id], references: [id], onDelete: SetNull)
+  problems         ContestProblem[]
+  class            Class?           @relation(fields: [class_id], references: [id], onDelete: SetNull)
+  contest_sessions ContestSession[]
 
   @@map("contests")
 }
@@ -140,8 +142,8 @@ model ContestProblem {
   problem_id String
   created_at DateTime @default(now())
 
-  contest    Contest  @relation(fields: [contest_id], references: [id], onDelete: Cascade)
-  problem    Problem  @relation(fields: [problem_id], references: [id], onDelete: Cascade)
+  contest Contest @relation(fields: [contest_id], references: [id], onDelete: Cascade)
+  problem Problem @relation(fields: [problem_id], references: [id], onDelete: Cascade)
 
   @@unique([contest_id, problem_id])
   @@map("contest_problems")
@@ -156,9 +158,9 @@ model Class {
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
-  admin       User           @relation(fields: [admin_id], references: [id], onDelete: Cascade)
-  students    ClassStudent[]
-  contests    Contest[]
+  admin    User           @relation(fields: [admin_id], references: [id], onDelete: Cascade)
+  students ClassStudent[]
+  contests Contest[]
 
   @@map("classes")
 }
@@ -168,9 +170,25 @@ model ClassStudent {
   student_id String
   joined_at  DateTime @default(now())
 
-  class      Class @relation(fields: [class_id], references: [id], onDelete: Cascade)
-  student    User  @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  class   Class @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  student User  @relation(fields: [student_id], references: [id], onDelete: Cascade)
 
   @@id([class_id, student_id])
   @@map("class_students")
+}
+
+model ContestSession {
+  id              String   @id @default(uuid())
+  contest_id      String
+  student_id      String
+  cheat_warnings  Int      @default(0)
+  is_disqualified Boolean  @default(false)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  contest Contest @relation(fields: [contest_id], references: [id], onDelete: Cascade)
+  student User    @relation(fields: [student_id], references: [id], onDelete: Cascade)
+
+  @@unique([contest_id, student_id])
+  @@map("contest_sessions")
 }

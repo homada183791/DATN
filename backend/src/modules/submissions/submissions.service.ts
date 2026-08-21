@@ -59,6 +59,20 @@ export class SubmissionsService {
         if (now > contest.end_time) {
           throw new BadRequestException('Kỳ thi đã kết thúc, không thể nộp bài.');
         }
+
+        // 3. Kiểm tra cấm thi (Anti-cheat)
+        const session = await this.prisma.contestSession.findUnique({
+          where: {
+            contest_id_student_id: {
+              contest_id: contest.id,
+              student_id: userId
+            }
+          }
+        });
+
+        if (session && session.is_disqualified) {
+          throw new ForbiddenException('Bạn đã bị truất quyền thi cử do vi phạm quy chế (gian lận).');
+        }
       }
     }
 
