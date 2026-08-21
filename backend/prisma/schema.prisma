@@ -47,9 +47,10 @@ model Problem {
   created_at   DateTime   @default(now())
   updated_at   DateTime   @updatedAt
 
-  test_cases  TestCase[]
-  submissions Submission[]
-  contests    ContestProblem[]
+  test_cases         TestCase[]
+  submissions        Submission[]
+  contests           ContestProblem[]
+  plagiarism_reports PlagiarismReport[]
 
   @@map("problems")
 }
@@ -97,9 +98,11 @@ model Submission {
   created_at     DateTime         @default(now())
   updated_at     DateTime         @updatedAt
 
-  user         User                   @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  problem      Problem                @relation(fields: [problem_id], references: [id], onDelete: Cascade)
-  test_results SubmissionTestResult[]
+  user                    User                   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  problem                 Problem                @relation(fields: [problem_id], references: [id], onDelete: Cascade)
+  test_results            SubmissionTestResult[]
+  plagiarism_reports_as_1 PlagiarismReport[]     @relation("Submission1")
+  plagiarism_reports_as_2 PlagiarismReport[]     @relation("Submission2")
 
   @@map("submissions")
 }
@@ -119,19 +122,21 @@ model SubmissionTestResult {
 }
 
 model Contest {
-  id          String   @id @default(uuid())
-  title       String
-  description String?  @db.Text
-  start_time  DateTime
-  end_time    DateTime
-  is_private  Boolean  @default(false)
-  class_id    String?
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  id                    String   @id @default(uuid())
+  title                 String
+  description           String?  @db.Text
+  start_time            DateTime
+  end_time              DateTime
+  is_private            Boolean  @default(false)
+  is_plagiarism_checked Boolean  @default(false)
+  class_id              String?
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
 
-  problems         ContestProblem[]
-  class            Class?           @relation(fields: [class_id], references: [id], onDelete: SetNull)
-  contest_sessions ContestSession[]
+  problems           ContestProblem[]
+  class              Class?             @relation(fields: [class_id], references: [id], onDelete: SetNull)
+  contest_sessions   ContestSession[]
+  plagiarism_reports PlagiarismReport[]
 
   @@map("contests")
 }
@@ -191,4 +196,21 @@ model ContestSession {
 
   @@unique([contest_id, student_id])
   @@map("contest_sessions")
+}
+
+model PlagiarismReport {
+  id               String   @id @default(uuid())
+  contest_id       String
+  problem_id       String
+  submission_1_id  String
+  submission_2_id  String
+  similarity_score Float
+  created_at       DateTime @default(now())
+
+  contest      Contest    @relation(fields: [contest_id], references: [id], onDelete: Cascade)
+  problem      Problem    @relation(fields: [problem_id], references: [id], onDelete: Cascade)
+  submission_1 Submission @relation("Submission1", fields: [submission_1_id], references: [id], onDelete: Cascade)
+  submission_2 Submission @relation("Submission2", fields: [submission_2_id], references: [id], onDelete: Cascade)
+
+  @@map("plagiarism_reports")
 }

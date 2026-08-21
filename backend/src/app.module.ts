@@ -4,6 +4,8 @@ import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ConfigModule } from '@nestjs/config';
 import { ProblemsModule } from './modules/problems/problems.module';
 import { QueueModule } from './modules/queue/queue.module';
 import { SubmissionsModule } from './modules/submissions/submissions.module';
@@ -12,9 +14,25 @@ import { EventsModule } from './events/events.module';
 import { ContestsModule } from './modules/contests/contests.module';
 import { LeaderboardModule } from './modules/leaderboard/leaderboard.module';
 import { ClassesModule } from './modules/classes/classes.module';
+import { PlagiarismModule } from './modules/plagiarism/plagiarism.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuthModule, ProblemsModule, QueueModule, SubmissionsModule, WebhookModule, EventsModule, ContestsModule, LeaderboardModule, ClassesModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
+    PrismaModule, 
+    UsersModule, 
+    AuthModule, 
+    ProblemsModule, 
+    QueueModule, 
+    SubmissionsModule, 
+    WebhookModule, 
+    EventsModule, 
+    ContestsModule, 
+    LeaderboardModule, 
+    ClassesModule, 
+    PlagiarismModule
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
