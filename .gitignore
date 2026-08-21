@@ -91,5 +91,5 @@ backend/uploads/
 storage/
 
 # ===== Agents =====
-backend/.agents
-backend/.claude
+backend/.agents/
+backend/.claude/
