@@ -6,7 +6,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class PlagiarismService {
   private readonly logger = new Logger(PlagiarismService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   @Cron(CronExpression.EVERY_5_MINUTES)
   async checkPlagiarism() {
@@ -56,7 +56,7 @@ export class PlagiarismService {
             latestSubmissionsMap.set(sub.user_id, sub);
           }
         }
-        
+
         const uniqueSubmissions = Array.from(latestSubmissionsMap.values());
 
         // So sánh chéo (O(N^2) các sinh viên)
@@ -98,7 +98,7 @@ export class PlagiarismService {
     // Loại bỏ toàn bộ khoảng trắng, tab, xuống dòng để so sánh phần core
     const s1 = code1.replace(/\s+/g, '').trim();
     const s2 = code2.replace(/\s+/g, '').trim();
-    
+
     if (s1.length === 0 && s2.length === 0) return 100;
     if (s1.length < 3 || s2.length < 3) return s1 === s2 ? 100 : 0;
 
