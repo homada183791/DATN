@@ -60,6 +60,7 @@ export class PlagiarismService {
         const uniqueSubmissions = Array.from(latestSubmissionsMap.values());
 
         // So sánh chéo (O(N^2) các sinh viên)
+        const reportsToInsert = [];
         for (let i = 0; i < uniqueSubmissions.length; i++) {
           for (let j = i + 1; j < uniqueSubmissions.length; j++) {
             const sub1 = uniqueSubmissions[i];
@@ -68,18 +69,22 @@ export class PlagiarismService {
             const simScore = this.calculateSimilarity(sub1.source_code, sub2.source_code);
 
             if (simScore > 80) { // Ngưỡng 80%
-              await this.prisma.plagiarismReport.create({
-                data: {
-                  contest_id: contest.id,
-                  problem_id: cp.problem_id,
-                  submission_1_id: sub1.id,
-                  submission_2_id: sub2.id,
-                  similarity_score: simScore,
-                }
+              reportsToInsert.push({
+                contest_id: contest.id,
+                problem_id: cp.problem_id,
+                submission_1_id: sub1.id,
+                submission_2_id: sub2.id,
+                similarity_score: simScore,
               });
               this.logger.warn(`[Plagiarism] Cảnh báo: ${sub1.id} & ${sub2.id} giống nhau ${simScore.toFixed(2)}%`);
             }
           }
+        }
+
+        if (reportsToInsert.length > 0) {
+          await this.prisma.plagiarismReport.createMany({
+            data: reportsToInsert,
+          });
         }
       }
 
