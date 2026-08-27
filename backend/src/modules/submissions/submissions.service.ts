@@ -38,22 +38,35 @@ export class SubmissionsService {
     // RÀNG BUỘC KỲ THI (Nếu là STUDENT)
     if (user.role === 'STUDENT' && problem.contests.length > 0) {
       const now = new Date();
+      
+      // Batch Query: Lấy tất cả thông tin một lần (N+1 Fix)
+      const contestIds = problem.contests.map(cp => cp.contest_id);
+      const classIds = problem.contests
+        .filter(cp => cp.contest.is_private && cp.contest.class_id)
+        .map(cp => cp.contest.class_id);
+
+      const [enrolledClasses, sessions] = await Promise.all([
+        classIds.length > 0 
+          ? this.prisma.classStudent.findMany({
+              where: { student_id: userId, class_id: { in: classIds } }
+            })
+          : Promise.resolve([]),
+        this.prisma.contestSession.findMany({
+          where: { student_id: userId, contest_id: { in: contestIds } }
+        })
+      ]);
+
+      const enrolledClassSet = new Set(enrolledClasses.map(c => c.class_id));
+      const disqualifiedSessionSet = new Set(
+        sessions.filter(s => s.is_disqualified).map(s => s.contest_id)
+      );
+
       for (const cp of problem.contests) {
         const contest = cp.contest;
         
-        // 1. Kiểm tra Private Contest
-        if (contest.is_private && contest.class_id) {
-          const isMember = await this.prisma.classStudent.findUnique({
-            where: {
-              class_id_student_id: {
-                class_id: contest.class_id,
-                student_id: userId
-              }
-            }
-          });
-          if (!isMember) {
-            throw new ForbiddenException('Bạn không có quyền nộp bài cho bài tập thuộc lớp học khác.');
-          }
+        // 1. Kiểm tra Private Contest (Guard Clause gộp điều kiện)
+        if (contest.is_private && contest.class_id && !enrolledClassSet.has(contest.class_id)) {
+          throw new ForbiddenException('Bạn không có quyền nộp bài cho bài tập thuộc lớp học khác.');
         }
 
         // 2. Kiểm tra Thời gian thi
@@ -65,16 +78,7 @@ export class SubmissionsService {
         }
 
         // 3. Kiểm tra cấm thi (Anti-cheat)
-        const session = await this.prisma.contestSession.findUnique({
-          where: {
-            contest_id_student_id: {
-              contest_id: contest.id,
-              student_id: userId
-            }
-          }
-        });
-
-        if (session && session.is_disqualified) {
+        if (disqualifiedSessionSet.has(contest.id)) {
           throw new ForbiddenException('Bạn đã bị truất quyền thi cử do vi phạm quy chế (gian lận).');
         }
       }
