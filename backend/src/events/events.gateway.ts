@@ -7,6 +7,7 @@ import {
   OnGatewayDisconnect,
   MessageBody,
   ConnectedSocket,
+  WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
@@ -44,7 +45,7 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
       return { success: true, event: 'joined', room: roomName };
     } catch (error) {
       this.logger.error(`[EventsGateway] Error joining room: ${error.message}`);
-      return { success: false, error: 'Cannot join room' };
+      throw new WsException({ success: false, message: error.message });
     }
   }
 
@@ -60,7 +61,7 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
       return { success: true, event: 'joined_admin', room: roomName };
     } catch (error) {
       this.logger.error(`[EventsGateway] Error joining admin room: ${error.message}`);
-      return { success: false, error: 'Cannot join admin room' };
+      throw new WsException({ success: false, message: error.message });
     }
   }
 
@@ -76,7 +77,7 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
       return { success: true, event: 'joined_custom_run', room: roomName };
     } catch (error) {
       this.logger.error(`[EventsGateway] Error joining custom run room: ${error.message}`);
-      return { success: false, error: 'Cannot join custom run room' };
+      throw new WsException({ success: false, message: error.message });
     }
   }
 
