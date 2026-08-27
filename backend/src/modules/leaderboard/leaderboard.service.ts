@@ -1,10 +1,10 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger, OnModuleDestroy } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SubmissionStatus } from '@prisma/client';
 import { Redis } from 'ioredis';
 
 @Injectable()
-export class LeaderboardService {
+export class LeaderboardService implements OnModuleDestroy {
   private redisClient: Redis;
   private readonly logger = new Logger(LeaderboardService.name);
 
@@ -12,6 +12,11 @@ export class LeaderboardService {
     // Khởi tạo kết nối Redis
     const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
     this.redisClient = new Redis(redisUrl);
+  }
+
+  async onModuleDestroy() {
+    await this.redisClient.quit();
+    this.logger.log('[LeaderboardService] Redis connection closed.');
   }
 
   async getLeaderboard(contestId: string) {
