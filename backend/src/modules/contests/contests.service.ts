@@ -182,29 +182,37 @@ export class ContestsService {
       throw new BadRequestException('Kỳ thi không có bài tập nào.');
     }
 
-    // Lấy bài nộp tốt nhất của mỗi sinh viên cho mỗi bài trong khoảng thời gian kỳ thi
-    const submissions = await this.prisma.submission.findMany({
+    // Sử dụng groupBy để CSDL lấy điểm cao nhất mỗi bài của từng user, tránh Memory Leak
+    const groupedSubmissions = await this.prisma.submission.groupBy({
+      by: ['user_id', 'problem_id'],
       where: {
         problem_id: { in: problemIds },
         created_at: { gte: contest.start_time, lte: contest.end_time },
       },
-      orderBy: { score: 'desc' },
-      include: { user: { select: { id: true, elo_rating: true, email: true } } },
+      _max: {
+        score: true,
+      },
     });
 
-    // Gom tổng điểm mỗi sinh viên (lấy điểm cao nhất của từng bài)
-    const bestScoreMap = new Map<string, { user: any; totalScore: number; bestPerProblem: Map<string, number> }>();
-    for (const sub of submissions) {
-      const uid = sub.user_id;
+    // Lấy thông tin user (do groupBy không hỗ trợ include)
+    const userIds = [...new Set(groupedSubmissions.map(g => g.user_id))];
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, elo_rating: true, email: true }
+    });
+    const userMap = new Map(users.map(u => [u.id, u]));
+
+    // Gom tổng điểm mỗi sinh viên
+    const bestScoreMap = new Map<string, { user: any; totalScore: number }>();
+    for (const group of groupedSubmissions) {
+      const uid = group.user_id;
+      const maxScore = group._max.score || 0;
+      
       if (!bestScoreMap.has(uid)) {
-        bestScoreMap.set(uid, { user: sub.user, totalScore: 0, bestPerProblem: new Map() });
+        bestScoreMap.set(uid, { user: userMap.get(uid), totalScore: 0 });
       }
-      const entry = bestScoreMap.get(uid)!;
-      const prevBest = entry.bestPerProblem.get(sub.problem_id) ?? 0;
-      if (sub.score > prevBest) {
-        entry.totalScore += (sub.score - prevBest);
-        entry.bestPerProblem.set(sub.problem_id, sub.score);
-      }
+      
+      bestScoreMap.get(uid)!.totalScore += maxScore;
     }
 
     // Sắp xếp theo tổng điểm giảm dần (Leaderboard)
