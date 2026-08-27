@@ -84,4 +84,15 @@ export class ContestsController {
   reportCheatWarning(@Param('id') id: string, @Request() req: any) {
     return this.contestsService.reportCheatWarning(id, req.user.userId);
   }
+
+  @Post(':id/calculate-elo')
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Tính lại ELO rating cho tất cả sinh viên sau khi kỳ thi kết thúc' })
+  @ApiResponse({ status: 201, description: 'ELO đã được cập nhật thành công, trả về bảng kết quả thạng/thua ELO.' })
+  @ApiResponse({ status: 400, description: 'Kỳ thi chưa kết thúc hoặc không có bài tập.' })
+  @ApiResponse({ status: 403, description: 'Forbidden. Chỉ Admin mới có quyền.' })
+  calculateElo(@Param('id') id: string) {
+    return this.contestsService.calculateElo(id);
+  }
 }

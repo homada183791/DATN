@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JudgeResultDto } from './dto/judge-result.dto';
 import { EventsGateway } from '../../events/events.gateway';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class WebhookService {
@@ -10,6 +11,7 @@ export class WebhookService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventsGateway: EventsGateway,
+    private readonly usersService: UsersService,
   ) {}
 
   async processJudgeResult(judgeResultDto: JudgeResultDto) {
@@ -19,6 +21,10 @@ export class WebhookService {
     // LUỒNG CUSTOM RUN: Không chạm DB, bắn thẳng Socket
     // =============================================
     if (is_custom === true) {
+      if (!session_id) {
+        throw new NotFoundException('Thiếu mã phiên (session_id) cho Custom Run.');
+      }
+
       this.logger.log(`[Webhook] Custom Run result for session=${session_id}, status=${status}`);
 
       this.eventsGateway.emitCustomRunResult(session_id, {
@@ -34,8 +40,12 @@ export class WebhookService {
     }
 
     // =============================================
-    // LUỒNG NỘP BÀI THẬ T: Query & Update DB
+    // LUỒNG NỘP BÀI THẬT: Query & Update DB
     // =============================================
+    if (!submission_id) {
+      throw new NotFoundException('Thiếu mã bài nộp (submission_id).');
+    }
+
     const submission = await this.prisma.submission.findUnique({
       where: { id: submission_id },
       include: {
@@ -63,7 +73,7 @@ export class WebhookService {
         // Lưu danh sách test_results vào CSDL
         await tx.submissionTestResult.createMany({
           data: test_results.map(t => ({
-            submission_id,
+            submission_id: submission_id as string,
             testcase_index: t.testcase_index,
             status: t.status,
             execution_time: t.execution_time,
@@ -85,8 +95,13 @@ export class WebhookService {
 
     this.logger.log(`[Judge Webhook] Submission ${submission_id} updated to ${status} with score ${updatedSubmission.score}`);
 
+    // Cập nhật Streak nếu bài được ACCEPTED (fire-and-forget, không block luồng chính)
+    if (status === 'ACCEPTED') {
+      this.usersService.updateUserStreak(submission.user_id);
+    }
+
     // Bắn sự kiện realtime xuống Frontend qua Socket.io
-    this.eventsGateway.emitSubmissionUpdate(submission_id, {
+    this.eventsGateway.emitSubmissionUpdate(submission_id as string, {
       submission_id,
       status: updatedSubmission.status,
       execution_time: updatedSubmission.execution_time,
@@ -117,4 +132,4 @@ export class WebhookService {
 
     return { success: true };
   }
-}
+}

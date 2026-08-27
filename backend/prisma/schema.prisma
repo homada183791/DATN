@@ -16,17 +16,22 @@ enum Role {
 }
 
 model User {
-  id         String   @id @default(uuid())
-  email      String   @unique
-  password   String
-  role       Role     @default(STUDENT)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  id                String    @id @default(uuid())
+  email             String    @unique
+  password          String
+  role              Role      @default(STUDENT)
+  elo_rating        Int       @default(1200)
+  current_streak    Int       @default(0)
+  highest_streak    Int       @default(0)
+  last_active_date  DateTime?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
 
   submissions      Submission[]
   managed_classes  Class[]
   enrolled_classes ClassStudent[]
   contest_sessions ContestSession[]
+  activity_logs    UserActivityLog[]
 
   @@map("users") // Đặt tên table trong DB là "users" thay vì "User"
 }
@@ -213,4 +218,16 @@ model PlagiarismReport {
   submission_2 Submission @relation("Submission2", fields: [submission_2_id], references: [id], onDelete: Cascade)
 
   @@map("plagiarism_reports")
+}
+
+model UserActivityLog {
+  id               String   @id @default(uuid())
+  user_id          String
+  activity_date    DateTime @db.Date
+  submission_count Int      @default(1)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, activity_date])
+  @@map("user_activity_logs")
 }
