@@ -64,6 +64,22 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
     }
   }
 
+  @SubscribeMessage('join_custom_run')
+  handleJoinCustomRun(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { session_id: string },
+  ) {
+    try {
+      const roomName = `custom_run_${payload.session_id}`;
+      client.join(roomName);
+      this.logger.log(`[EventsGateway] Client ${client.id} joined custom run room ${roomName}`);
+      return { success: true, event: 'joined_custom_run', room: roomName };
+    } catch (error) {
+      this.logger.error(`[EventsGateway] Error joining custom run room: ${error.message}`);
+      return { success: false, error: 'Cannot join custom run room' };
+    }
+  }
+
   public emitSubmissionUpdate(submission_id: string, payload: any) {
     try {
       const roomName = `submission_${submission_id}`;
@@ -81,6 +97,16 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
       this.logger.log(`[EventsGateway] Emitted admin update to room ${roomName}`);
     } catch (error) {
       this.logger.error(`[EventsGateway] Error emitting admin update: ${error.message}`);
+    }
+  }
+
+  public emitCustomRunResult(sessionId: string, payload: any) {
+    try {
+      const roomName = `custom_run_${sessionId}`;
+      this.server.to(roomName).emit('custom_run_result', payload);
+      this.logger.log(`[EventsGateway] Emitted custom run result to room ${roomName}`);
+    } catch (error) {
+      this.logger.error(`[EventsGateway] Error emitting custom run result: ${error.message}`);
     }
   }
 

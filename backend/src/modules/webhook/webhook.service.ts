@@ -13,8 +13,29 @@ export class WebhookService {
   ) {}
 
   async processJudgeResult(judgeResultDto: JudgeResultDto) {
-    const { submission_id, status, execution_time, memory_used, test_results } = judgeResultDto;
+    const { is_custom, session_id, submission_id, status, execution_time, memory_used, stdout, stderr, test_results } = judgeResultDto;
 
+    // =============================================
+    // LUỒNG CUSTOM RUN: Không chạm DB, bắn thẳng Socket
+    // =============================================
+    if (is_custom === true) {
+      this.logger.log(`[Webhook] Custom Run result for session=${session_id}, status=${status}`);
+
+      this.eventsGateway.emitCustomRunResult(session_id, {
+        session_id,
+        status,
+        stdout: stdout ?? '',
+        stderr: stderr ?? '',
+        execution_time: execution_time ?? null,
+        memory_used: memory_used ?? null,
+      });
+
+      return { success: true, message: 'Custom run result emitted' };
+    }
+
+    // =============================================
+    // LUỒNG NỘP BÀI THẬ T: Query & Update DB
+    // =============================================
     const submission = await this.prisma.submission.findUnique({
       where: { id: submission_id },
       include: {
@@ -96,4 +117,4 @@ export class WebhookService {
 
     return { success: true };
   }
-}
+}

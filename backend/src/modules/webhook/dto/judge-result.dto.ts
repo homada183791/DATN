@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsUUID, IsArray, ValidateNested } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, IsArray, ValidateNested, ValidateIf } from 'class-validator';
 import { Type } from 'class-transformer';
 import { SubmissionStatus } from '@prisma/client';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -26,10 +26,21 @@ export class TestResultItemDto {
 }
 
 export class JudgeResultDto {
-  @ApiProperty({ description: 'Mã bài nộp (UUID)', example: '123e4567-e89b-12d3-a456-426614174000' })
+  @ApiPropertyOptional({ description: 'Cờ nhận biết đây là Custom Run (không lưu DB)', example: false })
+  @IsBoolean()
+  @IsOptional()
+  is_custom?: boolean;
+
+  @ApiPropertyOptional({ description: 'Session ID của Custom Run (chỉ có khi is_custom=true)', example: 'uuid-session' })
+  @IsString()
+  @IsOptional()
+  session_id?: string;
+
+  @ApiPropertyOptional({ description: 'Mã bài nộp (UUID) - chỉ có khi is_custom=false', example: '123e4567-e89b-12d3-a456-426614174000' })
+  @ValidateIf(o => !o.is_custom)
   @IsUUID(undefined, { message: 'Mã bài nộp (submission_id) không đúng định dạng UUID' })
   @IsNotEmpty({ message: 'Mã bài nộp không được để trống' })
-  submission_id: string;
+  submission_id?: string;
 
   @ApiProperty({ enum: SubmissionStatus, description: 'Trạng thái tổng quát của bài nộp', example: SubmissionStatus.ACCEPTED })
   @IsEnum(SubmissionStatus, { message: 'Trạng thái chấm bài không hợp lệ' })
@@ -45,6 +56,16 @@ export class JudgeResultDto {
   @IsInt({ message: 'Bộ nhớ sử dụng phải là số nguyên (MB)' })
   @IsOptional()
   memory_used?: number;
+
+  @ApiPropertyOptional({ description: 'Stdout (kết quả xuất ra) - chủ yếu dùng cho Custom Run', example: '8' })
+  @IsString()
+  @IsOptional()
+  stdout?: string;
+
+  @ApiPropertyOptional({ description: 'Stderr (thông báo lỗi) - chủ yếu dùng cho Custom Run', example: '' })
+  @IsString()
+  @IsOptional()
+  stderr?: string;
 
   @ApiPropertyOptional({ type: [TestResultItemDto], description: 'Mảng chi tiết kết quả từng testcase' })
   @IsArray()

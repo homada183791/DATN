@@ -1,11 +1,15 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { QueueService } from '../queue/queue.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
+import { RunCustomCodeDto } from './dto/run-custom-code.dto';
 import { SubmissionStatus } from '@prisma/client';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class SubmissionsService {
+  private readonly logger = new Logger(SubmissionsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly queueService: QueueService,
@@ -105,5 +109,33 @@ export class SubmissionsService {
       submission_id: submission.id,
       message: 'Code has been submitted and is pending execution.',
     };
+  }
+  async runCustomCode(userId: string, dto: RunCustomCodeDto) {
+    const { language, source_code, custom_input = '' } = dto;
+    const sessionId = uuidv4();
+
+    this.logger.log(`[CustomRun] User ${userId} — session=${sessionId}, lang=${language}`);
+
+    try {
+      const payload = {
+        is_custom: true,          // Cờ quan trọng: Webhook sẽ skip toàn bộ logic DB
+        session_id: sessionId,    // Frontend join room custom_run_<session_id> để nhận kết quả
+        user_id: userId,
+        language,
+        source_code,
+        custom_input,
+      };
+
+      this.queueService.publishJudgeJob(payload);
+
+      return {
+        success: true,
+        session_id: sessionId,
+        message: 'Custom run job queued. Listen for result via Socket.io room: custom_run_' + sessionId,
+      };
+    } catch (error) {
+      this.logger.error(`[CustomRun] Failed to queue job for session=${sessionId}: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 }
