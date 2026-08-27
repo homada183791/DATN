@@ -97,7 +97,9 @@ export class WebhookService {
 
     // Cập nhật Streak nếu bài được ACCEPTED (fire-and-forget, không block luồng chính)
     if (status === 'ACCEPTED') {
-      this.usersService.updateUserStreak(submission.user_id);
+      this.usersService.updateUserStreak(submission.user_id).catch(err => {
+        this.logger.error(`[Judge Webhook] Failed to update user streak: ${err.message}`);
+      });
     }
 
     // Bắn sự kiện realtime xuống Frontend qua Socket.io
