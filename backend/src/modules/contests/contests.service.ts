@@ -247,7 +247,7 @@ export class ContestsService {
       const maxScore = group._max.score || 0;
 
       if (!bestScoreMap.has(uid)) {
-        bestScoreMap.set(uid, { user: userMap.get(uid), totalScore: 0 });
+        bestScoreMap.set(uid, { user: userMap.get(uid)!, totalScore: 0 });
       }
 
       bestScoreMap.get(uid)!.totalScore += maxScore;
