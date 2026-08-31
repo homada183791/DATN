@@ -8,7 +8,10 @@ export class CreateClassDto {
   @MaxLength(255, { message: 'Tên lớp học không được vượt quá 255 ký tự' })
   name: string;
 
-  @ApiPropertyOptional({ description: 'Mô tả lớp học', example: 'Lớp học dành cho người mới bắt đầu' })
+  @ApiPropertyOptional({
+    description: 'Mô tả lớp học',
+    example: 'Lớp học dành cho người mới bắt đầu',
+  })
   @IsOptional()
   @IsString()
   @MaxLength(2000, { message: 'Mô tả không được vượt quá 2000 ký tự' })

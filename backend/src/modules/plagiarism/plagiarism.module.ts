@@ -6,6 +6,6 @@ import { PlagiarismController } from './plagiarism.controller';
 @Module({
   imports: [PrismaModule],
   controllers: [PlagiarismController],
-  providers: [PlagiarismService]
+  providers: [PlagiarismService],
 })
 export class PlagiarismModule {}

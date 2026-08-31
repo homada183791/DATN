@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -34,7 +38,7 @@ export class AuthService {
         email: true,
         role: true,
         created_at: true,
-      }
+      },
     });
 
     return {
@@ -52,14 +56,17 @@ export class AuthService {
       throw new UnauthorizedException('Email hoặc mật khẩu không chính xác');
     }
 
-    const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Email hoặc mật khẩu không chính xác');
     }
 
     const payload = { sub: user.id, email: user.email, role: user.role };
-    
+
     return {
       success: true,
       data: {
@@ -68,8 +75,8 @@ export class AuthService {
           id: user.id,
           email: user.email,
           role: user.role,
-        }
-      }
+        },
+      },
     };
   }
 }

@@ -4,7 +4,12 @@ import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
-import { ApiBearerAuth, ApiOperation, ApiTags, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiTags,
+  ApiResponse,
+} from '@nestjs/swagger';
 
 @ApiTags('Plagiarism')
 @Controller('contests/:id/plagiarism-reports')
@@ -16,20 +21,23 @@ export class PlagiarismController {
   @Roles(Role.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Lấy danh sách báo cáo đạo văn của một kỳ thi' })
-  @ApiResponse({ status: 200, description: 'Danh sách các cặp bài nộp có dấu hiệu đạo văn.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Danh sách các cặp bài nộp có dấu hiệu đạo văn.',
+  })
   async getReports(@Param('id') contestId: string) {
     return this.prisma.plagiarismReport.findMany({
       where: { contest_id: contestId },
       include: {
         problem: { select: { title: true } },
         submission_1: {
-          select: { user: { select: { email: true } }, created_at: true }
+          select: { user: { select: { email: true } }, created_at: true },
         },
         submission_2: {
-          select: { user: { select: { email: true } }, created_at: true }
-        }
+          select: { user: { select: { email: true } }, created_at: true },
+        },
       },
-      orderBy: { similarity_score: 'desc' }
+      orderBy: { similarity_score: 'desc' },
     });
   }
 }

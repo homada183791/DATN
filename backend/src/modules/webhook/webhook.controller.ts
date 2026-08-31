@@ -12,7 +12,11 @@ export class WebhookController {
   @Post('judge')
   @UseGuards(JudgeSecretGuard)
   @ApiOperation({ summary: 'Webhook nhận kết quả chấm bài từ Judge Server' })
-  @ApiHeader({ name: 'x-judge-secret', description: 'Secret key để xác thực Judge Server', required: true })
+  @ApiHeader({
+    name: 'x-judge-secret',
+    description: 'Secret key để xác thực Judge Server',
+    required: true,
+  })
   @ApiResponse({ status: 200, description: 'Đã xử lý kết quả thành công' })
   @ApiResponse({ status: 403, description: 'Sai Secret Key' })
   handleJudgeResult(@Body() judgeResultDto: JudgeResultDto) {

@@ -1,4 +1,13 @@
-import { IsEnum, IsInt, IsNotEmpty, IsString, IsBoolean, ValidateNested, IsArray, IsOptional } from 'class-validator';
+import {
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsString,
+  IsBoolean,
+  ValidateNested,
+  IsArray,
+  IsOptional,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { Difficulty } from '@prisma/client';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -14,7 +23,10 @@ export class TestCaseDto {
   @IsNotEmpty()
   expected_output: string;
 
-  @ApiPropertyOptional({ description: 'Ẩn testcase này đối với sinh viên', example: true })
+  @ApiPropertyOptional({
+    description: 'Ẩn testcase này đối với sinh viên',
+    example: true,
+  })
   @IsBoolean()
   @IsOptional()
   is_hidden?: boolean;
@@ -26,12 +38,19 @@ export class CreateProblemDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ description: 'Mô tả bài tập', example: 'Nhập vào 2 số a và b, in ra tổng của chúng.' })
+  @ApiProperty({
+    description: 'Mô tả bài tập',
+    example: 'Nhập vào 2 số a và b, in ra tổng của chúng.',
+  })
   @IsString()
   @IsNotEmpty()
   description: string;
 
-  @ApiPropertyOptional({ enum: Difficulty, description: 'Độ khó', example: Difficulty.EASY })
+  @ApiPropertyOptional({
+    enum: Difficulty,
+    description: 'Độ khó',
+    example: Difficulty.EASY,
+  })
   @IsEnum(Difficulty)
   @IsOptional()
   difficulty?: Difficulty;
@@ -46,7 +65,10 @@ export class CreateProblemDto {
   @IsNotEmpty()
   memory_limit: number;
 
-  @ApiPropertyOptional({ type: [TestCaseDto], description: 'Danh sách các testcases' })
+  @ApiPropertyOptional({
+    type: [TestCaseDto],
+    description: 'Danh sách các testcases',
+  })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => TestCaseDto)

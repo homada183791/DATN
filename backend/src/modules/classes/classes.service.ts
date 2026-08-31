@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
@@ -29,9 +33,11 @@ export class ClassesService {
   async findOne(id: string) {
     const cls = await this.prisma.class.findUnique({
       where: { id },
-      include: { 
+      include: {
         admin: { select: { id: true, email: true } },
-        students: { include: { student: { select: { id: true, email: true } } } }
+        students: {
+          include: { student: { select: { id: true, email: true } } },
+        },
       },
     });
     if (!cls) throw new NotFoundException('Không tìm thấy lớp học');
@@ -57,7 +63,7 @@ export class ClassesService {
     await this.findOne(classId); // Check class exists
 
     const user = await this.prisma.user.findUnique({
-      where: { id: addStudentDto.student_id }
+      where: { id: addStudentDto.student_id },
     });
     if (!user) throw new NotFoundException('Không tìm thấy sinh viên');
 
@@ -66,8 +72,8 @@ export class ClassesService {
         class_id_student_id: {
           class_id: classId,
           student_id: addStudentDto.student_id,
-        }
-      }
+        },
+      },
     });
 
     if (existing) throw new ConflictException('Sinh viên đã nằm trong lớp này');
@@ -76,7 +82,7 @@ export class ClassesService {
       data: {
         class_id: classId,
         student_id: addStudentDto.student_id,
-      }
+      },
     });
   }
 }

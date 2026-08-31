@@ -10,7 +10,10 @@ import { QueueService } from './queue.service';
         name: 'RABBITMQ_SERVICE',
         transport: Transport.RMQ,
         options: {
-          urls: [process.env.RABBITMQ_URL || 'amqp://root:rootpassword@localhost:5672'],
+          urls: [
+            process.env.RABBITMQ_URL ||
+              'amqp://root:rootpassword@localhost:5672',
+          ],
           queue: 'judge_queue',
           queueOptions: {
             durable: true,
@@ -22,4 +25,4 @@ import { QueueService } from './queue.service';
   providers: [QueueService],
   exports: [QueueService, ClientsModule],
 })
-export class QueueModule { }
+export class QueueModule {}
