@@ -94,3 +94,4 @@ storage/
 .agents/
 backend/.agents/
 backend/.claude/
+backend/.windsurf/
