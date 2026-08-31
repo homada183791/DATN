@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, Logger, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Logger,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SubmissionStatus } from '@prisma/client';
 import { Redis } from 'ioredis';
@@ -21,32 +26,36 @@ export class LeaderboardService implements OnModuleDestroy {
 
   async getLeaderboard(contestId: string) {
     const cacheKey = `leaderboard:contest:${contestId}`;
-    
+
     // Bước 4: Đọc từ Redis Cache trước
     const cachedData = await this.redisClient.get(cacheKey);
     if (cachedData) {
-      this.logger.log(`[Cache Hit] Trả về leaderboard từ Redis cho Contest ${contestId}`);
+      this.logger.log(
+        `[Cache Hit] Trả về leaderboard từ Redis cho Contest ${contestId}`,
+      );
       return JSON.parse(cachedData);
     }
 
-    this.logger.log(`[Cache Miss] Đang tính toán leaderboard từ Database cho Contest ${contestId}...`);
+    this.logger.log(
+      `[Cache Miss] Đang tính toán leaderboard từ Database cho Contest ${contestId}...`,
+    );
 
     // Bước 1: Query Contest và Submissions
     const contest = await this.prisma.contest.findUnique({
       where: { id: contestId },
       include: {
         problems: {
-          select: { problem_id: true }
-        }
-      }
+          select: { problem_id: true },
+        },
+      },
     });
 
     if (!contest) {
       throw new NotFoundException('Không tìm thấy kỳ thi');
     }
 
-    const problemIds = contest.problems.map(cp => cp.problem_id);
-    
+    const problemIds = contest.problems.map((cp) => cp.problem_id);
+
     // Lấy toàn bộ submission trong khoảng thời gian thi của các problem này
     const submissions = await this.prisma.submission.findMany({
       where: {
@@ -54,29 +63,36 @@ export class LeaderboardService implements OnModuleDestroy {
         created_at: {
           gte: contest.start_time,
           lte: contest.end_time,
-        }
+        },
       },
       orderBy: { created_at: 'asc' }, // Bắt buộc sắp xếp tăng dần để duyệt từ đầu kỳ thi
       include: {
         user: {
-          select: { id: true, email: true }
-        }
-      }
+          select: { id: true, email: true },
+        },
+      },
     });
 
     // Bước 2: Thuật toán ICPC
-    const userStatsMap: Record<string, any> = {};
+    interface UserStat {
+      user_id: string;
+      email: string;
+      solved: number;
+      penalty: number;
+      problems: Record<string, { isSolved: boolean; wrongAttempts: number }>;
+    }
+    const userStatsMap: Record<string, UserStat> = {};
 
     for (const sub of submissions) {
       const userId = sub.user_id;
-      
+
       if (!userStatsMap[userId]) {
         userStatsMap[userId] = {
           user_id: userId,
           email: sub.user.email,
           solved: 0,
           penalty: 0,
-          problems: {} // Track trạng thái của từng problem
+          problems: {}, // Track trạng thái của từng problem
         };
       }
 
@@ -103,12 +119,13 @@ export class LeaderboardService implements OnModuleDestroy {
         userStat.solved += 1;
 
         // Tính penalty: thời gian từ lúc bắt đầu thi (phút) + (số lần nộp sai * 20 phút)
-        const timeDiffMs = sub.created_at.getTime() - contest.start_time.getTime();
+        const timeDiffMs =
+          sub.created_at.getTime() - contest.start_time.getTime();
         const timeDiffMinutes = Math.floor(timeDiffMs / (1000 * 60));
-        
-        userStat.penalty += timeDiffMinutes + (probStat.wrongAttempts * 20);
+
+        userStat.penalty += timeDiffMinutes + probStat.wrongAttempts * 20;
       } else if (
-        sub.status !== SubmissionStatus.PENDING && 
+        sub.status !== SubmissionStatus.PENDING &&
         sub.status !== SubmissionStatus.IN_QUEUE &&
         sub.status !== SubmissionStatus.COMPILE_ERROR // Theo luật ICPC thường không tính penalty cho CE
       ) {
@@ -126,7 +143,7 @@ export class LeaderboardService implements OnModuleDestroy {
     });
 
     // Loại bỏ dữ liệu tracking nội bộ trước khi trả về
-    const result = leaderboard.map(stat => ({
+    const result = leaderboard.map((stat) => ({
       user_id: stat.user_id,
       email: stat.email,
       solved: stat.solved,

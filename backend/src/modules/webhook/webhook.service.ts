@@ -15,17 +15,31 @@ export class WebhookService {
   ) {}
 
   async processJudgeResult(judgeResultDto: JudgeResultDto) {
-    const { is_custom, session_id, submission_id, status, execution_time, memory_used, stdout, stderr, test_results } = judgeResultDto;
+    const {
+      is_custom,
+      session_id,
+      submission_id,
+      status,
+      execution_time,
+      memory_used,
+      stdout,
+      stderr,
+      test_results,
+    } = judgeResultDto;
 
     // =============================================
     // LUỒNG CUSTOM RUN: Không chạm DB, bắn thẳng Socket
     // =============================================
     if (is_custom === true) {
       if (!session_id) {
-        throw new NotFoundException('Thiếu mã phiên (session_id) cho Custom Run.');
+        throw new NotFoundException(
+          'Thiếu mã phiên (session_id) cho Custom Run.',
+        );
       }
 
-      this.logger.log(`[Webhook] Custom Run result for session=${session_id}, status=${status}`);
+      this.logger.log(
+        `[Webhook] Custom Run result for session=${session_id}, status=${status}`,
+      );
 
       this.eventsGateway.emitCustomRunResult(session_id, {
         session_id,
@@ -51,10 +65,10 @@ export class WebhookService {
       include: {
         problem: {
           include: {
-            contests: true
-          }
-        }
-      }
+            contests: true,
+          },
+        },
+      },
     });
 
     if (!submission) {
@@ -67,18 +81,20 @@ export class WebhookService {
 
       if (test_results && test_results.length > 0) {
         // Tính điểm: (số testcase ACCEPTED / tổng số) * 100
-        const acceptedCount = test_results.filter(t => t.status === 'ACCEPTED').length;
+        const acceptedCount = test_results.filter(
+          (t) => t.status === 'ACCEPTED',
+        ).length;
         score = (acceptedCount / test_results.length) * 100;
 
         // Lưu danh sách test_results vào CSDL
         await tx.submissionTestResult.createMany({
-          data: test_results.map(t => ({
-            submission_id: submission_id as string,
+          data: test_results.map((t) => ({
+            submission_id: submission_id,
             testcase_index: t.testcase_index,
             status: t.status,
             execution_time: t.execution_time,
             memory_used: t.memory_used,
-          }))
+          })),
         });
       }
 
@@ -93,17 +109,23 @@ export class WebhookService {
       });
     });
 
-    this.logger.log(`[Judge Webhook] Submission ${submission_id} updated to ${status} with score ${updatedSubmission.score}`);
+    this.logger.log(
+      `[Judge Webhook] Submission ${submission_id} updated to ${status} with score ${updatedSubmission.score}`,
+    );
 
     // Cập nhật Streak nếu bài được ACCEPTED (fire-and-forget, không block luồng chính)
     if (status === 'ACCEPTED') {
-      this.usersService.updateUserStreak(submission.user_id).catch(err => {
-        this.logger.error(`[Judge Webhook] Failed to update user streak: ${err.message}`);
-      });
+      this.usersService
+        .updateUserStreak(submission.user_id)
+        .catch((err: any) => {
+          this.logger.error(
+            `[Judge Webhook] Failed to update user streak: ${err.message}`,
+          );
+        });
     }
 
     // Bắn sự kiện realtime xuống Frontend qua Socket.io
-    this.eventsGateway.emitSubmissionUpdate(submission_id as string, {
+    this.eventsGateway.emitSubmissionUpdate(submission_id, {
       submission_id,
       status: updatedSubmission.status,
       execution_time: updatedSubmission.execution_time,
@@ -125,11 +147,16 @@ export class WebhookService {
           test_results: test_results || [],
         };
         for (const cp of submission.problem.contests) {
-          this.eventsGateway.emitAdminDashboardUpdate(cp.contest_id, adminPayload);
+          this.eventsGateway.emitAdminDashboardUpdate(
+            cp.contest_id,
+            adminPayload,
+          );
         }
       }
-    } catch (e) {
-      this.logger.error(`[Judge Webhook] Failed to emit admin update: ${e.message}`);
+    } catch (e: any) {
+      this.logger.error(
+        `[Judge Webhook] Failed to emit admin update: ${e.message}`,
+      );
     }
 
     return { success: true };

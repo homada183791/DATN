@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EventsGateway } from '../../events/events.gateway';
 import { CreateContestDto } from './dto/create-contest.dto';
@@ -40,16 +46,16 @@ export class ContestsService {
     // STUDENT: Chỉ thấy Public hoặc Private thuộc lớp đã tham gia
     const enrolledClasses = await this.prisma.classStudent.findMany({
       where: { student_id: userId },
-      select: { class_id: true }
+      select: { class_id: true },
     });
-    const classIds = enrolledClasses.map(c => c.class_id);
+    const classIds = enrolledClasses.map((c) => c.class_id);
 
     return this.prisma.contest.findMany({
       where: {
         OR: [
           { is_private: false },
-          { is_private: true, class_id: { in: classIds } }
-        ]
+          { is_private: true, class_id: { in: classIds } },
+        ],
       },
       orderBy: { created_at: 'desc' },
     });
@@ -66,9 +72,9 @@ export class ContestsService {
                 id: true,
                 title: true,
                 difficulty: true,
-              }
+              },
             },
-          }
+          },
         },
       },
     });
@@ -84,9 +90,11 @@ export class ContestsService {
     const contest = await this.prisma.contest.findUnique({ where: { id } });
     if (!contest) throw new NotFoundException('Không tìm thấy kỳ thi');
 
-    const updateData: any = { ...updateContestDto };
-    if (updateContestDto.start_time) updateData.start_time = new Date(updateContestDto.start_time);
-    if (updateContestDto.end_time) updateData.end_time = new Date(updateContestDto.end_time);
+    const updateData = { ...updateContestDto } as Record<string, any>;
+    if (updateContestDto.start_time)
+      updateData.start_time = new Date(updateContestDto.start_time);
+    if (updateContestDto.end_time)
+      updateData.end_time = new Date(updateContestDto.end_time);
 
     return this.prisma.contest.update({
       where: { id },
@@ -107,11 +115,15 @@ export class ContestsService {
     const { problem_id } = addProblemDto;
 
     // Check contest
-    const contest = await this.prisma.contest.findUnique({ where: { id: contestId } });
+    const contest = await this.prisma.contest.findUnique({
+      where: { id: contestId },
+    });
     if (!contest) throw new NotFoundException('Không tìm thấy kỳ thi');
 
     // Check problem
-    const problem = await this.prisma.problem.findUnique({ where: { id: problem_id } });
+    const problem = await this.prisma.problem.findUnique({
+      where: { id: problem_id },
+    });
     if (!problem) throw new NotFoundException('Không tìm thấy bài tập');
 
     // Check if already exists
@@ -137,20 +149,32 @@ export class ContestsService {
   }
 
   async reportCheatWarning(contestId: string, studentId: string) {
-    const contest = await this.prisma.contest.findUnique({ where: { id: contestId } });
+    const contest = await this.prisma.contest.findUnique({
+      where: { id: contestId },
+    });
     if (!contest) throw new NotFoundException('Không tìm thấy kỳ thi');
 
     const session = await this.prisma.contestSession.upsert({
-      where: { contest_id_student_id: { contest_id: contestId, student_id: studentId } },
+      where: {
+        contest_id_student_id: { contest_id: contestId, student_id: studentId },
+      },
       update: { cheat_warnings: { increment: 1 } },
-      create: { contest_id: contestId, student_id: studentId, cheat_warnings: 1, is_disqualified: false },
-      include: { student: { select: { email: true } } }
+      create: {
+        contest_id: contestId,
+        student_id: studentId,
+        cheat_warnings: 1,
+        is_disqualified: false,
+      },
+      include: { student: { select: { email: true } } },
     });
 
     let isDisqualified = session.is_disqualified;
     if (session.cheat_warnings >= 3 && !isDisqualified) {
       isDisqualified = true;
-      await this.prisma.contestSession.update({ where: { id: session.id }, data: { is_disqualified: true } });
+      await this.prisma.contestSession.update({
+        where: { id: session.id },
+        data: { is_disqualified: true },
+      });
     }
 
     this.eventsGateway.emitAdminDashboardUpdate(contestId, {
@@ -159,24 +183,32 @@ export class ContestsService {
       is_disqualified: isDisqualified,
     });
 
-    return { success: true, cheat_warnings: session.cheat_warnings, is_disqualified: isDisqualified };
+    return {
+      success: true,
+      cheat_warnings: session.cheat_warnings,
+      is_disqualified: isDisqualified,
+    };
   }
 
   async calculateElo(contestId: string) {
-    const contest = await this.prisma.contest.findUnique({ where: { id: contestId } });
+    const contest = await this.prisma.contest.findUnique({
+      where: { id: contestId },
+    });
     if (!contest) throw new NotFoundException('Không tìm thấy kỳ thi');
 
     const now = new Date();
     if (contest.end_time > now) {
-      throw new BadRequestException('Kỳ thi chưa kết thúc, không thể tính ELO.');
+      throw new BadRequestException(
+        'Kỳ thi chưa kết thúc, không thể tính ELO.',
+      );
     }
 
     // Lấy Leaderboard: tổng điểm cao nhất mỗi sinh viên trong kỳ thi
     const contestProblems = await this.prisma.contestProblem.findMany({
       where: { contest_id: contestId },
-      select: { problem_id: true }
+      select: { problem_id: true },
     });
-    const problemIds = contestProblems.map(cp => cp.problem_id);
+    const problemIds = contestProblems.map((cp) => cp.problem_id);
 
     if (problemIds.length === 0) {
       throw new BadRequestException('Kỳ thi không có bài tập nào.');
@@ -195,32 +227,41 @@ export class ContestsService {
     });
 
     // Lấy thông tin user (do groupBy không hỗ trợ include)
-    const userIds = [...new Set(groupedSubmissions.map(g => g.user_id))];
+    const userIds = [...new Set(groupedSubmissions.map((g) => g.user_id))];
     const users = await this.prisma.user.findMany({
       where: { id: { in: userIds } },
-      select: { id: true, elo_rating: true, email: true }
+      select: { id: true, elo_rating: true, email: true },
     });
-    const userMap = new Map(users.map(u => [u.id, u]));
+    const userMap = new Map(users.map((u) => [u.id, u]));
 
     // Gom tổng điểm mỗi sinh viên
-    const bestScoreMap = new Map<string, { user: any; totalScore: number }>();
+    const bestScoreMap = new Map<
+      string,
+      {
+        user: { id: string; elo_rating: number; email: string };
+        totalScore: number;
+      }
+    >();
     for (const group of groupedSubmissions) {
       const uid = group.user_id;
       const maxScore = group._max.score || 0;
-      
+
       if (!bestScoreMap.has(uid)) {
         bestScoreMap.set(uid, { user: userMap.get(uid), totalScore: 0 });
       }
-      
+
       bestScoreMap.get(uid)!.totalScore += maxScore;
     }
 
     // Sắp xếp theo tổng điểm giảm dần (Leaderboard)
-    const leaderboard = Array.from(bestScoreMap.values())
-      .sort((a, b) => b.totalScore - a.totalScore);
+    const leaderboard = Array.from(bestScoreMap.values()).sort(
+      (a, b) => b.totalScore - a.totalScore,
+    );
 
     if (leaderboard.length < 2) {
-      return { message: 'Không đủ sinh viên để tính ELO (cần ít nhất 2 người).' };
+      return {
+        message: 'Không đủ sinh viên để tính ELO (cần ít nhất 2 người).',
+      };
     }
 
     // Thuật toán Multiplayer ELO
@@ -240,8 +281,9 @@ export class ContestsService {
         const opponentElo = opponent.user.elo_rating;
 
         // Xác suất thắng dự kiến theo công thức Elo
-        const expectedScore = 1 / (1 + Math.pow(10, (opponentElo - currentElo) / 400));
-        
+        const expectedScore =
+          1 / (1 + Math.pow(10, (opponentElo - currentElo) / 400));
+
         // Kết quả thực tế
         let actualScore = 0.5; // Hòa
         if (player.totalScore > opponent.totalScore) {
@@ -257,20 +299,26 @@ export class ContestsService {
       const avgDelta = totalDelta / (N - 1);
       const newElo = Math.max(0, Math.round(currentElo + avgDelta));
 
-      eloChanges.push({ userId: player.user.id, delta: Math.round(avgDelta), newElo });
+      eloChanges.push({
+        userId: player.user.id,
+        delta: Math.round(avgDelta),
+        newElo,
+      });
     }
 
     // Cập nhật đồng loạt bằng Prisma Transaction
     await this.prisma.$transaction(
-      eloChanges.map(change =>
+      eloChanges.map((change) =>
         this.prisma.user.update({
           where: { id: change.userId },
           data: { elo_rating: change.newElo },
-        })
-      )
+        }),
+      ),
     );
 
-    this.logger.log(`[ELO] Contest ${contestId}: Updated ELO for ${eloChanges.length} players.`);
+    this.logger.log(
+      `[ELO] Contest ${contestId}: Updated ELO for ${eloChanges.length} players.`,
+    );
 
     return {
       success: true,

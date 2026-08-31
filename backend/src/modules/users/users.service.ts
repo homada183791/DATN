@@ -23,7 +23,9 @@ export class UsersService {
       const today = new Date();
       today.setHours(0, 0, 0, 0); // normalize về đầu ngày
 
-      const lastActive = user.last_active_date ? new Date(user.last_active_date) : null;
+      const lastActive = user.last_active_date
+        ? new Date(user.last_active_date)
+        : null;
       if (lastActive) lastActive.setHours(0, 0, 0, 0);
 
       const yesterday = new Date(today);
@@ -65,16 +67,27 @@ export class UsersService {
 
         // Upsert Activity Log (Hôm nay đã active thì tăng count, chưa thì tạo mới)
         await tx.userActivityLog.upsert({
-          where: { user_id_activity_date: { user_id: userId, activity_date: today } },
-          create: { user_id: userId, activity_date: today, submission_count: 1 },
+          where: {
+            user_id_activity_date: { user_id: userId, activity_date: today },
+          },
+          create: {
+            user_id: userId,
+            activity_date: today,
+            submission_count: 1,
+          },
           update: { submission_count: { increment: 1 } },
         });
       });
 
-      this.logger.log(`[Streak] User ${userId}: streak=${newStreak}, highest=${newHighest}`);
-    } catch (error) {
+      this.logger.log(
+        `[Streak] User ${userId}: streak=${newStreak}, highest=${newHighest}`,
+      );
+    } catch (error: any) {
       // Không throw để tránh làm gián đoạn luồng Webhook chính
-      this.logger.error(`[Streak] Failed to update streak for user ${userId}: ${error.message}`, error.stack);
+      this.logger.error(
+        `[Streak] Failed to update streak for user ${userId}: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
@@ -99,7 +112,11 @@ export class UsersService {
 
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { current_streak: true, highest_streak: true, last_active_date: true },
+      select: {
+        current_streak: true,
+        highest_streak: true,
+        last_active_date: true,
+      },
     });
 
     return {
