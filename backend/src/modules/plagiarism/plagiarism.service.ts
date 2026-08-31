@@ -6,11 +6,13 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class PlagiarismService {
   private readonly logger = new Logger(PlagiarismService.name);
 
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   @Cron(CronExpression.EVERY_5_MINUTES)
   async checkPlagiarism() {
-    this.logger.log('[CronJob] Bắt đầu quét đạo văn cho các kỳ thi đã kết thúc...');
+    this.logger.log(
+      '[CronJob] Bắt đầu quét đạo văn cho các kỳ thi đã kết thúc...',
+    );
 
     const now = new Date();
     // Tìm các kỳ thi đã kết thúc và chưa được quét đạo văn
@@ -22,10 +24,10 @@ export class PlagiarismService {
       include: {
         problems: {
           include: {
-            problem: true
-          }
-        }
-      }
+            problem: true,
+          },
+        },
+      },
     });
 
     if (contestsToProcess.length === 0) {
@@ -44,15 +46,16 @@ export class PlagiarismService {
             status: 'ACCEPTED',
             created_at: {
               gte: contest.start_time,
-              lte: contest.end_time
-            }
-          }
+              lte: contest.end_time,
+            },
+          },
         });
 
         // Nhóm các bài nộp theo user_id, chỉ lấy bài nộp cuối cùng của mỗi sinh viên
-        const latestSubmissionsMap = new Map();
+        const latestSubmissionsMap = new Map<string, (typeof submissions)[0]>();
         for (const sub of submissions) {
-          if (!latestSubmissionsMap.has(sub.user_id) || sub.created_at > latestSubmissionsMap.get(sub.user_id).created_at) {
+          const existing = latestSubmissionsMap.get(sub.user_id);
+          if (!existing || sub.created_at > existing.created_at) {
             latestSubmissionsMap.set(sub.user_id, sub);
           }
         }
@@ -60,15 +63,19 @@ export class PlagiarismService {
         const uniqueSubmissions = Array.from(latestSubmissionsMap.values());
 
         // So sánh chéo (O(N^2) các sinh viên)
-        const reportsToInsert = [];
+        const reportsToInsert: any[] = [];
         for (let i = 0; i < uniqueSubmissions.length; i++) {
           for (let j = i + 1; j < uniqueSubmissions.length; j++) {
             const sub1 = uniqueSubmissions[i];
             const sub2 = uniqueSubmissions[j];
 
-            const simScore = this.calculateSimilarity(sub1.source_code, sub2.source_code);
+            const simScore = this.calculateSimilarity(
+              sub1.source_code,
+              sub2.source_code,
+            );
 
-            if (simScore > 80) { // Ngưỡng 80%
+            if (simScore > 80) {
+              // Ngưỡng 80%
               reportsToInsert.push({
                 contest_id: contest.id,
                 problem_id: cp.problem_id,
@@ -76,7 +83,9 @@ export class PlagiarismService {
                 submission_2_id: sub2.id,
                 similarity_score: simScore,
               });
-              this.logger.warn(`[Plagiarism] Cảnh báo: ${sub1.id} & ${sub2.id} giống nhau ${simScore.toFixed(2)}%`);
+              this.logger.warn(
+                `[Plagiarism] Cảnh báo: ${sub1.id} & ${sub2.id} giống nhau ${simScore.toFixed(2)}%`,
+              );
             }
           }
         }
@@ -91,7 +100,7 @@ export class PlagiarismService {
       // Đánh dấu kỳ thi đã quét xong
       await this.prisma.contest.update({
         where: { id: contest.id },
-        data: { is_plagiarism_checked: true }
+        data: { is_plagiarism_checked: true },
       });
       this.logger.log(`[CronJob] Hoàn tất quét kỳ thi: ${contest.id}`);
     }
