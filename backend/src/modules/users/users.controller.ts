@@ -1,7 +1,12 @@
 import { Controller, Get, UseGuards, Request } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 @ApiTags('Users')
 @Controller('users')
@@ -11,7 +16,10 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('me/heatmap')
-  @ApiOperation({ summary: 'Lấy dữ liệu Activity Heatmap của người dùng hiện tại (365 ngày qua)' })
+  @ApiOperation({
+    summary:
+      'Lấy dữ liệu Activity Heatmap của người dùng hiện tại (365 ngày qua)',
+  })
   @ApiResponse({
     status: 200,
     description: 'Trả về mảng dữ liệu activity theo ngày kèm thống kê streak.',
@@ -27,7 +35,7 @@ export class UsersController {
       },
     },
   })
-  getHeatmap(@Request() req: any) {
+  getHeatmap(@Request() req: { user: { userId: string } }) {
     return this.usersService.getHeatmap(req.user.userId);
   }
 }

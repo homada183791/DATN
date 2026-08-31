@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Delete,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { ClassesService } from './classes.service';
 import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
@@ -16,7 +26,10 @@ export class ClassesController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
-  create(@Body() createClassDto: CreateClassDto, @Request() req: any) {
+  create(
+    @Body() createClassDto: CreateClassDto,
+    @Request() req: { user: { userId: string } },
+  ) {
     return this.classesService.create(createClassDto, req.user.userId);
   }
 
