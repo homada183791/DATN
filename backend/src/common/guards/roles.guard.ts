@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@prisma/client';
 import { ROLES_KEY } from '../decorators/roles.decorator';
@@ -12,21 +17,25 @@ export class RolesGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    
+
     if (!requiredRoles || requiredRoles.length === 0) {
       return true; // Nếu endpoint không yêu cầu Role nào, cho phép qua
     }
-    
-    const { user } = context.switchToHttp().getRequest();
+
+    const { user } = context
+      .switchToHttp()
+      .getRequest<{ user?: { role: Role } }>();
     if (!user) {
       return false;
     }
-    
+
     const hasRole = requiredRoles.includes(user.role);
     if (!hasRole) {
-      throw new ForbiddenException('Bạn không có quyền truy cập (yêu cầu ADMIN)');
+      throw new ForbiddenException(
+        'Bạn không có quyền truy cập (yêu cầu ADMIN)',
+      );
     }
-    
+
     return true;
   }
 }
