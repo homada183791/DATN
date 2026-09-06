@@ -10,7 +10,7 @@ export class ProblemsService {
 
   async create(createProblemDto: CreateProblemDto) {
     const { test_cases, ...problemData } = createProblemDto;
-    
+
     return this.prisma.problem.create({
       data: {
         ...problemData,
@@ -35,8 +35,8 @@ export class ProblemsService {
         // Cố tình không select description và test_cases ở danh sách
       },
       orderBy: {
-        created_at: 'desc'
-      }
+        created_at: 'desc',
+      },
     });
   }
 
@@ -52,9 +52,9 @@ export class ProblemsService {
       throw new NotFoundException('Không tìm thấy bài tập');
     }
 
-    // RBAC logic: Nếu không phải INSTRUCTOR, lọc bỏ các test cases bị ẩn
-    if (userRole !== Role.INSTRUCTOR) {
-      problem.test_cases = problem.test_cases.filter(tc => !tc.is_hidden);
+    // RBAC logic: Nếu không phải ADMIN, lọc bỏ các test cases bị ẩn
+    if (userRole !== Role.ADMIN) {
+      problem.test_cases = problem.test_cases.filter((tc) => !tc.is_hidden);
     }
 
     return problem;
@@ -66,14 +66,15 @@ export class ProblemsService {
       throw new NotFoundException('Không tìm thấy bài tập để cập nhật');
     }
 
-    const { test_cases, ...problemData } = updateProblemDto as Partial<CreateProblemDto>;
-    
+    const { test_cases, ...problemData } =
+      updateProblemDto as Partial<CreateProblemDto>;
+
     // Nếu có payload test_cases, cách đơn giản nhất là xoá cũ tạo mới
     if (test_cases) {
       // Dùng transaction để đảm bảo toàn vẹn dữ liệu
       return this.prisma.$transaction(async (tx) => {
         await tx.testCase.deleteMany({ where: { problem_id: id } });
-        
+
         return tx.problem.update({
           where: { id },
           data: {
@@ -101,7 +102,7 @@ export class ProblemsService {
       throw new NotFoundException('Không tìm thấy bài tập để xóa');
     }
 
-    // Do schema đã cấu hình onDelete: Cascade cho TestCase, 
+    // Do schema đã cấu hình onDelete: Cascade cho TestCase,
     // nên xoá Problem sẽ tự xoá TestCases tương ứng.
     return this.prisma.problem.delete({
       where: { id },

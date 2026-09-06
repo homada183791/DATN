@@ -1,4 +1,4 @@
-version: '3.8'
+
 
 services:
   # ==========================================
@@ -47,6 +47,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: builder
     container_name: datn_backend
     ports:
       - "3001:3001"
@@ -58,6 +59,8 @@ services:
       # LƯU Ý: Chạy trong Docker network nên trỏ tới host là 'postgres' và port nội bộ 5432
       - DATABASE_URL=postgresql://root:rootpassword@postgres:5432/online_judge_db?schema=public
       - JUDGE_RUNNER_URL=http://judge-runner:4000
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://root:rootpassword@rabbitmq:5672
     depends_on:
       - postgres
       - redis
@@ -92,16 +95,13 @@ services:
     container_name: datn_judge_runner
     ports:
       - "4000:4000"
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
-    read_only: true
-    tmpfs:
-      - /tmp/judge:size=100m
-    mem_limit: 256m
-    cpus: 0.5
-    pids_limit: 64
+    volumes:
+      - ./judge-runner:/app:delegated
+      - /app/node_modules
+      # Mount Docker socket để judge-runner có thể tạo container con
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - NODE_ENV=development
     restart: unless-stopped
 
 volumes:

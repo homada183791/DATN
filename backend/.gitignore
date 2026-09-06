@@ -57,12 +57,7 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 /generated/prisma
 
-# --- Cấu hình AI IDE cho Team Project ---
-# Cho phép đẩy các "Kỹ năng" (skills) và "Luật" (rules) của AI lên Git để team xài chung:
-!/.agents/
-!/.claude/skills/
-
-# Nhưng bắt buộc phải BỎ QUA các file nhớ tạm (cache, memory, logs) của AI:
-/.claude/memory/
-/.claude/logs/
-/.windsurf/cache/
+# --- BỎ QUA Cấu hình AI IDE ---
+/.agents/
+/.claude/
+/.windsurf/
