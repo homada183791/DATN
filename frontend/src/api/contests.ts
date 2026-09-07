@@ -4,14 +4,14 @@ import { apiFetch } from './http';
 export interface ContestDto {
   id: string;
   title: string;
-  description?: string;
-  startTime?: string;
-  endTime?: string;
-  status?: 'upcoming' | 'running' | 'ended';
-  participantCount?: number;
-  problemCount?: number;
-  type?: 'ICPC' | 'OI' | 'Homework';
-  visibility?: 'public' | 'private';
+  description: string;
+  startTime: string;
+  endTime: string;
+  status: 'upcoming' | 'running' | 'ended';
+  participantCount: number;
+  problemCount: number;
+  type: 'ICPC' | 'OI' | 'Homework';
+  visibility: 'public' | 'private';
   accessCode?: string;
   classId?: string;
   className?: string;
@@ -59,11 +59,37 @@ export function fetchContests() {
         status,
         participantCount: 0,
         problemCount: 0,
+        type: 'ICPC',
         visibility: contest.is_private ? 'private' : 'public',
         classId: contest.class_id ?? undefined,
       };
     })
   );
+}
+
+export function createContest(data: {
+  title: string;
+  description?: string;
+  start_time: string;
+  end_time: string;
+  is_private: boolean;
+  class_id?: string;
+}) {
+  return apiFetch<ContestApiResponse>('/api/v1/contests', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateContest(id: string, data: Partial<Parameters<typeof createContest>[0]>) {
+  return apiFetch<ContestApiResponse>(`/api/v1/contests/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteContest(id: string) {
+  return apiFetch<void>(`/api/v1/contests/${id}`, { method: 'DELETE' });
 }
 
 export function fetchLeaderboard(contestId: string) {

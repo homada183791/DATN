@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useContestsQuery, useLeaderboardQuery } from '../../api/contests';
+import { useQueryClient } from '@tanstack/react-query';
+import { createContest, deleteContest, updateContest, useContestsQuery, useLeaderboardQuery } from '../../api/contests';
+import { useClassesQuery } from '../../api/classes';
+import { ApiError } from '../../api/http';
+import { notifyGlobalToast } from '../../context/ToastContext';
 import {
   Trophy,
   Users,
@@ -13,14 +17,101 @@ import {
   Eye,
 } from 'lucide-react';
 
+type ContestForm = {
+  title: string;
+  description: string;
+  startTime: string;
+  endTime: string;
+  visibility: 'public' | 'private';
+  classId: string;
+};
+
+const emptyContestForm: ContestForm = {
+  title: '',
+  description: '',
+  startTime: '',
+  endTime: '',
+  visibility: 'public',
+  classId: '',
+};
+
 export default function InstructorContest() {
+  const queryClient = useQueryClient();
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'running' | 'ended'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedContest, setSelectedContest] = useState<string | null>(null);
+  const [form, setForm] = useState<ContestForm>(emptyContestForm);
+  const [editingContest, setEditingContest] = useState<string | null>(null);
   const hasDocument = typeof document !== 'undefined';
   const { data: contests = [] } = useContestsQuery();
   const { data: leaderboard } = useLeaderboardQuery(selectedContest ?? undefined);
+  const { data: classes = [] } = useClassesQuery();
+
+  const openCreate = () => {
+    setEditingContest(null);
+    setForm(emptyContestForm);
+    setShowCreateModal(true);
+  };
+
+  const openEdit = (contest: (typeof contests)[number]) => {
+    setEditingContest(contest.id);
+    setForm({
+      title: contest.title,
+      description: contest.description ?? '',
+      startTime: contest.startTime ? new Date(contest.startTime).toISOString().slice(0, 16) : '',
+      endTime: contest.endTime ? new Date(contest.endTime).toISOString().slice(0, 16) : '',
+      visibility: contest.visibility ?? 'public',
+      classId: contest.classId ?? '',
+    });
+    setShowCreateModal(true);
+  };
+
+  const saveContest = async () => {
+    if (!form.title.trim() || !form.startTime || !form.endTime) {
+      notifyGlobalToast('Vui lòng nhập đầy đủ tên và thời gian kỳ thi.');
+      return;
+    }
+    if (new Date(form.endTime) <= new Date(form.startTime)) {
+      notifyGlobalToast('Thời gian kết thúc phải lớn hơn thời gian bắt đầu.');
+      return;
+    }
+    if (form.visibility === 'private' && !form.classId) {
+      notifyGlobalToast('Vui lòng chọn lớp cho kỳ thi riêng tư.');
+      return;
+    }
+
+    try {
+      const payload = {
+        title: form.title.trim(),
+        description: form.description.trim(),
+        start_time: new Date(form.startTime).toISOString(),
+        end_time: new Date(form.endTime).toISOString(),
+        is_private: form.visibility === 'private',
+        ...(form.visibility === 'private' ? { class_id: form.classId } : {}),
+      };
+      if (editingContest) await updateContest(editingContest, payload);
+      else await createContest(payload);
+      await queryClient.invalidateQueries({ queryKey: ['contests'] });
+      setShowCreateModal(false);
+      setSelectedContest(null);
+      notifyGlobalToast(editingContest ? 'Đã cập nhật kỳ thi.' : 'Đã tạo kỳ thi.', 'success');
+    } catch (error) {
+      notifyGlobalToast(error instanceof ApiError ? error.message : 'Không thể lưu kỳ thi.');
+    }
+  };
+
+  const removeContest = async (id: string) => {
+    if (!window.confirm('Bạn có chắc muốn xoá kỳ thi này?')) return;
+    try {
+      await deleteContest(id);
+      await queryClient.invalidateQueries({ queryKey: ['contests'] });
+      setSelectedContest(null);
+      notifyGlobalToast('Đã xoá kỳ thi.', 'success');
+    } catch (error) {
+      notifyGlobalToast(error instanceof ApiError ? error.message : 'Không thể xoá kỳ thi.');
+    }
+  };
 
   const filteredContests = contests.filter((c) => {
     const matchesFilter = filter === 'all' || c.status === filter;
@@ -55,7 +146,7 @@ export default function InstructorContest() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold font-serif text-[#191919]">Quản lý kỳ thi</h2>
         <button
-          onClick={() => setShowCreateModal(true)}
+          onClick={openCreate}
           className="flex items-center gap-2 px-4 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] transition-all shadow-md"
         >
           <Plus size={18} /> Tạo kỳ thi mới
@@ -172,13 +263,13 @@ export default function InstructorContest() {
               </div>
 
               <div className="flex gap-3 mt-6">
-                <button className="flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-sm font-medium rounded-xl hover:bg-[#143022] transition-colors shadow-sm">
+                <button onClick={() => { setSelectedContest(null); openEdit(selectedContestData); }} className="flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-sm font-medium rounded-xl hover:bg-[#143022] transition-colors shadow-sm">
                   <Edit3 size={14} /> Chỉnh sửa
                 </button>
                 <button className="flex items-center gap-2 px-4 py-2 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-text)] text-sm font-medium rounded-xl hover:bg-[var(--ws-hover)] transition-colors">
                   <Eye size={14} /> Xem bài
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 border border-red-200 text-sm font-medium rounded-xl hover:bg-red-100 transition-colors">
+                <button onClick={() => removeContest(selectedContestData.id)} className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 border border-red-200 text-sm font-medium rounded-xl hover:bg-red-100 transition-colors">
                   <Trash2 size={14} /> Xoá
                 </button>
               </div>
@@ -200,46 +291,44 @@ export default function InstructorContest() {
             <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)] space-y-4">
               <div>
                 <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Tên kỳ thi</label>
-                <input type="text" className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]" placeholder="Nhập tên kỳ thi" />
+                <input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} type="text" className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]" placeholder="Nhập tên kỳ thi" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Mô tả</label>
-                <textarea rows={3} className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none" placeholder="Mô tả kỳ thi" />
+                <textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} rows={3} className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none" placeholder="Mô tả kỳ thi" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Thời gian bắt đầu</label>
-                  <input type="datetime-local" className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
+                  <input value={form.startTime} onChange={(event) => setForm({ ...form, startTime: event.target.value })} type="datetime-local" className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Thời gian kết thúc</label>
-                  <input type="datetime-local" className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
+                  <input value={form.endTime} onChange={(event) => setForm({ ...form, endTime: event.target.value })} type="datetime-local" className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Loại kỳ thi</label>
-                  <select className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]">
-                    <option>ICPC</option>
-                    <option>OI</option>
-                    <option>Homework</option>
+                  <select value={form.visibility} onChange={(event) => setForm({ ...form, visibility: event.target.value as ContestForm['visibility'] })} className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]">
+                    <option value="public">Công khai</option>
+                    <option value="private">Riêng tư</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Lớp học</label>
-                  <select className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]">
-                    <option>CTDL&GT - INT1009</option>
-                    <option>Lập trình C++ - INT1008</option>
-                    <option>PTTKTT - INT2010</option>
+                  <select value={form.classId} onChange={(event) => setForm({ ...form, classId: event.target.value })} disabled={form.visibility !== 'private'} className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]">
+                    <option value="">-- Chọn lớp --</option>
+                    {classes.map((classItem) => <option key={classItem.id} value={classItem.id}>{classItem.name}</option>)}
                   </select>
                 </div>
               </div>
               <div className="flex gap-3 pt-4">
                 <button
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={saveContest}
                   className="flex-1 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] transition-colors shadow-md"
                 >
-                  Tạo kỳ thi
+                  {editingContest ? 'Lưu thay đổi' : 'Tạo kỳ thi'}
                 </button>
                 <button
                   onClick={() => setShowCreateModal(false)}
@@ -292,10 +381,10 @@ export default function InstructorContest() {
                   >
                     <Eye size={16} />
                   </button>
-                  <button className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-blue-600 hover:bg-[#f7f4eb] transition-colors" title="Chỉnh sửa">
+                  <button onClick={() => openEdit(contest)} className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-blue-600 hover:bg-[#f7f4eb] transition-colors" title="Chỉnh sửa">
                     <Edit3 size={16} />
                   </button>
-                  <button className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-red-600 hover:bg-[#f7f4eb] transition-colors" title="Xoá">
+                  <button onClick={() => removeContest(contest.id)} className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-red-600 hover:bg-[#f7f4eb] transition-colors" title="Xoá">
                     <Trash2 size={16} />
                   </button>
                 </div>
