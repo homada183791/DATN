@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { students, classes, submissions } from '../../data/legacyData';
+import { useClass } from '../../context/ClassContext';
 import {
   Users,
   Search,
@@ -14,6 +14,21 @@ import {
 } from 'lucide-react';
 
 export default function InstructorStudent() {
+  const { myClasses, membersOf } = useClass();
+  const students = myClasses.flatMap((classInfo) => membersOf(classInfo.id).map((member) => ({
+    id: member.username,
+    username: member.username,
+    fullName: member.fullName,
+    email: `${member.username}@unknown.local`,
+    solvedCount: member.solvedCount ?? 0,
+    submissionCount: 0,
+    rating: member.rating ?? 0,
+    lastActive: '',
+    classId: classInfo.id,
+    className: `${classInfo.name} - ${classInfo.code}`,
+  })));
+  const classes = myClasses;
+  const submissions: Array<{ id: string; userId: string; problemTitle: string; verdict: string; language: string; executionTime: number; timestamp: string }> = [];
   const [searchQuery, setSearchQuery] = useState('');
   const [classFilter, setClassFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'rating' | 'solved' | 'submissions'>('rating');

@@ -1,6 +1,18 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
-import { classes as mockClasses, students, ClassInfo } from '../data/legacyData';
+import { useClassesQuery } from '../api/classes';
+
+export interface ClassInfo {
+  id: string;
+  name: string;
+  code: string;
+  instructor: string;
+  semester: string;
+  studentCount: number;
+  homeworkCount: number;
+  contestCount: number;
+  description: string;
+}
 
 export interface Member {
   username: string;
@@ -39,28 +51,30 @@ function loadStore(): Stored {
   return { classes: [], members: {} };
 }
 
-/* seed members from mock students theo classId */
-function seedMembers(classId: string): Member[] {
-  return students
-    .filter((s) => s.classId === classId)
-    .map((s) => ({ username: s.username, fullName: s.fullName, rating: s.rating, solvedCount: s.solvedCount }));
-}
-
 export function ClassProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const { data: apiClasses = [] } = useClassesQuery();
   const [store, setStore] = useState<Stored>(loadStore);
 
   useEffect(() => {
     localStorage.setItem(LS_KEY, JSON.stringify(store));
   }, [store]);
 
-  const allClasses = useMemo(() => [...mockClasses, ...store.classes], [store.classes]);
+  const serverClasses = useMemo(() => apiClasses.map((cls) => ({
+    id: cls.id,
+    name: cls.name,
+    code: cls.invite_code,
+    instructor: cls.admin?.email ?? '',
+    semester: '',
+    studentCount: cls.students?.length ?? 0,
+    homeworkCount: 0,
+    contestCount: 0,
+    description: cls.description ?? '',
+  })), [apiClasses]);
+  const allClasses = useMemo(() => [...serverClasses, ...store.classes], [serverClasses, store.classes]);
 
   const membersOf = (classId: string): Member[] => {
-    const seeded = seedMembers(classId);
-    const extra = store.members[classId] ?? [];
-    const seen = new Set(seeded.map((m) => m.username));
-    return [...seeded, ...extra.filter((m) => !seen.has(m.username))];
+    return store.members[classId] ?? [];
   };
 
   const isEnrolled = (classId: string) =>
@@ -69,6 +83,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
   const myClasses = useMemo(() => {
     if (user?.role !== 'instructor') return [];
     return allClasses.filter((c) => c.instructor === user.fullName);
+    return allClasses.filter((c) => c.instructor === user.email || c.instructor === user.fullName);
   }, [allClasses, user]);
 
   const enrolledClasses = useMemo(() => {

@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useClass } from '../../context/ClassContext';
-import { useHomework, deadlineProgress, HomeworkInput, HomeworkProblem } from '../../context/HomeworkContext';
-import { Homework } from '../../data/legacyData';
+import { useHomework, deadlineProgress, HomeworkInput, HomeworkProblem, Homework } from '../../context/HomeworkContext';
 import ProblemManager from '../../components/ProblemManager';
 import {
   ClipboardList,

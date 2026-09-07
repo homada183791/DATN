@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { contests } from '../../data/legacyData';
+import { useContestsQuery, useLeaderboardQuery } from '../../api/contests';
 import {
   Trophy,
   Users,
@@ -19,6 +19,8 @@ export default function InstructorContest() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedContest, setSelectedContest] = useState<string | null>(null);
   const hasDocument = typeof document !== 'undefined';
+  const { data: contests = [] } = useContestsQuery();
+  const { data: leaderboard } = useLeaderboardQuery(selectedContest ?? undefined);
 
   const filteredContests = contests.filter((c) => {
     const matchesFilter = filter === 'all' || c.status === filter;
@@ -46,13 +48,7 @@ export default function InstructorContest() {
     Homework: 'bg-emerald-100 text-emerald-800 border-emerald-200',
   };
 
-  const standings = [
-    { rank: 1, name: 'Bùi Thị H', solved: 5, penalty: 120 },
-    { rank: 2, name: 'Phạm Thị D', solved: 4, penalty: 180 },
-    { rank: 3, name: 'Nguyễn Văn A', solved: 4, penalty: 210 },
-    { rank: 4, name: 'Võ Thị F', solved: 3, penalty: 150 },
-    { rank: 5, name: 'Lê Văn C', solved: 3, penalty: 200 },
-  ];
+  const standings = Array.isArray(leaderboard) ? leaderboard : leaderboard?.standings ?? [];
 
   return (
     <div className="space-y-6 text-[#191919]">
@@ -166,9 +162,9 @@ export default function InstructorContest() {
                     {standings.map((s) => (
                       <tr key={s.rank} className="border-b border-[var(--ws-border)] hover:bg-[var(--ws-hover)]">
                         <td className="py-2.5 px-3 text-sm text-[var(--ws-muted)]">{s.rank}</td>
-                        <td className="py-2.5 px-3 text-sm text-[var(--ws-text)] font-semibold">{s.name}</td>
-                        <td className="py-2.5 px-3 text-sm text-emerald-700 font-bold text-right">{s.solved}</td>
-                        <td className="py-2.5 px-3 text-sm text-[var(--ws-muted)] text-right">{s.penalty}</td>
+                        <td className="py-2.5 px-3 text-sm text-[var(--ws-text)] font-semibold">{'name' in s ? s.name : s.fullName}</td>
+                        <td className="py-2.5 px-3 text-sm text-emerald-700 font-bold text-right">{'solved' in s ? s.solved : s.solvedCount}</td>
+                        <td className="py-2.5 px-3 text-sm text-[var(--ws-muted)] text-right">{'penalty' in s ? s.penalty : '—'}</td>
                       </tr>
                     ))}
                   </tbody>

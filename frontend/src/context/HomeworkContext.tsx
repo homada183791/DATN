@@ -1,5 +1,18 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
-import { homeworks as mockHomeworks, Homework } from '../data/legacyData';
+
+export interface Homework {
+  id: string;
+  title: string;
+  description: string;
+  deadline: string;
+  status: 'active' | 'closed' | 'upcoming';
+  problemCount: number;
+  completedCount: number;
+  classId: string;
+  className: string;
+  totalStudents: number;
+  submittedStudents: number;
+}
 
 export interface HomeworkProblem {
   id: string;
@@ -44,7 +57,6 @@ function computeStatus(deadline: string): Homework['status'] {
   return dl < now ? 'closed' : 'active';
 }
 
-/* Tạo đề mẫu cho các bài tập seed để giảng viên có sẵn dữ liệu chỉnh sửa */
 function seedProblems(hw: Homework): HomeworkProblem[] {
   return Array.from({ length: hw.problemCount }, (_, i) => ({
     id: `${hw.id}-P${i + 1}`,
@@ -75,11 +87,9 @@ export function HomeworkProvider({ children }: { children: ReactNode }) {
   useEffect(() => { localStorage.setItem(LS_PROBLEMS, JSON.stringify(problemStore)); }, [problemStore]);
 
   const allHomeworks = useMemo(() => {
-    const base = mockHomeworks
-      .filter((h) => !deleted.includes(h.id))
-      .map((h) => (patches[h.id] ? { ...h, ...patches[h.id] } : h));
+    const base: Homework[] = [];
     return [...base, ...custom];
-  }, [custom, deleted, patches]);
+  }, [custom]);
 
   const homeworksOfClass = (classId: string) => allHomeworks.filter((h) => h.classId === classId);
 

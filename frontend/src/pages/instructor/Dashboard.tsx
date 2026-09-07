@@ -11,15 +11,29 @@ import {
   BarChart3,
   ArrowRight,
 } from 'lucide-react';
-import { classes, homeworks, contests, submissions } from '../../data/legacyData';
 import { Link } from 'react-router-dom';
+import { useClass } from '../../context/ClassContext';
+import { useHomework } from '../../context/HomeworkContext';
+import { useSubmissionsQuery } from '../../api/submissions';
+import { useContestsQuery } from '../../api/contests';
 
 export default function InstructorDashboard() {
   const { user } = useAuth();
+  const { myClasses } = useClass();
+  const { allHomeworks } = useHomework();
+  const { data: submissionData = [] } = useSubmissionsQuery();
+  const { data: contests = [] } = useContestsQuery();
+  const submissions = submissionData.map((submission) => ({
+    ...submission,
+    verdict: submission.status === 'ACCEPTED' ? 'AC' : submission.status,
+    executionTime: submission.execution_time ?? 0,
+    timestamp: submission.created_at,
+    problemTitle: submission.problem_title,
+  }));
 
-  const totalStudents = classes.reduce((sum, c) => sum + c.studentCount, 0);
-  const activeHomeworks = homeworks.filter((h) => h.status === 'active').length;
-  const runningContests = contests.filter((c) => c.status === 'running').length;
+  const totalStudents = myClasses.reduce((sum, c) => sum + c.studentCount, 0);
+  const activeHomeworks = allHomeworks.filter((h) => h.status === 'active').length;
+  const runningContests = contests.filter((contest) => contest.status === 'running').length;
   const totalSubmissions = submissions.length;
   const acRate = Math.round((submissions.filter((s) => s.verdict === 'AC').length / totalSubmissions) * 100);
 
@@ -98,7 +112,7 @@ export default function InstructorDashboard() {
             </Link>
           </div>
           <div className="space-y-3">
-            {classes.map((cls) => (
+            {myClasses.map((cls) => (
               <div key={cls.id} className="p-4 bg-[#f7f4eb]/50 rounded-xl border border-[#e5dac9]/50 hover:border-[#193a2b]/30 transition-all">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
@@ -201,7 +215,7 @@ export default function InstructorDashboard() {
       <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
         <h3 className="text-lg font-bold font-serif text-[#191919] mb-4">Hạn chót sắp tới</h3>
         <div className="space-y-3">
-          {homeworks.filter((h) => h.status === 'active').map((hw) => (
+          {allHomeworks.filter((h) => h.status === 'active').map((hw) => (
             <div key={hw.id} className="flex items-center justify-between p-3 bg-[#f7f4eb]/50 rounded-xl border border-[#e5dac9]/50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
