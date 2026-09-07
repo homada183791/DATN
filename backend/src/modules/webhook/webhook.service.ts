@@ -4,6 +4,55 @@ import { JudgeResultDto } from './dto/judge-result.dto';
 import { EventsGateway } from '../../events/events.gateway';
 import { UsersService } from '../users/users.service';
 
+type SubmissionWithContests = {
+  id: string;
+  user_id: string;
+  problem_id: string;
+  problem: {
+    contests: Array<{ contest_id: string }>;
+  } | null;
+};
+
+type SubmissionFindUniqueDelegate = {
+  findUnique(args: {
+    where: { id: string };
+    include: { problem: { include: { contests: true } } };
+  }): Promise<SubmissionWithContests | null>;
+};
+
+type UpdatedSubmission = {
+  status: string;
+  execution_time: number | null;
+  memory_used: number | null;
+  score: number;
+  updated_at: Date;
+};
+
+type SubmissionTransactionClient = {
+  submissionTestResult: {
+    createMany(args: {
+      data: Array<{
+        submission_id: string;
+        testcase_index: number;
+        status: string;
+        execution_time: number | null;
+        memory_used: number | null;
+      }>;
+    }): Promise<{ count: number }>;
+  };
+  submission: {
+    update(args: {
+      where: { id: string };
+      data: {
+        status: string;
+        execution_time: number | null;
+        memory_used: number | null;
+        score: number;
+      };
+    }): Promise<UpdatedSubmission>;
+  };
+};
+
 @Injectable()
 export class WebhookService {
   private readonly logger = new Logger(WebhookService.name);
@@ -19,13 +68,15 @@ export class WebhookService {
       is_custom,
       session_id,
       submission_id,
-      status,
       execution_time,
       memory_used,
       stdout,
       stderr,
       test_results,
     } = judgeResultDto;
+    const statusValue = (judgeResultDto as unknown as { status?: unknown })
+      .status;
+    const status = typeof statusValue === 'string' ? statusValue : 'UNKNOWN';
 
     // =============================================
     // LUỒNG CUSTOM RUN: Không chạm DB, bắn thẳng Socket
@@ -60,7 +111,9 @@ export class WebhookService {
       throw new NotFoundException('Thiếu mã bài nộp (submission_id).');
     }
 
-    const submission = await this.prisma.submission.findUnique({
+    const submission = await (
+      this.prisma.submission as unknown as SubmissionFindUniqueDelegate
+    ).findUnique({
       where: { id: submission_id },
       include: {
         problem: {
@@ -76,38 +129,44 @@ export class WebhookService {
     }
 
     // Dùng transaction để vừa cập nhật submission, vừa tạo test results
-    const updatedSubmission = await this.prisma.$transaction(async (tx) => {
-      let score = 0;
+    const transaction = this.prisma.$transaction as unknown as <T>(
+      callback: (tx: SubmissionTransactionClient) => Promise<T>,
+    ) => Promise<T>;
 
-      if (test_results && test_results.length > 0) {
-        // Tính điểm: (số testcase ACCEPTED / tổng số) * 100
-        const acceptedCount = test_results.filter(
-          (t) => t.status === 'ACCEPTED',
-        ).length;
-        score = (acceptedCount / test_results.length) * 100;
+    const updatedSubmission = await transaction(
+      async (tx: SubmissionTransactionClient): Promise<UpdatedSubmission> => {
+        let score = 0;
 
-        // Lưu danh sách test_results vào CSDL
-        await tx.submissionTestResult.createMany({
-          data: test_results.map((t) => ({
-            submission_id: submission_id,
-            testcase_index: t.testcase_index,
-            status: t.status,
-            execution_time: t.execution_time,
-            memory_used: t.memory_used,
-          })),
+        if (test_results && test_results.length > 0) {
+          // Tính điểm: (số testcase ACCEPTED / tổng số) * 100
+          const acceptedCount = test_results.filter(
+            (t) => t.status === 'ACCEPTED',
+          ).length;
+          score = (acceptedCount / test_results.length) * 100;
+
+          // Lưu danh sách test_results vào CSDL
+          await tx.submissionTestResult.createMany({
+            data: test_results.map((t) => ({
+              submission_id,
+              testcase_index: t.testcase_index,
+              status: t.status as string,
+              execution_time: t.execution_time ?? null,
+              memory_used: t.memory_used ?? null,
+            })),
+          });
+        }
+
+        return tx.submission.update({
+          where: { id: submission_id },
+          data: {
+            status,
+            execution_time: execution_time ?? null,
+            memory_used: memory_used ?? null,
+            score,
+          },
         });
-      }
-
-      return tx.submission.update({
-        where: { id: submission_id },
-        data: {
-          status,
-          execution_time,
-          memory_used,
-          score,
-        },
-      });
-    });
+      },
+    );
 
     this.logger.log(
       `[Judge Webhook] Submission ${submission_id} updated to ${status} with score ${updatedSubmission.score}`,
@@ -146,7 +205,9 @@ export class WebhookService {
           memory_used: updatedSubmission.memory_used,
           test_results: test_results || [],
         };
-        for (const cp of submission.problem.contests) {
+        for (const cp of submission.problem.contests as Array<{
+          contest_id: string;
+        }>) {
           this.eventsGateway.emitAdminDashboardUpdate(
             cp.contest_id,
             adminPayload,

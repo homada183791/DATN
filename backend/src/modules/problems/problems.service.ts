@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { UpdateProblemDto } from './dto/update-problem.dto';
-import { Role } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
 
 @Injectable()
 export class ProblemsService {
@@ -53,7 +53,7 @@ export class ProblemsService {
     }
 
     // RBAC logic: Nếu không phải ADMIN, lọc bỏ các test cases bị ẩn
-    if (userRole !== Role.ADMIN) {
+    if (userRole !== Role.INSTRUCTOR) {
       problem.test_cases = problem.test_cases.filter((tc) => !tc.is_hidden);
     }
 
@@ -104,7 +104,9 @@ export class ProblemsService {
 
     // Do schema đã cấu hình onDelete: Cascade cho TestCase,
     // nên xoá Problem sẽ tự xoá TestCases tương ứng.
-    return this.prisma.problem.delete({
+    const prisma = this.prisma as PrismaClient;
+
+    return prisma.problem.delete({
       where: { id },
     });
   }

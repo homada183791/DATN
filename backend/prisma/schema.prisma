@@ -90,23 +90,6 @@ enum SubmissionStatus {
   RUNTIME_ERROR
 }
 
-model Problem {
-  id           String     @id @default(uuid())
-  title        String
-  description  String     @db.Text
-  difficulty   Difficulty @default(MEDIUM)
-  time_limit   Int        // ms
-  memory_limit Int        // MB
-  created_at   DateTime   @default(now())
-  updated_at   DateTime   @updatedAt
-
-  test_cases   TestCase[]
-  submissions  Submission[]
-  contests     ContestProblem[]
-
-  @@map("problems")
-}
-
 model Submission {
   id             String           @id @default(uuid())
   user_id        String

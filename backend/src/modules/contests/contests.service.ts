@@ -37,7 +37,7 @@ export class ContestsService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('Không tìm thấy người dùng');
 
-    if (user.role === 'ADMIN') {
+    if (user.role === 'INSTRUCTOR') {
       return this.prisma.contest.findMany({
         orderBy: { created_at: 'desc' },
       });

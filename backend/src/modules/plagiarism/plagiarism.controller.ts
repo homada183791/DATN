@@ -18,7 +18,7 @@ export class PlagiarismController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get()
-  @Roles(Role.ADMIN)
+  @Roles(Role.INSTRUCTOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Lấy danh sách báo cáo đạo văn của một kỳ thi' })
   @ApiResponse({

@@ -25,7 +25,7 @@ export class ClassesController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.INSTRUCTOR)
   create(
     @Body() createClassDto: CreateClassDto,
     @Request() req: { user: { userId: string } },
@@ -45,21 +45,21 @@ export class ClassesController {
 
   @Patch(':id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.INSTRUCTOR)
   update(@Param('id') id: string, @Body() updateClassDto: UpdateClassDto) {
     return this.classesService.update(id, updateClassDto);
   }
 
   @Delete(':id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.INSTRUCTOR)
   remove(@Param('id') id: string) {
     return this.classesService.remove(id);
   }
 
   @Post(':id/students')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.INSTRUCTOR)
   addStudent(@Param('id') id: string, @Body() addStudentDto: AddStudentDto) {
     return this.classesService.addStudent(id, addStudentDto);
   }

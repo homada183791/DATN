@@ -25,7 +25,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Contests')
-@Controller('api/v1/contests')
+@Controller('contests')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class ContestsController {
   constructor(private readonly contestsService: ContestsService) {}
@@ -118,7 +118,7 @@ export class ContestsController {
   }
 
   @Post(':id/calculate-elo')
-  @Roles(Role.ADMIN)
+  @Roles(Role.INSTRUCTOR)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Tính lại ELO rating cho tất cả sinh viên sau khi kỳ thi kết thúc',
