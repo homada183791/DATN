@@ -63,4 +63,21 @@ export class ClassesController {
   addStudent(@Param('id') id: string, @Body() addStudentDto: AddStudentDto) {
     return this.classesService.addStudent(id, addStudentDto);
   }
+
+  @Post(':id/join')
+  join(@Param('id') id: string, @Request() req: { user: { userId: string } }) {
+    return this.classesService.joinStudent(id, req.user.userId);
+  }
+
+  @Delete(':id/leave')
+  leave(@Param('id') id: string, @Request() req: { user: { userId: string } }) {
+    return this.classesService.removeStudent(id, req.user.userId);
+  }
+
+  @Delete(':id/students/:studentId')
+  @UseGuards(RolesGuard)
+  @Roles(Role.INSTRUCTOR)
+  removeStudent(@Param('id') id: string, @Param('studentId') studentId: string) {
+    return this.classesService.removeStudent(id, studentId);
+  }
 }

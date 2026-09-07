@@ -1,6 +1,8 @@
-import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
+import { createContext, useContext, useMemo, ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './AuthContext';
-import { useClassesQuery } from '../api/classes';
+import { createClass as createClassApi, deleteClass as deleteClassApi, removeClassStudent, useClassesQuery } from '../api/classes';
+import { apiFetch } from '../api/http';
 
 export interface ClassInfo {
   id: string;
@@ -15,15 +17,11 @@ export interface ClassInfo {
 }
 
 export interface Member {
+  id: string;
   username: string;
   fullName: string;
   rating?: number;
   solvedCount?: number;
-}
-
-interface Stored {
-  classes: ClassInfo[];
-  members: Record<string, Member[]>;
 }
 
 interface ClassContextType {
@@ -32,33 +30,19 @@ interface ClassContextType {
   enrolledClasses: ClassInfo[];    // sinh viên: lớp đã tham gia
   membersOf: (classId: string) => Member[];
   isEnrolled: (classId: string) => boolean;
-  createClass: (data: { name: string; semester: string; description: string }) => ClassInfo;
-  deleteClass: (classId: string) => void;
-  joinByCode: (code: string) => { ok: boolean; message: string; classId?: string };
-  leaveClass: (classId: string) => void;
-  removeMember: (classId: string, username: string) => void;
+  createClass: (data: { name: string; semester: string; description: string }) => Promise<ClassInfo>;
+  deleteClass: (classId: string) => Promise<void>;
+  joinByCode: (code: string) => Promise<{ ok: boolean; message: string; classId?: string }>;
+  leaveClass: (classId: string) => Promise<void>;
+  removeMember: (classId: string, username: string) => Promise<void>;
 }
 
 const ClassContext = createContext<ClassContextType | undefined>(undefined);
 
-const LS_KEY = 'jh-class-store-v1';
-
-function loadStore(): Stored {
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    if (raw) return JSON.parse(raw) as Stored;
-  } catch { /* ignore */ }
-  return { classes: [], members: {} };
-}
-
 export function ClassProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { data: apiClasses = [] } = useClassesQuery();
-  const [store, setStore] = useState<Stored>(loadStore);
-
-  useEffect(() => {
-    localStorage.setItem(LS_KEY, JSON.stringify(store));
-  }, [store]);
 
   const serverClasses = useMemo(() => apiClasses.map((cls) => ({
     id: cls.id,
@@ -71,10 +55,15 @@ export function ClassProvider({ children }: { children: ReactNode }) {
     contestCount: 0,
     description: cls.description ?? '',
   })), [apiClasses]);
-  const allClasses = useMemo(() => [...serverClasses, ...store.classes], [serverClasses, store.classes]);
+  const allClasses = serverClasses;
 
   const membersOf = (classId: string): Member[] => {
-    return store.members[classId] ?? [];
+    const cls = apiClasses.find((item) => item.id === classId);
+    return (cls?.students ?? []).map(({ student }) => ({
+      id: student.id,
+      username: student.email.split('@')[0],
+      fullName: student.email,
+    }));
   };
 
   const isEnrolled = (classId: string) =>
@@ -89,73 +78,50 @@ export function ClassProvider({ children }: { children: ReactNode }) {
     if (user?.role !== 'student') return [];
     return allClasses.filter((c) => isEnrolled(c.id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allClasses, user, store.members]);
+  }, [allClasses, user, apiClasses]);
 
-  const createClass: ClassContextType['createClass'] = (data) => {
-    const cls: ClassInfo = {
-      id: `CL${Date.now()}`,
-      name: data.name,
-      code: `INT${Math.floor(1000 + Math.random() * 9000)}`,
-      instructor: user?.fullName ?? 'Giảng viên',
+  const createClass: ClassContextType['createClass'] = async (data) => {
+    const created = await createClassApi({ name: data.name, description: data.description });
+    await queryClient.invalidateQueries({ queryKey: ['classes'] });
+    return {
+      id: created.id,
+      name: created.name,
+      code: created.invite_code,
+      instructor: created.admin?.email ?? user?.email ?? '',
       semester: data.semester,
-      studentCount: 1,
+      studentCount: created.students?.length ?? 0,
       homeworkCount: 0,
       contestCount: 0,
-      description: data.description,
+      description: created.description ?? '',
     };
-    setStore((s) => ({
-      ...s,
-      classes: [...s.classes, cls],
-      members: {
-        ...s.members,
-        [cls.id]: user ? [{ username: user.username, fullName: user.fullName }] : [],
-      },
-    }));
-    return cls;
   };
 
-  const deleteClass = (classId: string) => {
-    setStore((s) => {
-      const members = { ...s.members };
-      delete members[classId];
-      return { classes: s.classes.filter((c) => c.id !== classId), members };
-    });
+  const deleteClass: ClassContextType['deleteClass'] = async (classId) => {
+    await deleteClassApi(classId);
+    await queryClient.invalidateQueries({ queryKey: ['classes'] });
   };
 
-  const joinByCode: ClassContextType['joinByCode'] = (code) => {
+  const joinByCode: ClassContextType['joinByCode'] = async (code) => {
     if (!user) return { ok: false, message: 'Cần đăng nhập để tham gia lớp.' };
     const cls = allClasses.find((c) => c.code.toLowerCase() === code.trim().toLowerCase());
     if (!cls) return { ok: false, message: `Không tìm thấy lớp với mã "${code}".` };
     if (isEnrolled(cls.id)) return { ok: false, message: `Bạn đã là thành viên của "${cls.name}".`, classId: cls.id };
-    setStore((s) => ({
-      ...s,
-      members: {
-        ...s.members,
-        [cls.id]: [...(s.members[cls.id] ?? []), { username: user.username, fullName: user.fullName }],
-      },
-    }));
+    await apiFetch(`/api/v1/classes/${cls.id}/join`, { method: 'POST' });
+    await queryClient.invalidateQueries({ queryKey: ['classes'] });
     return { ok: true, message: `Đã tham gia lớp "${cls.name}".`, classId: cls.id };
   };
 
-  const leaveClass = (classId: string) => {
+  const leaveClass: ClassContextType['leaveClass'] = async (classId) => {
     if (!user) return;
-    setStore((s) => ({
-      ...s,
-      members: {
-        ...s.members,
-        [classId]: (s.members[classId] ?? []).filter((m) => m.username !== user.username),
-      },
-    }));
+    await apiFetch(`/api/v1/classes/${classId}/leave`, { method: 'DELETE' });
+    await queryClient.invalidateQueries({ queryKey: ['classes'] });
   };
 
-  const removeMember = (classId: string, username: string) => {
-    setStore((s) => ({
-      ...s,
-      members: {
-        ...s.members,
-        [classId]: (s.members[classId] ?? []).filter((m) => m.username !== username),
-      },
-    }));
+  const removeMember: ClassContextType['removeMember'] = async (classId, username) => {
+    const member = membersOf(classId).find((item) => item.username === username);
+    if (!member) return;
+    await removeClassStudent(classId, member.id);
+    await queryClient.invalidateQueries({ queryKey: ['classes'] });
   };
 
   return (

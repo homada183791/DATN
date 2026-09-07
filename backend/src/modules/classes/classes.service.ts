@@ -26,7 +26,12 @@ export class ClassesService {
 
   async findAll() {
     return this.prisma.class.findMany({
-      include: { admin: { select: { id: true, email: true } } },
+      include: {
+        admin: { select: { id: true, email: true } },
+        students: {
+          include: { student: { select: { id: true, email: true } } },
+        },
+      },
     });
   }
 
@@ -83,6 +88,30 @@ export class ClassesService {
         class_id: classId,
         student_id: addStudentDto.student_id,
       },
+    });
+  }
+
+  async removeStudent(classId: string, studentId: string) {
+    await this.findOne(classId);
+    return this.prisma.classStudent.delete({
+      where: {
+        class_id_student_id: {
+          class_id: classId,
+          student_id: studentId,
+        },
+      },
+    });
+  }
+
+  async joinStudent(classId: string, studentId: string) {
+    await this.findOne(classId);
+    const existing = await this.prisma.classStudent.findUnique({
+      where: { class_id_student_id: { class_id: classId, student_id: studentId } },
+    });
+    if (existing) throw new ConflictException('Sinh viên đã nằm trong lớp này');
+
+    return this.prisma.classStudent.create({
+      data: { class_id: classId, student_id: studentId },
     });
   }
 }

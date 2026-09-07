@@ -52,10 +52,10 @@ function normalizeRole(role: BackendRole): User['role'] {
   return role === 'INSTRUCTOR' ? 'instructor' : 'student';
 }
 
-function normalizeUser(identifier: string, role: User['role'], fullName?: string): User {
+function normalizeUser(identifier: string, role: User['role'], fullName?: string, id?: string): User {
   const username = identifier.includes('@') ? identifier.split('@')[0] : identifier;
   return {
-    id: `${role}-${username}`,
+    id: id ?? `${role}-${username}`,
     username,
     email: identifier,
     fullName: fullName ?? username,
@@ -69,7 +69,7 @@ async function hydrateProfile(token: string) {
     headers: { Authorization: `Bearer ${token}` },
   });
 
-  return normalizeUser(profile.email, normalizeRole(profile.role));
+  return normalizeUser(profile.email, normalizeRole(profile.role), undefined, profile.id);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
       window.localStorage.setItem(ACCESS_TOKEN_KEY, response.access_token);
-      setUser(normalizeUser(response.user.email, normalizeRole(response.user.role)));
+      setUser(normalizeUser(response.user.email, normalizeRole(response.user.role), undefined, response.user.id));
       return { ok: true };
     } catch (error) {
       if (error instanceof ApiError) {

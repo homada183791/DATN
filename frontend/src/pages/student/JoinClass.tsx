@@ -25,16 +25,18 @@ export default function JoinClass() {
       setRedirect('/instructor/classes');
       return;
     }
-    const res = joinByCode(code ?? '');
-    if (res.ok && res.classId) {
-      sessionStorage.setItem('jh-joined', res.classId);
-    } else if (res.classId) {
-      // đã là thành viên
-      sessionStorage.setItem('jh-joined', res.classId);
-    } else {
-      sessionStorage.setItem('jh-joined-error', res.message);
-    }
-    setRedirect('/student/class');
+    void (async () => {
+      const res = await joinByCode(code ?? '');
+      if (res.ok && res.classId) {
+        sessionStorage.setItem('jh-joined', res.classId);
+      } else if (res.classId) {
+        // đã là thành viên
+        sessionStorage.setItem('jh-joined', res.classId);
+      } else {
+        sessionStorage.setItem('jh-joined-error', res.message);
+      }
+      setRedirect('/student/class');
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code, isAuthenticated]);
 
