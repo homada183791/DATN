@@ -23,9 +23,18 @@ export default function InstructorDashboard() {
   const { allHomeworks } = useHomework();
   const { data: submissionData = [] } = useSubmissionsQuery();
   const { data: contests = [] } = useContestsQuery();
+  const verdictFromStatus: Record<string, string> = {
+    ACCEPTED: 'AC',
+    WRONG_ANSWER: 'WA',
+    TIME_LIMIT_EXCEEDED: 'TLE',
+    COMPILE_ERROR: 'CE',
+    RUNTIME_ERROR: 'RTE',
+    PENDING: 'PENDING',
+    IN_QUEUE: 'PENDING',
+  };
   const submissions = submissionData.map((submission) => ({
     ...submission,
-    verdict: submission.status === 'ACCEPTED' ? 'AC' : submission.status,
+    verdict: verdictFromStatus[submission.status] ?? 'PENDING',
     executionTime: submission.execution_time ?? 0,
     timestamp: submission.created_at,
     problemTitle: submission.problem_title,
@@ -35,7 +44,9 @@ export default function InstructorDashboard() {
   const activeHomeworks = allHomeworks.filter((h) => h.status === 'active').length;
   const runningContests = contests.filter((contest) => contest.status === 'running').length;
   const totalSubmissions = submissions.length;
-  const acRate = Math.round((submissions.filter((s) => s.verdict === 'AC').length / totalSubmissions) * 100);
+  const acRate = totalSubmissions === 0
+    ? 0
+    : Math.round((submissions.filter((s) => s.verdict === 'AC').length / totalSubmissions) * 100);
 
   const recentSubmissions = submissions.slice(0, 6);
 
@@ -47,6 +58,7 @@ export default function InstructorDashboard() {
     RTE: 'text-orange-800 bg-orange-100 border-orange-300',
     CE: 'text-blue-800 bg-blue-100 border-blue-300',
     PE: 'text-pink-800 bg-pink-100 border-pink-300',
+    PENDING: 'text-slate-800 bg-slate-100 border-slate-300',
   };
 
   return (
@@ -185,6 +197,7 @@ export default function InstructorDashboard() {
               RTE: 'from-orange-500 to-orange-400',
               CE: 'from-blue-500 to-blue-400',
               PE: 'from-pink-500 to-pink-400',
+              PENDING: 'from-slate-500 to-slate-400',
             };
             const tColors: Record<string, string> = {
               AC: 'text-emerald-700 font-bold',
@@ -194,6 +207,7 @@ export default function InstructorDashboard() {
               RTE: 'text-orange-700 font-bold',
               CE: 'text-blue-700 font-bold',
               PE: 'text-pink-700 font-bold',
+              PENDING: 'text-slate-700 font-bold',
             };
             return (
               <div key={verdict} className="p-4 bg-[#f7f4eb]/50 rounded-xl border border-[#e5dac9] text-center shadow-xs">
