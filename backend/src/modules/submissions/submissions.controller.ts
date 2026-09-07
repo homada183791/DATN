@@ -18,6 +18,13 @@ import {
 export class SubmissionsController {
   constructor(private readonly submissionsService: SubmissionsService) {}
 
+  @Get()
+  @ApiOperation({ summary: 'Lấy danh sách bài nộp' })
+  @ApiResponse({ status: 200, description: 'Danh sách bài nộp theo quyền người dùng.' })
+  findAll(@Request() req: { user: { userId: string; role: import('@prisma/client').Role } }) {
+    return this.submissionsService.findAll(req.user.userId, req.user.role);
+  }
+
   @Post()
   @ApiOperation({ summary: 'Nộp bài lên hệ thống để chấm' })
   @ApiResponse({
