@@ -171,8 +171,25 @@ model Class {
   admin    User           @relation(fields: [admin_id], references: [id], onDelete: Cascade)
   students ClassStudent[]
   contests Contest[]
+  homeworks Homework[]
 
   @@map("classes")
+}
+
+model Homework {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  deadline    DateTime
+  class_id    String
+  tasks       Json
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  class Class @relation(fields: [class_id], references: [id], onDelete: Cascade)
+
+  @@index([class_id])
+  @@map("homeworks")
 }
 
 model ClassStudent {

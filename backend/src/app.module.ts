@@ -15,6 +15,7 @@ import { ContestsModule } from './modules/contests/contests.module';
 import { LeaderboardModule } from './modules/leaderboard/leaderboard.module';
 import { ClassesModule } from './modules/classes/classes.module';
 import { PlagiarismModule } from './modules/plagiarism/plagiarism.module';
+import { HomeworksModule } from './modules/homeworks/homeworks.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { PlagiarismModule } from './modules/plagiarism/plagiarism.module';
     LeaderboardModule,
     ClassesModule,
     PlagiarismModule,
+    HomeworksModule,
   ],
   controllers: [AppController],
   providers: [AppService],
