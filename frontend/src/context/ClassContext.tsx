@@ -82,7 +82,6 @@ export function ClassProvider({ children }: { children: ReactNode }) {
 
   const myClasses = useMemo(() => {
     if (user?.role !== 'instructor') return [];
-    return allClasses.filter((c) => c.instructor === user.fullName);
     return allClasses.filter((c) => c.instructor === user.email || c.instructor === user.fullName);
   }, [allClasses, user]);
 

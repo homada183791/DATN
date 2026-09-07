@@ -17,6 +17,16 @@ export interface ContestDto {
   className?: string;
 }
 
+interface ContestApiResponse {
+  id: string;
+  title: string;
+  description?: string | null;
+  start_time: string;
+  end_time: string;
+  is_private: boolean;
+  class_id?: string | null;
+}
+
 export interface LeaderboardEntryDto {
   rank: number;
   username: string;
@@ -33,7 +43,27 @@ export interface LeaderboardDto {
 }
 
 export function fetchContests() {
-  return apiFetch<ContestDto[]>('/api/v1/contests');
+  return apiFetch<ContestApiResponse[]>('/api/v1/contests').then((contests) =>
+    contests.map((contest): ContestDto => {
+      const now = Date.now();
+      const startTime = new Date(contest.start_time).getTime();
+      const endTime = new Date(contest.end_time).getTime();
+      const status = now < startTime ? 'upcoming' : now <= endTime ? 'running' : 'ended';
+
+      return {
+        id: contest.id,
+        title: contest.title,
+        description: contest.description ?? '',
+        startTime: contest.start_time,
+        endTime: contest.end_time,
+        status,
+        participantCount: 0,
+        problemCount: 0,
+        visibility: contest.is_private ? 'private' : 'public',
+        classId: contest.class_id ?? undefined,
+      };
+    })
+  );
 }
 
 export function fetchLeaderboard(contestId: string) {
