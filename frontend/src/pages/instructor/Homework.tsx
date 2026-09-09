@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   GraduationCap,
+  Loader2,
 } from 'lucide-react';
 
 type EditorState = { mode: 'create' | 'edit'; hw?: Homework } | null;
@@ -34,6 +35,7 @@ export default function InstructorHomework() {
   const [form, setForm] = useState(emptyForm);
   const [draftProblems, setDraftProblems] = useState<HomeworkProblem[]>([]);
   const [error, setError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const hasDocument = typeof document !== 'undefined';
 
   const myClassIds = useMemo(() => new Set(myClasses.map((c) => c.id)), [myClasses]);
@@ -55,6 +57,7 @@ export default function InstructorHomework() {
     setForm({ ...emptyForm, classId: myClasses[0]?.id ?? '' });
     setDraftProblems([]);
     setError('');
+    setIsSaving(false);
     setEditor({ mode: 'create' });
   };
 
@@ -67,10 +70,11 @@ export default function InstructorHomework() {
     });
     setDraftProblems(problemsOf(hw.id));
     setError('');
+    setIsSaving(false);
     setEditor({ mode: 'edit', hw });
   };
 
-  const save = () => {
+  const save = async () => {
     if (form.title.trim().length < 3) return setError('Tiêu đề cần ít nhất 3 ký tự.');
     if (!form.classId) return setError('Vui lòng chọn lớp để giao bài.');
     if (!form.deadline) return setError('Vui lòng chọn hạn nộp.');
@@ -86,12 +90,21 @@ export default function InstructorHomework() {
       className: `${cls.name} - ${cls.code}`,
       totalStudents: membersOf(form.classId).length,
     };
-    if (editor?.mode === 'edit' && editor.hw) {
-      updateHomework(editor.hw.id, payload);
-    } else {
-      createHomework(payload);
+    
+    setIsSaving(true);
+    setError('');
+    try {
+      if (editor?.mode === 'edit' && editor.hw) {
+        await updateHomework(editor.hw.id, payload);
+      } else {
+        await createHomework(payload);
+      }
+      setEditor(null);
+    } catch (e: any) {
+      setError(e.message || 'Có lỗi xảy ra khi lưu bài tập.');
+    } finally {
+      setIsSaving(false);
     }
-    setEditor(null);
   };
 
   const statusChip: Record<string, string> = {
@@ -291,10 +304,11 @@ export default function InstructorHomework() {
                 🔒 Chỉ sinh viên đã tham gia lớp được chọn mới nhìn thấy bài tập này.
               </p>
               <div className="flex gap-3 pt-1">
-                <button onClick={save} className="flex-1 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md">
+                <button onClick={save} disabled={isSaving} className="flex-1 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md disabled:opacity-50 flex justify-center items-center gap-2">
+                  {isSaving && <Loader2 size={16} className="animate-spin" />}
                   {editor.mode === 'edit' ? 'Lưu thay đổi' : 'Giao bài'}
                 </button>
-                <button onClick={() => setEditor(null)} className="px-6 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] font-medium rounded-xl hover:bg-[var(--ws-hover)]">Huỷ</button>
+                <button onClick={() => setEditor(null)} disabled={isSaving} className="px-6 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] font-medium rounded-xl hover:bg-[var(--ws-hover)] disabled:opacity-50">Huỷ</button>
               </div>
             </div>
           </div>

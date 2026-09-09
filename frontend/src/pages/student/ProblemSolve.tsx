@@ -341,6 +341,14 @@ export default function ProblemSolve() {
       RUNTIME_ERROR: 'RTE',
     };
 
+    const watchdogTimer = window.setTimeout(() => {
+      showToast('Máy chấm không phản hồi (Timeout). Vui lòng thử lại.', 'error');
+      pushConsole('error: máy chấm không phản hồi sau 60s.', 'err');
+      setJudging(false);
+      socket.disconnect();
+      submissionSocketRef.current = null;
+    }, 60000);
+
     socket.on('connect', () => {
       socket.emit('join_submission', { submission_id: submissionId });
       pushConsole(`Đã kết nối theo dõi bài nộp ${submissionId}.`, 'info');
@@ -354,6 +362,7 @@ export default function ProblemSolve() {
 
       if (!verdict) return;
 
+      window.clearTimeout(watchdogTimer);
       setFinalVerdict(verdict);
       setBottomTab('results');
       setJudging(false);
@@ -362,6 +371,7 @@ export default function ProblemSolve() {
     });
 
     socket.on('connect_error', () => {
+      window.clearTimeout(watchdogTimer);
       showToast('Không thể kết nối máy chủ chấm bài.', 'error');
       pushConsole('error: không thể kết nối Socket.io.', 'err');
       setJudging(false);
