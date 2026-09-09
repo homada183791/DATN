@@ -131,10 +131,6 @@ export function LoginModal({
           <GoogleIcon />
           Đăng nhập bằng Google
         </button>
-        <button type="button" className={styles.ssoBtn}>
-          <MicrosoftIcon />
-          Đăng nhập với Microsoft
-        </button>
       </div>
     </div>
   );
@@ -199,17 +195,6 @@ function GoogleIcon() {
         fill="#1976D2"
         d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.5l6.6 5.4C41.4 35.9 44 30.3 44 24c0-1.2-.1-2.4-.4-3.5z"
       />
-    </svg>
-  );
-}
-
-function MicrosoftIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 23 23">
-      <rect x="1" y="1" width="10" height="10" fill="#F35325" />
-      <rect x="12" y="1" width="10" height="10" fill="#81BC06" />
-      <rect x="1" y="12" width="10" height="10" fill="#05A6F0" />
-      <rect x="12" y="12" width="10" height="10" fill="#FFBA08" />
     </svg>
   );
 }
