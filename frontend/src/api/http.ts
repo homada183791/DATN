@@ -37,18 +37,26 @@ export function getAuthHeaders() {
   return headers;
 }
 
+let last401Time = 0;
+
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   let response: Response;
 
   try {
+    const defaultSignal = AbortSignal.timeout(15000); // 15s default timeout
     response = await fetch(getApiUrl(path), {
+      signal: defaultSignal,
       ...init,
       headers: {
         ...getAuthHeaders(),
         ...(init.headers ?? {}),
       },
     });
-  } catch (error) {
+  } catch (error: any) {
+    if (error.name === 'TimeoutError' || error.name === 'AbortError') {
+      notifyGlobalToast('Máy chủ không phản hồi (Timeout). Vui lòng thử lại sau.', 'error');
+      throw new ApiError(408, 'Request Timeout', error);
+    }
     notifyGlobalToast('Không thể kết nối máy chủ', 'error');
     throw new ApiError(0, 'Không thể kết nối máy chủ', error);
   }
@@ -59,7 +67,13 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   if (!response.ok) {
     if (response.status === 401) {
       window.localStorage.removeItem('accessToken');
-      notifyGlobalToast('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'error');
+      
+      const now = Date.now();
+      if (now - last401Time > 3000) {
+        last401Time = now;
+        notifyGlobalToast('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'error');
+      }
+
       if (window.location.pathname !== '/login') {
         window.location.assign('/login');
       }
