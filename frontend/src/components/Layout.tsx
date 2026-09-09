@@ -3,6 +3,7 @@ import { Link, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useProblemsQuery } from '../api/problems';
+import { contests, submissions, type Contest } from '../data/mockData';
 import {
   LayoutDashboard,
   BookOpen,
@@ -350,7 +351,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                 <div className="px-4 py-3 border-b border-[#e5dac9]/60 hover:bg-[var(--ws-hover)] cursor-pointer">
                   <p className="text-[13px] font-semibold text-[#191919]">Kỳ thi "Luyện tập Đồ thị" đang diễn ra</p>
                   <p className="text-[11px] text-[#8a8073] mt-0.5">
-                    5 phút trước • {contests.filter((c) => c.status === 'running').reduce((s, c) => s + c.participantCount, 0)} người tham gia
+                    5 phút trước • {contests.filter((c: Contest) => c.status === 'running').reduce((s: number, c: Contest) => s + c.participantCount, 0)} người tham gia
                   </p>
                 </div>
                 <div className="px-4 py-3 hover:bg-[var(--ws-hover)] cursor-pointer">

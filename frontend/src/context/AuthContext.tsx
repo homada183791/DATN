@@ -108,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (_username: string, email: string, password: string, fullName: string) => {
+  const register = async (_username: string, email: string, password: string, _fullName: string) => {
     try {
       await apiFetch('/api/v1/auth/register', {
         method: 'POST',

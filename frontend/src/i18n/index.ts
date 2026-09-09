@@ -26,7 +26,7 @@ i18n.use(initReactI18next).init({
 });
 
 // Lưu lại lựa chọn ngôn ngữ mỗi khi đổi, để lần sau vào lại vẫn giữ đúng
-i18n.on('languageChanged', (lng) => {
+i18n.on('languageChanged', (lng: string) => {
   try {
     localStorage.setItem(STORAGE_KEY, lng);
   } catch {

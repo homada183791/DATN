@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Calendar, CheckCircle2, Loader2, Send, Target, Trophy, XCircle } from 'lucide-react';
+import { ArrowRight, Calendar, CheckCircle2, Loader2, Send, Target, Trophy } from 'lucide-react';
 import { ApiError } from '../../api/http';
 import { useContestsQuery } from '../../api/contests';
 import { useLeaderboardQuery } from '../../api/contests';

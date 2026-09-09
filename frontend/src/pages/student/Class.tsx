@@ -66,8 +66,8 @@ export default function ClassPage() {
         c.instructor.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const handleJoin = (code: string) => {
-    const res = joinByCode(code);
+  const handleJoin = async (code: string) => {
+    const res = await joinByCode(code);
     setJoinMsg({ ok: res.ok, text: res.message });
     if (res.ok) setCodeInput('');
     setTimeout(() => setJoinMsg(null), 4000);
