@@ -55,7 +55,11 @@ export function deleteHomework(id: string) {
 }
 
 export function useHomeworksQuery() {
-  return useQuery({ queryKey: ['homeworks'], queryFn: fetchHomeworks });
+  return useQuery({ 
+    queryKey: ['homeworks'], 
+    queryFn: fetchHomeworks,
+    enabled: !!window.localStorage.getItem('accessToken')
+  });
 }
 
 export function useHomeworkMutations() {

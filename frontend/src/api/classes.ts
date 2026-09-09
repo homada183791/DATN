@@ -30,5 +30,9 @@ export function removeClassStudent(classId: string, studentId: string) {
 }
 
 export function useClassesQuery() {
-  return useQuery({ queryKey: ['classes'], queryFn: fetchClasses });
+  return useQuery({ 
+    queryKey: ['classes'], 
+    queryFn: fetchClasses,
+    enabled: !!window.localStorage.getItem('accessToken')
+  });
 }

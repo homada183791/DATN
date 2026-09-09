@@ -29,7 +29,11 @@ export function fetchProblem(id: string) {
 }
 
 export function useProblemsQuery() {
-  return useQuery({ queryKey: ['problems'], queryFn: fetchProblems });
+  return useQuery({ 
+    queryKey: ['problems'], 
+    queryFn: fetchProblems,
+    enabled: !!window.localStorage.getItem('accessToken')
+  });
 }
 
 export function useProblemQuery(id?: string) {

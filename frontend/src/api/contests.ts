@@ -97,7 +97,11 @@ export function fetchLeaderboard(contestId: string) {
 }
 
 export function useContestsQuery() {
-  return useQuery({ queryKey: ['contests'], queryFn: fetchContests });
+  return useQuery({ 
+    queryKey: ['contests'], 
+    queryFn: fetchContests,
+    enabled: !!window.localStorage.getItem('accessToken')
+  });
 }
 
 export function useLeaderboardQuery(contestId?: string) {
