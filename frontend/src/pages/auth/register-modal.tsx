@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import styles from "./register-modal.module.css";
 
 interface PasswordChecks {
@@ -46,6 +47,7 @@ export function RegisterModal({
   onSwitchToLogin: () => void;
 }) {
   const { register } = useAuth();
+  const { showToast } = useToast();
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -83,8 +85,14 @@ export function RegisterModal({
 
     register(username.trim(), email.trim(), password, fullName.trim()).then((result) => {
       if (!result.ok) {
-        setError(result.message ?? "Vui lòng nhập đầy đủ thông tin bắt buộc.");
+        const message = result.message ?? "Vui lòng nhập đầy đủ thông tin bắt buộc.";
+        setError(message);
+        showToast(message, "error");
+        return;
       }
+
+      showToast("Đăng ký thành công. Vui lòng đăng nhập.", "success");
+      onSwitchToLogin();
     });
   }
 
