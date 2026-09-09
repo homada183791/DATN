@@ -22,6 +22,7 @@ interface AuthContextType {
   register: (username: string, email: string, password: string, fullName: string) => Promise<{ ok: boolean; message?: string }>;
   logout: () => void;
   isAuthenticated: boolean;
+  isInitializing: boolean;
 }
 
 interface AuthResponse {
@@ -74,15 +75,22 @@ async function hydrateProfile(token: string) {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
     const token = window.localStorage.getItem(ACCESS_TOKEN_KEY);
-    if (!token) return;
+    if (!token) {
+      setIsInitializing(false);
+      return;
+    }
 
     hydrateProfile(token)
       .then((profile) => setUser(profile))
       .catch(() => {
         window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+      })
+      .finally(() => {
+        setIsInitializing(false);
       });
   }, []);
 
@@ -126,10 +134,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     window.localStorage.removeItem(ACCESS_TOKEN_KEY);
     setUser(null);
+    import('../api/queryClient').then(({ queryClient }) => {
+      queryClient.clear();
+    });
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isAuthenticated: !!user, isInitializing }}>
       {children}
     </AuthContext.Provider>
   );

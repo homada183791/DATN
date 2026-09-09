@@ -95,7 +95,7 @@ function Breadcrumbs() {
 }
 
 export default function Layout({ children, fullBleed = false }: { children: React.ReactNode; fullBleed?: boolean }) {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, isInitializing } = useAuth();
   const { dark, toggleTheme, theme, setThemeId, themes } = useTheme();
   const { data: problems = [] } = useProblemsQuery();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -121,6 +121,14 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  if (isInitializing) {
+    return (
+      <div className="h-screen bg-[var(--ws-bg)] flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-4 border-[var(--ws-border)] border-t-[var(--ws-accent)] animate-spin" />
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
