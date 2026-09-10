@@ -73,7 +73,19 @@ cd backend
 npx prisma migrate deploy
 ```
 
-### 4. Chạy backend
+### 4. Nạp bài tập mặc định
+
+Sau khi chạy migration, từ thư mục `backend` chạy:
+
+```bash
+npm run seed:problems
+```
+
+Lệnh này đọc `leetcode_problems.json` ở thư mục gốc và thêm các bài chưa có vào database. Có thể chạy lại lệnh an toàn; các bài đã tồn tại sẽ được bỏ qua.
+
+Các testcase chưa có `expected_output` sẽ không được nạp. Bài vẫn hiển thị trên web, nhưng cần bổ sung đáp án trước khi chấm tự động.
+
+### 5. Chạy backend
 
 Mở terminal riêng:
 
@@ -84,7 +96,7 @@ npm run start:dev
 
 Backend API chạy tại `http://localhost:3000`.
 
-### 5. Chạy frontend
+### 6. Chạy frontend
 
 Mở terminal riêng:
 

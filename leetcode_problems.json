@@ -1,0 +1,1062 @@
+[
+  {
+    "title": "Two Sum",
+    "description": "You are given an array of integers \nnums\n and an integer \ntarget\n, return \nindices of the two numbers such that they add up to \ntarget\n.\n\nYou may assume that each input would have \nexactly\n one solution\n, and you may not use the \nsame\n element twice.\n\nYou can return the answer in any order.\n\n \n\nExample 1:\n\nInput:\n nums = [2,7,11,15], target = 9\n\nOutput:\n [0,1]\n\nExplanation:\n Because nums[0] + nums[1] == 9, we return [0, 1].\n\nExample 2:\n\nInput:\n nums = [3,2,4], target = 6\n\nOutput:\n [1,2]\n\nExample 3:\n\nInput:\n nums = [3,3], target = 6\n\nOutput:\n [0,1]\n\n \n\nConstraints:\n\n2 <= nums.length <= 10\n4\n\n-10\n9\n <= nums[i] <= 10\n9\n\n-10\n9\n <= target <= 10\n9\n\nOnly one valid answer exists.\n\n \n\nFollow-up: \nCan you come up with an algorithm that is less than \nO(n\n2\n)\n \ntime complexity?",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[2,7,11,15]\n9",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[3,2,4]\n6",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[3,3]\n6",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Palindrome Number",
+    "description": "Given an integer \nx\n, return \ntrue\n if \nx\n is a \npalindrome\n, and \nfalse\n otherwise.\n\n \n\nExample 1:\n\nInput:\n x = 121\n\nOutput:\n true\n\nExplanation:\n 121 reads as 121 from left to right and from right to left.\n\nExample 2:\n\nInput:\n x = -121\n\nOutput:\n false\n\nExplanation:\n From left to right, it reads -121. From right to left, it becomes 121-. Therefore it is not a palindrome.\n\nExample 3:\n\nInput:\n x = 10\n\nOutput:\n false\n\nExplanation:\n Reads 01 from right to left. Therefore it is not a palindrome.\n\n \n\nConstraints:\n\n-2\n31\n <= x <= 2\n31\n - 1\n\n \n\nFollow up:\n Could you solve it without converting the integer to a string?",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "121",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "-121",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "10",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Roman to Integer",
+    "description": "Roman numerals are represented by seven different symbols: \nI\n, \nV\n, \nX\n, \nL\n, \nC\n, \nD\n and \nM\n.\n\nSymbol\n       \nValue\n\nI             1\nV             5\nX             10\nL             50\nC             100\nD             500\nM             1000\n\nFor example, \n2\n is written as \nII\n in Roman numeral, just two ones added together. \n12\n is written as \nXII\n, which is simply \nX + II\n. The number \n27\n is written as \nXXVII\n, which is \nXX + V + II\n.\n\nRoman numerals are usually written largest to smallest from left to right. However, the numeral for four is not \nIIII\n. Instead, the number four is written as \nIV\n. Because the one is before the five we subtract it making four. The same principle applies to the number nine, which is written as \nIX\n. There are six instances where subtraction is used:\n\nI\n can be placed before \nV\n (5) and \nX\n (10) to make 4 and 9. \n\nX\n can be placed before \nL\n (50) and \nC\n (100) to make 40 and 90. \n\nC\n can be placed before \nD\n (500) and \nM\n (1000) to make 400 and 900.\n\nGiven a roman numeral, convert it to an integer.\n\n \n\nExample 1:\n\nInput:\n s = \"III\"\n\nOutput:\n 3\n\nExplanation:\n III = 3.\n\nExample 2:\n\nInput:\n s = \"LVIII\"\n\nOutput:\n 58\n\nExplanation:\n L = 50, V= 5, III = 3.\n\nExample 3:\n\nInput:\n s = \"MCMXCIV\"\n\nOutput:\n 1994\n\nExplanation:\n M = 1000, CM = 900, XC = 90 and IV = 4.\n\n \n\nConstraints:\n\n1 <= s.length <= 15\n\ns\n contains only the characters \n('I', 'V', 'X', 'L', 'C', 'D', 'M')\n.\n\nIt is \nguaranteed\n that \ns\n is a valid roman numeral in the range \n[1, 3999]\n.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"III\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"LVIII\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"MCMXCIV\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Longest Common Prefix",
+    "description": "Write a function to find the longest common prefix string amongst an array of strings.\n\nIf there is no common prefix, return an empty string \n\"\"\n.\n\n \n\nExample 1:\n\nInput:\n strs = [\"flower\",\"flow\",\"flight\"]\n\nOutput:\n \"fl\"\n\nExample 2:\n\nInput:\n strs = [\"dog\",\"racecar\",\"car\"]\n\nOutput:\n \"\"\n\nExplanation:\n There is no common prefix among the input strings.\n\n \n\nConstraints:\n\n1 <= strs.length <= 200\n\n0 <= strs[i].length <= 200\n\nstrs[i]\n consists of only lowercase English letters if it is non-empty.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[\"flower\",\"flow\",\"flight\"]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[\"dog\",\"racecar\",\"car\"]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Valid Parentheses",
+    "description": "Given a string \ns\n containing just the characters \n'('\n, \n')'\n, \n'{'\n, \n'}'\n, \n'['\n and \n']'\n, determine if the input string is valid.\n\nAn input string is valid if:\n\nOpen brackets must be closed by the same type of brackets.\n\nOpen brackets must be closed in the correct order.\n\nEvery close bracket has a corresponding open bracket of the same type.\n\n \n\nExample 1:\n\nInput:\n \ns = \"()\"\n\nOutput:\n \ntrue\n\nExample 2:\n\nInput:\n \ns = \"()[]{}\"\n\nOutput:\n \ntrue\n\nExample 3:\n\nInput:\n \ns = \"(]\"\n\nOutput:\n \nfalse\n\nExample 4:\n\nInput:\n \ns = \"([])\"\n\nOutput:\n \ntrue\n\nExample 5:\n\nInput:\n \ns = \"([)]\"\n\nOutput:\n \nfalse\n\n \n\nConstraints:\n\n1 <= s.length <= 10\n4\n\ns\n consists of parentheses only \n'()[]{}'\n.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"()\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"()[]{}\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"(]\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"([])\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"([)]\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Merge Two Sorted Lists",
+    "description": "You are given the heads of two sorted linked lists \nlist1\n and \nlist2\n.\n\nMerge the two lists into one \nsorted\n list. The list should be made by splicing together the nodes of the first two lists.\n\nReturn \nthe head of the merged linked list\n.\n\n \n\nExample 1:\n\nInput:\n list1 = [1,2,4], list2 = [1,3,4]\n\nOutput:\n [1,1,2,3,4,4]\n\nExample 2:\n\nInput:\n list1 = [], list2 = []\n\nOutput:\n []\n\nExample 3:\n\nInput:\n list1 = [], list2 = [0]\n\nOutput:\n [0]\n\n \n\nConstraints:\n\nThe number of nodes in both lists is in the range \n[0, 50]\n.\n\n-100 <= Node.val <= 100\n\nBoth \nlist1\n and \nlist2\n are sorted in \nnon-decreasing\n order.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,2,4]\n[1,3,4]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[]\n[]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[]\n[0]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Remove Duplicates from Sorted Array",
+    "description": "Given an integer array \nnums\n sorted in \nnon-decreasing order\n, remove the duplicates \nin-place\n such that each unique element appears only \nonce\n. The \nrelative order\n of the elements should be kept the \nsame\n.\n\nConsider the number of \nunique elements\n in \nnums\n to be \nk\n​​​​​​​\n​​​​​​​. \nAfter removing duplicates, return the number of unique elements \nk\n.\n\nThe first \nk\n elements of \nnums\n should contain the unique numbers in \nsorted order\n. The remaining elements beyond index \nk - 1\n can be ignored.\n\nCustom Judge:\n\nThe judge will test your solution with the following code:\n\nint[] nums = [...]; // Input array\nint[] expectedNums = [...]; // The expected answer with correct length\n\nint k = removeDuplicates(nums); // Calls your implementation\n\nassert k == expectedNums.length;\nfor (int i = 0; i < k; i++) {\n    assert nums[i] == expectedNums[i];\n}\n\nIf all assertions pass, then your solution will be \naccepted\n.\n\n \n\nExample 1:\n\nInput:\n nums = [1,1,2]\n\nOutput:\n 2, nums = [1,2,_]\n\nExplanation:\n Your function should return k = 2, with the first two elements of nums being 1 and 2 respectively.\nIt does not matter what you leave beyond the returned k (hence they are underscores).\n\nExample 2:\n\nInput:\n nums = [0,0,1,1,1,2,2,3,3,4]\n\nOutput:\n 5, nums = [0,1,2,3,4,_,_,_,_,_]\n\nExplanation:\n Your function should return k = 5, with the first five elements of nums being 0, 1, 2, 3, and 4 respectively.\nIt does not matter what you leave beyond the returned k (hence they are underscores).\n\n \n\nConstraints:\n\n1 <= nums.length <= 3 * 10\n4\n\n-100 <= nums[i] <= 100\n\nnums\n is sorted in \nnon-decreasing\n order.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,1,2]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[0,0,1,1,1,2,2,3,3,4]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Remove Element",
+    "description": "Given an integer array \nnums\n and an integer \nval\n, remove all occurrences of \nval\n in \nnums\n \nin-place\n. The order of the elements may be changed. Then return \nthe number of elements in \nnums\n which are not equal to \nval\n.\n\nConsider the number of elements in \nnums\n which are not equal to \nval\n be \nk\n, to get accepted, you need to do the following things:\n\nChange the array \nnums\n such that the first \nk\n elements of \nnums\n contain the elements which are not equal to \nval\n. The remaining elements of \nnums\n are not important as well as the size of \nnums\n.\n\nReturn \nk\n.\n\nCustom Judge:\n\nThe judge will test your solution with the following code:\n\nint[] nums = [...]; // Input array\nint val = ...; // Value to remove\nint[] expectedNums = [...]; // The expected answer with correct length.\n                            // It is sorted with no values equaling val.\n\nint k = removeElement(nums, val); // Calls your implementation\n\nassert k == expectedNums.length;\nsort(nums, 0, k); // Sort the first k elements of nums\nfor (int i = 0; i < actualLength; i++) {\n    assert nums[i] == expectedNums[i];\n}\n\nIf all assertions pass, then your solution will be \naccepted\n.\n\n \n\nExample 1:\n\nInput:\n nums = [3,2,2,3], val = 3\n\nOutput:\n 2, nums = [2,2,_,_]\n\nExplanation:\n Your function should return k = 2, with the first two elements of nums being 2.\nIt does not matter what you leave beyond the returned k (hence they are underscores).\n\nExample 2:\n\nInput:\n nums = [0,1,2,2,3,0,4,2], val = 2\n\nOutput:\n 5, nums = [0,1,4,0,3,_,_,_]\n\nExplanation:\n Your function should return k = 5, with the first five elements of nums containing 0, 0, 1, 3, and 4.\nNote that the five elements can be returned in any order.\nIt does not matter what you leave beyond the returned k (hence they are underscores).\n\n \n\nConstraints:\n\n0 <= nums.length <= 100\n\n0 <= nums[i] <= 50\n\n0 <= val <= 100",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[3,2,2,3]\n3",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[0,1,2,2,3,0,4,2]\n2",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Find the Index of the First Occurrence in a String",
+    "description": "Given two strings \nneedle\n and \nhaystack\n, return the index of the first occurrence of \nneedle\n in \nhaystack\n, or \n-1\n if \nneedle\n is not part of \nhaystack\n.\n\n \n\nExample 1:\n\nInput:\n haystack = \"sadbutsad\", needle = \"sad\"\n\nOutput:\n 0\n\nExplanation:\n \"sad\" occurs at index 0 and 6.\nThe first occurrence is at index 0, so we return 0.\n\nExample 2:\n\nInput:\n haystack = \"leetcode\", needle = \"leeto\"\n\nOutput:\n -1\n\nExplanation:\n \"leeto\" did not occur in \"leetcode\", so we return -1.\n\n \n\nConstraints:\n\n1 <= haystack.length, needle.length <= 10\n4\n\nhaystack\n and \nneedle\n consist of only lowercase English characters.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"sadbutsad\"\n\"sad\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"leetcode\"\n\"leeto\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Search Insert Position",
+    "description": "Given a sorted array of distinct integers and a target value, return the index if the target is found. If not, return the index where it would be if it were inserted in order.\n\nYou must write an algorithm with \nO(log n)\n runtime complexity.\n\n \n\nExample 1:\n\nInput:\n nums = [1,3,5,6], target = 5\n\nOutput:\n 2\n\nExample 2:\n\nInput:\n nums = [1,3,5,6], target = 2\n\nOutput:\n 1\n\nExample 3:\n\nInput:\n nums = [1,3,5,6], target = 7\n\nOutput:\n 4\n\n \n\nConstraints:\n\n1 <= nums.length <= 10\n4\n\n-10\n4\n <= nums[i] <= 10\n4\n\nnums\n contains \ndistinct\n values sorted in \nascending\n order.\n\n-10\n4\n <= target <= 10\n4",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,3,5,6]\n5",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,3,5,6]\n2",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,3,5,6]\n7",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Length of Last Word",
+    "description": "Given a string \ns\n consisting of words and spaces, return \nthe length of the \nlast\n word in the string.\n\nA \nword\n is a maximal \nsubstring\n consisting of non-space characters only.\n\n \n\nExample 1:\n\nInput:\n s = \"Hello World\"\n\nOutput:\n 5\n\nExplanation:\n The last word is \"World\" with length 5.\n\nExample 2:\n\nInput:\n s = \"   fly me   to   the moon  \"\n\nOutput:\n 4\n\nExplanation:\n The last word is \"moon\" with length 4.\n\nExample 3:\n\nInput:\n s = \"luffy is still joyboy\"\n\nOutput:\n 6\n\nExplanation:\n The last word is \"joyboy\" with length 6.\n\n \n\nConstraints:\n\n1 <= s.length <= 10\n4\n\ns\n consists of only English letters and spaces \n' '\n.\n\nThere will be at least one word in \ns\n.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"Hello World\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"   fly me   to   the moon  \"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"luffy is still joyboy\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Plus One",
+    "description": "You are given a \nlarge integer\n represented as an integer array \ndigits\n, where each \ndigits[i]\n is the \ni\nth\n digit of the integer. The digits are ordered from most significant to least significant in left-to-right order. The large integer does not contain any leading \n0\n's.\n\nIncrement the large integer by one and return \nthe resulting array of digits\n.\n\n \n\nExample 1:\n\nInput:\n digits = [1,2,3]\n\nOutput:\n [1,2,4]\n\nExplanation:\n The array represents the integer 123.\nIncrementing by one gives 123 + 1 = 124.\nThus, the result should be [1,2,4].\n\nExample 2:\n\nInput:\n digits = [4,3,2,1]\n\nOutput:\n [4,3,2,2]\n\nExplanation:\n The array represents the integer 4321.\nIncrementing by one gives 4321 + 1 = 4322.\nThus, the result should be [4,3,2,2].\n\nExample 3:\n\nInput:\n digits = [9]\n\nOutput:\n [1,0]\n\nExplanation:\n The array represents the integer 9.\nIncrementing by one gives 9 + 1 = 10.\nThus, the result should be [1,0].\n\n \n\nConstraints:\n\n1 <= digits.length <= 100\n\n0 <= digits[i] <= 9\n\ndigits\n does not contain any leading \n0\n's.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,2,3]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[4,3,2,1]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[9]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Add Binary",
+    "description": "Given two binary strings \na\n and \nb\n, return \ntheir sum as a binary string\n.\n\n \n\nExample 1:\n\nInput:\n a = \"11\", b = \"1\"\n\nOutput:\n \"100\"\n\nExample 2:\n\nInput:\n a = \"1010\", b = \"1011\"\n\nOutput:\n \"10101\"\n\n \n\nConstraints:\n\n1 <= a.length, b.length <= 10\n4\n\na\n and \nb\n consist only of \n'0'\n or \n'1'\n characters.\n\nEach string does not contain leading zeros except for the zero itself.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"11\"\n\"1\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"1010\"\n\"1011\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Sqrt(x)",
+    "description": "Given a non-negative integer \nx\n, return \nthe square root of \nx\n rounded down to the nearest integer\n. The returned integer should be \nnon-negative\n as well.\n\nYou \nmust not use\n any built-in exponent function or operator.\n\nFor example, do not use \npow(x, 0.5)\n in c++ or \nx ** 0.5\n in python.\n\n \n\nExample 1:\n\nInput:\n x = 4\n\nOutput:\n 2\n\nExplanation:\n The square root of 4 is 2, so we return 2.\n\nExample 2:\n\nInput:\n x = 8\n\nOutput:\n 2\n\nExplanation:\n The square root of 8 is 2.82842..., and since we round it down to the nearest integer, 2 is returned.\n\n \n\nConstraints:\n\n0 <= x <= 2\n31\n - 1",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "4",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "8",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Climbing Stairs",
+    "description": "You are climbing a staircase. It takes \nn\n steps to reach the top.\n\nEach time you can either climb \n1\n or \n2\n steps. In how many distinct ways can you climb to the top?\n\n \n\nExample 1:\n\nInput:\n n = 2\n\nOutput:\n 2\n\nExplanation:\n There are two ways to climb to the top.\n1. 1 step + 1 step\n2. 2 steps\n\nExample 2:\n\nInput:\n n = 3\n\nOutput:\n 3\n\nExplanation:\n There are three ways to climb to the top.\n1. 1 step + 1 step + 1 step\n2. 1 step + 2 steps\n3. 2 steps + 1 step\n\n \n\nConstraints:\n\n1 <= n <= 45",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "2",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "3",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Remove Duplicates from Sorted List",
+    "description": "Given the \nhead\n of a sorted linked list, \ndelete all duplicates such that each element appears only once\n. Return \nthe linked list \nsorted\n as well\n.\n\n \n\nExample 1:\n\nInput:\n head = [1,1,2]\n\nOutput:\n [1,2]\n\nExample 2:\n\nInput:\n head = [1,1,2,3,3]\n\nOutput:\n [1,2,3]\n\n \n\nConstraints:\n\nThe number of nodes in the list is in the range \n[0, 300]\n.\n\n-100 <= Node.val <= 100\n\nThe list is guaranteed to be \nsorted\n in ascending order.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,1,2]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,1,2,3,3]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Merge Sorted Array",
+    "description": "You are given two integer arrays \nnums1\n and \nnums2\n, sorted in \nnon-decreasing order\n, and two integers \nm\n and \nn\n, representing the number of elements in \nnums1\n and \nnums2\n respectively.\n\nMerge\n \nnums1\n and \nnums2\n into a single array sorted in \nnon-decreasing order\n.\n\nThe final sorted array should not be returned by the function, but instead be \nstored inside the array \nnums1\n. To accommodate this, \nnums1\n has a length of \nm + n\n, where the first \nm\n elements denote the elements that should be merged, and the last \nn\n elements are set to \n0\n and should be ignored. \nnums2\n has a length of \nn\n.\n\n \n\nExample 1:\n\nInput:\n nums1 = [1,2,3,0,0,0], m = 3, nums2 = [2,5,6], n = 3\n\nOutput:\n [1,2,2,3,5,6]\n\nExplanation:\n The arrays we are merging are [1,2,3] and [2,5,6].\nThe result of the merge is [\n1\n,\n2\n,2,\n3\n,5,6] with the underlined elements coming from nums1.\n\nExample 2:\n\nInput:\n nums1 = [1], m = 1, nums2 = [], n = 0\n\nOutput:\n [1]\n\nExplanation:\n The arrays we are merging are [1] and [].\nThe result of the merge is [1].\n\nExample 3:\n\nInput:\n nums1 = [0], m = 0, nums2 = [1], n = 1\n\nOutput:\n [1]\n\nExplanation:\n The arrays we are merging are [] and [1].\nThe result of the merge is [1].\nNote that because m = 0, there are no elements in nums1. The 0 is only there to ensure the merge result can fit in nums1.\n\n \n\nConstraints:\n\nnums1.length == m + n\n\nnums2.length == n\n\n0 <= m, n <= 200\n\n1 <= m + n <= 200\n\n-10\n9\n <= nums1[i], nums2[j] <= 10\n9\n\n \n\nFollow up: \nCan you come up with an algorithm that runs in \nO(m + n)\n time?",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,2,3,0,0,0]\n3\n[2,5,6]\n3",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1]\n1\n[]\n0",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[0]\n0\n[1]\n1",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Binary Tree Inorder Traversal",
+    "description": "Given the \nroot\n of a binary tree, return \nthe inorder traversal of its nodes' values\n.\n\n \n\nExample 1:\n\nInput:\n \nroot = [1,null,2,3]\n\nOutput:\n \n[1,3,2]\n\nExplanation:\n\nExample 2:\n\nInput:\n \nroot = [1,2,3,4,5,null,8,null,null,6,7,9]\n\nOutput:\n \n[4,2,6,5,7,1,3,9,8]\n\nExplanation:\n\nExample 3:\n\nInput:\n \nroot = []\n\nOutput:\n \n[]\n\nExample 4:\n\nInput:\n \nroot = [1]\n\nOutput:\n \n[1]\n\n \n\nConstraints:\n\nThe number of nodes in the tree is in the range \n[0, 100]\n.\n\n-100 <= Node.val <= 100\n\n \n\nFollow up:\n Recursive solution is trivial, could you do it iteratively?",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,null,2,3]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,2,3,4,5,null,8,null,null,6,7,9]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Same Tree",
+    "description": "Given the roots of two binary trees \np\n and \nq\n, write a function to check if they are the same or not.\n\nTwo binary trees are considered the same if they are structurally identical, and the nodes have the same value.\n\n \n\nExample 1:\n\nInput:\n p = [1,2,3], q = [1,2,3]\n\nOutput:\n true\n\nExample 2:\n\nInput:\n p = [1,2], q = [1,null,2]\n\nOutput:\n false\n\nExample 3:\n\nInput:\n p = [1,2,1], q = [1,1,2]\n\nOutput:\n false\n\n \n\nConstraints:\n\nThe number of nodes in both trees is in the range \n[0, 100]\n.\n\n-10\n4\n <= Node.val <= 10\n4",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,2,3]\n[1,2,3]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,2]\n[1,null,2]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,2,1]\n[1,1,2]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Symmetric Tree",
+    "description": "Given the \nroot\n of a binary tree, \ncheck whether it is a mirror of itself\n (i.e., symmetric around its center).\n\n \n\nExample 1:\n\nInput:\n root = [1,2,2,3,4,4,3]\n\nOutput:\n true\n\nExample 2:\n\nInput:\n root = [1,2,2,null,3,null,3]\n\nOutput:\n false\n\n \n\nConstraints:\n\nThe number of nodes in the tree is in the range \n[1, 1000]\n.\n\n-100 <= Node.val <= 100\n\n \n\nFollow up:\n Could you solve it both recursively and iteratively?",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,2,2,3,4,4,3]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,2,2,null,3,null,3]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Maximum Depth of Binary Tree",
+    "description": "Given the \nroot\n of a binary tree, return \nits maximum depth\n.\n\nA binary tree's \nmaximum depth\n is the number of nodes along the longest path from the root node down to the farthest leaf node.\n\n \n\nExample 1:\n\nInput:\n root = [3,9,20,null,null,15,7]\n\nOutput:\n 3\n\nExample 2:\n\nInput:\n root = [1,null,2]\n\nOutput:\n 2\n\n \n\nConstraints:\n\nThe number of nodes in the tree is in the range \n[0, 10\n4\n]\n.\n\n-100 <= Node.val <= 100",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[3,9,20,null,null,15,7]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,null,2]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Convert Sorted Array to Binary Search Tree",
+    "description": "Given an integer array \nnums\n where the elements are sorted in \nascending order\n, convert \nit to a \nheight-balanced\n \nbinary search tree\n.\n\n \n\nExample 1:\n\nInput:\n nums = [-10,-3,0,5,9]\n\nOutput:\n [0,-3,9,-10,null,5]\n\nExplanation:\n [0,-10,5,null,-3,null,9] is also accepted:\n\nExample 2:\n\nInput:\n nums = [1,3]\n\nOutput:\n [3,1]\n\nExplanation:\n [1,null,3] and [3,1] are both height-balanced BSTs.\n\n \n\nConstraints:\n\n1 <= nums.length <= 10\n4\n\n-10\n4\n <= nums[i] <= 10\n4\n\nnums\n is sorted in a \nstrictly increasing\n order.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[-10,-3,0,5,9]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,3]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Balanced Binary Tree",
+    "description": "Given a binary tree, determine if it is \nheight-balanced\n.\n\n \n\nExample 1:\n\nInput:\n root = [3,9,20,null,null,15,7]\n\nOutput:\n true\n\nExample 2:\n\nInput:\n root = [1,2,2,3,3,null,null,4,4]\n\nOutput:\n false\n\nExample 3:\n\nInput:\n root = []\n\nOutput:\n true\n\n \n\nConstraints:\n\nThe number of nodes in the tree is in the range \n[0, 5000]\n.\n\n-10\n4\n <= Node.val <= 10\n4",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[3,9,20,null,null,15,7]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,2,2,3,3,null,null,4,4]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Minimum Depth of Binary Tree",
+    "description": "Given a binary tree, find its minimum depth.\n\nThe minimum depth is the number of nodes along the shortest path from the root node down to the nearest leaf node.\n\nNote:\n A leaf is a node with no children.\n\n \n\nExample 1:\n\nInput:\n root = [3,9,20,null,null,15,7]\n\nOutput:\n 2\n\nExample 2:\n\nInput:\n root = [2,null,3,null,4,null,5,null,6]\n\nOutput:\n 5\n\n \n\nConstraints:\n\nThe number of nodes in the tree is in the range \n[0, 10\n5\n]\n.\n\n-1000 <= Node.val <= 1000",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[3,9,20,null,null,15,7]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[2,null,3,null,4,null,5,null,6]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Path Sum",
+    "description": "Given the \nroot\n of a binary tree and an integer \ntargetSum\n, return \ntrue\n if the tree has a \nroot-to-leaf\n path such that adding up all the values along the path equals \ntargetSum\n.\n\nA \nleaf\n is a node with no children.\n\n \n\nExample 1:\n\nInput:\n root = [5,4,8,11,null,13,4,7,2,null,null,null,1], targetSum = 22\n\nOutput:\n true\n\nExplanation:\n The root-to-leaf path with the target sum is shown.\n\nExample 2:\n\nInput:\n root = [1,2,3], targetSum = 5\n\nOutput:\n false\n\nExplanation:\n There are two root-to-leaf paths in the tree:\n(1 --> 2): The sum is 3.\n(1 --> 3): The sum is 4.\nThere is no root-to-leaf path with sum = 5.\n\nExample 3:\n\nInput:\n root = [], targetSum = 0\n\nOutput:\n false\n\nExplanation:\n Since the tree is empty, there are no root-to-leaf paths.\n\n \n\nConstraints:\n\nThe number of nodes in the tree is in the range \n[0, 5000]\n.\n\n-1000 <= Node.val <= 1000\n\n-1000 <= targetSum <= 1000",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[5,4,8,11,null,13,4,7,2,null,null,null,1]\n22",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,2,3]\n5",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[]\n0",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Pascal's Triangle",
+    "description": "Given an integer \nnumRows\n, return the first numRows of \nPascal's triangle\n.\n\nIn \nPascal's triangle\n, each number is the sum of the two numbers directly above it as shown:\n\n \n\nExample 1:\n\nInput:\n numRows = 5\n\nOutput:\n [[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1]]\n\nExample 2:\n\nInput:\n numRows = 1\n\nOutput:\n [[1]]\n\n \n\nConstraints:\n\n1 <= numRows <= 30",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "5",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "1",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Pascal's Triangle II",
+    "description": "Given an integer \nrowIndex\n, return the \nrowIndex\nth\n (\n0-indexed\n) row of the \nPascal's triangle\n.\n\nIn \nPascal's triangle\n, each number is the sum of the two numbers directly above it as shown:\n\n \n\nExample 1:\n\nInput:\n rowIndex = 3\n\nOutput:\n [1,3,3,1]\n\nExample 2:\n\nInput:\n rowIndex = 0\n\nOutput:\n [1]\n\nExample 3:\n\nInput:\n rowIndex = 1\n\nOutput:\n [1,1]\n\n \n\nConstraints:\n\n0 <= rowIndex <= 33\n\n \n\nFollow up:\n Could you optimize your algorithm to use only \nO(rowIndex)\n extra space?",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "3",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "0",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "1",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Best Time to Buy and Sell Stock",
+    "description": "You are given an array \nprices\n where \nprices[i]\n is the price of a given stock on the \ni\nth\n day.\n\nYou want to maximize your profit by choosing a \nsingle day\n to buy one stock and choosing a \ndifferent day in the future\n to sell that stock.\n\nReturn \nthe maximum profit you can achieve from this transaction\n. If you cannot achieve any profit, return \n0\n.\n\n \n\nExample 1:\n\nInput:\n prices = [7,1,5,3,6,4]\n\nOutput:\n 5\n\nExplanation:\n Buy on day 2 (price = 1) and sell on day 5 (price = 6), profit = 6-1 = 5.\nNote that buying on day 2 and selling on day 1 is not allowed because you must buy before you sell.\n\nExample 2:\n\nInput:\n prices = [7,6,4,3,1]\n\nOutput:\n 0\n\nExplanation:\n In this case, no transactions are done and the max profit = 0.\n\n \n\nConstraints:\n\n1 <= prices.length <= 10\n5\n\n0 <= prices[i] <= 10\n4",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[7,1,5,3,6,4]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[7,6,4,3,1]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Valid Palindrome",
+    "description": "A phrase is a \npalindrome\n if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward. Alphanumeric characters include letters and numbers.\n\nGiven a string \ns\n, return \ntrue\n if it is a \npalindrome\n, or \nfalse\n otherwise\n.\n\n \n\nExample 1:\n\nInput:\n s = \"A man, a plan, a canal: Panama\"\n\nOutput:\n true\n\nExplanation:\n \"amanaplanacanalpanama\" is a palindrome.\n\nExample 2:\n\nInput:\n s = \"race a car\"\n\nOutput:\n false\n\nExplanation:\n \"raceacar\" is not a palindrome.\n\nExample 3:\n\nInput:\n s = \" \"\n\nOutput:\n true\n\nExplanation:\n s is an empty string \"\" after removing non-alphanumeric characters.\nSince an empty string reads the same forward and backward, it is a palindrome.\n\n \n\nConstraints:\n\n1 <= s.length <= 2 * 10\n5\n\ns\n consists only of printable ASCII characters.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"A man, a plan, a canal: Panama\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"race a car\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\" \"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Single Number",
+    "description": "Given a \nnon-empty\n array of integers \nnums\n, every element appears \ntwice\n except for one. Find that single one.\n\nYou must implement a solution with a linear runtime complexity and use only constant extra space.\n\n \n\nExample 1:\n\nInput:\n \nnums = [2,2,1]\n\nOutput:\n \n1\n\nExample 2:\n\nInput:\n \nnums = [4,1,2,1,2]\n\nOutput:\n \n4\n\nExample 3:\n\nInput:\n \nnums = [1]\n\nOutput:\n \n1\n\n \n\nConstraints:\n\n1 <= nums.length <= 3 * 10\n4\n\n-3 * 10\n4\n <= nums[i] <= 3 * 10\n4\n\nEach element in the array appears twice except for one element which appears only once.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[2,2,1]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[4,1,2,1,2]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Linked List Cycle",
+    "description": "Given \nhead\n, the head of a linked list, determine if the linked list has a cycle in it.\n\nThere is a cycle in a linked list if there is some node in the list that can be reached again by continuously following the \nnext\n pointer. Internally, \npos\n is used to denote the index of the node that tail's \nnext\n pointer is connected to. \nNote that \npos\n is not passed as a parameter\n.\n\nReturn \ntrue\n if there is a cycle in the linked list\n. Otherwise, return \nfalse\n.\n\n \n\nExample 1:\n\nInput:\n head = [3,2,0,-4], pos = 1\n\nOutput:\n true\n\nExplanation:\n There is a cycle in the linked list, where the tail connects to the 1st node (0-indexed).\n\nExample 2:\n\nInput:\n head = [1,2], pos = 0\n\nOutput:\n true\n\nExplanation:\n There is a cycle in the linked list, where the tail connects to the 0th node.\n\nExample 3:\n\nInput:\n head = [1], pos = -1\n\nOutput:\n false\n\nExplanation:\n There is no cycle in the linked list.\n\n \n\nConstraints:\n\nThe number of the nodes in the list is in the range \n[0, 10\n4\n]\n.\n\n-10\n5\n <= Node.val <= 10\n5\n\npos\n is \n-1\n or a \nvalid index\n in the linked-list.\n\n \n\nFollow up:\n Can you solve it using \nO(1)\n (i.e. constant) memory?",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[3,2,0,-4]\n1",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,2]\n0",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1]\n-1",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Binary Tree Preorder Traversal",
+    "description": "Given the \nroot\n of a binary tree, return \nthe preorder traversal of its nodes' values\n.\n\n \n\nExample 1:\n\nInput:\n \nroot = [1,null,2,3]\n\nOutput:\n \n[1,2,3]\n\nExplanation:\n\nExample 2:\n\nInput:\n \nroot = [1,2,3,4,5,null,8,null,null,6,7,9]\n\nOutput:\n \n[1,2,4,5,6,7,3,8,9]\n\nExplanation:\n\nExample 3:\n\nInput:\n \nroot = []\n\nOutput:\n \n[]\n\nExample 4:\n\nInput:\n \nroot = [1]\n\nOutput:\n \n[1]\n\n \n\nConstraints:\n\nThe number of nodes in the tree is in the range \n[0, 100]\n.\n\n-100 <= Node.val <= 100\n\n \n\nFollow up:\n Recursive solution is trivial, could you do it iteratively?",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,null,2,3]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,2,3,4,5,null,8,null,null,6,7,9]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Binary Tree Postorder Traversal",
+    "description": "Given the \nroot\n of a binary tree, return \nthe postorder traversal of its nodes' values\n.\n\n \n\nExample 1:\n\nInput:\n \nroot = [1,null,2,3]\n\nOutput:\n \n[3,2,1]\n\nExplanation:\n\nExample 2:\n\nInput:\n \nroot = [1,2,3,4,5,null,8,null,null,6,7,9]\n\nOutput:\n \n[4,6,7,5,2,9,8,3,1]\n\nExplanation:\n\nExample 3:\n\nInput:\n \nroot = []\n\nOutput:\n \n[]\n\nExample 4:\n\nInput:\n \nroot = [1]\n\nOutput:\n \n[1]\n\n \n\nConstraints:\n\nThe number of the nodes in the tree is in the range \n[0, 100]\n.\n\n-100 <= Node.val <= 100\n\n \n\nFollow up:\n Recursive solution is trivial, could you do it iteratively?",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,null,2,3]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,2,3,4,5,null,8,null,null,6,7,9]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Intersection of Two Linked Lists",
+    "description": "Given the heads of two singly linked-lists \nheadA\n and \nheadB\n, return \nthe node at which the two lists intersect\n. If the two linked lists have no intersection at all, return \nnull\n.\n\nFor example, the following two linked lists begin to intersect at node \nc1\n:\n\nThe test cases are generated such that there are no cycles anywhere in the entire linked structure.\n\nNote\n that the linked lists must \nretain their original structure\n after the function returns.\n\nCustom Judge:\n\nThe inputs to the \njudge\n are given as follows (your program is \nnot\n given these inputs):\n\nintersectVal\n - The value of the node where the intersection occurs. This is \n0\n if there is no intersected node.\n\nlistA\n - The first linked list.\n\nlistB\n - The second linked list.\n\nskipA\n - The number of nodes to skip ahead in \nlistA\n (starting from the head) to get to the intersected node.\n\nskipB\n - The number of nodes to skip ahead in \nlistB\n (starting from the head) to get to the intersected node.\n\nThe judge will then create the linked structure based on these inputs and pass the two heads, \nheadA\n and \nheadB\n to your program. If you correctly return the intersected node, then your solution will be \naccepted\n.\n\n \n\nExample 1:\n\nInput:\n intersectVal = 8, listA = [4,1,8,4,5], listB = [5,6,1,8,4,5], skipA = 2, skipB = 3\n\nOutput:\n Intersected at '8'\n\nExplanation:\n The intersected node's value is 8 (note that this must not be 0 if the two lists intersect).\nFrom the head of A, it reads as [4,1,8,4,5]. From the head of B, it reads as [5,6,1,8,4,5]. There are 2 nodes before the intersected node in A; There are 3 nodes before the intersected node in B.\n- Note that the intersected node's value is not 1 because the nodes with value 1 in A and B (2\nnd\n node in A and 3\nrd\n node in B) are different node references. In other words, they point to two different locations in memory, while the nodes with value 8 in A and B (3\nrd\n node in A and 4\nth\n node in B) point to the same location in memory.\n\nExample 2:\n\nInput:\n intersectVal = 2, listA = [1,9,1,2,4], listB = [3,2,4], skipA = 3, skipB = 1\n\nOutput:\n Intersected at '2'\n\nExplanation:\n The intersected node's value is 2 (note that this must not be 0 if the two lists intersect).\nFrom the head of A, it reads as [1,9,1,2,4]. From the head of B, it reads as [3,2,4]. There are 3 nodes before the intersected node in A; There are 1 node before the intersected node in B.\n\nExample 3:\n\nInput:\n intersectVal = 0, listA = [2,6,4], listB = [1,5], skipA = 3, skipB = 2\n\nOutput:\n No intersection\n\nExplanation:\n From the head of A, it reads as [2,6,4]. From the head of B, it reads as [1,5]. Since the two lists do not intersect, intersectVal must be 0, while skipA and skipB can be arbitrary values.\nExplanation: The two lists do not intersect, so return null.\n\n \n\nConstraints:\n\nThe number of nodes of \nlistA\n is in the \nm\n.\n\nThe number of nodes of \nlistB\n is in the \nn\n.\n\n1 <= m, n <= 3 * 10\n4\n\n1 <= Node.val <= 10\n5\n\n0 <= skipA <= m\n\n0 <= skipB <= n\n\nintersectVal\n is \n0\n if \nlistA\n and \nlistB\n do not intersect.\n\nintersectVal == listA[skipA] == listB[skipB]\n if \nlistA\n and \nlistB\n intersect.\n\n \n\nFollow up:\n Could you write a solution that runs in \nO(m + n)\n time and use only \nO(1)\n memory?",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "8\n[4,1,8,4,5]\n[5,6,1,8,4,5]\n2\n3",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "2\n[1,9,1,2,4]\n[3,2,4]\n3\n1",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "0\n[2,6,4]\n[1,5]\n3\n2",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Excel Sheet Column Title",
+    "description": "Given an integer \ncolumnNumber\n, return \nits corresponding column title as it appears in an Excel sheet\n.\n\nFor example:\n\nA -> 1\nB -> 2\nC -> 3\n...\nZ -> 26\nAA -> 27\nAB -> 28 \n...\n\n \n\nExample 1:\n\nInput:\n columnNumber = 1\n\nOutput:\n \"A\"\n\nExample 2:\n\nInput:\n columnNumber = 28\n\nOutput:\n \"AB\"\n\nExample 3:\n\nInput:\n columnNumber = 701\n\nOutput:\n \"ZY\"\n\n \n\nConstraints:\n\n1 <= columnNumber <= 2\n31\n - 1",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "1",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "28",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "701",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Majority Element",
+    "description": "Given an array \nnums\n of size \nn\n, return \nthe majority element\n.\n\nThe majority element is the element that appears more than \n⌊n / 2⌋\n times. You may assume that the majority element always exists in the array.\n\n \n\nExample 1:\n\nInput:\n nums = [3,2,3]\n\nOutput:\n 3\n\nExample 2:\n\nInput:\n nums = [2,2,1,1,1,2,2]\n\nOutput:\n 2\n\n \n\nConstraints:\n\nn == nums.length\n\n1 <= n <= 5 * 10\n4\n\n-10\n9\n <= nums[i] <= 10\n9\n\nThe input is generated such that a majority element will exist in the array.\n\n \n\nFollow-up:\n Could you solve the problem in linear time and in \nO(1)\n space?",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[3,2,3]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[2,2,1,1,1,2,2]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Excel Sheet Column Number",
+    "description": "Given a string \ncolumnTitle\n that represents the column title as appears in an Excel sheet, return \nits corresponding column number\n.\n\nFor example:\n\nA -> 1\nB -> 2\nC -> 3\n...\nZ -> 26\nAA -> 27\nAB -> 28 \n...\n\n \n\nExample 1:\n\nInput:\n columnTitle = \"A\"\n\nOutput:\n 1\n\nExample 2:\n\nInput:\n columnTitle = \"AB\"\n\nOutput:\n 28\n\nExample 3:\n\nInput:\n columnTitle = \"ZY\"\n\nOutput:\n 701\n\n \n\nConstraints:\n\n1 <= columnTitle.length <= 7\n\ncolumnTitle\n consists only of uppercase English letters.\n\ncolumnTitle\n is in the range \n[\"A\", \"FXSHRXW\"]\n.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"A\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"AB\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"ZY\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Combine Two Tables",
+    "description": "Table: \nPerson\n\n+-------------+---------+\n| Column Name | Type    |\n+-------------+---------+\n| personId    | int     |\n| lastName    | varchar |\n| firstName   | varchar |\n+-------------+---------+\npersonId is the primary key (column with unique values) for this table.\nThis table contains information about the ID of some persons and their first and last names.\n\n \n\nTable: \nAddress\n\n+-------------+---------+\n| Column Name | Type    |\n+-------------+---------+\n| addressId   | int     |\n| personId    | int     |\n| city        | varchar |\n| state       | varchar |\n+-------------+---------+\naddressId is the primary key (column with unique values) for this table.\nEach row of this table contains information about the city and state of one person with ID = PersonId.\n\n \n\nWrite a solution to report the first name, last name, city, and state of each person in the \nPerson\n table. If the address of a \npersonId\n is not present in the \nAddress\n table, report \nnull\n instead.\n\nReturn the result table in \nany order\n.\n\nThe result format is in the following example.\n\n \n\nExample 1:\n\nInput:\n \nPerson table:\n+----------+----------+-----------+\n| personId | lastName | firstName |\n+----------+----------+-----------+\n| 1        | Wang     | Allen     |\n| 2        | Alice    | Bob       |\n+----------+----------+-----------+\nAddress table:\n+-----------+----------+---------------+------------+\n| addressId | personId | city          | state      |\n+-----------+----------+---------------+------------+\n| 1         | 2        | New York City | New York   |\n| 2         | 3        | Leetcode      | California |\n+-----------+----------+---------------+------------+\n\nOutput:\n \n+-----------+----------+---------------+----------+\n| firstName | lastName | city          | state    |\n+-----------+----------+---------------+----------+\n| Allen     | Wang     | Null          | Null     |\n| Bob       | Alice    | New York City | New York |\n+-----------+----------+---------------+----------+\n\nExplanation:\n \nThere is no address in the address table for the personId = 1 so we return null in their city and state.\naddressId = 1 contains information about the address of personId = 2.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "{\"headers\":{\"Person\":[\"personId\",\"lastName\",\"firstName\"],\"Address\":[\"addressId\",\"personId\",\"city\",\"state\"]},\"rows\":{\"Person\":[[1,\"Wang\",\"Allen\"],[2,\"Alice\",\"Bob\"]],\"Address\":[[1,2,\"New York City\",\"New York\"],[2,3,\"Leetcode\",\"California\"]]}}",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Employees Earning More Than Their Managers",
+    "description": "Table: \nEmployee\n\n+-------------+---------+\n| Column Name | Type    |\n+-------------+---------+\n| id          | int     |\n| name        | varchar |\n| salary      | int     |\n| managerId   | int     |\n+-------------+---------+\nid is the primary key (column with unique values) for this table.\nEach row of this table indicates the ID of an employee, their name, salary, and the ID of their manager.\n\n \n\nWrite a solution to find the employees who earn more than their managers.\n\nReturn the result table in \nany order\n.\n\nThe result format is in the following example.\n\n \n\nExample 1:\n\nInput:\n \nEmployee table:\n+----+-------+--------+-----------+\n| id | name  | salary | managerId |\n+----+-------+--------+-----------+\n| 1  | Joe   | 70000  | 3         |\n| 2  | Henry | 80000  | 4         |\n| 3  | Sam   | 60000  | Null      |\n| 4  | Max   | 90000  | Null      |\n+----+-------+--------+-----------+\n\nOutput:\n \n+----------+\n| Employee |\n+----------+\n| Joe      |\n+----------+\n\nExplanation:\n Joe is the only employee who earns more than his manager.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "{\"headers\": {\"Employee\": [\"id\", \"name\", \"salary\", \"managerId\"]}, \"rows\": {\"Employee\": [[1, \"Joe\", 70000, 3], [2, \"Henry\", 80000, 4], [3, \"Sam\", 60000, null], [4, \"Max\", 90000, null]]}}",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Duplicate Emails",
+    "description": "Table: \nPerson\n\n+-------------+---------+\n| Column Name | Type    |\n+-------------+---------+\n| id          | int     |\n| email       | varchar |\n+-------------+---------+\nid is the primary key (column with unique values) for this table.\nEach row of this table contains an email. The emails will not contain uppercase letters.\n\n \n\nWrite a solution to report all the duplicate emails. Note that it's guaranteed that the email field is not NULL.\n\nReturn the result table in \nany order\n.\n\nThe result format is in the following example.\n\n \n\nExample 1:\n\nInput:\n \nPerson table:\n+----+---------+\n| id | email   |\n+----+---------+\n| 1  | a@b.com |\n| 2  | c@d.com |\n| 3  | a@b.com |\n+----+---------+\n\nOutput:\n \n+---------+\n| Email   |\n+---------+\n| a@b.com |\n+---------+\n\nExplanation:\n a@b.com is repeated two times.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "{\"headers\": {\"Person\": [\"id\", \"email\"]}, \"rows\": {\"Person\": [[1, \"a@b.com\"], [2, \"c@d.com\"], [3, \"a@b.com\"]]}}",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Customers Who Never Order",
+    "description": "Table: \nCustomers\n\n+-------------+---------+\n| Column Name | Type    |\n+-------------+---------+\n| id          | int     |\n| name        | varchar |\n+-------------+---------+\nid is the primary key (column with unique values) for this table.\nEach row of this table indicates the ID and name of a customer.\n\n \n\nTable: \nOrders\n\n+-------------+------+\n| Column Name | Type |\n+-------------+------+\n| id          | int  |\n| customerId  | int  |\n+-------------+------+\nid is the primary key (column with unique values) for this table.\ncustomerId is a foreign key (reference columns) of the ID from the Customers table.\nEach row of this table indicates the ID of an order and the ID of the customer who ordered it.\n\n \n\nWrite a solution to find all customers who never order anything.\n\nReturn the result table in \nany order\n.\n\nThe result format is in the following example.\n\n \n\nExample 1:\n\nInput:\n \nCustomers table:\n+----+-------+\n| id | name  |\n+----+-------+\n| 1  | Joe   |\n| 2  | Henry |\n| 3  | Sam   |\n| 4  | Max   |\n+----+-------+\nOrders table:\n+----+------------+\n| id | customerId |\n+----+------------+\n| 1  | 3          |\n| 2  | 1          |\n+----+------------+\n\nOutput:\n \n+-----------+\n| Customers |\n+-----------+\n| Henry     |\n| Max       |\n+-----------+",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "{\"headers\": {\"Customers\": [\"id\", \"name\"], \"Orders\": [\"id\", \"customerId\"]}, \"rows\": {\"Customers\": [[1, \"Joe\"], [2, \"Henry\"], [3, \"Sam\"], [4, \"Max\"]], \"Orders\": [[1, 3], [2, 1]]}}",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Reverse Bits",
+    "description": "Reverse bits of a given 32 bits signed integer.\n\n \n\nExample 1:\n\nInput:\n \nn = 43261596\n\nOutput:\n \n964176192\n\nExplanation:\n\nInteger\n\nBinary\n\n43261596\n\n00000010100101000001111010011100\n\n964176192\n\n00111001011110000010100101000000\n\nExample 2:\n\nInput:\n \nn = 2147483644\n\nOutput:\n \n1073741822\n\nExplanation:\n\nInteger\n\nBinary\n\n2147483644\n\n01111111111111111111111111111100\n\n1073741822\n\n00111111111111111111111111111110\n\n \n\nConstraints:\n\n0 <= n <= 2\n31\n - 2\n\nn\n is even.\n\n \n\nFollow up:\n If this function is called many times, how would you optimize it?",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "43261596",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "2147483644",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Number of 1 Bits",
+    "description": "Given a positive integer \nn\n, write a function that returns the number of \nset bits\n in its binary representation (also known as the \nHamming weight\n).\n\n \n\nExample 1:\n\nInput:\n \nn = 11\n\nOutput:\n \n3\n\nExplanation:\n\nThe input binary string \n1011\n has a total of three set bits.\n\nExample 2:\n\nInput:\n \nn = 128\n\nOutput:\n \n1\n\nExplanation:\n\nThe input binary string \n10000000\n has a total of one set bit.\n\nExample 3:\n\nInput:\n \nn = 2147483645\n\nOutput:\n \n30\n\nExplanation:\n\nThe input binary string \n1111111111111111111111111111101\n has a total of thirty set bits.\n\n \n\nConstraints:\n\n1 <= n <= 2\n31\n - 1\n\n \n\nFollow up:\n If this function is called many times, how would you optimize it?",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "11",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "128",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "2147483645",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Valid Phone Numbers",
+    "description": "Given a text file \nfile.txt\n that contains a list of phone numbers (one per line), write a one-liner bash script to print all valid phone numbers.\n\nYou may assume that a valid phone number must appear in one of the following two formats: (xxx) xxx-xxxx or xxx-xxx-xxxx. (x means a digit)\n\nYou may also assume each line in the text file must not contain leading or trailing white spaces.\n\nExample:\n\nAssume that \nfile.txt\n has the following content:\n\n987-123-4567\n123 456 7890\n(123) 456-7890\n\nYour script should output the following valid phone numbers:\n\n987-123-4567\n(123) 456-7890",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "0",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Tenth Line",
+    "description": "Given a text file \nfile.txt\n, print just the 10th line of the file.\n\nExample:\n\nAssume that \nfile.txt\n has the following content:\n\n\r\nLine 1\r\nLine 2\r\nLine 3\r\nLine 4\r\nLine 5\r\nLine 6\r\nLine 7\r\nLine 8\r\nLine 9\r\nLine 10\r\n\nYour script should output the tenth line, which is:\n\n\r\nLine 10\r\n\nNote:\n\r\n1. If the file contains less than 10 lines, what should you output?\n\r\n2. There's at least three different solutions. Try to explore all possibilities.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "Line 1\\nLine 2\\nLine 3\\nLine 4\\nLine 5\\nLine 6\\nLine 7\\nLine 8\\nLine 9\\nLine 10",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Delete Duplicate Emails",
+    "description": "Table: \nPerson\n\n+-------------+---------+\n| Column Name | Type    |\n+-------------+---------+\n| id          | int     |\n| email       | varchar |\n+-------------+---------+\nid is the primary key (column with unique values) for this table.\nEach row of this table contains an email. The emails will not contain uppercase letters.\n\n \n\nWrite a solution to\n delete\n all duplicate emails, keeping only one unique email with the smallest \nid\n.\n\nFor SQL users, please note that you are supposed to write a \nDELETE\n statement and not a \nSELECT\n one.\n\nFor Pandas users, please note that you are supposed to modify \nPerson\n in place.\n\nAfter running your script, the answer shown is the \nPerson\n table. The driver will first compile and run your piece of code and then show the \nPerson\n table. The final order of the \nPerson\n table \ndoes not matter\n.\n\nThe result format is in the following example.\n\n \n\nExample 1:\n\nInput:\n \nPerson table:\n+----+------------------+\n| id | email            |\n+----+------------------+\n| 1  | john@example.com |\n| 2  | bob@example.com  |\n| 3  | john@example.com |\n+----+------------------+\n\nOutput:\n \n+----+------------------+\n| id | email            |\n+----+------------------+\n| 1  | john@example.com |\n| 2  | bob@example.com  |\n+----+------------------+\n\nExplanation:\n john@example.com is repeated two times. We keep the row with the smallest Id = 1.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "{\"headers\": {\"Person\": [\"id\", \"email\"]}, \"rows\": {\"Person\": [[1, \"john@example.com\"], [2, \"bob@example.com\"], [3, \"john@example.com\"]]}}",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Rising Temperature",
+    "description": "Table: \nWeather\n\n+---------------+---------+\n| Column Name   | Type    |\n+---------------+---------+\n| id            | int     |\n| recordDate    | date    |\n| temperature   | int     |\n+---------------+---------+\nid is the column with unique values for this table.\nThere are no different rows with the same recordDate.\nThis table contains information about the temperature on a certain day.\n\n \n\nWrite a solution to find all dates' \nid\n with higher temperatures compared to its previous dates (yesterday).\n\nReturn the result table in \nany order\n.\n\nThe result format is in the following example.\n\n \n\nExample 1:\n\nInput:\n \nWeather table:\n+----+------------+-------------+\n| id | recordDate | temperature |\n+----+------------+-------------+\n| 1  | 2015-01-01 | 10          |\n| 2  | 2015-01-02 | 25          |\n| 3  | 2015-01-03 | 20          |\n| 4  | 2015-01-04 | 30          |\n+----+------------+-------------+\n\nOutput:\n \n+----+\n| id |\n+----+\n| 2  |\n| 4  |\n+----+\n\nExplanation:\n \nIn 2015-01-02, the temperature was higher than the previous day (10 -> 25).\nIn 2015-01-04, the temperature was higher than the previous day (20 -> 30).",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "{\"headers\": {\"Weather\": [\"id\", \"recordDate\", \"temperature\"]}, \"rows\": {\"Weather\": [[1, \"2015-01-01\", 10], [2, \"2015-01-02\", 25], [3, \"2015-01-03\", 20], [4, \"2015-01-04\", 30]]}}",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Happy Number",
+    "description": "Write an algorithm to determine if a number \nn\n is happy.\n\nA \nhappy number\n is a number defined by the following process:\n\nStarting with any positive integer, replace the number by the sum of the squares of its digits.\n\nRepeat the process until the number equals 1 (where it will stay), or it \nloops endlessly in a cycle\n which does not include 1.\n\nThose numbers for which this process \nends in 1\n are happy.\n\nReturn \ntrue\n \nif\n \nn\n \nis a happy number, and\n \nfalse\n \nif not\n.\n\n \n\nExample 1:\n\nInput:\n n = 19\n\nOutput:\n true\n\nExplanation:\n\n1\n2\n + 9\n2\n = 82\n8\n2\n + 2\n2\n = 68\n6\n2\n + 8\n2\n = 100\n1\n2\n + 0\n2\n + 0\n2\n = 1\n\nExample 2:\n\nInput:\n n = 2\n\nOutput:\n false\n\n \n\nConstraints:\n\n1 <= n <= 2\n31\n - 1",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "19",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "2",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Remove Linked List Elements",
+    "description": "Given the \nhead\n of a linked list and an integer \nval\n, remove all the nodes of the linked list that has \nNode.val == val\n, and return \nthe new head\n.\n\n \n\nExample 1:\n\nInput:\n head = [1,2,6,3,4,5,6], val = 6\n\nOutput:\n [1,2,3,4,5]\n\nExample 2:\n\nInput:\n head = [], val = 1\n\nOutput:\n []\n\nExample 3:\n\nInput:\n head = [7,7,7,7], val = 7\n\nOutput:\n []\n\n \n\nConstraints:\n\nThe number of nodes in the list is in the range \n[0, 10\n4\n]\n.\n\n1 <= Node.val <= 50\n\n0 <= val <= 50",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,2,6,3,4,5,6]\n6",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[]\n1",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[7,7,7,7]\n7",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Isomorphic Strings",
+    "description": "Given two strings \ns\n and \nt\n, \ndetermine if they are isomorphic\n.\n\nTwo strings \ns\n and \nt\n are isomorphic if the characters in \ns\n can be replaced to get \nt\n.\n\nAll occurrences of a character must be replaced with another character while preserving the order of characters. No two characters may map to the same character, but a character may map to itself.\n\n \n\nExample 1:\n\nInput:\n \ns = \"egg\", t = \"add\"\n\nOutput:\n \ntrue\n\nExplanation:\n\nThe strings \ns\n and \nt\n can be made identical by:\n\nMapping \n'e'\n to \n'a'\n.\n\nMapping \n'g'\n to \n'd'\n.\n\nExample 2:\n\nInput:\n \ns = \"f11\", t = \"b23\"\n\nOutput:\n \nfalse\n\nExplanation:\n\nThe strings \ns\n and \nt\n can not be made identical as \n'1'\n needs to be mapped to both \n'2'\n and \n'3'\n.\n\nExample 3:\n\nInput:\n \ns = \"paper\", t = \"title\"\n\nOutput:\n \ntrue\n\n \n\nConstraints:\n\n1 <= s.length <= 5 * 10\n4\n\nt.length == s.length\n\ns\n and \nt\n consist of any valid ascii character.",
+    "difficulty": "EASY",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"egg\"\n\"add\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"foo\"\n\"bar\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"paper\"\n\"title\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  }
+]
