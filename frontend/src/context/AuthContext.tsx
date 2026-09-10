@@ -20,6 +20,9 @@ interface AuthContextType {
   user: User | null;
   login: (identifier: string, password: string) => Promise<{ ok: boolean; message?: string }>;
   register: (username: string, email: string, password: string, fullName: string) => Promise<{ ok: boolean; message?: string }>;
+  forgotPassword: (email: string) => Promise<{ ok: boolean; message?: string }>;
+  verifyResetCode: (email: string, code: string) => Promise<{ ok: boolean; token?: string; message?: string }>;
+  resetPassword: (email: string, code: string, token: string, password: string) => Promise<{ ok: boolean; message?: string }>;
   logout: () => void;
   isAuthenticated: boolean;
   isInitializing: boolean;
@@ -131,6 +134,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const forgotPassword = async (email: string) => {
+    try {
+      const response = await apiFetch<{ message?: string; code?: string }>('api/v1/auth/forgot-password', {
+        method: 'POST',
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      });
+      return { ok: true, message: response.message ?? 'Mã xác nhận đã được gửi tới email của bạn.' };
+    } catch (error) {
+      if (error instanceof ApiError) {
+        return { ok: false, message: error.message };
+      }
+      return { ok: false, message: 'Không thể gửi mã xác nhận lúc này.' };
+    }
+  };
+
+  const verifyResetCode = async (email: string, code: string) => {
+    try {
+      const response = await apiFetch<{ verified: boolean; token: string }>('/api/v1/auth/verify-reset-code', {
+        method: 'POST',
+        body: JSON.stringify({ email: email.trim().toLowerCase(), code }),
+      });
+      return { ok: true, token: response.token };
+    } catch (error) {
+      if (error instanceof ApiError) {
+        return { ok: false, message: error.message };
+      }
+      return { ok: false, message: 'Mã xác nhận không đúng hoặc đã hết hạn.' };
+    }
+  };
+
+  const resetPassword = async (email: string, code: string, token: string, password: string) => {
+    try {
+      await apiFetch('/api/v1/auth/reset-password', {
+        method: 'POST',
+        body: JSON.stringify({ email: email.trim().toLowerCase(), code, token, password }),
+      });
+      return { ok: true };
+    } catch (error) {
+      if (error instanceof ApiError) {
+        return { ok: false, message: error.message };
+      }
+      return { ok: false, message: 'Không thể đặt lại mật khẩu lúc này.' };
+    }
+  };
+
   const logout = () => {
     window.localStorage.removeItem(ACCESS_TOKEN_KEY);
     setUser(null);
@@ -140,7 +188,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isAuthenticated: !!user, isInitializing }}>
+    <AuthContext.Provider value={{ user, login, register, forgotPassword, verifyResetCode, resetPassword, logout, isAuthenticated: !!user, isInitializing }}>
       {children}
     </AuthContext.Provider>
   );

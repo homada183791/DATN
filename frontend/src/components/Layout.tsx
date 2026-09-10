@@ -124,8 +124,8 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
 
   if (isInitializing) {
     return (
-      <div className="h-screen bg-[var(--ws-bg)] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-4 border-[var(--ws-border)] border-t-[var(--ws-accent)] animate-spin" />
+      <div className="h-screen bg-(--ws-bg) flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-4 border-(--ws-border) border-t-(--ws-accent) animate-spin" />
       </div>
     );
   }
@@ -140,7 +140,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
   );
 
   return (
-    <div className="h-screen overflow-hidden bg-[var(--ws-bg)] flex text-[var(--ws-text)]">
+    <div className="h-screen overflow-hidden bg-(--ws-bg) flex text-(--ws-text)">
       {/* Mobile overlay */}
       {mobileSidebarOpen && (
         <div
@@ -159,20 +159,20 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-[#f0ebd9] border-r border-[#e5dac9] transition-all duration-300 lg:sticky lg:top-0 lg:h-screen lg:self-start lg:flex-shrink-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-[#f0ebd9] border-r border-[#e5dac9] transition-all duration-300 lg:sticky lg:top-0 lg:h-screen lg:self-start lg:shrink-0 ${
           sidebarOpen ? 'w-64' : 'w-20'
         } ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         {/* Logo */}
         <div className="flex items-center h-16 px-4 border-b border-[#e5dac9]">
           <div className="flex items-center gap-3 overflow-hidden w-full">
-            <div className="flex-shrink-0 w-10 h-10 bg-[#193a2b] rounded-xl flex items-center justify-center">
-              <Code2 size={22} className="text-[#f7f4eb]" />
+            <div className="shrink-0 w-10 h-10 border-[#e5dac9] rounded-xl flex items-center justify-center overflow-hidden">
+              <img src="/logo-hcmus.png" alt="HCMUS logo" className="w-full h-full object-contain p-1" />
             </div>
             {sidebarOpen && (
               <div className="leading-tight whitespace-nowrap">
                 <p className="text-[17px] font-bold text-[#191919] font-serif tracking-tight">JudgeHub</p>
-                <p className="text-[10.5px] text-[#8a8073]">University Online Judge</p>
+                <p className="text-[10.5px] text-[#8a8073]">University Of Science</p>
               </div>
             )}
           </div>
@@ -195,7 +195,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                     : 'text-[#5c5446] hover:bg-[#eadecc]/60 hover:text-[#191919] border border-transparent'
                 }`}
               >
-                <span className={`flex-shrink-0 ${isActive ? 'text-[#193a2b]' : 'text-[#8a8073] group-hover:text-[#191919]'}`}>
+                <span className={`shrink-0 ${isActive ? 'text-[#193a2b]' : 'text-[#8a8073] group-hover:text-[#191919]'}`}>
                   {item.icon}
                 </span>
                 {sidebarOpen && (
@@ -213,7 +213,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
             onClick={() => setMobileSidebarOpen(false)}
             className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#eadecc]/60 transition-colors"
           >
-            <div className="flex-shrink-0 w-9 h-9 bg-gradient-to-br from-[#193a2b] to-[#2d5a3f] rounded-full flex items-center justify-center text-white font-bold text-sm">
+            <div className="shrink-0 w-9 h-9 bg-linear-to-br from-[#193a2b] to-[#2d5a3f] rounded-full flex items-center justify-center text-white font-bold text-sm">
               {user?.fullName?.charAt(0) || 'U'}
             </div>
             {sidebarOpen && (
@@ -229,7 +229,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Bar */}
-        <header className="sticky top-0 z-50 h-16 flex-shrink-0 bg-[#f7f4eb]/80 backdrop-blur-xl border-b border-[#e5dac9] flex items-center px-4 lg:px-6 gap-3">
+        <header className="sticky top-0 z-50 h-16 shrink-0 bg-[#f7f4eb]/80 backdrop-blur-xl border-b border-[#e5dac9] flex items-center px-4 lg:px-6 gap-3">
           <button
             onClick={() => {
               if (window.innerWidth < 1024) {
@@ -269,13 +269,13 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
             />
             <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0.5 rounded border border-[#e5dac9] text-[#8a8073] font-mono">⌘K</kbd>
             {searchOpen && query && (
-              <div className="absolute top-full mt-2 right-0 w-80 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl overflow-hidden z-[60] animate-slide-up">
+              <div className="absolute top-full mt-2 right-0 w-80 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl overflow-hidden z-60 animate-slide-up">
                 <p className="px-4 py-2 text-[10.5px] font-bold uppercase tracking-widest text-[#8a8073] border-b border-[#e5dac9]">Kết quả</p>
                 {filteredProblems.slice(0, 6).map((p) => (
                   <Link
                     key={p.id}
                     to={`/student/problem/${p.id}`}
-                    className="flex items-center justify-between px-4 py-2.5 hover:bg-[var(--ws-hover)] text-[13px] text-[#191919]"
+                    className="flex items-center justify-between px-4 py-2.5 hover:bg-(--ws-hover) text-[13px] text-[#191919]"
                   >
                     <span className="font-medium">{p.title}</span>
                     <span className="text-[11px] text-[#8a8073] font-mono">{p.id}</span>
@@ -300,7 +300,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
               <Palette size={18} />
             </button>
             {paletteOpen && (
-              <div className="absolute right-0 top-full mt-2 w-72 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl z-[60] animate-slide-up overflow-hidden">
+              <div className="absolute right-0 top-full mt-2 w-72 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden">
                 <p className="px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-widest text-[#8a8073] border-b border-[#e5dac9]">
                   Bảng màu giao diện
                 </p>
@@ -310,10 +310,10 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                       key={t.id}
                       onClick={() => { setThemeId(t.id); setPaletteOpen(false); }}
                       className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${
-                        theme.id === t.id ? 'bg-[var(--ws-accent-soft)]' : 'hover:bg-[var(--ws-hover)]'
+                        theme.id === t.id ? 'bg-(--ws-accent-soft)' : 'hover:bg-(--ws-hover)'
                       }`}
                     >
-                      <span className="flex -space-x-1.5 flex-shrink-0">
+                      <span className="flex -space-x-1.5 shrink-0">
                         {t.sw.map((c, i) => (
                           <span
                             key={i}
@@ -326,7 +326,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                         <span className="block text-[13px] font-semibold text-[#191919]">{t.name}</span>
                         <span className="block text-[11px] text-[#8a8073]">{t.desc}</span>
                       </span>
-                      {theme.id === t.id && <Check size={15} className="text-[#193a2b] flex-shrink-0" />}
+                      {theme.id === t.id && <Check size={15} className="text-[#193a2b] shrink-0" />}
                     </button>
                   ))}
                 </div>
@@ -354,15 +354,15 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#cc5a37] border-2 border-[#f7f4eb]" />
             </button>
             {bellOpen && (
-              <div className="absolute right-0 top-full mt-2 w-80 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl z-[60] animate-slide-up">
+              <div className="absolute right-0 top-full mt-2 w-80 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl z-60 animate-slide-up">
                 <p className="px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-widest text-[#8a8073] border-b border-[#e5dac9]">Thông báo</p>
-                <div className="px-4 py-3 border-b border-[#e5dac9]/60 hover:bg-[var(--ws-hover)] cursor-pointer">
+                <div className="px-4 py-3 border-b border-[#e5dac9]/60 hover:bg-(--ws-hover) cursor-pointer">
                   <p className="text-[13px] font-semibold text-[#191919]">Kỳ thi "Luyện tập Đồ thị" đang diễn ra</p>
                   <p className="text-[11px] text-[#8a8073] mt-0.5">
                     5 phút trước • {contests.filter((c: Contest) => c.status === 'running').reduce((s: number, c: Contest) => s + c.participantCount, 0)} người tham gia
                   </p>
                 </div>
-                <div className="px-4 py-3 hover:bg-[var(--ws-hover)] cursor-pointer">
+                <div className="px-4 py-3 hover:bg-(--ws-hover) cursor-pointer">
                   <p className="text-[13px] font-semibold text-[#191919]">
                     Bài nộp {submissions[0]?.id} đã được chấm: <span className="text-emerald-600">AC</span>
                   </p>
@@ -390,17 +390,17 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                 avatarOpen ? 'bg-[#eadecc]/60' : 'hover:bg-[#eadecc]/60'
               }`}
             >
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#193a2b] to-[#2d5a3f] flex items-center justify-center text-white text-sm font-bold">
+              <div className="w-9 h-9 rounded-full bg-linear-to-br from-[#193a2b] to-[#2d5a3f] flex items-center justify-center text-white text-sm font-bold">
                 {user?.fullName?.charAt(0)}
               </div>
               <ChevronDown size={15} className={`text-[#8a8073] transition-transform ${avatarOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {avatarOpen && (
-              <div className="absolute right-0 top-full mt-2 w-64 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl z-[60] animate-slide-up overflow-hidden">
+              <div className="absolute right-0 top-full mt-2 w-64 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden">
                 {/* header */}
                 <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#e5dac9] bg-[#f0ebd9]/50">
-                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#193a2b] to-[#2d5a3f] flex items-center justify-center text-white text-base font-bold flex-shrink-0">
+                  <div className="w-11 h-11 rounded-full bg-linear-to-br from-[#193a2b] to-[#2d5a3f] flex items-center justify-center text-white text-base font-bold shrink-0">
                     {user?.fullName?.charAt(0)}
                   </div>
                   <div className="min-w-0">
@@ -424,14 +424,14 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                   <Link
                     to="/student/profile"
                     onClick={() => setAvatarOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-[#5c5446] hover:bg-[var(--ws-hover)] transition-colors"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-[#5c5446] hover:bg-(--ws-hover) transition-colors"
                   >
                     <User size={17} className="text-[#8a8073]" /> Hồ sơ của tôi
                   </Link>
                   <Link
                     to="/student/settings"
                     onClick={() => setAvatarOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-[#5c5446] hover:bg-[var(--ws-hover)] transition-colors"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-[#5c5446] hover:bg-(--ws-hover) transition-colors"
                   >
                     <Settings size={17} className="text-[#8a8073]" /> Cài đặt
                   </Link>

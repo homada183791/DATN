@@ -117,7 +117,6 @@ export default function Contest() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold font-serif text-[#191919]">Kỳ thi</h2>
-          <p className="text-sm text-[#8a8073] mt-1">{contests.length} kỳ thi từ API</p>
         </div>
         <div className="text-sm text-emerald-700 font-medium">
           {contests.filter((contest) => contest.status === 'running').length} kỳ thi đang diễn ra
@@ -151,8 +150,8 @@ export default function Contest() {
       </div>
 
       {selectedContest && selectedContestData && hasDocument && createPortal(
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-[90] flex items-center justify-center p-4" onClick={() => setSelectedContest(null)}>
-          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setSelectedContest(null)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-[#e5dac9]">
               <h3 className="text-lg font-serif font-bold text-[#191919]">{selectedContestData.title}</h3>
               <button onClick={() => setSelectedContest(null)} className="text-[#8a8073] hover:text-[#191919]">

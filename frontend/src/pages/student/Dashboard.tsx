@@ -63,9 +63,9 @@ export default function StudentDashboard() {
 
   return (
     <div className="space-y-6 text-[#191919]">
-      <div className="bg-gradient-to-r from-[#193a2b]/10 via-[#e5dac9]/20 to-[#cc5a37]/10 border border-[#e5dac9] rounded-2xl p-6 shadow-sm">
-        <h2 className="text-2xl font-bold text-[#191919] font-serif mb-1">Xin chào, {user?.fullName}!</h2>
-        <p className="text-[#5c5446] text-sm">Đây là dữ liệu live từ API: kỳ thi đang diễn ra và bảng xếp hạng gần nhất.</p>
+      <div className="bg-linear-to-r from-[#193a2b]/10 via-[#e5dac9]/20 to-[#cc5a37]/10 border border-[#e5dac9] rounded-2xl p-6 shadow-sm">
+        <h2 className="text-2xl font-bold text-[#191919] font-serif">Xin chào, {user?.fullName}! </h2>
+        <p className="text-sm text-[#5c5446] mt-1">Theo dõi tiến độ học tập và các kỳ thi sắp tới của bạn tại đây.</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -177,11 +177,10 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-[#191919] font-serif">Bài nộp gần đây</h3>
-            <span className="text-sm text-[#8a8073]">Live view</span>
           </div>
           {submissionsLoading ? (
             <div className="flex items-center justify-center py-6 text-sm text-[#8a8073]">
@@ -193,7 +192,7 @@ export default function StudentDashboard() {
             </div>
           ) : recentSubmissions.length === 0 ? (
             <div className="rounded-xl border border-dashed border-[#e5dac9] p-6 text-center text-sm text-[#8a8073]">
-              Chưa có dữ liệu bài nộp từ API.
+              Chưa có bài nộp nào.
             </div>
           ) : (
             <div className="space-y-2">
@@ -214,18 +213,6 @@ export default function StudentDashboard() {
               ))}
             </div>
           )}
-        </div>
-
-        <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-[#191919] font-serif">Trạng thái hệ thống</h3>
-            <span className="text-xs text-emerald-700 font-medium">API connected</span>
-          </div>
-          <div className="space-y-3 text-sm text-[#5c5446]">
-            <p>• Kết nối dữ liệu live cho contest và leaderboard đã sẵn sàng.</p>
-            <p>• Khi BE cung cấp submission feed, block bài nộp gần đây sẽ tự động hiện dữ liệu thật.</p>
-            <p>• Các trang chi tiết bài tập đã dùng API thật và hỗ trợ loading / not found / rate limit.</p>
-          </div>
         </div>
       </div>
     </div>
