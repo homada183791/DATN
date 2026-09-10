@@ -1,8 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, ChevronRight, Loader2, Search } from 'lucide-react';
+import { BookOpen, ChevronRight, Loader2, Search, Plus, Edit, Trash2 } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '../../api/http';
-import { useProblemsQuery, type ProblemDto } from '../../api/problems';
+import { useProblemsQuery, createProblem, updateProblem, deleteProblem, type ProblemDto, type CreateProblemDto } from '../../api/problems';
+import { useAuth } from '../../context/AuthContext';
+import ProblemFormModal from '../../components/ProblemFormModal';
 
 const difficultyLabels: Record<ProblemDto['difficulty'], string> = {
   EASY: 'Dễ',
@@ -17,9 +20,48 @@ const difficultyStyles: Record<ProblemDto['difficulty'], string> = {
 };
 
 export default function ProblemList() {
+  const { user } = useAuth();
+  const isInstructor = user?.role === 'instructor';
+  const queryClient = useQueryClient();
   const { data, isLoading, error } = useProblemsQuery();
+  
   const [query, setQuery] = useState('');
   const [difficulty, setDifficulty] = useState<'all' | ProblemDto['difficulty']>('all');
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProblem, setEditingProblem] = useState<ProblemDto | null>(null);
+
+  const createMutation = useMutation({
+    mutationFn: createProblem,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['problems'] });
+      setIsModalOpen(false);
+    },
+    onError: (err) => {
+      alert(err instanceof ApiError ? err.message : 'Lỗi khi tạo bài tập');
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string, data: Partial<CreateProblemDto> }) => updateProblem(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['problems'] });
+      setIsModalOpen(false);
+    },
+    onError: (err) => {
+      alert(err instanceof ApiError ? err.message : 'Lỗi khi cập nhật bài tập');
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteProblem,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['problems'] });
+    },
+    onError: (err) => {
+      alert(err instanceof ApiError ? err.message : 'Lỗi khi xóa bài tập');
+    }
+  });
 
   const filteredProblems = useMemo(() => {
     const search = query.trim().toLowerCase();
@@ -33,6 +75,32 @@ export default function ProblemList() {
       return matchesSearch && matchesDifficulty;
     });
   }, [data, difficulty, query]);
+
+  const handleOpenCreateModal = () => {
+    setEditingProblem(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (e: React.MouseEvent, problem: ProblemDto) => {
+    e.preventDefault();
+    setEditingProblem(problem);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteProblem = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    if (window.confirm('Bạn có chắc chắn muốn xóa bài tập này?')) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleModalSubmit = (data: CreateProblemDto) => {
+    if (editingProblem) {
+      updateMutation.mutate({ id: editingProblem.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -72,14 +140,24 @@ export default function ProblemList() {
             {filteredProblems.length} / {(data ?? []).length} bài tập từ API
           </p>
         </div>
-        <div className="flex items-center gap-2 rounded-xl border border-[#e5dac9] bg-white px-3 py-2 shadow-sm">
-          <Search size={16} className="text-[#8a8073]" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Tìm theo tên, mã hoặc mô tả..."
-            className="w-64 bg-transparent text-sm outline-none placeholder:text-[#bfae99]"
-          />
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 rounded-xl border border-[#e5dac9] bg-white px-3 py-2 shadow-sm">
+            <Search size={16} className="text-[#8a8073]" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Tìm theo tên, mã hoặc mô tả..."
+              className="w-64 bg-transparent text-sm outline-none placeholder:text-[#bfae99]"
+            />
+          </div>
+          {isInstructor && (
+            <button
+              onClick={handleOpenCreateModal}
+              className="flex items-center gap-2 rounded-xl bg-[#193a2b] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#122b1f] transition-colors"
+            >
+              <Plus size={16} /> Tạo bài tập
+            </button>
+          )}
         </div>
       </div>
 
@@ -119,6 +197,25 @@ export default function ProblemList() {
               <span className="hidden sm:inline text-[11px] font-bold tracking-wider text-[#8a8073] bg-[#f0ebd9] border border-[#e5dac9] rounded-md px-2 py-1">
                 {problem.id}
               </span>
+              {isInstructor && (
+                <div className="flex items-center gap-2 border-l border-[#e5dac9] pl-4">
+                  <button
+                    onClick={(e) => handleOpenEditModal(e, problem)}
+                    className="p-1 text-[#8a8073] hover:text-[#193a2b] transition-colors"
+                    title="Sửa bài tập"
+                  >
+                    <Edit size={16} />
+                  </button>
+                  <button
+                    onClick={(e) => handleDeleteProblem(e, problem.id)}
+                    className="p-1 text-[#8a8073] hover:text-red-500 transition-colors disabled:opacity-50"
+                    disabled={deleteMutation.isPending}
+                    title="Xóa bài tập"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              )}
               <ChevronRight size={18} className="text-[#d8cfbe] group-hover:text-[#193a2b]" />
             </div>
           </Link>
@@ -132,11 +229,13 @@ export default function ProblemList() {
         )}
       </div>
 
-      {isLoading && (
-        <div className="flex items-center justify-center text-sm text-[#8a8073]">
-          <Loader2 size={16} className="mr-2 animate-spin" /> Đang tải...
-        </div>
-      )}
+      <ProblemFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleModalSubmit}
+        initialData={editingProblem}
+        isLoading={createMutation.isPending || updateMutation.isPending}
+      />
     </div>
   );
 }
