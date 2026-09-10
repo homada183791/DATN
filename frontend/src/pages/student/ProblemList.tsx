@@ -39,7 +39,7 @@ export default function ProblemList() {
       <div className="space-y-6 text-[#191919]">
         <div>
           <h2 className="text-3xl font-bold font-serif text-[#191919]">Bài tập</h2>
-          <p className="text-sm text-[#8a8073] mt-1">Đang tải danh sách bài tập từ API...</p>
+          <p className="text-sm text-[#8a8073] mt-1">Đang tải danh sách bài tập...</p>
         </div>
         <div className="space-y-3">
           {Array.from({ length: 6 }, (_, index) => (
@@ -69,7 +69,7 @@ export default function ProblemList() {
         <div>
           <h2 className="text-3xl font-bold font-serif text-[#191919]">Bài tập</h2>
           <p className="text-sm text-[#8a8073] mt-1">
-            {filteredProblems.length} / {(data ?? []).length} bài tập từ API
+            {filteredProblems.length} / {(data ?? []).length} bài tập
           </p>
         </div>
         <div className="flex items-center gap-2 rounded-xl border border-[#e5dac9] bg-white px-3 py-2 shadow-sm">
