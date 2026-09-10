@@ -8,17 +8,17 @@
     "test_cases": [
       {
         "input": "[2,7,11,15]\n9",
-        "expected_output": "",
+        "expected_output": "[0,1]",
         "is_hidden": false
       },
       {
         "input": "[3,2,4]\n6",
-        "expected_output": "",
+        "expected_output": "[1,2]",
         "is_hidden": false
       },
       {
         "input": "[3,3]\n6",
-        "expected_output": "",
+        "expected_output": "[0,1]",
         "is_hidden": false
       }
     ]
@@ -32,17 +32,17 @@
     "test_cases": [
       {
         "input": "121",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "-121",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       },
       {
         "input": "10",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       }
     ]
@@ -56,17 +56,17 @@
     "test_cases": [
       {
         "input": "\"III\"",
-        "expected_output": "",
+        "expected_output": "3",
         "is_hidden": false
       },
       {
         "input": "\"LVIII\"",
-        "expected_output": "",
+        "expected_output": "58",
         "is_hidden": false
       },
       {
         "input": "\"MCMXCIV\"",
-        "expected_output": "",
+        "expected_output": "1994",
         "is_hidden": false
       }
     ]
@@ -80,12 +80,12 @@
     "test_cases": [
       {
         "input": "[\"flower\",\"flow\",\"flight\"]",
-        "expected_output": "",
+        "expected_output": "\"fl\"",
         "is_hidden": false
       },
       {
         "input": "[\"dog\",\"racecar\",\"car\"]",
-        "expected_output": "",
+        "expected_output": "\"\"",
         "is_hidden": false
       }
     ]
@@ -99,27 +99,27 @@
     "test_cases": [
       {
         "input": "\"()\"",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "\"()[]{}\"",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "\"(]\"",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       },
       {
         "input": "\"([])\"",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "\"([)]\"",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       }
     ]
@@ -133,17 +133,17 @@
     "test_cases": [
       {
         "input": "[1,2,4]\n[1,3,4]",
-        "expected_output": "",
+        "expected_output": "[1,1,2,3,4,4]",
         "is_hidden": false
       },
       {
         "input": "[]\n[]",
-        "expected_output": "",
+        "expected_output": "[]",
         "is_hidden": false
       },
       {
         "input": "[]\n[0]",
-        "expected_output": "",
+        "expected_output": "[0]",
         "is_hidden": false
       }
     ]
@@ -157,12 +157,12 @@
     "test_cases": [
       {
         "input": "[1,1,2]",
-        "expected_output": "",
+        "expected_output": "2, nums = [1,2,_]",
         "is_hidden": false
       },
       {
         "input": "[0,0,1,1,1,2,2,3,3,4]",
-        "expected_output": "",
+        "expected_output": "5, nums = [0,1,2,3,4,_,_,_,_,_]",
         "is_hidden": false
       }
     ]
@@ -176,12 +176,12 @@
     "test_cases": [
       {
         "input": "[3,2,2,3]\n3",
-        "expected_output": "",
+        "expected_output": "2, nums = [2,2,_,_]",
         "is_hidden": false
       },
       {
         "input": "[0,1,2,2,3,0,4,2]\n2",
-        "expected_output": "",
+        "expected_output": "5, nums = [0,1,4,0,3,_,_,_]",
         "is_hidden": false
       }
     ]
@@ -195,12 +195,12 @@
     "test_cases": [
       {
         "input": "\"sadbutsad\"\n\"sad\"",
-        "expected_output": "",
+        "expected_output": "0",
         "is_hidden": false
       },
       {
         "input": "\"leetcode\"\n\"leeto\"",
-        "expected_output": "",
+        "expected_output": "-1",
         "is_hidden": false
       }
     ]
@@ -214,17 +214,17 @@
     "test_cases": [
       {
         "input": "[1,3,5,6]\n5",
-        "expected_output": "",
+        "expected_output": "2",
         "is_hidden": false
       },
       {
         "input": "[1,3,5,6]\n2",
-        "expected_output": "",
+        "expected_output": "1",
         "is_hidden": false
       },
       {
         "input": "[1,3,5,6]\n7",
-        "expected_output": "",
+        "expected_output": "4",
         "is_hidden": false
       }
     ]
@@ -238,17 +238,17 @@
     "test_cases": [
       {
         "input": "\"Hello World\"",
-        "expected_output": "",
+        "expected_output": "5",
         "is_hidden": false
       },
       {
         "input": "\"   fly me   to   the moon  \"",
-        "expected_output": "",
+        "expected_output": "4",
         "is_hidden": false
       },
       {
         "input": "\"luffy is still joyboy\"",
-        "expected_output": "",
+        "expected_output": "6",
         "is_hidden": false
       }
     ]
@@ -262,17 +262,17 @@
     "test_cases": [
       {
         "input": "[1,2,3]",
-        "expected_output": "",
+        "expected_output": "[1,2,4]",
         "is_hidden": false
       },
       {
         "input": "[4,3,2,1]",
-        "expected_output": "",
+        "expected_output": "[4,3,2,2]",
         "is_hidden": false
       },
       {
         "input": "[9]",
-        "expected_output": "",
+        "expected_output": "[1,0]",
         "is_hidden": false
       }
     ]
@@ -286,12 +286,12 @@
     "test_cases": [
       {
         "input": "\"11\"\n\"1\"",
-        "expected_output": "",
+        "expected_output": "\"100\"",
         "is_hidden": false
       },
       {
         "input": "\"1010\"\n\"1011\"",
-        "expected_output": "",
+        "expected_output": "\"10101\"",
         "is_hidden": false
       }
     ]
@@ -305,12 +305,12 @@
     "test_cases": [
       {
         "input": "4",
-        "expected_output": "",
+        "expected_output": "2",
         "is_hidden": false
       },
       {
         "input": "8",
-        "expected_output": "",
+        "expected_output": "2",
         "is_hidden": false
       }
     ]
@@ -324,12 +324,12 @@
     "test_cases": [
       {
         "input": "2",
-        "expected_output": "",
+        "expected_output": "2",
         "is_hidden": false
       },
       {
         "input": "3",
-        "expected_output": "",
+        "expected_output": "3",
         "is_hidden": false
       }
     ]
@@ -343,12 +343,12 @@
     "test_cases": [
       {
         "input": "[1,1,2]",
-        "expected_output": "",
+        "expected_output": "[1,2]",
         "is_hidden": false
       },
       {
         "input": "[1,1,2,3,3]",
-        "expected_output": "",
+        "expected_output": "[1,2,3]",
         "is_hidden": false
       }
     ]
@@ -362,17 +362,17 @@
     "test_cases": [
       {
         "input": "[1,2,3,0,0,0]\n3\n[2,5,6]\n3",
-        "expected_output": "",
+        "expected_output": "[1,2,2,3,5,6]",
         "is_hidden": false
       },
       {
         "input": "[1]\n1\n[]\n0",
-        "expected_output": "",
+        "expected_output": "[1]",
         "is_hidden": false
       },
       {
         "input": "[0]\n0\n[1]\n1",
-        "expected_output": "",
+        "expected_output": "[1]",
         "is_hidden": false
       }
     ]
@@ -386,22 +386,22 @@
     "test_cases": [
       {
         "input": "[1,null,2,3]",
-        "expected_output": "",
+        "expected_output": "[1,3,2]",
         "is_hidden": false
       },
       {
         "input": "[1,2,3,4,5,null,8,null,null,6,7,9]",
-        "expected_output": "",
+        "expected_output": "[4,2,6,5,7,1,3,9,8]",
         "is_hidden": false
       },
       {
         "input": "[]",
-        "expected_output": "",
+        "expected_output": "[]",
         "is_hidden": false
       },
       {
         "input": "[1]",
-        "expected_output": "",
+        "expected_output": "[1]",
         "is_hidden": false
       }
     ]
@@ -415,17 +415,17 @@
     "test_cases": [
       {
         "input": "[1,2,3]\n[1,2,3]",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "[1,2]\n[1,null,2]",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       },
       {
         "input": "[1,2,1]\n[1,1,2]",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       }
     ]
@@ -439,12 +439,12 @@
     "test_cases": [
       {
         "input": "[1,2,2,3,4,4,3]",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "[1,2,2,null,3,null,3]",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       }
     ]
@@ -458,12 +458,12 @@
     "test_cases": [
       {
         "input": "[3,9,20,null,null,15,7]",
-        "expected_output": "",
+        "expected_output": "3",
         "is_hidden": false
       },
       {
         "input": "[1,null,2]",
-        "expected_output": "",
+        "expected_output": "2",
         "is_hidden": false
       }
     ]
@@ -477,12 +477,12 @@
     "test_cases": [
       {
         "input": "[-10,-3,0,5,9]",
-        "expected_output": "",
+        "expected_output": "[0,-3,9,-10,null,5]",
         "is_hidden": false
       },
       {
         "input": "[1,3]",
-        "expected_output": "",
+        "expected_output": "[3,1]",
         "is_hidden": false
       }
     ]
@@ -496,17 +496,17 @@
     "test_cases": [
       {
         "input": "[3,9,20,null,null,15,7]",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "[1,2,2,3,3,null,null,4,4]",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       },
       {
         "input": "[]",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       }
     ]
@@ -520,12 +520,12 @@
     "test_cases": [
       {
         "input": "[3,9,20,null,null,15,7]",
-        "expected_output": "",
+        "expected_output": "2",
         "is_hidden": false
       },
       {
         "input": "[2,null,3,null,4,null,5,null,6]",
-        "expected_output": "",
+        "expected_output": "5",
         "is_hidden": false
       }
     ]
@@ -539,17 +539,17 @@
     "test_cases": [
       {
         "input": "[5,4,8,11,null,13,4,7,2,null,null,null,1]\n22",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "[1,2,3]\n5",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       },
       {
         "input": "[]\n0",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       }
     ]
@@ -563,12 +563,12 @@
     "test_cases": [
       {
         "input": "5",
-        "expected_output": "",
+        "expected_output": "[[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1]]",
         "is_hidden": false
       },
       {
         "input": "1",
-        "expected_output": "",
+        "expected_output": "[[1]]",
         "is_hidden": false
       }
     ]
@@ -582,17 +582,17 @@
     "test_cases": [
       {
         "input": "3",
-        "expected_output": "",
+        "expected_output": "[1,3,3,1]",
         "is_hidden": false
       },
       {
         "input": "0",
-        "expected_output": "",
+        "expected_output": "[1]",
         "is_hidden": false
       },
       {
         "input": "1",
-        "expected_output": "",
+        "expected_output": "[1,1]",
         "is_hidden": false
       }
     ]
@@ -606,12 +606,12 @@
     "test_cases": [
       {
         "input": "[7,1,5,3,6,4]",
-        "expected_output": "",
+        "expected_output": "5",
         "is_hidden": false
       },
       {
         "input": "[7,6,4,3,1]",
-        "expected_output": "",
+        "expected_output": "0",
         "is_hidden": false
       }
     ]
@@ -625,17 +625,17 @@
     "test_cases": [
       {
         "input": "\"A man, a plan, a canal: Panama\"",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "\"race a car\"",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       },
       {
         "input": "\" \"",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       }
     ]
@@ -649,17 +649,17 @@
     "test_cases": [
       {
         "input": "[2,2,1]",
-        "expected_output": "",
+        "expected_output": "1",
         "is_hidden": false
       },
       {
         "input": "[4,1,2,1,2]",
-        "expected_output": "",
+        "expected_output": "4",
         "is_hidden": false
       },
       {
         "input": "[1]",
-        "expected_output": "",
+        "expected_output": "1",
         "is_hidden": false
       }
     ]
@@ -673,17 +673,17 @@
     "test_cases": [
       {
         "input": "[3,2,0,-4]\n1",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "[1,2]\n0",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "[1]\n-1",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       }
     ]
@@ -697,22 +697,22 @@
     "test_cases": [
       {
         "input": "[1,null,2,3]",
-        "expected_output": "",
+        "expected_output": "[1,2,3]",
         "is_hidden": false
       },
       {
         "input": "[1,2,3,4,5,null,8,null,null,6,7,9]",
-        "expected_output": "",
+        "expected_output": "[1,2,4,5,6,7,3,8,9]",
         "is_hidden": false
       },
       {
         "input": "[]",
-        "expected_output": "",
+        "expected_output": "[]",
         "is_hidden": false
       },
       {
         "input": "[1]",
-        "expected_output": "",
+        "expected_output": "[1]",
         "is_hidden": false
       }
     ]
@@ -726,22 +726,22 @@
     "test_cases": [
       {
         "input": "[1,null,2,3]",
-        "expected_output": "",
+        "expected_output": "[3,2,1]",
         "is_hidden": false
       },
       {
         "input": "[1,2,3,4,5,null,8,null,null,6,7,9]",
-        "expected_output": "",
+        "expected_output": "[4,6,7,5,2,9,8,3,1]",
         "is_hidden": false
       },
       {
         "input": "[]",
-        "expected_output": "",
+        "expected_output": "[]",
         "is_hidden": false
       },
       {
         "input": "[1]",
-        "expected_output": "",
+        "expected_output": "[1]",
         "is_hidden": false
       }
     ]
@@ -755,17 +755,17 @@
     "test_cases": [
       {
         "input": "8\n[4,1,8,4,5]\n[5,6,1,8,4,5]\n2\n3",
-        "expected_output": "",
+        "expected_output": "Intersected at '8'",
         "is_hidden": false
       },
       {
         "input": "2\n[1,9,1,2,4]\n[3,2,4]\n3\n1",
-        "expected_output": "",
+        "expected_output": "Intersected at '2'",
         "is_hidden": false
       },
       {
         "input": "0\n[2,6,4]\n[1,5]\n3\n2",
-        "expected_output": "",
+        "expected_output": "No intersection",
         "is_hidden": false
       }
     ]
@@ -779,17 +779,17 @@
     "test_cases": [
       {
         "input": "1",
-        "expected_output": "",
+        "expected_output": "\"A\"",
         "is_hidden": false
       },
       {
         "input": "28",
-        "expected_output": "",
+        "expected_output": "\"AB\"",
         "is_hidden": false
       },
       {
         "input": "701",
-        "expected_output": "",
+        "expected_output": "\"ZY\"",
         "is_hidden": false
       }
     ]
@@ -803,12 +803,12 @@
     "test_cases": [
       {
         "input": "[3,2,3]",
-        "expected_output": "",
+        "expected_output": "3",
         "is_hidden": false
       },
       {
         "input": "[2,2,1,1,1,2,2]",
-        "expected_output": "",
+        "expected_output": "2",
         "is_hidden": false
       }
     ]
@@ -822,17 +822,17 @@
     "test_cases": [
       {
         "input": "\"A\"",
-        "expected_output": "",
+        "expected_output": "1",
         "is_hidden": false
       },
       {
         "input": "\"AB\"",
-        "expected_output": "",
+        "expected_output": "28",
         "is_hidden": false
       },
       {
         "input": "\"ZY\"",
-        "expected_output": "",
+        "expected_output": "701",
         "is_hidden": false
       }
     ]
@@ -846,7 +846,7 @@
     "test_cases": [
       {
         "input": "{\"headers\":{\"Person\":[\"personId\",\"lastName\",\"firstName\"],\"Address\":[\"addressId\",\"personId\",\"city\",\"state\"]},\"rows\":{\"Person\":[[1,\"Wang\",\"Allen\"],[2,\"Alice\",\"Bob\"]],\"Address\":[[1,2,\"New York City\",\"New York\"],[2,3,\"Leetcode\",\"California\"]]}}",
-        "expected_output": "",
+        "expected_output": "+-----------+----------+---------------+----------+ | firstName | lastName | city | state | +-----------+----------+---------------+----------+ | Allen | Wang | Null | Null | | Bob | Alice | New York City | New York | +-----------+----------+---------------+----------+",
         "is_hidden": false
       }
     ]
@@ -860,7 +860,7 @@
     "test_cases": [
       {
         "input": "{\"headers\": {\"Employee\": [\"id\", \"name\", \"salary\", \"managerId\"]}, \"rows\": {\"Employee\": [[1, \"Joe\", 70000, 3], [2, \"Henry\", 80000, 4], [3, \"Sam\", 60000, null], [4, \"Max\", 90000, null]]}}",
-        "expected_output": "",
+        "expected_output": "+----------+ | Employee | +----------+ | Joe | +----------+",
         "is_hidden": false
       }
     ]
@@ -874,7 +874,7 @@
     "test_cases": [
       {
         "input": "{\"headers\": {\"Person\": [\"id\", \"email\"]}, \"rows\": {\"Person\": [[1, \"a@b.com\"], [2, \"c@d.com\"], [3, \"a@b.com\"]]}}",
-        "expected_output": "",
+        "expected_output": "+---------+ | Email | +---------+ | a@b.com | +---------+",
         "is_hidden": false
       }
     ]
@@ -888,7 +888,7 @@
     "test_cases": [
       {
         "input": "{\"headers\": {\"Customers\": [\"id\", \"name\"], \"Orders\": [\"id\", \"customerId\"]}, \"rows\": {\"Customers\": [[1, \"Joe\"], [2, \"Henry\"], [3, \"Sam\"], [4, \"Max\"]], \"Orders\": [[1, 3], [2, 1]]}}",
-        "expected_output": "",
+        "expected_output": "+-----------+ | Customers | +-----------+ | Henry | | Max | +-----------+",
         "is_hidden": false
       }
     ]
@@ -902,12 +902,12 @@
     "test_cases": [
       {
         "input": "43261596",
-        "expected_output": "",
+        "expected_output": "964176192",
         "is_hidden": false
       },
       {
         "input": "2147483644",
-        "expected_output": "",
+        "expected_output": "1073741822",
         "is_hidden": false
       }
     ]
@@ -921,17 +921,17 @@
     "test_cases": [
       {
         "input": "11",
-        "expected_output": "",
+        "expected_output": "3",
         "is_hidden": false
       },
       {
         "input": "128",
-        "expected_output": "",
+        "expected_output": "1",
         "is_hidden": false
       },
       {
         "input": "2147483645",
-        "expected_output": "",
+        "expected_output": "30",
         "is_hidden": false
       }
     ]
@@ -942,13 +942,7 @@
     "difficulty": "EASY",
     "time_limit": 1000,
     "memory_limit": 256,
-    "test_cases": [
-      {
-        "input": "0",
-        "expected_output": "",
-        "is_hidden": false
-      }
-    ]
+    "test_cases": []
   },
   {
     "title": "Tenth Line",
@@ -956,13 +950,7 @@
     "difficulty": "EASY",
     "time_limit": 1000,
     "memory_limit": 256,
-    "test_cases": [
-      {
-        "input": "Line 1\\nLine 2\\nLine 3\\nLine 4\\nLine 5\\nLine 6\\nLine 7\\nLine 8\\nLine 9\\nLine 10",
-        "expected_output": "",
-        "is_hidden": false
-      }
-    ]
+    "test_cases": []
   },
   {
     "title": "Delete Duplicate Emails",
@@ -973,7 +961,7 @@
     "test_cases": [
       {
         "input": "{\"headers\": {\"Person\": [\"id\", \"email\"]}, \"rows\": {\"Person\": [[1, \"john@example.com\"], [2, \"bob@example.com\"], [3, \"john@example.com\"]]}}",
-        "expected_output": "",
+        "expected_output": "+----+------------------+ | id | email | +----+------------------+ | 1 | john@example.com | | 2 | bob@example.com | +----+------------------+",
         "is_hidden": false
       }
     ]
@@ -987,7 +975,7 @@
     "test_cases": [
       {
         "input": "{\"headers\": {\"Weather\": [\"id\", \"recordDate\", \"temperature\"]}, \"rows\": {\"Weather\": [[1, \"2015-01-01\", 10], [2, \"2015-01-02\", 25], [3, \"2015-01-03\", 20], [4, \"2015-01-04\", 30]]}}",
-        "expected_output": "",
+        "expected_output": "+----+ | id | +----+ | 2 | | 4 | +----+",
         "is_hidden": false
       }
     ]
@@ -1001,12 +989,12 @@
     "test_cases": [
       {
         "input": "19",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "2",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       }
     ]
@@ -1020,17 +1008,17 @@
     "test_cases": [
       {
         "input": "[1,2,6,3,4,5,6]\n6",
-        "expected_output": "",
+        "expected_output": "[1,2,3,4,5]",
         "is_hidden": false
       },
       {
         "input": "[]\n1",
-        "expected_output": "",
+        "expected_output": "[]",
         "is_hidden": false
       },
       {
         "input": "[7,7,7,7]\n7",
-        "expected_output": "",
+        "expected_output": "[]",
         "is_hidden": false
       }
     ]
@@ -1044,17 +1032,17 @@
     "test_cases": [
       {
         "input": "\"egg\"\n\"add\"",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "\"foo\"\n\"bar\"",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       },
       {
         "input": "\"paper\"\n\"title\"",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       }
     ]
@@ -1068,17 +1056,17 @@
     "test_cases": [
       {
         "input": "[2,4,3]\n[5,6,4]",
-        "expected_output": "",
+        "expected_output": "[7,0,8]",
         "is_hidden": false
       },
       {
         "input": "[0]\n[0]",
-        "expected_output": "",
+        "expected_output": "[0]",
         "is_hidden": false
       },
       {
         "input": "[9,9,9,9,9,9,9]\n[9,9,9,9]",
-        "expected_output": "",
+        "expected_output": "[8,9,9,9,0,0,0,1]",
         "is_hidden": false
       }
     ]
@@ -1092,17 +1080,17 @@
     "test_cases": [
       {
         "input": "\"abcabcbb\"",
-        "expected_output": "",
+        "expected_output": "3",
         "is_hidden": false
       },
       {
         "input": "\"bbbbb\"",
-        "expected_output": "",
+        "expected_output": "1",
         "is_hidden": false
       },
       {
         "input": "\"pwwkew\"",
-        "expected_output": "",
+        "expected_output": "3",
         "is_hidden": false
       }
     ]
@@ -1116,12 +1104,12 @@
     "test_cases": [
       {
         "input": "\"babad\"",
-        "expected_output": "",
+        "expected_output": "\"bab\"",
         "is_hidden": false
       },
       {
         "input": "\"cbbd\"",
-        "expected_output": "",
+        "expected_output": "\"bb\"",
         "is_hidden": false
       }
     ]
@@ -1135,17 +1123,17 @@
     "test_cases": [
       {
         "input": "\"PAYPALISHIRING\"\n3",
-        "expected_output": "",
+        "expected_output": "\"PAHNAPLSIIGYIR\"",
         "is_hidden": false
       },
       {
         "input": "\"PAYPALISHIRING\"\n4",
-        "expected_output": "",
+        "expected_output": "\"PINALSIGYAHRPI\"",
         "is_hidden": false
       },
       {
         "input": "\"A\"\n1",
-        "expected_output": "",
+        "expected_output": "\"A\"",
         "is_hidden": false
       }
     ]
@@ -1159,17 +1147,17 @@
     "test_cases": [
       {
         "input": "123",
-        "expected_output": "",
+        "expected_output": "321",
         "is_hidden": false
       },
       {
         "input": "-123",
-        "expected_output": "",
+        "expected_output": "-321",
         "is_hidden": false
       },
       {
         "input": "120",
-        "expected_output": "",
+        "expected_output": "21",
         "is_hidden": false
       }
     ]
@@ -1183,27 +1171,27 @@
     "test_cases": [
       {
         "input": "\"42\"",
-        "expected_output": "",
+        "expected_output": "42",
         "is_hidden": false
       },
       {
         "input": "\"   -042\"",
-        "expected_output": "",
+        "expected_output": "-42",
         "is_hidden": false
       },
       {
         "input": "\"1337c0d3\"",
-        "expected_output": "",
+        "expected_output": "1337",
         "is_hidden": false
       },
       {
         "input": "\"0-1\"",
-        "expected_output": "",
+        "expected_output": "0",
         "is_hidden": false
       },
       {
         "input": "\"words and 987\"",
-        "expected_output": "",
+        "expected_output": "0",
         "is_hidden": false
       }
     ]
@@ -1217,12 +1205,12 @@
     "test_cases": [
       {
         "input": "[1,8,6,2,5,4,8,3,7]",
-        "expected_output": "",
+        "expected_output": "49",
         "is_hidden": false
       },
       {
         "input": "[1,1]",
-        "expected_output": "",
+        "expected_output": "1",
         "is_hidden": false
       }
     ]
@@ -1236,17 +1224,17 @@
     "test_cases": [
       {
         "input": "3749",
-        "expected_output": "",
+        "expected_output": "\"MMMDCCXLIX\"",
         "is_hidden": false
       },
       {
         "input": "58",
-        "expected_output": "",
+        "expected_output": "\"LVIII\"",
         "is_hidden": false
       },
       {
         "input": "1994",
-        "expected_output": "",
+        "expected_output": "\"MCMXCIV\"",
         "is_hidden": false
       }
     ]
@@ -1260,17 +1248,17 @@
     "test_cases": [
       {
         "input": "[-1,0,1,2,-1,-4]",
-        "expected_output": "",
+        "expected_output": "[[-1,-1,2],[-1,0,1]]",
         "is_hidden": false
       },
       {
         "input": "[0,1,1]",
-        "expected_output": "",
+        "expected_output": "[]",
         "is_hidden": false
       },
       {
         "input": "[0,0,0]",
-        "expected_output": "",
+        "expected_output": "[[0,0,0]]",
         "is_hidden": false
       }
     ]
@@ -1284,12 +1272,12 @@
     "test_cases": [
       {
         "input": "[-1,2,1,-4]\n1",
-        "expected_output": "",
+        "expected_output": "2",
         "is_hidden": false
       },
       {
         "input": "[0,0,0]\n1",
-        "expected_output": "",
+        "expected_output": "0",
         "is_hidden": false
       }
     ]
@@ -1303,12 +1291,12 @@
     "test_cases": [
       {
         "input": "\"23\"",
-        "expected_output": "",
+        "expected_output": "[\"ad\",\"ae\",\"af\",\"bd\",\"be\",\"bf\",\"cd\",\"ce\",\"cf\"]",
         "is_hidden": false
       },
       {
         "input": "\"2\"",
-        "expected_output": "",
+        "expected_output": "[\"a\",\"b\",\"c\"]",
         "is_hidden": false
       }
     ]
@@ -1322,12 +1310,12 @@
     "test_cases": [
       {
         "input": "[1,0,-1,0,-2,2]\n0",
-        "expected_output": "",
+        "expected_output": "[[-2,-1,1,2],[-2,0,0,2],[-1,0,0,1]]",
         "is_hidden": false
       },
       {
         "input": "[2,2,2,2,2]\n8",
-        "expected_output": "",
+        "expected_output": "[[2,2,2,2]]",
         "is_hidden": false
       }
     ]
@@ -1341,17 +1329,17 @@
     "test_cases": [
       {
         "input": "[1,2,3,4,5]\n2",
-        "expected_output": "",
+        "expected_output": "[1,2,3,5]",
         "is_hidden": false
       },
       {
         "input": "[1]\n1",
-        "expected_output": "",
+        "expected_output": "[]",
         "is_hidden": false
       },
       {
         "input": "[1,2]\n1",
-        "expected_output": "",
+        "expected_output": "[1]",
         "is_hidden": false
       }
     ]
@@ -1365,12 +1353,12 @@
     "test_cases": [
       {
         "input": "3",
-        "expected_output": "",
+        "expected_output": "[\"((()))\",\"(()())\",\"(())()\",\"()(())\",\"()()()\"]",
         "is_hidden": false
       },
       {
         "input": "1",
-        "expected_output": "",
+        "expected_output": "[\"()\"]",
         "is_hidden": false
       }
     ]
@@ -1384,22 +1372,22 @@
     "test_cases": [
       {
         "input": "[1,2,3,4]",
-        "expected_output": "",
+        "expected_output": "[2,1,4,3]",
         "is_hidden": false
       },
       {
         "input": "[]",
-        "expected_output": "",
+        "expected_output": "[]",
         "is_hidden": false
       },
       {
         "input": "[1]",
-        "expected_output": "",
+        "expected_output": "[1]",
         "is_hidden": false
       },
       {
         "input": "[1,2,3]",
-        "expected_output": "",
+        "expected_output": "[2,1,3]",
         "is_hidden": false
       }
     ]
@@ -1413,12 +1401,12 @@
     "test_cases": [
       {
         "input": "10\n3",
-        "expected_output": "",
+        "expected_output": "3",
         "is_hidden": false
       },
       {
         "input": "7\n-3",
-        "expected_output": "",
+        "expected_output": "-2",
         "is_hidden": false
       }
     ]
@@ -1432,17 +1420,17 @@
     "test_cases": [
       {
         "input": "[1,2,3]",
-        "expected_output": "",
+        "expected_output": "[1,3,2]",
         "is_hidden": false
       },
       {
         "input": "[3,2,1]",
-        "expected_output": "",
+        "expected_output": "[1,2,3]",
         "is_hidden": false
       },
       {
         "input": "[1,1,5]",
-        "expected_output": "",
+        "expected_output": "[1,5,1]",
         "is_hidden": false
       }
     ]
@@ -1456,17 +1444,17 @@
     "test_cases": [
       {
         "input": "[4,5,6,7,0,1,2]\n0",
-        "expected_output": "",
+        "expected_output": "4",
         "is_hidden": false
       },
       {
         "input": "[4,5,6,7,0,1,2]\n3",
-        "expected_output": "",
+        "expected_output": "-1",
         "is_hidden": false
       },
       {
         "input": "[1]\n0",
-        "expected_output": "",
+        "expected_output": "-1",
         "is_hidden": false
       }
     ]
@@ -1480,17 +1468,17 @@
     "test_cases": [
       {
         "input": "[5,7,7,8,8,10]\n8",
-        "expected_output": "",
+        "expected_output": "[3,4]",
         "is_hidden": false
       },
       {
         "input": "[5,7,7,8,8,10]\n6",
-        "expected_output": "",
+        "expected_output": "[-1,-1]",
         "is_hidden": false
       },
       {
         "input": "[]\n0",
-        "expected_output": "",
+        "expected_output": "[-1,-1]",
         "is_hidden": false
       }
     ]
@@ -1504,12 +1492,12 @@
     "test_cases": [
       {
         "input": "[[\"5\",\"3\",\".\",\".\",\"7\",\".\",\".\",\".\",\".\"],[\"6\",\".\",\".\",\"1\",\"9\",\"5\",\".\",\".\",\".\"],[\".\",\"9\",\"8\",\".\",\".\",\".\",\".\",\"6\",\".\"],[\"8\",\".\",\".\",\".\",\"6\",\".\",\".\",\".\",\"3\"],[\"4\",\".\",\".\",\"8\",\".\",\"3\",\".\",\".\",\"1\"],[\"7\",\".\",\".\",\".\",\"2\",\".\",\".\",\".\",\"6\"],[\".\",\"6\",\".\",\".\",\".\",\".\",\"2\",\"8\",\".\"],[\".\",\".\",\".\",\"4\",\"1\",\"9\",\".\",\".\",\"5\"],[\".\",\".\",\".\",\".\",\"8\",\".\",\".\",\"7\",\"9\"]]",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "[[\"8\",\"3\",\".\",\".\",\"7\",\".\",\".\",\".\",\".\"],[\"6\",\".\",\".\",\"1\",\"9\",\"5\",\".\",\".\",\".\"],[\".\",\"9\",\"8\",\".\",\".\",\".\",\".\",\"6\",\".\"],[\"8\",\".\",\".\",\".\",\"6\",\".\",\".\",\".\",\"3\"],[\"4\",\".\",\".\",\"8\",\".\",\"3\",\".\",\".\",\"1\"],[\"7\",\".\",\".\",\".\",\"2\",\".\",\".\",\".\",\"6\"],[\".\",\"6\",\".\",\".\",\".\",\".\",\"2\",\"8\",\".\"],[\".\",\".\",\".\",\"4\",\"1\",\"9\",\".\",\".\",\"5\"],[\".\",\".\",\".\",\".\",\"8\",\".\",\".\",\"7\",\"9\"]]",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       }
     ]
@@ -1523,12 +1511,12 @@
     "test_cases": [
       {
         "input": "1",
-        "expected_output": "",
+        "expected_output": "\"1211\"",
         "is_hidden": false
       },
       {
         "input": "4",
-        "expected_output": "",
+        "expected_output": "\"1\"",
         "is_hidden": false
       }
     ]
@@ -1542,17 +1530,17 @@
     "test_cases": [
       {
         "input": "[2,3,6,7]\n7",
-        "expected_output": "",
+        "expected_output": "[[2,2,3],[7]]",
         "is_hidden": false
       },
       {
         "input": "[2,3,5]\n8",
-        "expected_output": "",
+        "expected_output": "[[2,2,2,2],[2,3,3],[3,5]]",
         "is_hidden": false
       },
       {
         "input": "[2]\n1",
-        "expected_output": "",
+        "expected_output": "[]",
         "is_hidden": false
       }
     ]
@@ -1566,12 +1554,12 @@
     "test_cases": [
       {
         "input": "[10,1,2,7,6,1,5]\n8",
-        "expected_output": "",
+        "expected_output": "[ [1,1,6], [1,2,5], [1,7], [2,6] ]",
         "is_hidden": false
       },
       {
         "input": "[2,5,2,1,2]\n5",
-        "expected_output": "",
+        "expected_output": "[ [1,2,2], [5] ]",
         "is_hidden": false
       }
     ]
@@ -1585,12 +1573,12 @@
     "test_cases": [
       {
         "input": "\"2\"\n\"3\"",
-        "expected_output": "",
+        "expected_output": "\"6\"",
         "is_hidden": false
       },
       {
         "input": "\"123\"\n\"456\"",
-        "expected_output": "",
+        "expected_output": "\"56088\"",
         "is_hidden": false
       }
     ]
@@ -1604,12 +1592,12 @@
     "test_cases": [
       {
         "input": "[2,3,1,1,4]",
-        "expected_output": "",
+        "expected_output": "2",
         "is_hidden": false
       },
       {
         "input": "[2,3,0,1,4]",
-        "expected_output": "",
+        "expected_output": "2",
         "is_hidden": false
       }
     ]
@@ -1623,17 +1611,17 @@
     "test_cases": [
       {
         "input": "[1,2,3]",
-        "expected_output": "",
+        "expected_output": "[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]",
         "is_hidden": false
       },
       {
         "input": "[0,1]",
-        "expected_output": "",
+        "expected_output": "[[0,1],[1,0]]",
         "is_hidden": false
       },
       {
         "input": "[1]",
-        "expected_output": "",
+        "expected_output": "[[1]]",
         "is_hidden": false
       }
     ]
@@ -1647,12 +1635,12 @@
     "test_cases": [
       {
         "input": "[1,1,2]",
-        "expected_output": "",
+        "expected_output": "[[1,1,2], [1,2,1], [2,1,1]]",
         "is_hidden": false
       },
       {
         "input": "[1,2,3]",
-        "expected_output": "",
+        "expected_output": "[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]",
         "is_hidden": false
       }
     ]
@@ -1666,12 +1654,12 @@
     "test_cases": [
       {
         "input": "[[1,2,3],[4,5,6],[7,8,9]]",
-        "expected_output": "",
+        "expected_output": "[[7,4,1],[8,5,2],[9,6,3]]",
         "is_hidden": false
       },
       {
         "input": "[[5,1,9,11],[2,4,8,10],[13,3,6,7],[15,14,12,16]]",
-        "expected_output": "",
+        "expected_output": "[[15,13,2,5],[14,3,4,1],[12,6,8,9],[16,7,10,11]]",
         "is_hidden": false
       }
     ]
@@ -1685,17 +1673,17 @@
     "test_cases": [
       {
         "input": "[\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"]",
-        "expected_output": "",
+        "expected_output": "[[\"bat\"],[\"nat\",\"tan\"],[\"ate\",\"eat\",\"tea\"]]",
         "is_hidden": false
       },
       {
         "input": "[\"\"]",
-        "expected_output": "",
+        "expected_output": "[[\"\"]]",
         "is_hidden": false
       },
       {
         "input": "[\"a\"]",
-        "expected_output": "",
+        "expected_output": "[[\"a\"]]",
         "is_hidden": false
       }
     ]
@@ -1709,17 +1697,17 @@
     "test_cases": [
       {
         "input": "2.00000\n10",
-        "expected_output": "",
+        "expected_output": "1024.00000",
         "is_hidden": false
       },
       {
         "input": "2.10000\n3",
-        "expected_output": "",
+        "expected_output": "9.26100",
         "is_hidden": false
       },
       {
         "input": "2.00000\n-2",
-        "expected_output": "",
+        "expected_output": "0.25000",
         "is_hidden": false
       }
     ]
@@ -1733,17 +1721,17 @@
     "test_cases": [
       {
         "input": "[-2,1,-3,4,-1,2,1,-5,4]",
-        "expected_output": "",
+        "expected_output": "6",
         "is_hidden": false
       },
       {
         "input": "[1]",
-        "expected_output": "",
+        "expected_output": "1",
         "is_hidden": false
       },
       {
         "input": "[5,4,-1,7,8]",
-        "expected_output": "",
+        "expected_output": "23",
         "is_hidden": false
       }
     ]
@@ -1757,12 +1745,12 @@
     "test_cases": [
       {
         "input": "[[1,2,3],[4,5,6],[7,8,9]]",
-        "expected_output": "",
+        "expected_output": "[1,2,3,6,9,8,7,4,5]",
         "is_hidden": false
       },
       {
         "input": "[[1,2,3,4],[5,6,7,8],[9,10,11,12]]",
-        "expected_output": "",
+        "expected_output": "[1,2,3,4,8,12,11,10,9,5,6,7]",
         "is_hidden": false
       }
     ]
@@ -1776,12 +1764,12 @@
     "test_cases": [
       {
         "input": "[2,3,1,1,4]",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "[3,2,1,0,4]",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       }
     ]
@@ -1795,17 +1783,17 @@
     "test_cases": [
       {
         "input": "[[1,3],[2,6],[8,10],[15,18]]",
-        "expected_output": "",
+        "expected_output": "[[1,6],[8,10],[15,18]]",
         "is_hidden": false
       },
       {
         "input": "[[1,4],[4,5]]",
-        "expected_output": "",
+        "expected_output": "[[1,5]]",
         "is_hidden": false
       },
       {
         "input": "[[4,7],[1,4]]",
-        "expected_output": "",
+        "expected_output": "[[1,7]]",
         "is_hidden": false
       }
     ]
@@ -1819,12 +1807,12 @@
     "test_cases": [
       {
         "input": "[[1,3],[6,9]]\n[2,5]",
-        "expected_output": "",
+        "expected_output": "[[1,5],[6,9]]",
         "is_hidden": false
       },
       {
         "input": "[[1,2],[3,5],[6,7],[8,10],[12,16]]\n[4,8]",
-        "expected_output": "",
+        "expected_output": "[[1,2],[3,10],[12,16]]",
         "is_hidden": false
       }
     ]
@@ -1838,12 +1826,12 @@
     "test_cases": [
       {
         "input": "3",
-        "expected_output": "",
+        "expected_output": "[[1,2,3],[8,9,4],[7,6,5]]",
         "is_hidden": false
       },
       {
         "input": "1",
-        "expected_output": "",
+        "expected_output": "[[1]]",
         "is_hidden": false
       }
     ]
@@ -1857,12 +1845,12 @@
     "test_cases": [
       {
         "input": "[1,2,3,4,5]\n2",
-        "expected_output": "",
+        "expected_output": "[4,5,1,2,3]",
         "is_hidden": false
       },
       {
         "input": "[0,1,2]\n4",
-        "expected_output": "",
+        "expected_output": "[2,0,1]",
         "is_hidden": false
       }
     ]
@@ -1876,12 +1864,12 @@
     "test_cases": [
       {
         "input": "3\n7",
-        "expected_output": "",
+        "expected_output": "28",
         "is_hidden": false
       },
       {
         "input": "3\n2",
-        "expected_output": "",
+        "expected_output": "3",
         "is_hidden": false
       }
     ]
@@ -1895,12 +1883,12 @@
     "test_cases": [
       {
         "input": "[[0,0,0],[0,1,0],[0,0,0]]",
-        "expected_output": "",
+        "expected_output": "2",
         "is_hidden": false
       },
       {
         "input": "[[0,1],[0,0]]",
-        "expected_output": "",
+        "expected_output": "1",
         "is_hidden": false
       }
     ]
@@ -1914,12 +1902,12 @@
     "test_cases": [
       {
         "input": "[[1,3,1],[1,5,1],[4,2,1]]",
-        "expected_output": "",
+        "expected_output": "7",
         "is_hidden": false
       },
       {
         "input": "[[1,2,3],[4,5,6]]",
-        "expected_output": "",
+        "expected_output": "12",
         "is_hidden": false
       }
     ]
@@ -1933,27 +1921,27 @@
     "test_cases": [
       {
         "input": "\"/home/\"",
-        "expected_output": "",
+        "expected_output": "\"/home\"",
         "is_hidden": false
       },
       {
         "input": "\"/home//foo/\"",
-        "expected_output": "",
+        "expected_output": "\"/home/foo\"",
         "is_hidden": false
       },
       {
         "input": "\"/home/user/Documents/../Pictures\"",
-        "expected_output": "",
+        "expected_output": "\"/home/user/Pictures\"",
         "is_hidden": false
       },
       {
         "input": "\"/../\"",
-        "expected_output": "",
+        "expected_output": "\"/\"",
         "is_hidden": false
       },
       {
         "input": "\"/.../a/../b/c/../d/./\"",
-        "expected_output": "",
+        "expected_output": "\"/.../b/d\"",
         "is_hidden": false
       }
     ]
@@ -1967,12 +1955,12 @@
     "test_cases": [
       {
         "input": "\"horse\"\n\"ros\"",
-        "expected_output": "",
+        "expected_output": "3",
         "is_hidden": false
       },
       {
         "input": "\"intention\"\n\"execution\"",
-        "expected_output": "",
+        "expected_output": "5",
         "is_hidden": false
       }
     ]
@@ -1986,12 +1974,12 @@
     "test_cases": [
       {
         "input": "[[1,1,1],[1,0,1],[1,1,1]]",
-        "expected_output": "",
+        "expected_output": "[[1,0,1],[0,0,0],[1,0,1]]",
         "is_hidden": false
       },
       {
         "input": "[[0,1,2,0],[3,4,5,2],[1,3,1,5]]",
-        "expected_output": "",
+        "expected_output": "[[0,0,0,0],[0,4,5,0],[0,3,1,0]]",
         "is_hidden": false
       }
     ]
@@ -2005,12 +1993,12 @@
     "test_cases": [
       {
         "input": "[[1,3,5,7],[10,11,16,20],[23,30,34,60]]\n3",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "[[1,3,5,7],[10,11,16,20],[23,30,34,60]]\n13",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       }
     ]
@@ -2024,12 +2012,12 @@
     "test_cases": [
       {
         "input": "[2,0,2,1,1,0]",
-        "expected_output": "",
+        "expected_output": "[0,0,1,1,2,2]",
         "is_hidden": false
       },
       {
         "input": "[2,0,1]",
-        "expected_output": "",
+        "expected_output": "[0,1,2]",
         "is_hidden": false
       }
     ]
@@ -2043,12 +2031,12 @@
     "test_cases": [
       {
         "input": "4\n2",
-        "expected_output": "",
+        "expected_output": "[[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]",
         "is_hidden": false
       },
       {
         "input": "1\n1",
-        "expected_output": "",
+        "expected_output": "[[1]]",
         "is_hidden": false
       }
     ]
@@ -2062,12 +2050,12 @@
     "test_cases": [
       {
         "input": "[1,2,3]",
-        "expected_output": "",
+        "expected_output": "[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]",
         "is_hidden": false
       },
       {
         "input": "[0]",
-        "expected_output": "",
+        "expected_output": "[[],[0]]",
         "is_hidden": false
       }
     ]
@@ -2081,17 +2069,17 @@
     "test_cases": [
       {
         "input": "[[\"A\",\"B\",\"C\",\"E\"],[\"S\",\"F\",\"C\",\"S\"],[\"A\",\"D\",\"E\",\"E\"]]\n\"ABCCED\"",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "[[\"A\",\"B\",\"C\",\"E\"],[\"S\",\"F\",\"C\",\"S\"],[\"A\",\"D\",\"E\",\"E\"]]\n\"SEE\"",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "[[\"A\",\"B\",\"C\",\"E\"],[\"S\",\"F\",\"C\",\"S\"],[\"A\",\"D\",\"E\",\"E\"]]\n\"ABCB\"",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       }
     ]
@@ -2105,12 +2093,12 @@
     "test_cases": [
       {
         "input": "[1,1,1,2,2,3]",
-        "expected_output": "",
+        "expected_output": "5, nums = [1,1,2,2,3,_]",
         "is_hidden": false
       },
       {
         "input": "[0,0,1,1,1,1,2,3,3]",
-        "expected_output": "",
+        "expected_output": "7, nums = [0,0,1,1,2,3,3,_,_]",
         "is_hidden": false
       }
     ]
@@ -2124,12 +2112,12 @@
     "test_cases": [
       {
         "input": "[2,5,6,0,0,1,2]\n0",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "[2,5,6,0,0,1,2]\n3",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       }
     ]
@@ -2143,12 +2131,12 @@
     "test_cases": [
       {
         "input": "[1,3]\n[2]",
-        "expected_output": "",
+        "expected_output": "2.00000",
         "is_hidden": false
       },
       {
         "input": "[1,2]\n[3,4]",
-        "expected_output": "",
+        "expected_output": "2.50000",
         "is_hidden": false
       }
     ]
@@ -2162,17 +2150,17 @@
     "test_cases": [
       {
         "input": "\"aa\"\n\"a\"",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       },
       {
         "input": "\"aa\"\n\"a*\"",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "\"ab\"\n\".*\"",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       }
     ]
@@ -2186,17 +2174,17 @@
     "test_cases": [
       {
         "input": "[[1,4,5],[1,3,4],[2,6]]",
-        "expected_output": "",
+        "expected_output": "[1,1,2,3,4,4,5,6]",
         "is_hidden": false
       },
       {
         "input": "[]",
-        "expected_output": "",
+        "expected_output": "[]",
         "is_hidden": false
       },
       {
         "input": "[[]]",
-        "expected_output": "",
+        "expected_output": "[]",
         "is_hidden": false
       }
     ]
@@ -2210,12 +2198,12 @@
     "test_cases": [
       {
         "input": "[1,2,3,4,5]\n2",
-        "expected_output": "",
+        "expected_output": "[2,1,4,3,5]",
         "is_hidden": false
       },
       {
         "input": "[1,2,3,4,5]\n3",
-        "expected_output": "",
+        "expected_output": "[3,2,1,4,5]",
         "is_hidden": false
       }
     ]
@@ -2229,17 +2217,17 @@
     "test_cases": [
       {
         "input": "\"barfoothefoobarman\"\n[\"foo\",\"bar\"]",
-        "expected_output": "",
+        "expected_output": "[0,9]",
         "is_hidden": false
       },
       {
         "input": "\"wordgoodgoodgoodbestword\"\n[\"word\",\"good\",\"best\",\"word\"]",
-        "expected_output": "",
+        "expected_output": "[]",
         "is_hidden": false
       },
       {
         "input": "\"barfoofoobarthefoobarman\"\n[\"bar\",\"foo\",\"the\"]",
-        "expected_output": "",
+        "expected_output": "[6,9,12]",
         "is_hidden": false
       }
     ]
@@ -2253,17 +2241,17 @@
     "test_cases": [
       {
         "input": "\"(()\"",
-        "expected_output": "",
+        "expected_output": "2",
         "is_hidden": false
       },
       {
         "input": "\")()())\"",
-        "expected_output": "",
+        "expected_output": "4",
         "is_hidden": false
       },
       {
         "input": "\"\"",
-        "expected_output": "",
+        "expected_output": "0",
         "is_hidden": false
       }
     ]
@@ -2277,7 +2265,7 @@
     "test_cases": [
       {
         "input": "[[\"5\",\"3\",\".\",\".\",\"7\",\".\",\".\",\".\",\".\"],[\"6\",\".\",\".\",\"1\",\"9\",\"5\",\".\",\".\",\".\"],[\".\",\"9\",\"8\",\".\",\".\",\".\",\".\",\"6\",\".\"],[\"8\",\".\",\".\",\".\",\"6\",\".\",\".\",\".\",\"3\"],[\"4\",\".\",\".\",\"8\",\".\",\"3\",\".\",\".\",\"1\"],[\"7\",\".\",\".\",\".\",\"2\",\".\",\".\",\".\",\"6\"],[\".\",\"6\",\".\",\".\",\".\",\".\",\"2\",\"8\",\".\"],[\".\",\".\",\".\",\"4\",\"1\",\"9\",\".\",\".\",\"5\"],[\".\",\".\",\".\",\".\",\"8\",\".\",\".\",\"7\",\"9\"]]",
-        "expected_output": "",
+        "expected_output": "[[\"5\",\"3\",\"4\",\"6\",\"7\",\"8\",\"9\",\"1\",\"2\"],[\"6\",\"7\",\"2\",\"1\",\"9\",\"5\",\"3\",\"4\",\"8\"],[\"1\",\"9\",\"8\",\"3\",\"4\",\"2\",\"5\",\"6\",\"7\"],[\"8\",\"5\",\"9\",\"7\",\"6\",\"1\",\"4\",\"2\",\"3\"],[\"4\",\"2\",\"6\",\"8\",\"5\",\"3\",\"7\",\"9\",\"1\"],[\"7\",\"1\",\"3\",\"9\",\"2\",\"4\",\"8\",\"5\",\"6\"],[\"9\",\"6\",\"1\",\"5\",\"3\",\"7\",\"2\",\"8\",\"4\"],[\"2\",\"8\",\"7\",\"4\",\"1\",\"9\",\"6\",\"3\",\"5\"],[\"3\",\"4\",\"5\",\"2\",\"8\",\"6\",\"1\",\"7\",\"9\"]]",
         "is_hidden": false
       }
     ]
@@ -2291,17 +2279,17 @@
     "test_cases": [
       {
         "input": "[1,2,0]",
-        "expected_output": "",
+        "expected_output": "3",
         "is_hidden": false
       },
       {
         "input": "[3,4,-1,1]",
-        "expected_output": "",
+        "expected_output": "2",
         "is_hidden": false
       },
       {
         "input": "[7,8,9,11,12]",
-        "expected_output": "",
+        "expected_output": "1",
         "is_hidden": false
       }
     ]
@@ -2315,12 +2303,12 @@
     "test_cases": [
       {
         "input": "[0,1,0,2,1,0,1,3,2,1,2,1]",
-        "expected_output": "",
+        "expected_output": "6",
         "is_hidden": false
       },
       {
         "input": "[4,2,0,3,2,5]",
-        "expected_output": "",
+        "expected_output": "9",
         "is_hidden": false
       }
     ]
@@ -2334,17 +2322,17 @@
     "test_cases": [
       {
         "input": "\"aa\"\n\"a\"",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       },
       {
         "input": "\"aa\"\n\"*\"",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "\"cb\"\n\"?a\"",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       }
     ]
@@ -2358,12 +2346,12 @@
     "test_cases": [
       {
         "input": "4",
-        "expected_output": "",
+        "expected_output": "[[\".Q..\",\"...Q\",\"Q...\",\"..Q.\"],[\"..Q.\",\"Q...\",\"...Q\",\".Q..\"]]",
         "is_hidden": false
       },
       {
         "input": "1",
-        "expected_output": "",
+        "expected_output": "[[\"Q\"]]",
         "is_hidden": false
       }
     ]
@@ -2377,12 +2365,12 @@
     "test_cases": [
       {
         "input": "4",
-        "expected_output": "",
+        "expected_output": "2",
         "is_hidden": false
       },
       {
         "input": "1",
-        "expected_output": "",
+        "expected_output": "1",
         "is_hidden": false
       }
     ]
@@ -2396,17 +2384,17 @@
     "test_cases": [
       {
         "input": "3\n3",
-        "expected_output": "",
+        "expected_output": "\"213\"",
         "is_hidden": false
       },
       {
         "input": "4\n9",
-        "expected_output": "",
+        "expected_output": "\"2314\"",
         "is_hidden": false
       },
       {
         "input": "3\n1",
-        "expected_output": "",
+        "expected_output": "\"123\"",
         "is_hidden": false
       }
     ]
@@ -2420,17 +2408,17 @@
     "test_cases": [
       {
         "input": "\"0\"",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "\"e\"",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       },
       {
         "input": "\".\"",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       }
     ]
@@ -2444,17 +2432,17 @@
     "test_cases": [
       {
         "input": "[\"This\", \"is\", \"an\", \"example\", \"of\", \"text\", \"justification.\"]\n16",
-        "expected_output": "",
+        "expected_output": "[ \"This is an\", \"example of text\", \"justification. \" ]",
         "is_hidden": false
       },
       {
         "input": "[\"What\",\"must\",\"be\",\"acknowledgment\",\"shall\",\"be\"]\n16",
-        "expected_output": "",
+        "expected_output": "[ \"What must be\", \"acknowledgment \", \"shall be \" ]",
         "is_hidden": false
       },
       {
         "input": "[\"Science\",\"is\",\"what\",\"we\",\"understand\",\"well\",\"enough\",\"to\",\"explain\",\"to\",\"a\",\"computer.\",\"Art\",\"is\",\"everything\",\"else\",\"we\",\"do\"]\n20",
-        "expected_output": "",
+        "expected_output": "[ \"Science is what we\", \"understand well\", \"enough to explain to\", \"a computer. Art is\", \"everything else we\", \"do \" ]",
         "is_hidden": false
       }
     ]
@@ -2468,17 +2456,17 @@
     "test_cases": [
       {
         "input": "\"ADOBECODEBANC\"\n\"ABC\"",
-        "expected_output": "",
+        "expected_output": "\"BANC\"",
         "is_hidden": false
       },
       {
         "input": "\"a\"\n\"a\"",
-        "expected_output": "",
+        "expected_output": "\"a\"",
         "is_hidden": false
       },
       {
         "input": "\"a\"\n\"aa\"",
-        "expected_output": "",
+        "expected_output": "\"\"",
         "is_hidden": false
       }
     ]
@@ -2492,12 +2480,12 @@
     "test_cases": [
       {
         "input": "[2,1,5,6,2,3]",
-        "expected_output": "",
+        "expected_output": "10",
         "is_hidden": false
       },
       {
         "input": "[2,4]",
-        "expected_output": "",
+        "expected_output": "4",
         "is_hidden": false
       }
     ]
@@ -2511,17 +2499,17 @@
     "test_cases": [
       {
         "input": "[[\"1\",\"0\",\"1\",\"0\",\"0\"],[\"1\",\"0\",\"1\",\"1\",\"1\"],[\"1\",\"1\",\"1\",\"1\",\"1\"],[\"1\",\"0\",\"0\",\"1\",\"0\"]]",
-        "expected_output": "",
+        "expected_output": "6",
         "is_hidden": false
       },
       {
         "input": "[[\"0\"]]",
-        "expected_output": "",
+        "expected_output": "0",
         "is_hidden": false
       },
       {
         "input": "[[\"1\"]]",
-        "expected_output": "",
+        "expected_output": "1",
         "is_hidden": false
       }
     ]
@@ -2535,17 +2523,17 @@
     "test_cases": [
       {
         "input": "\"great\"\n\"rgeat\"",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "\"abcde\"\n\"caebd\"",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       },
       {
         "input": "\"a\"\n\"a\"",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       }
     ]
@@ -2559,12 +2547,12 @@
     "test_cases": [
       {
         "input": "\"rabbbit\"\n\"rabbit\"",
-        "expected_output": "",
+        "expected_output": "3",
         "is_hidden": false
       },
       {
         "input": "\"babgbag\"\n\"bag\"",
-        "expected_output": "",
+        "expected_output": "5",
         "is_hidden": false
       }
     ]
@@ -2578,17 +2566,17 @@
     "test_cases": [
       {
         "input": "[3,3,5,0,0,3,1,4]",
-        "expected_output": "",
+        "expected_output": "6",
         "is_hidden": false
       },
       {
         "input": "[1,2,3,4,5]",
-        "expected_output": "",
+        "expected_output": "4",
         "is_hidden": false
       },
       {
         "input": "[7,6,4,3,1]",
-        "expected_output": "",
+        "expected_output": "0",
         "is_hidden": false
       }
     ]
@@ -2602,12 +2590,12 @@
     "test_cases": [
       {
         "input": "[1,2,3]",
-        "expected_output": "",
+        "expected_output": "6",
         "is_hidden": false
       },
       {
         "input": "[-10,9,20,null,null,15,7]",
-        "expected_output": "",
+        "expected_output": "42",
         "is_hidden": false
       }
     ]
@@ -2621,12 +2609,12 @@
     "test_cases": [
       {
         "input": "\"hit\"\n\"cog\"\n[\"hot\",\"dot\",\"dog\",\"lot\",\"log\",\"cog\"]",
-        "expected_output": "",
+        "expected_output": "[[\"hit\",\"hot\",\"dot\",\"dog\",\"cog\"],[\"hit\",\"hot\",\"lot\",\"log\",\"cog\"]]",
         "is_hidden": false
       },
       {
         "input": "\"hit\"\n\"cog\"\n[\"hot\",\"dot\",\"dog\",\"lot\",\"log\"]",
-        "expected_output": "",
+        "expected_output": "[]",
         "is_hidden": false
       }
     ]
@@ -2640,12 +2628,12 @@
     "test_cases": [
       {
         "input": "\"hit\"\n\"cog\"\n[\"hot\",\"dot\",\"dog\",\"lot\",\"log\",\"cog\"]",
-        "expected_output": "",
+        "expected_output": "5",
         "is_hidden": false
       },
       {
         "input": "\"hit\"\n\"cog\"\n[\"hot\",\"dot\",\"dog\",\"lot\",\"log\"]",
-        "expected_output": "",
+        "expected_output": "0",
         "is_hidden": false
       }
     ]
@@ -2659,17 +2647,17 @@
     "test_cases": [
       {
         "input": "\"aab\"",
-        "expected_output": "",
+        "expected_output": "1",
         "is_hidden": false
       },
       {
         "input": "\"a\"",
-        "expected_output": "",
+        "expected_output": "0",
         "is_hidden": false
       },
       {
         "input": "\"ab\"",
-        "expected_output": "",
+        "expected_output": "1",
         "is_hidden": false
       }
     ]
@@ -2683,12 +2671,12 @@
     "test_cases": [
       {
         "input": "[1,0,2]",
-        "expected_output": "",
+        "expected_output": "5",
         "is_hidden": false
       },
       {
         "input": "[1,2,2]",
-        "expected_output": "",
+        "expected_output": "4",
         "is_hidden": false
       }
     ]
@@ -2702,17 +2690,17 @@
     "test_cases": [
       {
         "input": "\"catsanddog\"\n[\"cat\",\"cats\",\"and\",\"sand\",\"dog\"]",
-        "expected_output": "",
+        "expected_output": "[\"cats and dog\",\"cat sand dog\"]",
         "is_hidden": false
       },
       {
         "input": "\"pineapplepenapple\"\n[\"apple\",\"pen\",\"applepen\",\"pine\",\"pineapple\"]",
-        "expected_output": "",
+        "expected_output": "[\"pine apple pen apple\",\"pineapple pen apple\",\"pine applepen apple\"]",
         "is_hidden": false
       },
       {
         "input": "\"catsandog\"\n[\"cats\",\"dog\",\"sand\",\"and\",\"cat\"]",
-        "expected_output": "",
+        "expected_output": "[]",
         "is_hidden": false
       }
     ]
@@ -2726,12 +2714,12 @@
     "test_cases": [
       {
         "input": "[[1,1],[2,2],[3,3]]",
-        "expected_output": "",
+        "expected_output": "3",
         "is_hidden": false
       },
       {
         "input": "[[1,1],[3,2],[5,3],[4,1],[2,3],[1,4]]",
-        "expected_output": "",
+        "expected_output": "4",
         "is_hidden": false
       }
     ]
@@ -2745,12 +2733,12 @@
     "test_cases": [
       {
         "input": "[1,3,5]",
-        "expected_output": "",
+        "expected_output": "1",
         "is_hidden": false
       },
       {
         "input": "[2,2,2,0,1]",
-        "expected_output": "",
+        "expected_output": "0",
         "is_hidden": false
       }
     ]
@@ -2764,12 +2752,12 @@
     "test_cases": [
       {
         "input": "[[-2,-3,3],[-5,-10,1],[10,30,-5]]",
-        "expected_output": "",
+        "expected_output": "7",
         "is_hidden": false
       },
       {
         "input": "[[0]]",
-        "expected_output": "",
+        "expected_output": "1",
         "is_hidden": false
       }
     ]
@@ -2783,7 +2771,7 @@
     "test_cases": [
       {
         "input": "{\"headers\": {\"Employee\": [\"id\", \"name\", \"salary\", \"departmentId\"], \"Department\": [\"id\", \"name\"]}, \"rows\": {\"Employee\": [[1, \"Joe\", 85000, 1], [2, \"Henry\", 80000, 2], [3, \"Sam\", 60000, 2], [4, \"Max\", 90000, 1], [5, \"Janet\", 69000, 1], [6, \"Randy\", 85000, 1], [7, \"Will\", 70000, 1]], \"Department\": [[1, \"IT\"], [2, \"Sales\"]]}}",
-        "expected_output": "",
+        "expected_output": "+------------+----------+--------+ | Department | Employee | Salary | +------------+----------+--------+ | IT | Max | 90000 | | IT | Joe | 85000 | | IT | Randy | 85000 | | IT | Will | 70000 | | Sales | Henry | 80000 | | Sales | Sam | 60000 | +------------+----------+--------+",
         "is_hidden": false
       }
     ]
@@ -2797,12 +2785,12 @@
     "test_cases": [
       {
         "input": "2\n[2,4,1]",
-        "expected_output": "",
+        "expected_output": "2",
         "is_hidden": false
       },
       {
         "input": "2\n[3,2,6,5,0,3]",
-        "expected_output": "",
+        "expected_output": "7",
         "is_hidden": false
       }
     ]
@@ -2816,12 +2804,12 @@
     "test_cases": [
       {
         "input": "[[\"o\",\"a\",\"a\",\"n\"],[\"e\",\"t\",\"a\",\"e\"],[\"i\",\"h\",\"k\",\"r\"],[\"i\",\"f\",\"l\",\"v\"]]\n[\"oath\",\"pea\",\"eat\",\"rain\"]",
-        "expected_output": "",
+        "expected_output": "[\"eat\",\"oath\"]",
         "is_hidden": false
       },
       {
         "input": "[[\"a\",\"b\"],[\"c\",\"d\"]]\n[\"abcb\"]",
-        "expected_output": "",
+        "expected_output": "[]",
         "is_hidden": false
       }
     ]
@@ -2835,12 +2823,12 @@
     "test_cases": [
       {
         "input": "\"aacecaaa\"",
-        "expected_output": "",
+        "expected_output": "\"aaacecaaa\"",
         "is_hidden": false
       },
       {
         "input": "\"abcd\"",
-        "expected_output": "",
+        "expected_output": "\"dcbabcd\"",
         "is_hidden": false
       }
     ]
@@ -2854,12 +2842,12 @@
     "test_cases": [
       {
         "input": "[[2,9,10],[3,7,15],[5,12,12],[15,20,10],[19,24,8]]",
-        "expected_output": "",
+        "expected_output": "[[2,10],[3,15],[7,12],[12,0],[15,10],[20,8],[24,0]]",
         "is_hidden": false
       },
       {
         "input": "[[0,2,3],[2,5,3]]",
-        "expected_output": "",
+        "expected_output": "[[0,3],[5,0]]",
         "is_hidden": false
       }
     ]
@@ -2873,12 +2861,12 @@
     "test_cases": [
       {
         "input": "[1,2,3,1]\n3\n0",
-        "expected_output": "",
+        "expected_output": "true",
         "is_hidden": false
       },
       {
         "input": "[1,5,9,1,5,9]\n2\n3",
-        "expected_output": "",
+        "expected_output": "false",
         "is_hidden": false
       }
     ]
@@ -2892,17 +2880,17 @@
     "test_cases": [
       {
         "input": "\"1 + 1\"",
-        "expected_output": "",
+        "expected_output": "2",
         "is_hidden": false
       },
       {
         "input": "\" 2-1 + 2 \"",
-        "expected_output": "",
+        "expected_output": "3",
         "is_hidden": false
       },
       {
         "input": "\"(1+(4+5+2)-3)+(6+8)\"",
-        "expected_output": "",
+        "expected_output": "23",
         "is_hidden": false
       }
     ]
@@ -2916,12 +2904,12 @@
     "test_cases": [
       {
         "input": "13",
-        "expected_output": "",
+        "expected_output": "6",
         "is_hidden": false
       },
       {
         "input": "0",
-        "expected_output": "",
+        "expected_output": "0",
         "is_hidden": false
       }
     ]
@@ -2935,12 +2923,12 @@
     "test_cases": [
       {
         "input": "[1,3,-1,-3,5,3,6,7]\n3",
-        "expected_output": "",
+        "expected_output": "[3,3,5,5,6,7]",
         "is_hidden": false
       },
       {
         "input": "[1]\n1",
-        "expected_output": "",
+        "expected_output": "[1]",
         "is_hidden": false
       }
     ]
@@ -2954,7 +2942,7 @@
     "test_cases": [
       {
         "input": "{\"headers\": {\"Trips\": [\"id\", \"client_id\", \"driver_id\", \"city_id\", \"status\", \"request_at\"], \"Users\": [\"users_id\", \"banned\", \"role\"]}, \"rows\": {\"Trips\": [[\"1\", \"1\", \"10\", \"1\", \"completed\", \"2013-10-01\"], [\"2\", \"2\", \"11\", \"1\", \"cancelled_by_driver\", \"2013-10-01\"], [\"3\", \"3\", \"12\", \"6\", \"completed\", \"2013-10-01\"], [\"4\", \"4\", \"13\", \"6\", \"cancelled_by_client\", \"2013-10-01\"], [\"5\", \"1\", \"10\", \"1\", \"completed\", \"2013-10-02\"], [\"6\", \"2\", \"11\", \"6\", \"completed\", \"2013-10-02\"], [\"7\", \"3\", \"12\", \"6\", \"completed\", \"2013-10-02\"], [\"8\", \"2\", \"12\", \"12\", \"completed\", \"2013-10-03\"], [\"9\", \"3\", \"10\", \"12\", \"completed\", \"2013-10-03\"], [\"10\", \"4\", \"13\", \"12\", \"cancelled_by_driver\", \"2013-10-03\"]], \"Users\": [[\"1\", \"No\", \"client\"], [\"2\", \"Yes\", \"client\"], [\"3\", \"No\", \"client\"], [\"4\", \"No\", \"client\"], [\"10\", \"No\", \"driver\"], [\"11\", \"No\", \"driver\"], [\"12\", \"No\", \"driver\"], [\"13\", \"No\", \"driver\"]]}}",
-        "expected_output": "",
+        "expected_output": "+------------+-------------------+ | Day | Cancellation Rate | +------------+-------------------+ | 2013-10-01 | 0.33 | | 2013-10-02 | 0.00 | | 2013-10-03 | 0.50 | +------------+-------------------+",
         "is_hidden": false
       }
     ]
@@ -2968,17 +2956,17 @@
     "test_cases": [
       {
         "input": "123",
-        "expected_output": "",
+        "expected_output": "\"One Hundred Twenty Three\"",
         "is_hidden": false
       },
       {
         "input": "12345",
-        "expected_output": "",
+        "expected_output": "\"Twelve Thousand Three Hundred Forty Five\"",
         "is_hidden": false
       },
       {
         "input": "1234567",
-        "expected_output": "",
+        "expected_output": "\"One Million Two Hundred Thirty Four Thousand Five Hundred Sixty Seven\"",
         "is_hidden": false
       }
     ]
@@ -2992,17 +2980,17 @@
     "test_cases": [
       {
         "input": "\"123\"\n6",
-        "expected_output": "",
+        "expected_output": "[\"1*2*3\",\"1+2+3\"]",
         "is_hidden": false
       },
       {
         "input": "\"232\"\n8",
-        "expected_output": "",
+        "expected_output": "[\"2*3+2\",\"2+3*2\"]",
         "is_hidden": false
       },
       {
         "input": "\"3456237490\"\n9191",
-        "expected_output": "",
+        "expected_output": "[]",
         "is_hidden": false
       }
     ]
@@ -3013,13 +3001,7 @@
     "difficulty": "HARD",
     "time_limit": 1000,
     "memory_limit": 256,
-    "test_cases": [
-      {
-        "input": "[\"MedianFinder\",\"addNum\",\"addNum\",\"findMedian\",\"addNum\",\"findMedian\"]\n[[],[1],[2],[],[3],[]]",
-        "expected_output": "",
-        "is_hidden": false
-      }
-    ]
+    "test_cases": []
   },
   {
     "title": "Serialize and Deserialize Binary Tree",
@@ -3030,12 +3012,12 @@
     "test_cases": [
       {
         "input": "[1,2,3,null,null,4,5]",
-        "expected_output": "",
+        "expected_output": "[1,2,3,null,null,4,5]",
         "is_hidden": false
       },
       {
         "input": "[]",
-        "expected_output": "",
+        "expected_output": "[]",
         "is_hidden": false
       }
     ]
@@ -3049,17 +3031,17 @@
     "test_cases": [
       {
         "input": "\"()())()\"",
-        "expected_output": "",
+        "expected_output": "[\"(())()\",\"()()()\"]",
         "is_hidden": false
       },
       {
         "input": "\"(a)())()\"",
-        "expected_output": "",
+        "expected_output": "[\"(a())()\",\"(a)()()\"]",
         "is_hidden": false
       },
       {
         "input": "\")(\"",
-        "expected_output": "",
+        "expected_output": "[\"\"]",
         "is_hidden": false
       }
     ]
@@ -3073,12 +3055,12 @@
     "test_cases": [
       {
         "input": "[3,1,5,8]",
-        "expected_output": "",
+        "expected_output": "167",
         "is_hidden": false
       },
       {
         "input": "[1,5]",
-        "expected_output": "",
+        "expected_output": "10",
         "is_hidden": false
       }
     ]
@@ -3092,17 +3074,17 @@
     "test_cases": [
       {
         "input": "[5,2,6,1]",
-        "expected_output": "",
+        "expected_output": "[2,1,1,0]",
         "is_hidden": false
       },
       {
         "input": "[-1]",
-        "expected_output": "",
+        "expected_output": "[0]",
         "is_hidden": false
       },
       {
         "input": "[-1,-1]",
-        "expected_output": "",
+        "expected_output": "[0,0]",
         "is_hidden": false
       }
     ]
@@ -3116,17 +3098,17 @@
     "test_cases": [
       {
         "input": "[3,4,6,5]\n[9,1,2,5,8,3]\n5",
-        "expected_output": "",
+        "expected_output": "[9,8,6,5,3]",
         "is_hidden": false
       },
       {
         "input": "[6,7]\n[6,0,4]\n5",
-        "expected_output": "",
+        "expected_output": "[6,7,6,0,4]",
         "is_hidden": false
       },
       {
         "input": "[3,9]\n[8,9]\n3",
-        "expected_output": "",
+        "expected_output": "[9,8,9]",
         "is_hidden": false
       }
     ]
@@ -3140,12 +3122,12 @@
     "test_cases": [
       {
         "input": "[-2,5,-1]\n-2\n2",
-        "expected_output": "",
+        "expected_output": "3",
         "is_hidden": false
       },
       {
         "input": "[0]\n0\n0",
-        "expected_output": "",
+        "expected_output": "1",
         "is_hidden": false
       }
     ]
@@ -3159,17 +3141,17 @@
     "test_cases": [
       {
         "input": "[[9,9,4],[6,6,8],[2,1,1]]",
-        "expected_output": "",
+        "expected_output": "4",
         "is_hidden": false
       },
       {
         "input": "[[3,4,5],[3,2,6],[2,2,1]]",
-        "expected_output": "",
+        "expected_output": "4",
         "is_hidden": false
       },
       {
         "input": "[[1]]",
-        "expected_output": "",
+        "expected_output": "1",
         "is_hidden": false
       }
     ]
