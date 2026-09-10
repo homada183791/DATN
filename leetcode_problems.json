@@ -1058,5 +1058,2120 @@
         "is_hidden": false
       }
     ]
+  },
+  {
+    "title": "Add Two Numbers",
+    "description": "You are given two \nnon-empty\n linked lists representing two non-negative integers. The digits are stored in \nreverse order\n, and each of their nodes contains a single digit. Add the two numbers and return the sum as a linked list.\n\nYou may assume the two numbers do not contain any leading zero, except the number 0 itself.\n\n \n\nExample 1:\n\nInput:\n l1 = [2,4,3], l2 = [5,6,4]\n\nOutput:\n [7,0,8]\n\nExplanation:\n 342 + 465 = 807.\n\nExample 2:\n\nInput:\n l1 = [0], l2 = [0]\n\nOutput:\n [0]\n\nExample 3:\n\nInput:\n l1 = [9,9,9,9,9,9,9], l2 = [9,9,9,9]\n\nOutput:\n [8,9,9,9,0,0,0,1]\n\n \n\nConstraints:\n\nThe number of nodes in each linked list is in the range \n[1, 100]\n.\n\n0 <= Node.val <= 9\n\nIt is guaranteed that the list represents a number that does not have leading zeros.",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[2,4,3]\n[5,6,4]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[0]\n[0]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[9,9,9,9,9,9,9]\n[9,9,9,9]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Longest Substring Without Repeating Characters",
+    "description": "Given a string \ns\n, find the length of the \nlongest\n \nsubstring\n without duplicate characters.\n\n \n\nExample 1:\n\nInput:\n s = \"abcabcbb\"\n\nOutput:\n 3\n\nExplanation:\n The answer is \"abc\", with the length of 3. Note that \n\"bca\"\n and \n\"cab\"\n are also correct answers.\n\nExample 2:\n\nInput:\n s = \"bbbbb\"\n\nOutput:\n 1\n\nExplanation:\n The answer is \"b\", with the length of 1.\n\nExample 3:\n\nInput:\n s = \"pwwkew\"\n\nOutput:\n 3\n\nExplanation:\n The answer is \"wke\", with the length of 3.\nNotice that the answer must be a substring, \"pwke\" is a subsequence and not a substring.\n\n \n\nConstraints:\n\n0 <= s.length <= 10\n5\n\ns\n consists of English letters, digits, symbols and spaces.",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"abcabcbb\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"bbbbb\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"pwwkew\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Longest Palindromic Substring",
+    "description": "Given a string \ns\n, return \nthe longest\n \npalindromic\n \nsubstring\n in \ns\n.\n\n \n\nExample 1:\n\nInput:\n s = \"babad\"\n\nOutput:\n \"bab\"\n\nExplanation:\n \"aba\" is also a valid answer.\n\nExample 2:\n\nInput:\n s = \"cbbd\"\n\nOutput:\n \"bb\"\n\n \n\nConstraints:\n\n1 <= s.length <= 1000\n\ns\n consist of only digits and English letters.",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"babad\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"cbbd\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Zigzag Conversion",
+    "description": "The string \n\"PAYPALISHIRING\"\n is written in a zigzag pattern on a given number of rows like this: (you may want to display this pattern in a fixed font for better legibility)\n\nP   A   H   N\nA P L S I I G\nY   I   R\n\nAnd then read line by line: \n\"PAHNAPLSIIGYIR\"\n\nWrite the code that will take a string and make this conversion given a number of rows:\n\nstring convert(string s, int numRows);\n\n \n\nExample 1:\n\nInput:\n s = \"PAYPALISHIRING\", numRows = 3\n\nOutput:\n \"PAHNAPLSIIGYIR\"\n\nExample 2:\n\nInput:\n s = \"PAYPALISHIRING\", numRows = 4\n\nOutput:\n \"PINALSIGYAHRPI\"\n\nExplanation:\n\nP     I    N\nA   L S  I G\nY A   H R\nP     I\n\nExample 3:\n\nInput:\n s = \"A\", numRows = 1\n\nOutput:\n \"A\"\n\n \n\nConstraints:\n\n1 <= s.length <= 1000\n\ns\n consists of English letters (lower-case and upper-case), \n','\n and \n'.'\n.\n\n1 <= numRows <= 1000",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"PAYPALISHIRING\"\n3",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"PAYPALISHIRING\"\n4",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"A\"\n1",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Reverse Integer",
+    "description": "Given a signed 32-bit integer \nx\n, return \nx\n with its digits reversed\n. If reversing \nx\n causes the value to go outside the signed 32-bit integer range \n[-2\n31\n, 2\n31\n - 1]\n, then return \n0\n.\n\nAssume the environment does not allow you to store 64-bit integers (signed or unsigned).\n\n \n\nExample 1:\n\nInput:\n x = 123\n\nOutput:\n 321\n\nExample 2:\n\nInput:\n x = -123\n\nOutput:\n -321\n\nExample 3:\n\nInput:\n x = 120\n\nOutput:\n 21\n\n \n\nConstraints:\n\n-2\n31\n <= x <= 2\n31\n - 1",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "123",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "-123",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "120",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "String to Integer (atoi)",
+    "description": "Implement the \nmyAtoi(string s)\n function, which converts a string to a 32-bit signed integer.\n\nThe algorithm for \nmyAtoi(string s)\n is as follows:\n\nWhitespace\n: Ignore any leading whitespace (\n\" \"\n).\n\nSignedness\n: Determine the sign by checking if the next character is \n'-'\n or \n'+'\n, assuming positivity if neither present.\n\nConversion\n: Read the integer by skipping leading zeros until a non-digit character is encountered or the end of the string is reached. If no digits were read, then the result is 0.\n\nRounding\n: If the integer is out of the 32-bit signed integer range \n[-2\n31\n, 2\n31\n - 1]\n, then round the integer to remain in the range. Specifically, integers less than \n-2\n31\n should be rounded to \n-2\n31\n, and integers greater than \n2\n31\n - 1\n should be rounded to \n2\n31\n - 1\n.\n\nReturn the integer as the final result.\n\n \n\nExample 1:\n\nInput:\n \ns = \"42\"\n\nOutput:\n \n42\n\nExplanation:\n\nThe underlined characters are what is read in and the caret is the current reader position.\nStep 1: \"42\" (no characters read because there is no leading whitespace)\n         ^\nStep 2: \"42\" (no characters read because there is neither a '-' nor '+')\n         ^\nStep 3: \"\n42\n\" (\"42\" is read in)\n           ^\n\nExample 2:\n\nInput:\n \ns = \" -042\"\n\nOutput:\n \n-42\n\nExplanation:\n\nStep 1: \"\n   \n-042\" (leading whitespace is read and ignored)\n            ^\nStep 2: \"   \n-\n042\" ('-' is read, so the result should be negative)\n             ^\nStep 3: \"   -\n042\n\" (\"042\" is read in, leading zeros ignored in the result)\n               ^\n\nExample 3:\n\nInput:\n \ns = \"1337c0d3\"\n\nOutput:\n \n1337\n\nExplanation:\n\nStep 1: \"1337c0d3\" (no characters read because there is no leading whitespace)\n         ^\nStep 2: \"1337c0d3\" (no characters read because there is neither a '-' nor '+')\n         ^\nStep 3: \"\n1337\nc0d3\" (\"1337\" is read in; reading stops because the next character is a non-digit)\n             ^\n\nExample 4:\n\nInput:\n \ns = \"0-1\"\n\nOutput:\n \n0\n\nExplanation:\n\nStep 1: \"0-1\" (no characters read because there is no leading whitespace)\n         ^\nStep 2: \"0-1\" (no characters read because there is neither a '-' nor '+')\n         ^\nStep 3: \"\n0\n-1\" (\"0\" is read in; reading stops because the next character is a non-digit)\n          ^\n\nExample 5:\n\nInput:\n \ns = \"words and 987\"\n\nOutput:\n \n0\n\nExplanation:\n\nReading stops at the first non-digit character 'w'.\n\n \n\nConstraints:\n\n0 <= s.length <= 200\n\ns\n consists of English letters (lower-case and upper-case), digits (\n0-9\n), \n' '\n, \n'+'\n, \n'-'\n, and \n'.'\n.",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"42\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"   -042\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"1337c0d3\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"0-1\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"words and 987\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Container With Most Water",
+    "description": "You are given an integer array \nheight\n of length \nn\n. There are \nn\n vertical lines drawn such that the two endpoints of the \ni\nth\n line are \n(i, 0)\n and \n(i, height[i])\n.\n\nFind two lines that together with the x-axis form a container, such that the container contains the most water.\n\nReturn \nthe maximum amount of water a container can store\n.\n\nNotice\n that you may not slant the container.\n\n \n\nExample 1:\n\nInput:\n height = [1,8,6,2,5,4,8,3,7]\n\nOutput:\n 49\n\nExplanation:\n The above vertical lines are represented by array [1,8,6,2,5,4,8,3,7]. In this case, the max area of water (blue section) the container can contain is 49.\n\nExample 2:\n\nInput:\n height = [1,1]\n\nOutput:\n 1\n\n \n\nConstraints:\n\nn == height.length\n\n2 <= n <= 10\n5\n\n0 <= height[i] <= 10\n4",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,8,6,2,5,4,8,3,7]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,1]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Integer to Roman",
+    "description": "Seven different symbols represent Roman numerals with the following values:\n\nSymbol\n\nValue\n\nI\n\n1\n\nV\n\n5\n\nX\n\n10\n\nL\n\n50\n\nC\n\n100\n\nD\n\n500\n\nM\n\n1000\n\nRoman numerals are formed by appending the conversions of decimal place values from highest to lowest. Converting a decimal place value into a Roman numeral has the following rules:\n\nIf the value does not start with 4 or 9, select the symbol of the maximal value that can be subtracted from the input, append that symbol to the result, subtract its value, and convert the remainder to a Roman numeral.\n\nIf the value starts with 4 or 9 use the \nsubtractive form\n representing one symbol subtracted from the following symbol, for example, 4 is 1 (\nI\n) less than 5 (\nV\n): \nIV\n and 9 is 1 (\nI\n) less than 10 (\nX\n): \nIX\n. Only the following subtractive forms are used: 4 (\nIV\n), 9 (\nIX\n), 40 (\nXL\n), 90 (\nXC\n), 400 (\nCD\n) and 900 (\nCM\n).\n\nOnly powers of 10 (\nI\n, \nX\n, \nC\n, \nM\n) can be appended consecutively at most 3 times to represent multiples of 10. You cannot append 5 (\nV\n), 50 (\nL\n), or 500 (\nD\n) multiple times. If you need to append a symbol 4 times use the \nsubtractive form\n.\n\nGiven an integer, convert it to a Roman numeral.\n\n \n\nExample 1:\n\nInput:\n \nnum = 3749\n\nOutput:\n \n\"MMMDCCXLIX\"\n\nExplanation:\n\n3000 = MMM as 1000 (M) + 1000 (M) + 1000 (M)\n 700 = DCC as 500 (D) + 100 (C) + 100 (C)\n  40 = XL as 10 (X) less of 50 (L)\n   9 = IX as 1 (I) less of 10 (X)\nNote: 49 is not 1 (I) less of 50 (L) because the conversion is based on decimal places\n\nExample 2:\n\nInput:\n \nnum = 58\n\nOutput:\n \n\"LVIII\"\n\nExplanation:\n\n50 = L\n 8 = VIII\n\nExample 3:\n\nInput:\n \nnum = 1994\n\nOutput:\n \n\"MCMXCIV\"\n\nExplanation:\n\n1000 = M\n 900 = CM\n  90 = XC\n   4 = IV\n\n \n\nConstraints:\n\n1 <= num <= 3999",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "3749",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "58",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "1994",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "3Sum",
+    "description": "Given an integer array nums, return all the triplets \n[nums[i], nums[j], nums[k]]\n such that \ni != j\n, \ni != k\n, and \nj != k\n, and \nnums[i] + nums[j] + nums[k] == 0\n.\n\nNotice that the solution set must not contain duplicate triplets.\n\n \n\nExample 1:\n\nInput:\n nums = [-1,0,1,2,-1,-4]\n\nOutput:\n [[-1,-1,2],[-1,0,1]]\n\nExplanation:\n \nnums[0] + nums[1] + nums[2] = (-1) + 0 + 1 = 0.\nnums[1] + nums[2] + nums[4] = 0 + 1 + (-1) = 0.\nnums[0] + nums[3] + nums[4] = (-1) + 2 + (-1) = 0.\nThe distinct triplets are [-1,0,1] and [-1,-1,2].\nNotice that the order of the output and the order of the triplets does not matter.\n\nExample 2:\n\nInput:\n nums = [0,1,1]\n\nOutput:\n []\n\nExplanation:\n The only possible triplet does not sum up to 0.\n\nExample 3:\n\nInput:\n nums = [0,0,0]\n\nOutput:\n [[0,0,0]]\n\nExplanation:\n The only possible triplet sums up to 0.\n\n \n\nConstraints:\n\n3 <= nums.length <= 3000\n\n-10\n5\n <= nums[i] <= 10\n5",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[-1,0,1,2,-1,-4]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[0,1,1]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[0,0,0]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "3Sum Closest",
+    "description": "You are given an integer array \nnums\n of length \nn\n and an integer \ntarget\n.\n\nFind three integers at \ndistinct indices\n in \nnums\n such that the sum is \nclosest\n to \ntarget\n.\n\nReturn the sum of the three integers.\n\nYou may assume that each input would have \nexactly\n one solution.\n\n \n\nExample 1:\n\nInput:\n nums = [-1,2,1,-4], target = 1\n\nOutput:\n 2\n\nExplanation:\n The sum that is closest to the target is 2. (-1 + 2 + 1 = 2).\n\nExample 2:\n\nInput:\n nums = [0,0,0], target = 1\n\nOutput:\n 0\n\nExplanation:\n The sum that is closest to the target is 0. (0 + 0 + 0 = 0).\n\n \n\nConstraints:\n\n3 <= nums.length <= 500\n\n-1000 <= nums[i] <= 1000\n\n-10\n4\n <= target <= 10\n4",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[-1,2,1,-4]\n1",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[0,0,0]\n1",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Letter Combinations of a Phone Number",
+    "description": "Given a string containing digits from \n2-9\n inclusive, return all possible letter combinations that the number could represent. Return the answer in \nany order\n.\n\nA mapping of digits to letters (just like on the telephone buttons) is given below. Note that 1 does not map to any letters.\n\n \n\nExample 1:\n\nInput:\n digits = \"23\"\n\nOutput:\n [\"ad\",\"ae\",\"af\",\"bd\",\"be\",\"bf\",\"cd\",\"ce\",\"cf\"]\n\nExample 2:\n\nInput:\n digits = \"2\"\n\nOutput:\n [\"a\",\"b\",\"c\"]\n\n \n\nConstraints:\n\n1 <= digits.length <= 4\n\ndigits[i]\n is a digit in the range \n['2', '9']\n.",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"23\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"2\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "4Sum",
+    "description": "Given an array \nnums\n of \nn\n integers, return \nan array of all the \nunique\n quadruplets\n \n[nums[a], nums[b], nums[c], nums[d]]\n such that:\n\n0 <= a, b, c, d < n\n\na\n, \nb\n, \nc\n, and \nd\n are \ndistinct\n.\n\nnums[a] + nums[b] + nums[c] + nums[d] == target\n\nYou may return the answer in \nany order\n.\n\n \n\nExample 1:\n\nInput:\n nums = [1,0,-1,0,-2,2], target = 0\n\nOutput:\n [[-2,-1,1,2],[-2,0,0,2],[-1,0,0,1]]\n\nExample 2:\n\nInput:\n nums = [2,2,2,2,2], target = 8\n\nOutput:\n [[2,2,2,2]]\n\n \n\nConstraints:\n\n1 <= nums.length <= 200\n\n-10\n9\n <= nums[i] <= 10\n9\n\n-10\n9\n <= target <= 10\n9",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,0,-1,0,-2,2]\n0",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[2,2,2,2,2]\n8",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Remove Nth Node From End of List",
+    "description": "Given the \nhead\n of a linked list, remove the \nn\nth\n node from the end of the list and return its head.\n\n \n\nExample 1:\n\nInput:\n head = [1,2,3,4,5], n = 2\n\nOutput:\n [1,2,3,5]\n\nExample 2:\n\nInput:\n head = [1], n = 1\n\nOutput:\n []\n\nExample 3:\n\nInput:\n head = [1,2], n = 1\n\nOutput:\n [1]\n\n \n\nConstraints:\n\nThe number of nodes in the list is \nsz\n.\n\n1 <= sz <= 30\n\n0 <= Node.val <= 100\n\n1 <= n <= sz\n\n \n\nFollow up:\n Could you do this in one pass?",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,2,3,4,5]\n2",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1]\n1",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,2]\n1",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Generate Parentheses",
+    "description": "Given \nn\n pairs of parentheses, write a function to \ngenerate all combinations of well-formed parentheses\n.\n\n \n\nExample 1:\n\nInput:\n n = 3\n\nOutput:\n [\"((()))\",\"(()())\",\"(())()\",\"()(())\",\"()()()\"]\n\nExample 2:\n\nInput:\n n = 1\n\nOutput:\n [\"()\"]\n\n \n\nConstraints:\n\n1 <= n <= 8",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "3",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "1",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Swap Nodes in Pairs",
+    "description": "Given a linked list, swap every two adjacent nodes and return its head. You must solve the problem without modifying the values in the list's nodes (i.e., only nodes themselves may be changed.)\n\n \n\nExample 1:\n\nInput:\n \nhead = [1,2,3,4]\n\nOutput:\n \n[2,1,4,3]\n\nExplanation:\n\nExample 2:\n\nInput:\n \nhead = []\n\nOutput:\n \n[]\n\nExample 3:\n\nInput:\n \nhead = [1]\n\nOutput:\n \n[1]\n\nExample 4:\n\nInput:\n \nhead = [1,2,3]\n\nOutput:\n \n[2,1,3]\n\n \n\nConstraints:\n\nThe number of nodes in the list is in the range \n[0, 100]\n.\n\n0 <= Node.val <= 100",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,2,3,4]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,2,3]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Divide Two Integers",
+    "description": "Given two integers \ndividend\n and \ndivisor\n, divide two integers \nwithout\n using multiplication, division, and mod operator.\n\nThe integer division should truncate toward zero, which means losing its fractional part. For example, \n8.345\n would be truncated to \n8\n, and \n-2.7335\n would be truncated to \n-2\n.\n\nReturn \nthe \nquotient\n after dividing \ndividend\n by \ndivisor\n.\n\nNote: \nAssume we are dealing with an environment that could only store integers within the \n32-bit\n signed integer range: \n[−2\n31\n, 2\n31\n − 1]\n. For this problem, if the quotient is \nstrictly greater than\n \n2\n31\n - 1\n, then return \n2\n31\n - 1\n, and if the quotient is \nstrictly less than\n \n-2\n31\n, then return \n-2\n31\n.\n\n \n\nExample 1:\n\nInput:\n dividend = 10, divisor = 3\n\nOutput:\n 3\n\nExplanation:\n 10/3 = 3.33333.. which is truncated to 3.\n\nExample 2:\n\nInput:\n dividend = 7, divisor = -3\n\nOutput:\n -2\n\nExplanation:\n 7/-3 = -2.33333.. which is truncated to -2.\n\n \n\nConstraints:\n\n-2\n31\n <= dividend, divisor <= 2\n31\n - 1\n\ndivisor != 0",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "10\n3",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "7\n-3",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Next Permutation",
+    "description": "A \npermutation\n of an array of integers is an arrangement of its members into a sequence or linear order.\n\nFor example, for \narr = [1,2,3]\n, the following are all the permutations of \narr\n: \n[1,2,3], [1,3,2], [2, 1, 3], [2, 3, 1], [3,1,2], [3,2,1]\n.\n\nThe \nnext permutation\n of an array of integers is the next lexicographically greater permutation of its integer. More formally, if all the permutations of the array are sorted in one container according to their lexicographical order, then the \nnext permutation\n of that array is the permutation that follows it in the sorted container. If such arrangement is not possible, the array must be rearranged as the lowest possible order (i.e., sorted in ascending order).\n\nFor example, the next permutation of \narr = [1,2,3]\n is \n[1,3,2]\n.\n\nSimilarly, the next permutation of \narr = [2,3,1]\n is \n[3,1,2]\n.\n\nWhile the next permutation of \narr = [3,2,1]\n is \n[1,2,3]\n because \n[3,2,1]\n does not have a lexicographical larger rearrangement.\n\nGiven an array of integers \nnums\n, \nfind the next permutation of\n \nnums\n.\n\nThe replacement must be \nin place\n and use only constant extra memory.\n\n \n\nExample 1:\n\nInput:\n nums = [1,2,3]\n\nOutput:\n [1,3,2]\n\nExample 2:\n\nInput:\n nums = [3,2,1]\n\nOutput:\n [1,2,3]\n\nExample 3:\n\nInput:\n nums = [1,1,5]\n\nOutput:\n [1,5,1]\n\n \n\nConstraints:\n\n1 <= nums.length <= 100\n\n0 <= nums[i] <= 100",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,2,3]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[3,2,1]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,1,5]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Search in Rotated Sorted Array",
+    "description": "There is an integer array \nnums\n sorted in ascending order (with \ndistinct\n values).\n\nPrior to being passed to your function, \nnums\n is \npossibly left rotated\n at an unknown index \nk\n (\n1 <= k < nums.length\n) such that the resulting array is \n[nums[k], nums[k+1], ..., nums[n-1], nums[0], nums[1], ..., nums[k-1]]\n (\n0-indexed\n). For example, \n[0,1,2,4,5,6,7]\n might be left rotated by \n3\n indices and become \n[4,5,6,7,0,1,2]\n.\n\nGiven the array \nnums\n \nafter\n the possible rotation and an integer \ntarget\n, return \nthe index of \ntarget\n if it is in \nnums\n, or \n-1\n if it is not in \nnums\n.\n\nYou must write an algorithm with \nO(log n)\n runtime complexity.\n\n \n\nExample 1:\n\nInput:\n nums = [4,5,6,7,0,1,2], target = 0\n\nOutput:\n 4\n\nExample 2:\n\nInput:\n nums = [4,5,6,7,0,1,2], target = 3\n\nOutput:\n -1\n\nExample 3:\n\nInput:\n nums = [1], target = 0\n\nOutput:\n -1\n\n \n\nConstraints:\n\n1 <= nums.length <= 5000\n\n-10\n4\n <= nums[i] <= 10\n4\n\nAll values of \nnums\n are \nunique\n.\n\nnums\n is an ascending array that is possibly rotated.\n\n-10\n4\n <= target <= 10\n4",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[4,5,6,7,0,1,2]\n0",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[4,5,6,7,0,1,2]\n3",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1]\n0",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Find First and Last Position of Element in Sorted Array",
+    "description": "Given an array of integers \nnums\n sorted in non-decreasing order, find the starting and ending position of a given \ntarget\n value.\n\nIf \ntarget\n is not found in the array, return \n[-1, -1]\n.\n\nYou must write an algorithm with \nO(log n)\n runtime complexity.\n\n \n\nExample 1:\n\nInput:\n nums = [5,7,7,8,8,10], target = 8\n\nOutput:\n [3,4]\n\nExample 2:\n\nInput:\n nums = [5,7,7,8,8,10], target = 6\n\nOutput:\n [-1,-1]\n\nExample 3:\n\nInput:\n nums = [], target = 0\n\nOutput:\n [-1,-1]\n\n \n\nConstraints:\n\n0 <= nums.length <= 10\n5\n\n-10\n9\n <= nums[i] <= 10\n9\n\nnums\n is a non-decreasing array.\n\n-10\n9\n <= target <= 10\n9",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[5,7,7,8,8,10]\n8",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[5,7,7,8,8,10]\n6",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[]\n0",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Valid Sudoku",
+    "description": "Determine if a \n9 x 9\n Sudoku board is valid. Only the filled cells need to be validated \naccording to the following rules\n:\n\nEach row must contain the digits \n1-9\n without repetition.\n\nEach column must contain the digits \n1-9\n without repetition.\n\nEach of the nine \n3 x 3\n sub-boxes of the grid must contain the digits \n1-9\n without repetition.\n\nNote:\n\nA Sudoku board (partially filled) could be valid but is not necessarily solvable.\n\nOnly the filled cells need to be validated according to the mentioned rules.\n\n \n\nExample 1:\n\nInput:\n board = \n[[\"5\",\"3\",\".\",\".\",\"7\",\".\",\".\",\".\",\".\"]\n,[\"6\",\".\",\".\",\"1\",\"9\",\"5\",\".\",\".\",\".\"]\n,[\".\",\"9\",\"8\",\".\",\".\",\".\",\".\",\"6\",\".\"]\n,[\"8\",\".\",\".\",\".\",\"6\",\".\",\".\",\".\",\"3\"]\n,[\"4\",\".\",\".\",\"8\",\".\",\"3\",\".\",\".\",\"1\"]\n,[\"7\",\".\",\".\",\".\",\"2\",\".\",\".\",\".\",\"6\"]\n,[\".\",\"6\",\".\",\".\",\".\",\".\",\"2\",\"8\",\".\"]\n,[\".\",\".\",\".\",\"4\",\"1\",\"9\",\".\",\".\",\"5\"]\n,[\".\",\".\",\".\",\".\",\"8\",\".\",\".\",\"7\",\"9\"]]\n\nOutput:\n true\n\nExample 2:\n\nInput:\n board = \n[[\"8\",\"3\",\".\",\".\",\"7\",\".\",\".\",\".\",\".\"]\n,[\"6\",\".\",\".\",\"1\",\"9\",\"5\",\".\",\".\",\".\"]\n,[\".\",\"9\",\"8\",\".\",\".\",\".\",\".\",\"6\",\".\"]\n,[\"8\",\".\",\".\",\".\",\"6\",\".\",\".\",\".\",\"3\"]\n,[\"4\",\".\",\".\",\"8\",\".\",\"3\",\".\",\".\",\"1\"]\n,[\"7\",\".\",\".\",\".\",\"2\",\".\",\".\",\".\",\"6\"]\n,[\".\",\"6\",\".\",\".\",\".\",\".\",\"2\",\"8\",\".\"]\n,[\".\",\".\",\".\",\"4\",\"1\",\"9\",\".\",\".\",\"5\"]\n,[\".\",\".\",\".\",\".\",\"8\",\".\",\".\",\"7\",\"9\"]]\n\nOutput:\n false\n\nExplanation:\n Same as Example 1, except with the \n5\n in the top left corner being modified to \n8\n. Since there are two 8's in the top left 3x3 sub-box, it is invalid.\n\n \n\nConstraints:\n\nboard.length == 9\n\nboard[i].length == 9\n\nboard[i][j]\n is a digit \n1-9\n or \n'.'\n.",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[[\"5\",\"3\",\".\",\".\",\"7\",\".\",\".\",\".\",\".\"],[\"6\",\".\",\".\",\"1\",\"9\",\"5\",\".\",\".\",\".\"],[\".\",\"9\",\"8\",\".\",\".\",\".\",\".\",\"6\",\".\"],[\"8\",\".\",\".\",\".\",\"6\",\".\",\".\",\".\",\"3\"],[\"4\",\".\",\".\",\"8\",\".\",\"3\",\".\",\".\",\"1\"],[\"7\",\".\",\".\",\".\",\"2\",\".\",\".\",\".\",\"6\"],[\".\",\"6\",\".\",\".\",\".\",\".\",\"2\",\"8\",\".\"],[\".\",\".\",\".\",\"4\",\"1\",\"9\",\".\",\".\",\"5\"],[\".\",\".\",\".\",\".\",\"8\",\".\",\".\",\"7\",\"9\"]]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[\"8\",\"3\",\".\",\".\",\"7\",\".\",\".\",\".\",\".\"],[\"6\",\".\",\".\",\"1\",\"9\",\"5\",\".\",\".\",\".\"],[\".\",\"9\",\"8\",\".\",\".\",\".\",\".\",\"6\",\".\"],[\"8\",\".\",\".\",\".\",\"6\",\".\",\".\",\".\",\"3\"],[\"4\",\".\",\".\",\"8\",\".\",\"3\",\".\",\".\",\"1\"],[\"7\",\".\",\".\",\".\",\"2\",\".\",\".\",\".\",\"6\"],[\".\",\"6\",\".\",\".\",\".\",\".\",\"2\",\"8\",\".\"],[\".\",\".\",\".\",\"4\",\"1\",\"9\",\".\",\".\",\"5\"],[\".\",\".\",\".\",\".\",\"8\",\".\",\".\",\"7\",\"9\"]]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Count and Say",
+    "description": "The \ncount-and-say\n sequence is a sequence of digit strings defined by the recursive formula:\n\ncountAndSay(1) = \"1\"\n\ncountAndSay(n)\n is the run-length encoding of \ncountAndSay(n - 1)\n.\n\nRun-length encoding\n (RLE) is a string compression method that works by replacing each maximal group of consecutive identical characters with the concatenation of the length of the group followed by the character itself. For example, to compress the string \n\"3322251\"\n we replace \n\"33\"\n with \n\"23\"\n, replace \n\"222\"\n with \n\"32\"\n, replace \n\"5\"\n with \n\"15\"\n, and replace \n\"1\"\n with \n\"11\"\n. Thus the compressed string becomes \n\"23321511\"\n.\n\nGiven a positive integer \nn\n, return \nthe \nn\nth\n element of the \ncount-and-say\n sequence\n.\n\n \n\nExample 1:\n\nInput:\n \nn = 4\n\nOutput:\n \n\"1211\"\n\nExplanation:\n\ncountAndSay(1) = \"1\"\ncountAndSay(2) = RLE of \"1\" = \"11\"\ncountAndSay(3) = RLE of \"11\" = \"21\"\ncountAndSay(4) = RLE of \"21\" = \"1211\"\n\nExample 2:\n\nInput:\n \nn = 1\n\nOutput:\n \n\"1\"\n\nExplanation:\n\nThis is the base case.\n\n \n\nConstraints:\n\n1 <= n <= 30\n\n \n\nFollow up:\n Could you solve it iteratively?",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "1",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "4",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Combination Sum",
+    "description": "Given an array of \ndistinct\n integers \ncandidates\n and a target integer \ntarget\n, return \na list of all \nunique combinations\n of \ncandidates\n where the chosen numbers sum to \ntarget\n.\n You may return the combinations in \nany order\n.\n\nThe \nsame\n number may be chosen from \ncandidates\n an \nunlimited number of times\n. Two combinations are unique if the \nfrequency\n of at least one of the chosen numbers is different.\n\nThe test cases are generated such that the number of unique combinations that sum up to \ntarget\n is less than \n150\n combinations for the given input.\n\n \n\nExample 1:\n\nInput:\n candidates = [2,3,6,7], target = 7\n\nOutput:\n [[2,2,3],[7]]\n\nExplanation:\n\n2 and 3 are candidates, and 2 + 2 + 3 = 7. Note that 2 can be used multiple times.\n7 is a candidate, and 7 = 7.\nThese are the only two combinations.\n\nExample 2:\n\nInput:\n candidates = [2,3,5], target = 8\n\nOutput:\n [[2,2,2,2],[2,3,3],[3,5]]\n\nExample 3:\n\nInput:\n candidates = [2], target = 1\n\nOutput:\n []\n\n \n\nConstraints:\n\n1 <= candidates.length <= 30\n\n2 <= candidates[i] <= 40\n\nAll elements of \ncandidates\n are \ndistinct\n.\n\n1 <= target <= 40",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[2,3,6,7]\n7",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[2,3,5]\n8",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[2]\n1",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Combination Sum II",
+    "description": "Given a collection of candidate numbers (\ncandidates\n) and a target number (\ntarget\n), find all unique combinations in \ncandidates\n where the candidate numbers sum to \ntarget\n.\n\nEach number in \ncandidates\n may only be used \nonce\n in the combination.\n\nNote:\n The solution set must not contain duplicate combinations.\n\n \n\nExample 1:\n\nInput:\n candidates = [10,1,2,7,6,1,5], target = 8\n\nOutput:\n \n[\n[1,1,6],\n[1,2,5],\n[1,7],\n[2,6]\n]\n\nExample 2:\n\nInput:\n candidates = [2,5,2,1,2], target = 5\n\nOutput:\n \n[\n[1,2,2],\n[5]\n]\n\n \n\nConstraints:\n\n1 <= candidates.length <= 100\n\n1 <= candidates[i] <= 50\n\n1 <= target <= 30",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[10,1,2,7,6,1,5]\n8",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[2,5,2,1,2]\n5",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Multiply Strings",
+    "description": "Given two non-negative integers \nnum1\n and \nnum2\n represented as strings, return the product of \nnum1\n and \nnum2\n, also represented as a string.\n\nNote:\n You must not use any built-in BigInteger library or convert the inputs to integer directly.\n\n \n\nExample 1:\n\nInput:\n num1 = \"2\", num2 = \"3\"\n\nOutput:\n \"6\"\n\nExample 2:\n\nInput:\n num1 = \"123\", num2 = \"456\"\n\nOutput:\n \"56088\"\n\n \n\nConstraints:\n\n1 <= num1.length, num2.length <= 200\n\nnum1\n and \nnum2\n consist of digits only.\n\nBoth \nnum1\n and \nnum2\n do not contain any leading zero, except the number \n0\n itself.",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"2\"\n\"3\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"123\"\n\"456\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Jump Game II",
+    "description": "You are given a \n0-indexed\n array of integers \nnums\n of length \nn\n. You are initially positioned at index 0.\n\nEach element \nnums[i]\n represents the maximum length of a forward jump from index \ni\n. In other words, if you are at index \ni\n, you can jump to any index \n(i + j)\n where:\n\n0 <= j <= nums[i]\n and\n\ni + j < n\n\nReturn \nthe minimum number of jumps to reach index \nn - 1\n. The test cases are generated such that you can reach index \nn - 1\n.\n\n \n\nExample 1:\n\nInput:\n nums = [2,3,1,1,4]\n\nOutput:\n 2\n\nExplanation:\n The minimum number of jumps to reach the last index is 2. Jump 1 step from index 0 to 1, then 3 steps to the last index.\n\nExample 2:\n\nInput:\n nums = [2,3,0,1,4]\n\nOutput:\n 2\n\n \n\nConstraints:\n\n1 <= nums.length <= 10\n4\n\n0 <= nums[i] <= 1000\n\nIt's guaranteed that you can reach \nnums[n - 1]\n.",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[2,3,1,1,4]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[2,3,0,1,4]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Permutations",
+    "description": "Given an array \nnums\n of distinct integers, return all the possible \npermutations\n. You can return the answer in \nany order\n.\n\n \n\nExample 1:\n\nInput:\n nums = [1,2,3]\n\nOutput:\n [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]\n\nExample 2:\n\nInput:\n nums = [0,1]\n\nOutput:\n [[0,1],[1,0]]\n\nExample 3:\n\nInput:\n nums = [1]\n\nOutput:\n [[1]]\n\n \n\nConstraints:\n\n1 <= nums.length <= 6\n\n-10 <= nums[i] <= 10\n\nAll the integers of \nnums\n are \nunique\n.",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,2,3]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[0,1]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Permutations II",
+    "description": "Given a collection of numbers, \nnums\n, that might contain duplicates, return \nall possible unique permutations \nin any order\n.\n\n \n\nExample 1:\n\nInput:\n nums = [1,1,2]\n\nOutput:\n\n[[1,1,2],\n [1,2,1],\n [2,1,1]]\n\nExample 2:\n\nInput:\n nums = [1,2,3]\n\nOutput:\n [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]\n\n \n\nConstraints:\n\n1 <= nums.length <= 8\n\n-10 <= nums[i] <= 10",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,1,2]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,2,3]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Rotate Image",
+    "description": "You are given an \nn x n\n 2D \nmatrix\n representing an image, rotate the image by \n90\n degrees (clockwise).\n\nYou have to rotate the image \nin-place\n, which means you have to modify the input 2D matrix directly. \nDO NOT\n allocate another 2D matrix and do the rotation.\n\n \n\nExample 1:\n\nInput:\n matrix = [[1,2,3],[4,5,6],[7,8,9]]\n\nOutput:\n [[7,4,1],[8,5,2],[9,6,3]]\n\nExample 2:\n\nInput:\n matrix = [[5,1,9,11],[2,4,8,10],[13,3,6,7],[15,14,12,16]]\n\nOutput:\n [[15,13,2,5],[14,3,4,1],[12,6,8,9],[16,7,10,11]]\n\n \n\nConstraints:\n\nn == matrix.length == matrix[i].length\n\n1 <= n <= 20\n\n-1000 <= matrix[i][j] <= 1000",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[[1,2,3],[4,5,6],[7,8,9]]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[5,1,9,11],[2,4,8,10],[13,3,6,7],[15,14,12,16]]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Group Anagrams",
+    "description": "Given an array of strings \nstrs\n, group the \nanagrams\n together. You can return the answer in \nany order\n.\n\n \n\nExample 1:\n\nInput:\n \nstrs = [\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"]\n\nOutput:\n \n[[\"bat\"],[\"nat\",\"tan\"],[\"ate\",\"eat\",\"tea\"]]\n\nExplanation:\n\nThere is no string in strs that can be rearranged to form \n\"bat\"\n.\n\nThe strings \n\"nat\"\n and \n\"tan\"\n are anagrams as they can be rearranged to form each other.\n\nThe strings \n\"ate\"\n, \n\"eat\"\n, and \n\"tea\"\n are anagrams as they can be rearranged to form each other.\n\nExample 2:\n\nInput:\n \nstrs = [\"\"]\n\nOutput:\n \n[[\"\"]]\n\nExample 3:\n\nInput:\n \nstrs = [\"a\"]\n\nOutput:\n \n[[\"a\"]]\n\n \n\nConstraints:\n\n1 <= strs.length <= 10\n4\n\n0 <= strs[i].length <= 100\n\nstrs[i]\n consists of lowercase English letters.",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[\"\"]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[\"a\"]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Pow(x, n)",
+    "description": "Implement \npow(x, n)\n, which calculates \nx\n raised to the power \nn\n (i.e., \nx\nn\n).\n\n \n\nExample 1:\n\nInput:\n x = 2.00000, n = 10\n\nOutput:\n 1024.00000\n\nExample 2:\n\nInput:\n x = 2.10000, n = 3\n\nOutput:\n 9.26100\n\nExample 3:\n\nInput:\n x = 2.00000, n = -2\n\nOutput:\n 0.25000\n\nExplanation:\n 2\n-2\n = 1/2\n2\n = 1/4 = 0.25\n\n \n\nConstraints:\n\n-100.0 < x < 100.0\n\n-2\n31\n <= n <= 2\n31\n-1\n\nn\n is an integer.\n\nEither \nx\n is not zero or \nn > 0\n.\n\n-10\n4\n <= x\nn\n <= 10\n4",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "2.00000\n10",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "2.10000\n3",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "2.00000\n-2",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Maximum Subarray",
+    "description": "Given an integer array \nnums\n, find the \nsubarray\n with the largest sum, and return \nits sum\n.\n\n \n\nExample 1:\n\nInput:\n nums = [-2,1,-3,4,-1,2,1,-5,4]\n\nOutput:\n 6\n\nExplanation:\n The subarray [4,-1,2,1] has the largest sum 6.\n\nExample 2:\n\nInput:\n nums = [1]\n\nOutput:\n 1\n\nExplanation:\n The subarray [1] has the largest sum 1.\n\nExample 3:\n\nInput:\n nums = [5,4,-1,7,8]\n\nOutput:\n 23\n\nExplanation:\n The subarray [5,4,-1,7,8] has the largest sum 23.\n\n \n\nConstraints:\n\n1 <= nums.length <= 10\n5\n\n-10\n4\n <= nums[i] <= 10\n4\n\n \n\nFollow up:\n If you have figured out the \nO(n)\n solution, try coding another solution using the \ndivide and conquer\n approach, which is more subtle.",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[-2,1,-3,4,-1,2,1,-5,4]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[5,4,-1,7,8]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Spiral Matrix",
+    "description": "Given an \nm x n\n \nmatrix\n, return \nall elements of the\n \nmatrix\n \nin spiral order\n.\n\n \n\nExample 1:\n\nInput:\n matrix = [[1,2,3],[4,5,6],[7,8,9]]\n\nOutput:\n [1,2,3,6,9,8,7,4,5]\n\nExample 2:\n\nInput:\n matrix = [[1,2,3,4],[5,6,7,8],[9,10,11,12]]\n\nOutput:\n [1,2,3,4,8,12,11,10,9,5,6,7]\n\n \n\nConstraints:\n\nm == matrix.length\n\nn == matrix[i].length\n\n1 <= m, n <= 10\n\n-100 <= matrix[i][j] <= 100",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[[1,2,3],[4,5,6],[7,8,9]]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[1,2,3,4],[5,6,7,8],[9,10,11,12]]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Jump Game",
+    "description": "You are given an integer array \nnums\n. You are initially positioned at the array's \nfirst index\n, and each element in the array represents your maximum jump length at that position.\n\nReturn \ntrue\n if you can reach the last index, or \nfalse\n otherwise\n.\n\n \n\nExample 1:\n\nInput:\n nums = [2,3,1,1,4]\n\nOutput:\n true\n\nExplanation:\n Jump 1 step from index 0 to 1, then 3 steps to the last index.\n\nExample 2:\n\nInput:\n nums = [3,2,1,0,4]\n\nOutput:\n false\n\nExplanation:\n You will always arrive at index 3 no matter what. Its maximum jump length is 0, which makes it impossible to reach the last index.\n\n \n\nConstraints:\n\n1 <= nums.length <= 10\n4\n\n0 <= nums[i] <= 10\n5",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[2,3,1,1,4]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[3,2,1,0,4]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Merge Intervals",
+    "description": "Given an array of \nintervals\n where \nintervals[i] = [start\ni\n, end\ni\n]\n, merge all overlapping intervals, and return \nan array of the non-overlapping intervals that cover all the intervals in the input\n.\n\n \n\nExample 1:\n\nInput:\n intervals = [[1,3],[2,6],[8,10],[15,18]]\n\nOutput:\n [[1,6],[8,10],[15,18]]\n\nExplanation:\n Since intervals [1,3] and [2,6] overlap, merge them into [1,6].\n\nExample 2:\n\nInput:\n intervals = [[1,4],[4,5]]\n\nOutput:\n [[1,5]]\n\nExplanation:\n Intervals [1,4] and [4,5] are considered overlapping.\n\nExample 3:\n\nInput:\n intervals = [[4,7],[1,4]]\n\nOutput:\n [[1,7]]\n\nExplanation:\n Intervals [1,4] and [4,7] are considered overlapping.\n\n \n\nConstraints:\n\n1 <= intervals.length <= 10\n4\n\nintervals[i].length == 2\n\n0 <= start\ni\n <= end\ni\n <= 10\n4",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[[1,3],[2,6],[8,10],[15,18]]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[1,4],[4,5]]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[4,7],[1,4]]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Insert Interval",
+    "description": "You are given an array of non-overlapping intervals \nintervals\n where \nintervals[i] = [start\ni\n, end\ni\n]\n represent the start and the end of the \ni\nth\n interval and \nintervals\n is sorted in ascending order by \nstart\ni\n. You are also given an interval \nnewInterval = [start, end]\n that represents the start and end of another interval.\n\nTwo intervals are considered overlapping if they share \nat least\n one point.\n\nInsert \nnewInterval\n into \nintervals\n such that \nintervals\n is still sorted in ascending order by \nstart\ni\n and \nintervals\n still does not have any overlapping intervals (merge overlapping intervals if necessary).\n\nReturn \nintervals\n after the insertion\n.\n\nNote\n that you don't need to modify \nintervals\n in-place. You can make a new array and return it.\n\n \n\nExample 1:\n\nInput:\n intervals = [[1,3],[6,9]], newInterval = [2,5]\n\nOutput:\n [[1,5],[6,9]]\n\nExample 2:\n\nInput:\n intervals = [[1,2],[3,5],[6,7],[8,10],[12,16]], newInterval = [4,8]\n\nOutput:\n [[1,2],[3,10],[12,16]]\n\nExplanation:\n Because the new interval [4,8] overlaps with [3,5],[6,7],[8,10].\n\n \n\nConstraints:\n\n0 <= intervals.length <= 10\n4\n\nintervals[i].length == 2\n\n0 <= start\ni\n <= end\ni\n <= 10\n5\n\nintervals\n is sorted by \nstart\ni\n in \nascending\n order.\n\nnewInterval.length == 2\n\n0 <= start <= end <= 10\n5",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[[1,3],[6,9]]\n[2,5]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[1,2],[3,5],[6,7],[8,10],[12,16]]\n[4,8]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Spiral Matrix II",
+    "description": "Given a positive integer \nn\n, generate an \nn x n\n \nmatrix\n filled with elements from \n1\n to \nn\n2\n in spiral order.\n\n \n\nExample 1:\n\nInput:\n n = 3\n\nOutput:\n [[1,2,3],[8,9,4],[7,6,5]]\n\nExample 2:\n\nInput:\n n = 1\n\nOutput:\n [[1]]\n\n \n\nConstraints:\n\n1 <= n <= 20",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "3",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "1",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Rotate List",
+    "description": "Given the \nhead\n of a linked list, rotate the list to the right by \nk\n places.\n\n \n\nExample 1:\n\nInput:\n head = [1,2,3,4,5], k = 2\n\nOutput:\n [4,5,1,2,3]\n\nExample 2:\n\nInput:\n head = [0,1,2], k = 4\n\nOutput:\n [2,0,1]\n\n \n\nConstraints:\n\nThe number of nodes in the list is in the range \n[0, 500]\n.\n\n-100 <= Node.val <= 100\n\n0 <= k <= 2 * 10\n9",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,2,3,4,5]\n2",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[0,1,2]\n4",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Unique Paths",
+    "description": "There is a robot on an \nm x n\n grid. The robot is initially located at the \ntop-left corner\n (i.e., \ngrid[0][0]\n). The robot tries to move to the \nbottom-right corner\n (i.e., \ngrid[m - 1][n - 1]\n). The robot can only move either down or right at any point in time.\n\nGiven the two integers \nm\n and \nn\n, return \nthe number of possible unique paths that the robot can take to reach the bottom-right corner\n.\n\nThe test cases are generated so that the answer will be less than or equal to \n2 * 10\n9\n.\n\n \n\nExample 1:\n\nInput:\n m = 3, n = 7\n\nOutput:\n 28\n\nExample 2:\n\nInput:\n m = 3, n = 2\n\nOutput:\n 3\n\nExplanation:\n From the top-left corner, there are a total of 3 ways to reach the bottom-right corner:\n1. Right -> Down -> Down\n2. Down -> Down -> Right\n3. Down -> Right -> Down\n\n \n\nConstraints:\n\n1 <= m, n <= 100",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "3\n7",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "3\n2",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Unique Paths II",
+    "description": "You are given an \nm x n\n integer array \ngrid\n. There is a robot initially located at the \ntop-left corner\n (i.e., \ngrid[0][0]\n). The robot tries to move to the \nbottom-right corner\n (i.e., \ngrid[m - 1][n - 1]\n). The robot can only move either down or right at any point in time.\n\nAn obstacle and space are marked as \n1\n or \n0\n respectively in \ngrid\n. A path that the robot takes cannot include \nany\n square that is an obstacle.\n\nReturn \nthe number of possible unique paths that the robot can take to reach the bottom-right corner\n.\n\nThe testcases are generated so that the answer will be less than or equal to \n2 * 10\n9\n.\n\n \n\nExample 1:\n\nInput:\n obstacleGrid = [[0,0,0],[0,1,0],[0,0,0]]\n\nOutput:\n 2\n\nExplanation:\n There is one obstacle in the middle of the 3x3 grid above.\nThere are two ways to reach the bottom-right corner:\n1. Right -> Right -> Down -> Down\n2. Down -> Down -> Right -> Right\n\nExample 2:\n\nInput:\n obstacleGrid = [[0,1],[0,0]]\n\nOutput:\n 1\n\n \n\nConstraints:\n\nm == obstacleGrid.length\n\nn == obstacleGrid[i].length\n\n1 <= m, n <= 100\n\nobstacleGrid[i][j]\n is \n0\n or \n1\n.",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[[0,0,0],[0,1,0],[0,0,0]]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[0,1],[0,0]]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Minimum Path Sum",
+    "description": "Given a \nm x n\n \ngrid\n filled with non-negative numbers, find a path from top left to bottom right, which minimizes the sum of all numbers along its path.\n\nNote:\n You can only move either down or right at any point in time.\n\n \n\nExample 1:\n\nInput:\n grid = [[1,3,1],[1,5,1],[4,2,1]]\n\nOutput:\n 7\n\nExplanation:\n Because the path 1 → 3 → 1 → 1 → 1 minimizes the sum.\n\nExample 2:\n\nInput:\n grid = [[1,2,3],[4,5,6]]\n\nOutput:\n 12\n\n \n\nConstraints:\n\nm == grid.length\n\nn == grid[i].length\n\n1 <= m, n <= 200\n\n0 <= grid[i][j] <= 200",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[[1,3,1],[1,5,1],[4,2,1]]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[1,2,3],[4,5,6]]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Simplify Path",
+    "description": "You are given an \nabsolute\n path for a Unix-style file system, which always begins with a slash \n'/'\n. Your task is to transform this absolute path into its \nsimplified canonical path\n.\n\nThe \nrules\n of a Unix-style file system are as follows:\n\nA single period \n'.'\n represents the current directory.\n\nA double period \n'..'\n represents the previous/parent directory.\n\nMultiple consecutive slashes such as \n'//'\n and \n'///'\n are treated as a single slash \n'/'\n.\n\nAny sequence of periods that does \nnot match\n the rules above should be treated as a \nvalid directory or\n \nfile \nname\n. For example, \n'...' \nand \n'....'\n are valid directory or file names.\n\nThe simplified canonical path should follow these \nrules\n:\n\nThe path must start with a single slash \n'/'\n.\n\nDirectories within the path must be separated by exactly one slash \n'/'\n.\n\nThe path must not end with a slash \n'/'\n, unless it is the root directory.\n\nThe path must not have any single or double periods (\n'.'\n and \n'..'\n) used to denote current or parent directories.\n\nReturn the \nsimplified canonical path\n.\n\n \n\nExample 1:\n\nInput:\n \npath = \"/home/\"\n\nOutput:\n \n\"/home\"\n\nExplanation:\n\nThe trailing slash should be removed.\n\nExample 2:\n\nInput:\n \npath = \"/home//foo/\"\n\nOutput:\n \n\"/home/foo\"\n\nExplanation:\n\nMultiple consecutive slashes are replaced by a single one.\n\nExample 3:\n\nInput:\n \npath = \"/home/user/Documents/../Pictures\"\n\nOutput:\n \n\"/home/user/Pictures\"\n\nExplanation:\n\nA double period \n\"..\"\n refers to the directory up a level (the parent directory).\n\nExample 4:\n\nInput:\n \npath = \"/../\"\n\nOutput:\n \n\"/\"\n\nExplanation:\n\nGoing one level up from the root directory is not possible.\n\nExample 5:\n\nInput:\n \npath = \"/.../a/../b/c/../d/./\"\n\nOutput:\n \n\"/.../b/d\"\n\nExplanation:\n\n\"...\"\n is a valid name for a directory in this problem.\n\n \n\nConstraints:\n\n1 <= path.length <= 3000\n\npath\n consists of English letters, digits, period \n'.'\n, slash \n'/'\n or \n'_'\n.\n\npath\n is a valid absolute Unix path.",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"/home/\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"/home//foo/\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"/home/user/Documents/../Pictures\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"/../\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"/.../a/../b/c/../d/./\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Edit Distance",
+    "description": "Given two strings \nword1\n and \nword2\n, return \nthe minimum number of operations required to convert \nword1\n to \nword2\n.\n\nYou have the following three operations permitted on a word:\n\nInsert a character\n\nDelete a character\n\nReplace a character\n\n \n\nExample 1:\n\nInput:\n word1 = \"horse\", word2 = \"ros\"\n\nOutput:\n 3\n\nExplanation:\n \nhorse -> rorse (replace 'h' with 'r')\nrorse -> rose (remove 'r')\nrose -> ros (remove 'e')\n\nExample 2:\n\nInput:\n word1 = \"intention\", word2 = \"execution\"\n\nOutput:\n 5\n\nExplanation:\n \nintention -> inention (remove 't')\ninention -> enention (replace 'i' with 'e')\nenention -> exention (replace 'n' with 'x')\nexention -> exection (replace 'n' with 'c')\nexection -> execution (insert 'u')\n\n \n\nConstraints:\n\n0 <= word1.length, word2.length <= 500\n\nword1\n and \nword2\n consist of lowercase English letters.",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"horse\"\n\"ros\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"intention\"\n\"execution\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Set Matrix Zeroes",
+    "description": "Given an \nm x n\n integer matrix \nmatrix\n, if an element is \n0\n, set its entire row and column to \n0\n's.\n\nYou must do it \nin place\n.\n\n \n\nExample 1:\n\nInput:\n matrix = [[1,1,1],[1,0,1],[1,1,1]]\n\nOutput:\n [[1,0,1],[0,0,0],[1,0,1]]\n\nExample 2:\n\nInput:\n matrix = [[0,1,2,0],[3,4,5,2],[1,3,1,5]]\n\nOutput:\n [[0,0,0,0],[0,4,5,0],[0,3,1,0]]\n\n \n\nConstraints:\n\nm == matrix.length\n\nn == matrix[0].length\n\n1 <= m, n <= 200\n\n-2\n31\n <= matrix[i][j] <= 2\n31\n - 1\n\n \n\nFollow up:\n\nA straightforward solution using \nO(mn)\n space is probably a bad idea.\n\nA simple improvement uses \nO(m + n)\n space, but still not the best solution.\n\nCould you devise a constant space solution?",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[[1,1,1],[1,0,1],[1,1,1]]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[0,1,2,0],[3,4,5,2],[1,3,1,5]]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Search a 2D Matrix",
+    "description": "You are given an \nm x n\n integer matrix \nmatrix\n with the following two properties:\n\nEach row is sorted in non-decreasing order.\n\nThe first integer of each row is greater than the last integer of the previous row.\n\nGiven an integer \ntarget\n, return \ntrue\n \nif\n \ntarget\n \nis in\n \nmatrix\n \nor\n \nfalse\n \notherwise\n.\n\nYou must write a solution in \nO(log(m * n))\n time complexity.\n\n \n\nExample 1:\n\nInput:\n matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 3\n\nOutput:\n true\n\nExample 2:\n\nInput:\n matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 13\n\nOutput:\n false\n\n \n\nConstraints:\n\nm == matrix.length\n\nn == matrix[i].length\n\n1 <= m, n <= 100\n\n-10\n4\n <= matrix[i][j], target <= 10\n4",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[[1,3,5,7],[10,11,16,20],[23,30,34,60]]\n3",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[1,3,5,7],[10,11,16,20],[23,30,34,60]]\n13",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Sort Colors",
+    "description": "You are given an array \nnums\n with \nn\n objects colored red, white, or blue, sort them \nin-place\n \nso that objects of the same color are adjacent, with the colors in the order red, white, and blue.\n\nWe will use the integers 0, 1, and 2 to represent the color red, white, and blue, respectively.\n\nYou must solve this problem without using the library's sort function.\n\n \n\nExample 1:\n\nInput:\n \nnums = [2,0,2,1,1,0]\n\nOutput:\n \n[0,0,1,1,2,2]\n\nExplanation:\n\nThe array has two 0s, two 1s, and two 2s. Sorting them in-place places all 0s first, then all 1s, then all 2s.\n\nExample 2:\n\nInput:\n \nnums = [2,0,1]\n\nOutput:\n \n[0,1,2]\n\nExplanation:\n\nThe array has one each of 0, 1, and 2, arranged in-place in the order 0, 1, 2.\n\n \n\nConstraints:\n\nn == nums.length\n\n1 <= n <= 300\n\nnums[i]\n is either 0, 1, or 2.\n\n \n\nFollow up:\n Could you come up with a one-pass algorithm using only constant extra space?",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[2,0,2,1,1,0]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[2,0,1]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Combinations",
+    "description": "Given two integers \nn\n and \nk\n, return \nall possible combinations of\n \nk\n \nnumbers chosen from the range\n \n[1, n]\n.\n\nYou may return the answer in \nany order\n.\n\n \n\nExample 1:\n\nInput:\n n = 4, k = 2\n\nOutput:\n [[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]\n\nExplanation:\n There are 4 choose 2 = 6 total combinations.\nNote that combinations are unordered, i.e., [1,2] and [2,1] are considered to be the same combination.\n\nExample 2:\n\nInput:\n n = 1, k = 1\n\nOutput:\n [[1]]\n\nExplanation:\n There is 1 choose 1 = 1 total combination.\n\n \n\nConstraints:\n\n1 <= n <= 20\n\n1 <= k <= n",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "4\n2",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "1\n1",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Subsets",
+    "description": "Given an integer array \nnums\n of \nunique\n elements, return \nall possible\n \nsubsets\n \n(the power set)\n.\n\nThe solution set \nmust not\n contain duplicate subsets. Return the solution in \nany order\n.\n\n \n\nExample 1:\n\nInput:\n nums = [1,2,3]\n\nOutput:\n [[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]\n\nExample 2:\n\nInput:\n nums = [0]\n\nOutput:\n [[],[0]]\n\n \n\nConstraints:\n\n1 <= nums.length <= 10\n\n-10 <= nums[i] <= 10\n\nAll the numbers of \nnums\n are \nunique\n.",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,2,3]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[0]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Word Search",
+    "description": "Given an \nm x n\n grid of characters \nboard\n and a string \nword\n, return \ntrue\n \nif\n \nword\n \nexists in the grid\n.\n\nThe word can be constructed from letters of sequentially adjacent cells, where adjacent cells are horizontally or vertically neighboring. The same letter cell may not be used more than once.\n\n \n\nExample 1:\n\nInput:\n board = [[\"A\",\"B\",\"C\",\"E\"],[\"S\",\"F\",\"C\",\"S\"],[\"A\",\"D\",\"E\",\"E\"]], word = \"ABCCED\"\n\nOutput:\n true\n\nExample 2:\n\nInput:\n board = [[\"A\",\"B\",\"C\",\"E\"],[\"S\",\"F\",\"C\",\"S\"],[\"A\",\"D\",\"E\",\"E\"]], word = \"SEE\"\n\nOutput:\n true\n\nExample 3:\n\nInput:\n board = [[\"A\",\"B\",\"C\",\"E\"],[\"S\",\"F\",\"C\",\"S\"],[\"A\",\"D\",\"E\",\"E\"]], word = \"ABCB\"\n\nOutput:\n false\n\n \n\nConstraints:\n\nm == board.length\n\nn = board[i].length\n\n1 <= m, n <= 6\n\n1 <= word.length <= 15\n\nboard\n and \nword\n consists of only lowercase and uppercase English letters.\n\n \n\nFollow up:\n Could you use search pruning to make your solution faster with a larger \nboard\n?",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[[\"A\",\"B\",\"C\",\"E\"],[\"S\",\"F\",\"C\",\"S\"],[\"A\",\"D\",\"E\",\"E\"]]\n\"ABCCED\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[\"A\",\"B\",\"C\",\"E\"],[\"S\",\"F\",\"C\",\"S\"],[\"A\",\"D\",\"E\",\"E\"]]\n\"SEE\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[\"A\",\"B\",\"C\",\"E\"],[\"S\",\"F\",\"C\",\"S\"],[\"A\",\"D\",\"E\",\"E\"]]\n\"ABCB\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Remove Duplicates from Sorted Array II",
+    "description": "Given an integer array \nnums\n sorted in \nnon-decreasing order\n, remove some duplicates \nin-place\n such that each unique element appears \nat most twice\n. The \nrelative order\n of the elements should be kept the \nsame\n.\n\nSince it is impossible to change the length of the array in some languages, you must instead have the result be placed in the \nfirst part\n of the array \nnums\n. More formally, if there are \nk\n elements after removing the duplicates, then the first \nk\n elements of \nnums\n should hold the final result. It does not matter what you leave beyond the first \nk\n elements.\n\nReturn \nk\n after placing the final result in the first \nk\n slots of \nnums\n.\n\nDo \nnot\n allocate extra space for another array. You must do this by \nmodifying the input array \nin-place\n with O(1) extra memory.\n\nCustom Judge:\n\nThe judge will test your solution with the following code:\n\nint[] nums = [...]; // Input array\nint[] expectedNums = [...]; // The expected answer with correct length\n\nint k = removeDuplicates(nums); // Calls your implementation\n\nassert k == expectedNums.length;\nfor (int i = 0; i < k; i++) {\n    assert nums[i] == expectedNums[i];\n}\n\nIf all assertions pass, then your solution will be \naccepted\n.\n\n \n\nExample 1:\n\nInput:\n nums = [1,1,1,2,2,3]\n\nOutput:\n 5, nums = [1,1,2,2,3,_]\n\nExplanation:\n Your function should return k = 5, with the first five elements of nums being 1, 1, 2, 2 and 3 respectively.\nIt does not matter what you leave beyond the returned k (hence they are underscores).\n\nExample 2:\n\nInput:\n nums = [0,0,1,1,1,1,2,3,3]\n\nOutput:\n 7, nums = [0,0,1,1,2,3,3,_,_]\n\nExplanation:\n Your function should return k = 7, with the first seven elements of nums being 0, 0, 1, 1, 2, 3 and 3 respectively.\nIt does not matter what you leave beyond the returned k (hence they are underscores).\n\n \n\nConstraints:\n\n1 <= nums.length <= 3 * 10\n4\n\n-10\n4\n <= nums[i] <= 10\n4\n\nnums\n is sorted in \nnon-decreasing\n order.",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,1,1,2,2,3]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[0,0,1,1,1,1,2,3,3]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Search in Rotated Sorted Array II",
+    "description": "There is an integer array \nnums\n sorted in non-decreasing order (not necessarily with \ndistinct\n values).\n\nBefore being passed to your function, \nnums\n is \nrotated\n at an unknown pivot index \nk\n (\n0 <= k < nums.length\n) such that the resulting array is \n[nums[k], nums[k+1], ..., nums[n-1], nums[0], nums[1], ..., nums[k-1]]\n (\n0-indexed\n). For example, \n[0,1,2,4,4,4,5,6,6,7]\n might be rotated at pivot index \n5\n and become \n[4,5,6,6,7,0,1,2,4,4]\n.\n\nGiven the array \nnums\n \nafter\n the rotation and an integer \ntarget\n, return \ntrue\n if \ntarget\n is in \nnums\n, or \nfalse\n if it is not in \nnums\n.\n\nYou must decrease the overall operation steps as much as possible.\n\n \n\nExample 1:\n\nInput:\n nums = [2,5,6,0,0,1,2], target = 0\n\nOutput:\n true\n\nExample 2:\n\nInput:\n nums = [2,5,6,0,0,1,2], target = 3\n\nOutput:\n false\n\n \n\nConstraints:\n\n1 <= nums.length <= 5000\n\n-10\n4\n <= nums[i] <= 10\n4\n\nnums\n is guaranteed to be rotated at some pivot.\n\n-10\n4\n <= target <= 10\n4\n\n \n\nFollow up:\n This problem is similar to \nSearch in Rotated Sorted Array\n, but \nnums\n may contain \nduplicates\n. Would this affect the runtime complexity? How and why?",
+    "difficulty": "MEDIUM",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[2,5,6,0,0,1,2]\n0",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[2,5,6,0,0,1,2]\n3",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Median of Two Sorted Arrays",
+    "description": "Given two sorted arrays \nnums1\n and \nnums2\n of size \nm\n and \nn\n respectively, return \nthe median\n of the two sorted arrays.\n\nThe overall run time complexity should be \nO(log (m+n))\n.\n\n \n\nExample 1:\n\nInput:\n nums1 = [1,3], nums2 = [2]\n\nOutput:\n 2.00000\n\nExplanation:\n merged array = [1,2,3] and median is 2.\n\nExample 2:\n\nInput:\n nums1 = [1,2], nums2 = [3,4]\n\nOutput:\n 2.50000\n\nExplanation:\n merged array = [1,2,3,4] and median is (2 + 3) / 2 = 2.5.\n\n \n\nConstraints:\n\nnums1.length == m\n\nnums2.length == n\n\n0 <= m <= 1000\n\n0 <= n <= 1000\n\n1 <= m + n <= 2000\n\n-10\n6\n <= nums1[i], nums2[i] <= 10\n6",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,3]\n[2]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,2]\n[3,4]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Regular Expression Matching",
+    "description": "Given an input string \ns\n and a pattern \np\n, implement regular expression matching with support for \n'.'\n and \n'*'\n where:\n\n'.'\n Matches any single character.​​​​\n\n'*'\n Matches zero or more of the preceding element.\n\nReturn a boolean indicating whether the matching covers the entire input string (not partial).\n\n \n\nExample 1:\n\nInput:\n s = \"aa\", p = \"a\"\n\nOutput:\n false\n\nExplanation:\n \"a\" does not match the entire string \"aa\".\n\nExample 2:\n\nInput:\n s = \"aa\", p = \"a*\"\n\nOutput:\n true\n\nExplanation:\n '*' means zero or more of the preceding element, 'a'. Therefore, by repeating 'a' once, it becomes \"aa\".\n\nExample 3:\n\nInput:\n s = \"ab\", p = \".*\"\n\nOutput:\n true\n\nExplanation:\n \".*\" means \"zero or more (*) of any character (.)\".\n\n \n\nConstraints:\n\n1 <= s.length <= 20\n\n1 <= p.length <= 20\n\ns\n contains only lowercase English letters.\n\np\n contains only lowercase English letters, \n'.'\n, and \n'*'\n.\n\nIt is guaranteed for each appearance of the character \n'*'\n, there will be a previous valid character to match.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"aa\"\n\"a\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"aa\"\n\"a*\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"ab\"\n\".*\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Merge k Sorted Lists",
+    "description": "You are given an array of \nk\n linked-lists \nlists\n, each linked-list is sorted in ascending order.\n\nMerge all the linked-lists into one sorted linked-list and return it.\n\n \n\nExample 1:\n\nInput:\n lists = [[1,4,5],[1,3,4],[2,6]]\n\nOutput:\n [1,1,2,3,4,4,5,6]\n\nExplanation:\n The linked-lists are:\n[\n  1->4->5,\n  1->3->4,\n  2->6\n]\nmerging them into one sorted linked list:\n1->1->2->3->4->4->5->6\n\nExample 2:\n\nInput:\n lists = []\n\nOutput:\n []\n\nExample 3:\n\nInput:\n lists = [[]]\n\nOutput:\n []\n\n \n\nConstraints:\n\nk == lists.length\n\n0 <= k <= 10\n4\n\n0 <= lists[i].length <= 500\n\n-10\n4\n <= lists[i][j] <= 10\n4\n\nlists[i]\n is sorted in \nascending order\n.\n\nThe sum of \nlists[i].length\n will not exceed \n10\n4\n.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[[1,4,5],[1,3,4],[2,6]]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[]]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Reverse Nodes in k-Group",
+    "description": "Given the \nhead\n of a linked list, reverse the nodes of the list \nk\n at a time, and return \nthe modified list\n.\n\nk\n is a positive integer and is less than or equal to the length of the linked list. If the number of nodes is not a multiple of \nk\n then left-out nodes, in the end, should remain as it is.\n\nYou may not alter the values in the list's nodes, only nodes themselves may be changed.\n\n \n\nExample 1:\n\nInput:\n head = [1,2,3,4,5], k = 2\n\nOutput:\n [2,1,4,3,5]\n\nExample 2:\n\nInput:\n head = [1,2,3,4,5], k = 3\n\nOutput:\n [3,2,1,4,5]\n\n \n\nConstraints:\n\nThe number of nodes in the list is \nn\n.\n\n1 <= k <= n <= 5000\n\n0 <= Node.val <= 1000\n\n \n\nFollow-up:\n Can you solve the problem in \nO(1)\n extra memory space?",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,2,3,4,5]\n2",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,2,3,4,5]\n3",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Substring with Concatenation of All Words",
+    "description": "You are given a string \ns\n and an array of strings \nwords\n. All the strings of \nwords\n are of \nthe same length\n.\n\nA \nconcatenated string\n is a string that exactly contains all the strings of any permutation of \nwords\n concatenated.\n\nFor example, if \nwords = [\"ab\",\"cd\",\"ef\"]\n, then \n\"abcdef\"\n, \n\"abefcd\"\n, \n\"cdabef\"\n, \n\"cdefab\"\n, \n\"efabcd\"\n, and \n\"efcdab\"\n are all concatenated strings. \n\"acdbef\"\n is not a concatenated string because it is not the concatenation of any permutation of \nwords\n.\n\nReturn an array of \nthe starting indices\n of all the concatenated substrings in \ns\n. You can return the answer in \nany order\n.\n\n \n\nExample 1:\n\nInput:\n \ns = \"barfoothefoobarman\", words = [\"foo\",\"bar\"]\n\nOutput:\n \n[0,9]\n\nExplanation:\n\nThe substring starting at 0 is \n\"barfoo\"\n. It is the concatenation of \n[\"bar\",\"foo\"]\n which is a permutation of \nwords\n.\n\nThe substring starting at 9 is \n\"foobar\"\n. It is the concatenation of \n[\"foo\",\"bar\"]\n which is a permutation of \nwords\n.\n\nExample 2:\n\nInput:\n \ns = \"wordgoodgoodgoodbestword\", words = [\"word\",\"good\",\"best\",\"word\"]\n\nOutput:\n \n[]\n\nExplanation:\n\nThere is no concatenated substring.\n\nExample 3:\n\nInput:\n \ns = \"barfoofoobarthefoobarman\", words = [\"bar\",\"foo\",\"the\"]\n\nOutput:\n \n[6,9,12]\n\nExplanation:\n\nThe substring starting at 6 is \n\"foobarthe\"\n. It is the concatenation of \n[\"foo\",\"bar\",\"the\"]\n.\n\nThe substring starting at 9 is \n\"barthefoo\"\n. It is the concatenation of \n[\"bar\",\"the\",\"foo\"]\n.\n\nThe substring starting at 12 is \n\"thefoobar\"\n. It is the concatenation of \n[\"the\",\"foo\",\"bar\"]\n.\n\n \n\nConstraints:\n\n1 <= s.length <= 10\n4\n\n1 <= words.length <= 5000\n\n1 <= words[i].length <= 30\n\ns\n and \nwords[i]\n consist of lowercase English letters.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"barfoothefoobarman\"\n[\"foo\",\"bar\"]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"wordgoodgoodgoodbestword\"\n[\"word\",\"good\",\"best\",\"word\"]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"barfoofoobarthefoobarman\"\n[\"bar\",\"foo\",\"the\"]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Longest Valid Parentheses",
+    "description": "Given a string containing just the characters \n'('\n and \n')'\n, return \nthe length of the longest valid (well-formed) parentheses \nsubstring\n.\n\n \n\nExample 1:\n\nInput:\n s = \"(()\"\n\nOutput:\n 2\n\nExplanation:\n The longest valid parentheses substring is \"()\".\n\nExample 2:\n\nInput:\n s = \")()())\"\n\nOutput:\n 4\n\nExplanation:\n The longest valid parentheses substring is \"()()\".\n\nExample 3:\n\nInput:\n s = \"\"\n\nOutput:\n 0\n\n \n\nConstraints:\n\n0 <= s.length <= 3 * 10\n4\n\ns[i]\n is \n'('\n, or \n')'\n.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"(()\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\")()())\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Sudoku Solver",
+    "description": "Write a program to solve a Sudoku puzzle by filling the empty cells.\n\nA sudoku solution must satisfy \nall of the following rules\n:\n\nEach of the digits \n1-9\n must occur exactly once in each row.\n\nEach of the digits \n1-9\n must occur exactly once in each column.\n\nEach of the digits \n1-9\n must occur exactly once in each of the 9 \n3x3\n sub-boxes of the grid.\n\nThe \n'.'\n character indicates empty cells.\n\n \n\nExample 1:\n\nInput:\n board = [[\"5\",\"3\",\".\",\".\",\"7\",\".\",\".\",\".\",\".\"],[\"6\",\".\",\".\",\"1\",\"9\",\"5\",\".\",\".\",\".\"],[\".\",\"9\",\"8\",\".\",\".\",\".\",\".\",\"6\",\".\"],[\"8\",\".\",\".\",\".\",\"6\",\".\",\".\",\".\",\"3\"],[\"4\",\".\",\".\",\"8\",\".\",\"3\",\".\",\".\",\"1\"],[\"7\",\".\",\".\",\".\",\"2\",\".\",\".\",\".\",\"6\"],[\".\",\"6\",\".\",\".\",\".\",\".\",\"2\",\"8\",\".\"],[\".\",\".\",\".\",\"4\",\"1\",\"9\",\".\",\".\",\"5\"],[\".\",\".\",\".\",\".\",\"8\",\".\",\".\",\"7\",\"9\"]]\n\nOutput:\n [[\"5\",\"3\",\"4\",\"6\",\"7\",\"8\",\"9\",\"1\",\"2\"],[\"6\",\"7\",\"2\",\"1\",\"9\",\"5\",\"3\",\"4\",\"8\"],[\"1\",\"9\",\"8\",\"3\",\"4\",\"2\",\"5\",\"6\",\"7\"],[\"8\",\"5\",\"9\",\"7\",\"6\",\"1\",\"4\",\"2\",\"3\"],[\"4\",\"2\",\"6\",\"8\",\"5\",\"3\",\"7\",\"9\",\"1\"],[\"7\",\"1\",\"3\",\"9\",\"2\",\"4\",\"8\",\"5\",\"6\"],[\"9\",\"6\",\"1\",\"5\",\"3\",\"7\",\"2\",\"8\",\"4\"],[\"2\",\"8\",\"7\",\"4\",\"1\",\"9\",\"6\",\"3\",\"5\"],[\"3\",\"4\",\"5\",\"2\",\"8\",\"6\",\"1\",\"7\",\"9\"]]\n\nExplanation:\n The input board is shown above and the only valid solution is shown below:\n\n \n\nConstraints:\n\nboard.length == 9\n\nboard[i].length == 9\n\nboard[i][j]\n is a digit or \n'.'\n.\n\nIt is \nguaranteed\n that the input board has only one solution.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[[\"5\",\"3\",\".\",\".\",\"7\",\".\",\".\",\".\",\".\"],[\"6\",\".\",\".\",\"1\",\"9\",\"5\",\".\",\".\",\".\"],[\".\",\"9\",\"8\",\".\",\".\",\".\",\".\",\"6\",\".\"],[\"8\",\".\",\".\",\".\",\"6\",\".\",\".\",\".\",\"3\"],[\"4\",\".\",\".\",\"8\",\".\",\"3\",\".\",\".\",\"1\"],[\"7\",\".\",\".\",\".\",\"2\",\".\",\".\",\".\",\"6\"],[\".\",\"6\",\".\",\".\",\".\",\".\",\"2\",\"8\",\".\"],[\".\",\".\",\".\",\"4\",\"1\",\"9\",\".\",\".\",\"5\"],[\".\",\".\",\".\",\".\",\"8\",\".\",\".\",\"7\",\"9\"]]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "First Missing Positive",
+    "description": "Given an unsorted integer array \nnums\n. Return the \nsmallest positive integer\n that is \nnot present\n in \nnums\n.\n\nYou must implement an algorithm that runs in \nO(n)\n time and uses \nO(1)\n auxiliary space.\n\n \n\nExample 1:\n\nInput:\n nums = [1,2,0]\n\nOutput:\n 3\n\nExplanation:\n The numbers in the range [1,2] are all in the array.\n\nExample 2:\n\nInput:\n nums = [3,4,-1,1]\n\nOutput:\n 2\n\nExplanation:\n 1 is in the array but 2 is missing.\n\nExample 3:\n\nInput:\n nums = [7,8,9,11,12]\n\nOutput:\n 1\n\nExplanation:\n The smallest positive integer 1 is missing.\n\n \n\nConstraints:\n\n1 <= nums.length <= 10\n5\n\n-2\n31\n <= nums[i] <= 2\n31\n - 1",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,2,0]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[3,4,-1,1]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[7,8,9,11,12]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Trapping Rain Water",
+    "description": "Given \nn\n non-negative integers representing an elevation map where the width of each bar is \n1\n, compute how much water it can trap after raining.\n\n \n\nExample 1:\n\nInput:\n height = [0,1,0,2,1,0,1,3,2,1,2,1]\n\nOutput:\n 6\n\nExplanation:\n The above elevation map (black section) is represented by array [0,1,0,2,1,0,1,3,2,1,2,1]. In this case, 6 units of rain water (blue section) are being trapped.\n\nExample 2:\n\nInput:\n height = [4,2,0,3,2,5]\n\nOutput:\n 9\n\n \n\nConstraints:\n\nn == height.length\n\n1 <= n <= 2 * 10\n4\n\n0 <= height[i] <= 10\n5",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[0,1,0,2,1,0,1,3,2,1,2,1]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[4,2,0,3,2,5]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Wildcard Matching",
+    "description": "Given an input string (\ns\n) and a pattern (\np\n), implement wildcard pattern matching with support for \n'?'\n and \n'*'\n where:\n\n'?'\n Matches any single character.\n\n'*'\n Matches any sequence of characters (including the empty sequence).\n\nThe matching should cover the \nentire\n input string (not partial).\n\n \n\nExample 1:\n\nInput:\n s = \"aa\", p = \"a\"\n\nOutput:\n false\n\nExplanation:\n \"a\" does not match the entire string \"aa\".\n\nExample 2:\n\nInput:\n s = \"aa\", p = \"*\"\n\nOutput:\n true\n\nExplanation:\n '*' matches any sequence.\n\nExample 3:\n\nInput:\n s = \"cb\", p = \"?a\"\n\nOutput:\n false\n\nExplanation:\n '?' matches 'c', but the second letter is 'a', which does not match 'b'.\n\n \n\nConstraints:\n\n0 <= s.length, p.length <= 2000\n\ns\n contains only lowercase English letters.\n\np\n contains only lowercase English letters, \n'?'\n or \n'*'\n.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"aa\"\n\"a\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"aa\"\n\"*\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"cb\"\n\"?a\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "N-Queens",
+    "description": "The \nn-queens\n puzzle is the problem of placing \nn\n queens on an \nn x n\n chessboard such that no two queens attack each other.\n\nGiven an integer \nn\n, return \nall distinct solutions to the \nn-queens puzzle\n. You may return the answer in \nany order\n.\n\nEach solution contains a distinct board configuration of the n-queens' placement, where \n'Q'\n and \n'.'\n both indicate a queen and an empty space, respectively.\n\n \n\nExample 1:\n\nInput:\n n = 4\n\nOutput:\n [[\".Q..\",\"...Q\",\"Q...\",\"..Q.\"],[\"..Q.\",\"Q...\",\"...Q\",\".Q..\"]]\n\nExplanation:\n There exist two distinct solutions to the 4-queens puzzle as shown above\n\nExample 2:\n\nInput:\n n = 1\n\nOutput:\n [[\"Q\"]]\n\n \n\nConstraints:\n\n1 <= n <= 9",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "4",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "1",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "N-Queens II",
+    "description": "The \nn-queens\n puzzle is the problem of placing \nn\n queens on an \nn x n\n chessboard such that no two queens attack each other.\n\nGiven an integer \nn\n, return \nthe number of distinct solutions to the \nn-queens puzzle\n.\n\n \n\nExample 1:\n\nInput:\n n = 4\n\nOutput:\n 2\n\nExplanation:\n There are two distinct solutions to the 4-queens puzzle as shown.\n\nExample 2:\n\nInput:\n n = 1\n\nOutput:\n 1\n\n \n\nConstraints:\n\n1 <= n <= 9",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "4",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "1",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Permutation Sequence",
+    "description": "The set \n[1, 2, 3, ..., n]\n contains a total of \nn!\n unique permutations.\n\nBy listing and labeling all of the permutations in order, we get the following sequence for \nn = 3\n:\n\n\"123\"\n\n\"132\"\n\n\"213\"\n\n\"231\"\n\n\"312\"\n\n\"321\"\n\nGiven \nn\n and \nk\n, return the \nk\nth\n permutation sequence.\n\n \n\nExample 1:\n\nInput:\n n = 3, k = 3\n\nOutput:\n \"213\"\n\nExample 2:\n\nInput:\n n = 4, k = 9\n\nOutput:\n \"2314\"\n\nExample 3:\n\nInput:\n n = 3, k = 1\n\nOutput:\n \"123\"\n\n \n\nConstraints:\n\n1 <= n <= 9\n\n1 <= k <= n!",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "3\n3",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "4\n9",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "3\n1",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Valid Number",
+    "description": "Given a string \ns\n, return whether \ns\n is a \nvalid number\n.\n\nFor example, all the following are valid numbers: \n\"2\", \"0089\", \"-0.1\", \"+3.14\", \"4.\", \"-.9\", \"2e10\", \"-90E3\", \"3e+7\", \"+6e-1\", \"53.5e93\", \"-123.456e789\"\n, while the following are not valid numbers: \n\"abc\", \"1a\", \"1e\", \"e3\", \"99e2.5\", \"--6\", \"-+3\", \"95a54e53\"\n.\n\nFormally, a \nvalid number\n is defined using one of the following definitions:\n\nAn \ninteger number\n followed by an \noptional exponent\n.\n\nA \ndecimal number\n followed by an \noptional exponent\n.\n\nAn \ninteger number\n is defined with an \noptional sign\n \n'-'\n or \n'+'\n followed by \ndigits\n.\n\nA \ndecimal number\n is defined with an \noptional sign\n \n'-'\n or \n'+'\n followed by one of the following definitions:\n\nDigits\n followed by a \ndot\n \n'.'\n.\n\nDigits\n followed by a \ndot\n \n'.'\n followed by \ndigits\n.\n\nA \ndot\n \n'.'\n followed by \ndigits\n.\n\nAn \nexponent\n is defined with an \nexponent notation\n \n'e'\n or \n'E'\n followed by an \ninteger number\n.\n\nThe \ndigits\n are defined as one or more digits.\n\n \n\nExample 1:\n\nInput:\n \ns = \"0\"\n\nOutput:\n \ntrue\n\nExample 2:\n\nInput:\n \ns = \"e\"\n\nOutput:\n \nfalse\n\nExample 3:\n\nInput:\n \ns = \".\"\n\nOutput:\n \nfalse\n\n \n\nConstraints:\n\n1 <= s.length <= 20\n\ns\n consists of only English letters (both uppercase and lowercase), digits (\n0-9\n), plus \n'+'\n, minus \n'-'\n, or dot \n'.'\n.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"0\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"e\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\".\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Text Justification",
+    "description": "Given an array of strings \nwords\n and a width \nmaxWidth\n, format the text such that each line has exactly \nmaxWidth\n characters and is fully (left and right) justified.\n\nYou should pack your words in a greedy approach; that is, pack as many words as you can in each line. Pad extra spaces \n' '\n when necessary so that each line has exactly \nmaxWidth\n characters.\n\nExtra spaces between words should be distributed as evenly as possible. If the number of spaces on a line does not divide evenly between words, the empty slots on the left will be assigned more spaces than the slots on the right.\n\nFor the last line of text, it should be left-justified, and no extra space is inserted between words.\n\nNote:\n\nA word is defined as a character sequence consisting of non-space characters only.\n\nEach word's length is guaranteed to be greater than \n0\n and not exceed \nmaxWidth\n.\n\nThe input array \nwords\n contains at least one word.\n\n \n\nExample 1:\n\nInput:\n words = [\"This\", \"is\", \"an\", \"example\", \"of\", \"text\", \"justification.\"], maxWidth = 16\n\nOutput:\n\n[\n   \"This    is    an\",\n   \"example  of text\",\n   \"justification.  \"\n]\n\nExample 2:\n\nInput:\n words = [\"What\",\"must\",\"be\",\"acknowledgment\",\"shall\",\"be\"], maxWidth = 16\n\nOutput:\n\n[\n  \"What   must   be\",\n  \"acknowledgment  \",\n  \"shall be        \"\n]\n\nExplanation:\n Note that the last line is \"shall be    \" instead of \"shall     be\", because the last line must be left-justified instead of fully-justified.\nNote that the second line is also left-justified because it contains only one word.\n\nExample 3:\n\nInput:\n words = [\"Science\",\"is\",\"what\",\"we\",\"understand\",\"well\",\"enough\",\"to\",\"explain\",\"to\",\"a\",\"computer.\",\"Art\",\"is\",\"everything\",\"else\",\"we\",\"do\"], maxWidth = 20\n\nOutput:\n\n[\n  \"Science  is  what we\",\n  \"understand      well\",\n  \"enough to explain to\",\n  \"a  computer.  Art is\",\n  \"everything  else  we\",\n  \"do                  \"\n]\n\n \n\nConstraints:\n\n1 <= words.length <= 300\n\n1 <= words[i].length <= 20\n\nwords[i]\n consists of only English letters and symbols.\n\n1 <= maxWidth <= 100\n\nwords[i].length <= maxWidth",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[\"This\", \"is\", \"an\", \"example\", \"of\", \"text\", \"justification.\"]\n16",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[\"What\",\"must\",\"be\",\"acknowledgment\",\"shall\",\"be\"]\n16",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[\"Science\",\"is\",\"what\",\"we\",\"understand\",\"well\",\"enough\",\"to\",\"explain\",\"to\",\"a\",\"computer.\",\"Art\",\"is\",\"everything\",\"else\",\"we\",\"do\"]\n20",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Minimum Window Substring",
+    "description": "Given two strings \ns\n and \nt\n of lengths \nm\n and \nn\n respectively, return \nthe \nminimum window\n \nsubstring\n of \ns\n such that every character in \nt\n (\nincluding duplicates\n) is included in the window\n. If there is no such substring, return \nthe empty string \n\"\"\n.\n\nThe testcases will be generated such that the answer is \nunique\n.\n\n \n\nExample 1:\n\nInput:\n s = \"ADOBECODEBANC\", t = \"ABC\"\n\nOutput:\n \"BANC\"\n\nExplanation:\n The minimum window substring \"BANC\" includes 'A', 'B', and 'C' from string t.\n\nExample 2:\n\nInput:\n s = \"a\", t = \"a\"\n\nOutput:\n \"a\"\n\nExplanation:\n The entire string s is the minimum window.\n\nExample 3:\n\nInput:\n s = \"a\", t = \"aa\"\n\nOutput:\n \"\"\n\nExplanation:\n Both 'a's from t must be included in the window.\nSince the largest window of s only has one 'a', return empty string.\n\n \n\nConstraints:\n\nm == s.length\n\nn == t.length\n\n1 <= m, n <= 10\n5\n\ns\n and \nt\n consist of uppercase and lowercase English letters.\n\n \n\nFollow up:\n Could you find an algorithm that runs in \nO(m + n)\n time?",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"ADOBECODEBANC\"\n\"ABC\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"a\"\n\"a\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"a\"\n\"aa\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Largest Rectangle in Histogram",
+    "description": "Given an array of integers \nheights\n representing the histogram's bar height where the width of each bar is \n1\n, return \nthe area of the largest rectangle in the histogram\n.\n\n \n\nExample 1:\n\nInput:\n heights = [2,1,5,6,2,3]\n\nOutput:\n 10\n\nExplanation:\n The above is a histogram where width of each bar is 1.\nThe largest rectangle is shown in the red area, which has an area = 10 units.\n\nExample 2:\n\nInput:\n heights = [2,4]\n\nOutput:\n 4\n\n \n\nConstraints:\n\n1 <= heights.length <= 10\n5\n\n0 <= heights[i] <= 10\n4",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[2,1,5,6,2,3]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[2,4]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Maximal Rectangle",
+    "description": "Given a \nrows x cols\n binary \nmatrix\n filled with \n0\n's and \n1\n's, find the largest rectangle containing only \n1\n's and return \nits area\n.\n\n \n\nExample 1:\n\nInput:\n matrix = [[\"1\",\"0\",\"1\",\"0\",\"0\"],[\"1\",\"0\",\"1\",\"1\",\"1\"],[\"1\",\"1\",\"1\",\"1\",\"1\"],[\"1\",\"0\",\"0\",\"1\",\"0\"]]\n\nOutput:\n 6\n\nExplanation:\n The maximal rectangle is shown in the above picture.\n\nExample 2:\n\nInput:\n matrix = [[\"0\"]]\n\nOutput:\n 0\n\nExample 3:\n\nInput:\n matrix = [[\"1\"]]\n\nOutput:\n 1\n\n \n\nConstraints:\n\nrows == matrix.length\n\ncols == matrix[i].length\n\n1 <= rows, cols <= 200\n\nmatrix[i][j]\n is \n'0'\n or \n'1'\n.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[[\"1\",\"0\",\"1\",\"0\",\"0\"],[\"1\",\"0\",\"1\",\"1\",\"1\"],[\"1\",\"1\",\"1\",\"1\",\"1\"],[\"1\",\"0\",\"0\",\"1\",\"0\"]]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[\"0\"]]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[\"1\"]]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Scramble String",
+    "description": "We can scramble a string s to get a string t using the following algorithm:\n\nIf the length of the string is 1, stop.\n\nIf the length of the string is > 1, do the following:\n\t\n\nSplit the string into two non-empty substrings at a random index, i.e., if the string is \ns\n, divide it to \nx\n and \ny\n where \ns = x + y\n.\n\nRandomly\n decide to swap the two substrings or to keep them in the same order. i.e., after this step, \ns\n may become \ns = x + y\n or \ns = y + x\n.\n\nApply step 1 recursively on each of the two substrings \nx\n and \ny\n.\n\nGiven two strings \ns1\n and \ns2\n of \nthe same length\n, return \ntrue\n if \ns2\n is a scrambled string of \ns1\n, otherwise, return \nfalse\n.\n\n \n\nExample 1:\n\nInput:\n s1 = \"great\", s2 = \"rgeat\"\n\nOutput:\n true\n\nExplanation:\n One possible scenario applied on s1 is:\n\"great\" --> \"gr/eat\" // divide at random index.\n\"gr/eat\" --> \"gr/eat\" // random decision is not to swap the two substrings and keep them in order.\n\"gr/eat\" --> \"g/r / e/at\" // apply the same algorithm recursively on both substrings. divide at random index each of them.\n\"g/r / e/at\" --> \"r/g / e/at\" // random decision was to swap the first substring and to keep the second substring in the same order.\n\"r/g / e/at\" --> \"r/g / e/ a/t\" // again apply the algorithm recursively, divide \"at\" to \"a/t\".\n\"r/g / e/ a/t\" --> \"r/g / e/ a/t\" // random decision is to keep both substrings in the same order.\nThe algorithm stops now, and the result string is \"rgeat\" which is s2.\nAs one possible scenario led s1 to be scrambled to s2, we return true.\n\nExample 2:\n\nInput:\n s1 = \"abcde\", s2 = \"caebd\"\n\nOutput:\n false\n\nExample 3:\n\nInput:\n s1 = \"a\", s2 = \"a\"\n\nOutput:\n true\n\n \n\nConstraints:\n\ns1.length == s2.length\n\n1 <= s1.length <= 30\n\ns1\n and \ns2\n consist of lowercase English letters.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"great\"\n\"rgeat\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"abcde\"\n\"caebd\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"a\"\n\"a\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Distinct Subsequences",
+    "description": "Given two strings s and t, return \nthe number of distinct\n \nsubsequences\n of \ns\n which equals \nt.\n\nThe test cases are generated so that the answer fits on a 32-bit signed integer.\n\n \n\nExample 1:\n\nInput:\n s = \"rabbbit\", t = \"rabbit\"\n\nOutput:\n 3\n\nExplanation:\n\nAs shown below, there are 3 ways you can generate \"rabbit\" from s.\n\nrabb\nb\nit\n\nra\nb\nbbit\n\nrab\nb\nbit\n\nExample 2:\n\nInput:\n s = \"babgbag\", t = \"bag\"\n\nOutput:\n 5\n\nExplanation:\n\nAs shown below, there are 5 ways you can generate \"bag\" from s.\n\nba\nb\ng\nbag\n\nba\nbgba\ng\n\nb\nabgb\nag\n\nba\nb\ngb\nag\n\nbabg\nbag\n\n \n\nConstraints:\n\n1 <= s.length, t.length <= 1000\n\ns\n and \nt\n consist of English letters.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"rabbbit\"\n\"rabbit\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"babgbag\"\n\"bag\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Best Time to Buy and Sell Stock III",
+    "description": "You are given an array \nprices\n where \nprices[i]\n is the price of a given stock on the \ni\nth\n day.\n\nFind the maximum profit you can achieve. You may complete \nat most two transactions\n.\n\nNote:\n You may not engage in multiple transactions simultaneously (i.e., you must sell the stock before you buy again).\n\n \n\nExample 1:\n\nInput:\n prices = [3,3,5,0,0,3,1,4]\n\nOutput:\n 6\n\nExplanation:\n Buy on day 4 (price = 0) and sell on day 6 (price = 3), profit = 3-0 = 3.\nThen buy on day 7 (price = 1) and sell on day 8 (price = 4), profit = 4-1 = 3.\n\nExample 2:\n\nInput:\n prices = [1,2,3,4,5]\n\nOutput:\n 4\n\nExplanation:\n Buy on day 1 (price = 1) and sell on day 5 (price = 5), profit = 5-1 = 4.\nNote that you cannot buy on day 1, buy on day 2 and sell them later, as you are engaging multiple transactions at the same time. You must sell before buying again.\n\nExample 3:\n\nInput:\n prices = [7,6,4,3,1]\n\nOutput:\n 0\n\nExplanation:\n In this case, no transaction is done, i.e. max profit = 0.\n\n \n\nConstraints:\n\n1 <= prices.length <= 10\n5\n\n0 <= prices[i] <= 10\n5",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[3,3,5,0,0,3,1,4]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,2,3,4,5]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[7,6,4,3,1]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Binary Tree Maximum Path Sum",
+    "description": "A \npath\n in a binary tree is a sequence of nodes where each pair of adjacent nodes in the sequence has an edge connecting them. A node can only appear in the sequence \nat most once\n. Note that the path does not need to pass through the root.\n\nThe \npath sum\n of a path is the sum of the node's values in the path.\n\nGiven the \nroot\n of a binary tree, return \nthe maximum \npath sum\n of any \nnon-empty\n path\n.\n\n \n\nExample 1:\n\nInput:\n root = [1,2,3]\n\nOutput:\n 6\n\nExplanation:\n The optimal path is 2 -> 1 -> 3 with a path sum of 2 + 1 + 3 = 6.\n\nExample 2:\n\nInput:\n root = [-10,9,20,null,null,15,7]\n\nOutput:\n 42\n\nExplanation:\n The optimal path is 15 -> 20 -> 7 with a path sum of 15 + 20 + 7 = 42.\n\n \n\nConstraints:\n\nThe number of nodes in the tree is in the range \n[1, 3 * 10\n4\n]\n.\n\n-1000 <= Node.val <= 1000",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,2,3]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[-10,9,20,null,null,15,7]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Word Ladder II",
+    "description": "A \ntransformation sequence\n from word \nbeginWord\n to word \nendWord\n using a dictionary \nwordList\n is a sequence of words \nbeginWord -> s\n1\n -> s\n2\n -> ... -> s\nk\n such that:\n\nEvery adjacent pair of words differs by a single letter.\n\nEvery \ns\ni\n for \n1 <= i <= k\n is in \nwordList\n. Note that \nbeginWord\n does not need to be in \nwordList\n.\n\ns\nk\n == endWord\n\nGiven two words, \nbeginWord\n and \nendWord\n, and a dictionary \nwordList\n, return \nall the \nshortest transformation sequences\n from\n \nbeginWord\n \nto\n \nendWord\n, or an empty list if no such sequence exists. Each sequence should be returned as a list of the words \n[beginWord, s\n1\n, s\n2\n, ..., s\nk\n]\n.\n\n \n\nExample 1:\n\nInput:\n beginWord = \"hit\", endWord = \"cog\", wordList = [\"hot\",\"dot\",\"dog\",\"lot\",\"log\",\"cog\"]\n\nOutput:\n [[\"hit\",\"hot\",\"dot\",\"dog\",\"cog\"],[\"hit\",\"hot\",\"lot\",\"log\",\"cog\"]]\n\nExplanation:\n There are 2 shortest transformation sequences:\n\"hit\" -> \"hot\" -> \"dot\" -> \"dog\" -> \"cog\"\n\"hit\" -> \"hot\" -> \"lot\" -> \"log\" -> \"cog\"\n\nExample 2:\n\nInput:\n beginWord = \"hit\", endWord = \"cog\", wordList = [\"hot\",\"dot\",\"dog\",\"lot\",\"log\"]\n\nOutput:\n []\n\nExplanation:\n The endWord \"cog\" is not in wordList, therefore there is no valid transformation sequence.\n\n \n\nConstraints:\n\n1 <= beginWord.length <= 5\n\nendWord.length == beginWord.length\n\n1 <= wordList.length <= 500\n\nwordList[i].length == beginWord.length\n\nbeginWord\n, \nendWord\n, and \nwordList[i]\n consist of lowercase English letters.\n\nbeginWord != endWord\n\nAll the words in \nwordList\n are \nunique\n.\n\nThe \nsum\n of all shortest transformation sequences does not exceed \n10\n5\n.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"hit\"\n\"cog\"\n[\"hot\",\"dot\",\"dog\",\"lot\",\"log\",\"cog\"]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"hit\"\n\"cog\"\n[\"hot\",\"dot\",\"dog\",\"lot\",\"log\"]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Word Ladder",
+    "description": "A \ntransformation sequence\n from word \nbeginWord\n to word \nendWord\n using a dictionary \nwordList\n is a sequence of words \nbeginWord -> s\n1\n -> s\n2\n -> ... -> s\nk\n such that:\n\nEvery adjacent pair of words differs by a single letter.\n\nEvery \ns\ni\n for \n1 <= i <= k\n is in \nwordList\n. Note that \nbeginWord\n does not need to be in \nwordList\n.\n\ns\nk\n == endWord\n\nGiven two words, \nbeginWord\n and \nendWord\n, and a dictionary \nwordList\n, return \nthe \nnumber of words\n in the \nshortest transformation sequence\n from\n \nbeginWord\n \nto\n \nendWord\n, or \n0\n if no such sequence exists.\n\n \n\nExample 1:\n\nInput:\n beginWord = \"hit\", endWord = \"cog\", wordList = [\"hot\",\"dot\",\"dog\",\"lot\",\"log\",\"cog\"]\n\nOutput:\n 5\n\nExplanation:\n One shortest transformation sequence is \"hit\" -> \"hot\" -> \"dot\" -> \"dog\" -> cog\", which is 5 words long.\n\nExample 2:\n\nInput:\n beginWord = \"hit\", endWord = \"cog\", wordList = [\"hot\",\"dot\",\"dog\",\"lot\",\"log\"]\n\nOutput:\n 0\n\nExplanation:\n The endWord \"cog\" is not in wordList, therefore there is no valid transformation sequence.\n\n \n\nConstraints:\n\n1 <= beginWord.length <= 10\n\nendWord.length == beginWord.length\n\n1 <= wordList.length <= 5000\n\nwordList[i].length == beginWord.length\n\nbeginWord\n, \nendWord\n, and \nwordList[i]\n consist of lowercase English letters.\n\nbeginWord != endWord\n\nAll the words in \nwordList\n are \nunique\n.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"hit\"\n\"cog\"\n[\"hot\",\"dot\",\"dog\",\"lot\",\"log\",\"cog\"]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"hit\"\n\"cog\"\n[\"hot\",\"dot\",\"dog\",\"lot\",\"log\"]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Palindrome Partitioning II",
+    "description": "Given a string \ns\n, partition \ns\n such that every \nsubstring\n of the partition is a \npalindrome\n.\n\nReturn \nthe \nminimum\n cuts needed for a palindrome partitioning of\n \ns\n.\n\n \n\nExample 1:\n\nInput:\n s = \"aab\"\n\nOutput:\n 1\n\nExplanation:\n The palindrome partitioning [\"aa\",\"b\"] could be produced using 1 cut.\n\nExample 2:\n\nInput:\n s = \"a\"\n\nOutput:\n 0\n\nExample 3:\n\nInput:\n s = \"ab\"\n\nOutput:\n 1\n\n \n\nConstraints:\n\n1 <= s.length <= 2000\n\ns\n consists of lowercase English letters only.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"aab\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"a\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"ab\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Candy",
+    "description": "There are \nn\n children standing in a line.\n\nEach child is assigned a rating value given in the integer array \nratings\n.\n\nYou are giving candies to these children subjected to the following requirements:\n\nEach child must have \nat least\n one candy.\n\nChildren with a \nhigher\n rating get more candies than their neighbors.\n\nReturn the \nminimum\n number of candies you need to have to distribute the candies to the children.\n\n \n\nExample 1:\n\nInput:\n ratings = [1,0,2]\n\nOutput:\n 5\n\nExplanation:\n You can allocate to the first, second and third child with 2, 1, 2 candies respectively.\n\nExample 2:\n\nInput:\n ratings = [1,2,2]\n\nOutput:\n 4\n\nExplanation:\n You can allocate to the first, second and third child with 1, 2, 1 candies respectively.\nThe third child gets 1 candy because it satisfies the above two conditions.\n\n \n\nConstraints:\n\n1 <= n == ratings.length <= 5 * 10\n4\n\n0 <= ratings[i] <= 5 * 10\n4",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,0,2]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,2,2]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Word Break II",
+    "description": "Given a string \ns\n and a dictionary of strings \nwordDict\n, add spaces in \ns\n to construct a sentence where each word is a valid dictionary word. Return all such possible sentences in \nany order\n.\n\nNote\n that the same word in the dictionary may be reused multiple times in the segmentation.\n\n \n\nExample 1:\n\nInput:\n s = \"catsanddog\", wordDict = [\"cat\",\"cats\",\"and\",\"sand\",\"dog\"]\n\nOutput:\n [\"cats and dog\",\"cat sand dog\"]\n\nExample 2:\n\nInput:\n s = \"pineapplepenapple\", wordDict = [\"apple\",\"pen\",\"applepen\",\"pine\",\"pineapple\"]\n\nOutput:\n [\"pine apple pen apple\",\"pineapple pen apple\",\"pine applepen apple\"]\n\nExplanation:\n Note that you are allowed to reuse a dictionary word.\n\nExample 3:\n\nInput:\n s = \"catsandog\", wordDict = [\"cats\",\"dog\",\"sand\",\"and\",\"cat\"]\n\nOutput:\n []\n\n \n\nConstraints:\n\n1 <= s.length <= 20\n\n1 <= wordDict.length <= 1000\n\n1 <= wordDict[i].length <= 10\n\ns\n and \nwordDict[i]\n consist of only lowercase English letters.\n\nAll the strings of \nwordDict\n are \nunique\n.\n\nInput is generated in a way that the length of the answer doesn't exceed 10\n5\n.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"catsanddog\"\n[\"cat\",\"cats\",\"and\",\"sand\",\"dog\"]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"pineapplepenapple\"\n[\"apple\",\"pen\",\"applepen\",\"pine\",\"pineapple\"]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"catsandog\"\n[\"cats\",\"dog\",\"sand\",\"and\",\"cat\"]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Max Points on a Line",
+    "description": "Given an array of \npoints\n where \npoints[i] = [x\ni\n, y\ni\n]\n represents a point on the \nX-Y\n plane, return \nthe maximum number of points that lie on the same straight line\n.\n\n \n\nExample 1:\n\nInput:\n points = [[1,1],[2,2],[3,3]]\n\nOutput:\n 3\n\nExample 2:\n\nInput:\n points = [[1,1],[3,2],[5,3],[4,1],[2,3],[1,4]]\n\nOutput:\n 4\n\n \n\nConstraints:\n\n1 <= points.length <= 300\n\npoints[i].length == 2\n\n-10\n4\n <= x\ni\n, y\ni\n <= 10\n4\n\nAll the \npoints\n are \nunique\n.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[[1,1],[2,2],[3,3]]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[1,1],[3,2],[5,3],[4,1],[2,3],[1,4]]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Find Minimum in Rotated Sorted Array II",
+    "description": "Suppose an array of length \nn\n sorted in ascending order is \nrotated\n between \n1\n and \nn\n times. For example, the array \nnums = [0,1,4,4,5,6,7]\n might become:\n\n[4,5,6,7,0,1,4]\n if it was rotated \n4\n times.\n\n[0,1,4,4,5,6,7]\n if it was rotated \n7\n times.\n\nNotice that \nrotating\n an array \n[a[0], a[1], a[2], ..., a[n-1]]\n 1 time results in the array \n[a[n-1], a[0], a[1], a[2], ..., a[n-2]]\n.\n\nGiven the sorted rotated array \nnums\n that may contain \nduplicates\n, return \nthe minimum element of this array\n.\n\nYou must decrease the overall operation steps as much as possible.\n\n \n\nExample 1:\n\nInput:\n nums = [1,3,5]\n\nOutput:\n 1\n\nExample 2:\n\nInput:\n nums = [2,2,2,0,1]\n\nOutput:\n 0\n\n \n\nConstraints:\n\nn == nums.length\n\n1 <= n <= 5000\n\n-5000 <= nums[i] <= 5000\n\nnums\n is sorted and rotated between \n1\n and \nn\n times.\n\n \n\nFollow up:\n This problem is similar to \nFind Minimum in Rotated Sorted Array\n, but \nnums\n may contain \nduplicates\n. Would this affect the runtime complexity? How and why?",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,3,5]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[2,2,2,0,1]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Dungeon Game",
+    "description": "The demons had captured the princess and imprisoned her in \nthe bottom-right corner\n of a \ndungeon\n. The \ndungeon\n consists of \nm x n\n rooms laid out in a 2D grid. Our valiant knight was initially positioned in \nthe top-left room\n and must fight his way through \ndungeon\n to rescue the princess.\n\nThe knight has an initial health point represented by a positive integer. If at any point his health point drops to \n0\n or below, he dies immediately.\n\nSome of the rooms are guarded by demons (represented by negative integers), so the knight loses health upon entering these rooms; other rooms are either empty (represented as 0) or contain magic orbs that increase the knight's health (represented by positive integers).\n\nTo reach the princess as quickly as possible, the knight decides to move only \nrightward\n or \ndownward\n in each step.\n\nReturn \nthe knight's minimum initial health so that he can rescue the princess\n.\n\nNote\n that any room can contain threats or power-ups, even the first room the knight enters and the bottom-right room where the princess is imprisoned.\n\n \n\nExample 1:\n\nInput:\n dungeon = [[-2,-3,3],[-5,-10,1],[10,30,-5]]\n\nOutput:\n 7\n\nExplanation:\n The initial health of the knight must be at least 7 if he follows the optimal path: RIGHT-> RIGHT -> DOWN -> DOWN.\n\nExample 2:\n\nInput:\n dungeon = [[0]]\n\nOutput:\n 1\n\n \n\nConstraints:\n\nm == dungeon.length\n\nn == dungeon[i].length\n\n1 <= m, n <= 200\n\n-1000 <= dungeon[i][j] <= 1000",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[[-2,-3,3],[-5,-10,1],[10,30,-5]]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[0]]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Department Top Three Salaries",
+    "description": "Table: \nEmployee\n\n+--------------+---------+\n| Column Name  | Type    |\n+--------------+---------+\n| id           | int     |\n| name         | varchar |\n| salary       | int     |\n| departmentId | int     |\n+--------------+---------+\nid is the primary key (column with unique values) for this table.\ndepartmentId is a foreign key (reference column) of the ID from the \nDepartment \ntable.\nEach row of this table indicates the ID, name, and salary of an employee. It also contains the ID of their department.\n\n \n\nTable: \nDepartment\n\n+-------------+---------+\n| Column Name | Type    |\n+-------------+---------+\n| id          | int     |\n| name        | varchar |\n+-------------+---------+\nid is the primary key (column with unique values) for this table.\nEach row of this table indicates the ID of a department and its name.\n\n \n\nA company's executives are interested in seeing who earns the most money in each of the company's departments. A \nhigh earner\n in a department is an employee who has a salary in the \ntop three unique\n salaries for that department.\n\nWrite a solution to find the employees who are \nhigh earners\n in each of the departments.\n\nReturn the result table \nin any order\n.\n\nThe result format is in the following example.\n\n \n\nExample 1:\n\nInput:\n \nEmployee table:\n+----+-------+--------+--------------+\n| id | name  | salary | departmentId |\n+----+-------+--------+--------------+\n| 1  | Joe   | 85000  | 1            |\n| 2  | Henry | 80000  | 2            |\n| 3  | Sam   | 60000  | 2            |\n| 4  | Max   | 90000  | 1            |\n| 5  | Janet | 69000  | 1            |\n| 6  | Randy | 85000  | 1            |\n| 7  | Will  | 70000  | 1            |\n+----+-------+--------+--------------+\nDepartment table:\n+----+-------+\n| id | name  |\n+----+-------+\n| 1  | IT    |\n| 2  | Sales |\n+----+-------+\n\nOutput:\n \n+------------+----------+--------+\n| Department | Employee | Salary |\n+------------+----------+--------+\n| IT         | Max      | 90000  |\n| IT         | Joe      | 85000  |\n| IT         | Randy    | 85000  |\n| IT         | Will     | 70000  |\n| Sales      | Henry    | 80000  |\n| Sales      | Sam      | 60000  |\n+------------+----------+--------+\n\nExplanation:\n \nIn the IT department:\n- Max earns the highest unique salary\n- Both Randy and Joe earn the second-highest unique salary\n- Will earns the third-highest unique salary\n\nIn the Sales department:\n- Henry earns the highest salary\n- Sam earns the second-highest salary\n- There is no third-highest salary as there are only two employees\n\n \n\nConstraints:\n\nThere are no employees with the \nexact\n same name, salary \nand\n department.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "{\"headers\": {\"Employee\": [\"id\", \"name\", \"salary\", \"departmentId\"], \"Department\": [\"id\", \"name\"]}, \"rows\": {\"Employee\": [[1, \"Joe\", 85000, 1], [2, \"Henry\", 80000, 2], [3, \"Sam\", 60000, 2], [4, \"Max\", 90000, 1], [5, \"Janet\", 69000, 1], [6, \"Randy\", 85000, 1], [7, \"Will\", 70000, 1]], \"Department\": [[1, \"IT\"], [2, \"Sales\"]]}}",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Best Time to Buy and Sell Stock IV",
+    "description": "You are given an integer array \nprices\n where \nprices[i]\n is the price of a given stock on the \ni\nth\n day, and an integer \nk\n.\n\nFind the maximum profit you can achieve. You may complete at most \nk\n transactions: i.e. you may buy at most \nk\n times and sell at most \nk\n times.\n\nNote:\n You may not engage in multiple transactions simultaneously (i.e., you must sell the stock before you buy again).\n\n \n\nExample 1:\n\nInput:\n k = 2, prices = [2,4,1]\n\nOutput:\n 2\n\nExplanation:\n Buy on day 1 (price = 2) and sell on day 2 (price = 4), profit = 4-2 = 2.\n\nExample 2:\n\nInput:\n k = 2, prices = [3,2,6,5,0,3]\n\nOutput:\n 7\n\nExplanation:\n Buy on day 2 (price = 2) and sell on day 3 (price = 6), profit = 6-2 = 4. Then buy on day 5 (price = 0) and sell on day 6 (price = 3), profit = 3-0 = 3.\n\n \n\nConstraints:\n\n1 <= k <= 100\n\n1 <= prices.length <= 1000\n\n0 <= prices[i] <= 1000",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "2\n[2,4,1]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "2\n[3,2,6,5,0,3]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Word Search II",
+    "description": "Given an \nm x n\n \nboard\n of characters and a list of strings \nwords\n, return \nall words on the board\n.\n\nEach word must be constructed from letters of sequentially adjacent cells, where \nadjacent cells\n are horizontally or vertically neighboring. The same letter cell may not be used more than once in a word.\n\n \n\nExample 1:\n\nInput:\n board = [[\"o\",\"a\",\"a\",\"n\"],[\"e\",\"t\",\"a\",\"e\"],[\"i\",\"h\",\"k\",\"r\"],[\"i\",\"f\",\"l\",\"v\"]], words = [\"oath\",\"pea\",\"eat\",\"rain\"]\n\nOutput:\n [\"eat\",\"oath\"]\n\nExample 2:\n\nInput:\n board = [[\"a\",\"b\"],[\"c\",\"d\"]], words = [\"abcb\"]\n\nOutput:\n []\n\n \n\nConstraints:\n\nm == board.length\n\nn == board[i].length\n\n1 <= m, n <= 12\n\nboard[i][j]\n is a lowercase English letter.\n\n1 <= words.length <= 3 * 10\n4\n\n1 <= words[i].length <= 10\n\nwords[i]\n consists of lowercase English letters.\n\nAll the strings of \nwords\n are unique.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[[\"o\",\"a\",\"a\",\"n\"],[\"e\",\"t\",\"a\",\"e\"],[\"i\",\"h\",\"k\",\"r\"],[\"i\",\"f\",\"l\",\"v\"]]\n[\"oath\",\"pea\",\"eat\",\"rain\"]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[\"a\",\"b\"],[\"c\",\"d\"]]\n[\"abcb\"]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Shortest Palindrome",
+    "description": "You are given a string \ns\n. You can convert \ns\n to a \npalindrome\n by adding characters in front of it.\n\nReturn \nthe shortest palindrome you can find by performing this transformation\n.\n\n \n\nExample 1:\n\nInput:\n s = \"aacecaaa\"\n\nOutput:\n \"aaacecaaa\"\n\nExample 2:\n\nInput:\n s = \"abcd\"\n\nOutput:\n \"dcbabcd\"\n\n \n\nConstraints:\n\n0 <= s.length <= 5 * 10\n4\n\ns\n consists of lowercase English letters only.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"aacecaaa\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"abcd\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "The Skyline Problem",
+    "description": "A city's \nskyline\n is the outer contour of the silhouette formed by all the buildings in that city when viewed from a distance. Given the locations and heights of all the buildings, return \nthe \nskyline\n formed by these buildings collectively\n.\n\nThe geometric information of each building is given in the array \nbuildings\n where \nbuildings[i] = [left\ni\n, right\ni\n, height\ni\n]\n:\n\nleft\ni\n is the x coordinate of the left edge of the \ni\nth\n building.\n\nright\ni\n is the x coordinate of the right edge of the \ni\nth\n building.\n\nheight\ni\n is the height of the \ni\nth\n building.\n\nYou may assume all buildings are perfect rectangles grounded on an absolutely flat surface at height \n0\n.\n\nThe \nskyline\n should be represented as a list of \"key points\" \nsorted by their x-coordinate\n in the form \n[[x\n1\n,y\n1\n],[x\n2\n,y\n2\n],...]\n. Each key point is the left endpoint of some horizontal segment in the skyline except the last point in the list, which always has a y-coordinate \n0\n and is used to mark the skyline's termination where the rightmost building ends. Any ground between the leftmost and rightmost buildings should be part of the skyline's contour.\n\nNote:\n There must be no consecutive horizontal lines of equal height in the output skyline. For instance, \n[...,[2 3],[4 5],[7 5],[11 5],[12 7],...]\n is not acceptable; the three lines of height 5 should be merged into one in the final output as such: \n[...,[2 3],[4 5],[12 7],...]\n\n \n\nExample 1:\n\nInput:\n buildings = [[2,9,10],[3,7,15],[5,12,12],[15,20,10],[19,24,8]]\n\nOutput:\n [[2,10],[3,15],[7,12],[12,0],[15,10],[20,8],[24,0]]\n\nExplanation:\n\nFigure A shows the buildings of the input.\nFigure B shows the skyline formed by those buildings. The red points in figure B represent the key points in the output list.\n\nExample 2:\n\nInput:\n buildings = [[0,2,3],[2,5,3]]\n\nOutput:\n [[0,3],[5,0]]\n\n \n\nConstraints:\n\n1 <= buildings.length <= 10\n4\n\n0 <= left\ni\n < right\ni\n <= 2\n31\n - 1\n\n1 <= height\ni\n <= 2\n31\n - 1\n\nbuildings\n is sorted by \nleft\ni\n in non-decreasing order.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[[2,9,10],[3,7,15],[5,12,12],[15,20,10],[19,24,8]]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[0,2,3],[2,5,3]]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Contains Duplicate III",
+    "description": "You are given an integer array \nnums\n and two integers \nindexDiff\n and \nvalueDiff\n.\n\nFind a pair of indices \n(i, j)\n such that:\n\ni != j\n,\n\nabs(i - j) <= indexDiff\n.\n\nabs(nums[i] - nums[j]) <= valueDiff\n, and\n\nReturn \ntrue\n if such pair exists or \nfalse\n otherwise\n.\n\n \n\nExample 1:\n\nInput:\n nums = [1,2,3,1], indexDiff = 3, valueDiff = 0\n\nOutput:\n true\n\nExplanation:\n We can choose (i, j) = (0, 3).\nWe satisfy the three conditions:\ni != j --> 0 != 3\nabs(i - j) <= indexDiff --> abs(0 - 3) <= 3\nabs(nums[i] - nums[j]) <= valueDiff --> abs(1 - 1) <= 0\n\nExample 2:\n\nInput:\n nums = [1,5,9,1,5,9], indexDiff = 2, valueDiff = 3\n\nOutput:\n false\n\nExplanation:\n After trying all the possible pairs (i, j), we cannot satisfy the three conditions, so we return false.\n\n \n\nConstraints:\n\n2 <= nums.length <= 10\n5\n\n-10\n9\n <= nums[i] <= 10\n9\n\n1 <= indexDiff <= nums.length\n\n0 <= valueDiff <= 10\n9",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,2,3,1]\n3\n0",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,5,9,1,5,9]\n2\n3",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Basic Calculator",
+    "description": "Given a string \ns\n representing a valid expression, implement a basic calculator to evaluate it, and return \nthe result of the evaluation\n.\n\nNote:\n You are \nnot\n allowed to use any built-in function which evaluates strings as mathematical expressions, such as \neval()\n.\n\n \n\nExample 1:\n\nInput:\n s = \"1 + 1\"\n\nOutput:\n 2\n\nExample 2:\n\nInput:\n s = \" 2-1 + 2 \"\n\nOutput:\n 3\n\nExample 3:\n\nInput:\n s = \"(1+(4+5+2)-3)+(6+8)\"\n\nOutput:\n 23\n\n \n\nConstraints:\n\n1 <= s.length <= 3 * 10\n5\n\ns\n consists of digits, \n'+'\n, \n'-'\n, \n'('\n, \n')'\n, and \n' '\n.\n\ns\n represents a valid expression.\n\n'+'\n is \nnot\n used as a unary operation (i.e., \n\"+1\"\n and \n\"+(2 + 3)\"\n is invalid).\n\n'-'\n could be used as a unary operation (i.e., \n\"-1\"\n and \n\"-(2 + 3)\"\n is valid).\n\nThere will be no two consecutive operators in the input.\n\nEvery number and running calculation will fit in a signed 32-bit integer.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"1 + 1\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\" 2-1 + 2 \"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"(1+(4+5+2)-3)+(6+8)\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Number of Digit One",
+    "description": "Given an integer \nn\n, count \nthe total number of digit \n1\n appearing in all non-negative integers less than or equal to\n \nn\n.\n\n \n\nExample 1:\n\nInput:\n n = 13\n\nOutput:\n 6\n\nExample 2:\n\nInput:\n n = 0\n\nOutput:\n 0\n\n \n\nConstraints:\n\n0 <= n <= 10\n9",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "13",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "0",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Sliding Window Maximum",
+    "description": "You are given an array of integers \nnums\n, there is a sliding window of size \nk\n which is moving from the very left of the array to the very right. You can only see the \nk\n numbers in the window. Each time the sliding window moves right by one position.\n\nReturn \nthe max sliding window\n.\n\n \n\nExample 1:\n\nInput:\n nums = [1,3,-1,-3,5,3,6,7], k = 3\n\nOutput:\n [3,3,5,5,6,7]\n\nExplanation:\n \nWindow position                Max\n---------------               -----\n[1  3  -1] -3  5  3  6  7       \n3\n\n 1 [3  -1  -3] 5  3  6  7       \n3\n\n 1  3 [-1  -3  5] 3  6  7      \n 5\n\n 1  3  -1 [-3  5  3] 6  7       \n5\n\n 1  3  -1  -3 [5  3  6] 7       \n6\n\n 1  3  -1  -3  5 [3  6  7]      \n7\n\nExample 2:\n\nInput:\n nums = [1], k = 1\n\nOutput:\n [1]\n\n \n\nConstraints:\n\n1 <= nums.length <= 10\n5\n\n-10\n4\n <= nums[i] <= 10\n4\n\n1 <= k <= nums.length",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,3,-1,-3,5,3,6,7]\n3",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1]\n1",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Trips and Users",
+    "description": "Table: \nTrips\n\n+-------------+----------+\n| Column Name | Type     |\n+-------------+----------+\n| id          | int      |\n| client_id   | int      |\n| driver_id   | int      |\n| city_id     | int      |\n| status      | enum     |\n| request_at  | varchar  |     \n+-------------+----------+\nid is the primary key (column with unique values) for this table.\nThe table holds all taxi trips. Each trip has a unique id, while client_id and driver_id are foreign keys to the users_id at the Users table.\nStatus is an ENUM (category) type of ('completed', 'cancelled_by_driver', 'cancelled_by_client').\n\n \n\nTable: \nUsers\n\n+-------------+----------+\n| Column Name | Type     |\n+-------------+----------+\n| users_id    | int      |\n| banned      | enum     |\n| role        | enum     |\n+-------------+----------+\nusers_id is the primary key (column with unique values) for this table.\nThe table holds all users. Each user has a unique users_id, and role is an ENUM type of ('client', 'driver', 'partner').\nbanned is an ENUM (category) type of ('Yes', 'No').\n\n \n\nThe \ncancellation rate\n is computed by dividing the number of canceled (by client or driver) requests with unbanned users by the total number of requests with unbanned users on that day.\n\nWrite a solution to find the \ncancellation rate\n of requests with unbanned users (\nboth client and driver must not be banned\n) each day between \n\"2013-10-01\"\n and \n\"2013-10-03\"\n with \nat least\n one trip. Round \nCancellation Rate\n to \ntwo decimal\n points.\n\nReturn the result table in \nany order\n.\n\nThe result format is in the following example.\n\n \n\nExample 1:\n\nInput:\n \nTrips table:\n+----+-----------+-----------+---------+---------------------+------------+\n| id | client_id | driver_id | city_id | status              | request_at |\n+----+-----------+-----------+---------+---------------------+------------+\n| 1  | 1         | 10        | 1       | completed           | 2013-10-01 |\n| 2  | 2         | 11        | 1       | cancelled_by_driver | 2013-10-01 |\n| 3  | 3         | 12        | 6       | completed           | 2013-10-01 |\n| 4  | 4         | 13        | 6       | cancelled_by_client | 2013-10-01 |\n| 5  | 1         | 10        | 1       | completed           | 2013-10-02 |\n| 6  | 2         | 11        | 6       | completed           | 2013-10-02 |\n| 7  | 3         | 12        | 6       | completed           | 2013-10-02 |\n| 8  | 2         | 12        | 12      | completed           | 2013-10-03 |\n| 9  | 3         | 10        | 12      | completed           | 2013-10-03 |\n| 10 | 4         | 13        | 12      | cancelled_by_driver | 2013-10-03 |\n+----+-----------+-----------+---------+---------------------+------------+\nUsers table:\n+----------+--------+--------+\n| users_id | banned | role   |\n+----------+--------+--------+\n| 1        | No     | client |\n| 2        | Yes    | client |\n| 3        | No     | client |\n| 4        | No     | client |\n| 10       | No     | driver |\n| 11       | No     | driver |\n| 12       | No     | driver |\n| 13       | No     | driver |\n+----------+--------+--------+\n\nOutput:\n \n+------------+-------------------+\n| Day        | Cancellation Rate |\n+------------+-------------------+\n| 2013-10-01 | 0.33              |\n| 2013-10-02 | 0.00              |\n| 2013-10-03 | 0.50              |\n+------------+-------------------+\n\nExplanation:\n \nOn 2013-10-01:\n  - There were 4 requests in total, 2 of which were canceled.\n  - However, the request with Id=2 was made by a banned client (User_Id=2), so it is ignored in the calculation.\n  - Hence there are 3 unbanned requests in total, 1 of which was canceled.\n  - The Cancellation Rate is (1 / 3) = 0.33\nOn 2013-10-02:\n  - There were 3 requests in total, 0 of which were canceled.\n  - The request with Id=6 was made by a banned client, so it is ignored.\n  - Hence there are 2 unbanned requests in total, 0 of which were canceled.\n  - The Cancellation Rate is (0 / 2) = 0.00\nOn 2013-10-03:\n  - There were 3 requests in total, 1 of which was canceled.\n  - The request with Id=8 was made by a banned client, so it is ignored.\n  - Hence there are 2 unbanned request in total, 1 of which were canceled.\n  - The Cancellation Rate is (1 / 2) = 0.50",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "{\"headers\": {\"Trips\": [\"id\", \"client_id\", \"driver_id\", \"city_id\", \"status\", \"request_at\"], \"Users\": [\"users_id\", \"banned\", \"role\"]}, \"rows\": {\"Trips\": [[\"1\", \"1\", \"10\", \"1\", \"completed\", \"2013-10-01\"], [\"2\", \"2\", \"11\", \"1\", \"cancelled_by_driver\", \"2013-10-01\"], [\"3\", \"3\", \"12\", \"6\", \"completed\", \"2013-10-01\"], [\"4\", \"4\", \"13\", \"6\", \"cancelled_by_client\", \"2013-10-01\"], [\"5\", \"1\", \"10\", \"1\", \"completed\", \"2013-10-02\"], [\"6\", \"2\", \"11\", \"6\", \"completed\", \"2013-10-02\"], [\"7\", \"3\", \"12\", \"6\", \"completed\", \"2013-10-02\"], [\"8\", \"2\", \"12\", \"12\", \"completed\", \"2013-10-03\"], [\"9\", \"3\", \"10\", \"12\", \"completed\", \"2013-10-03\"], [\"10\", \"4\", \"13\", \"12\", \"cancelled_by_driver\", \"2013-10-03\"]], \"Users\": [[\"1\", \"No\", \"client\"], [\"2\", \"Yes\", \"client\"], [\"3\", \"No\", \"client\"], [\"4\", \"No\", \"client\"], [\"10\", \"No\", \"driver\"], [\"11\", \"No\", \"driver\"], [\"12\", \"No\", \"driver\"], [\"13\", \"No\", \"driver\"]]}}",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Integer to English Words",
+    "description": "Convert a non-negative integer \nnum\n to its English words representation.\n\n \n\nExample 1:\n\nInput:\n num = 123\n\nOutput:\n \"One Hundred Twenty Three\"\n\nExample 2:\n\nInput:\n num = 12345\n\nOutput:\n \"Twelve Thousand Three Hundred Forty Five\"\n\nExample 3:\n\nInput:\n num = 1234567\n\nOutput:\n \"One Million Two Hundred Thirty Four Thousand Five Hundred Sixty Seven\"\n\n \n\nConstraints:\n\n0 <= num <= 2\n31\n - 1",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "123",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "12345",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "1234567",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Expression Add Operators",
+    "description": "Given a string \nnum\n that contains only digits and an integer \ntarget\n, return \nall possibilities\n to insert the binary operators \n'+'\n, \n'-'\n, and/or \n'*'\n between the digits of \nnum\n so that the resultant expression evaluates to the \ntarget\n value\n.\n\nNote that operands in the returned expressions \nshould not\n contain leading zeros.\n\nNote\n that a number can contain multiple digits.\n\n \n\nExample 1:\n\nInput:\n num = \"123\", target = 6\n\nOutput:\n [\"1*2*3\",\"1+2+3\"]\n\nExplanation:\n Both \"1*2*3\" and \"1+2+3\" evaluate to 6.\n\nExample 2:\n\nInput:\n num = \"232\", target = 8\n\nOutput:\n [\"2*3+2\",\"2+3*2\"]\n\nExplanation:\n Both \"2*3+2\" and \"2+3*2\" evaluate to 8.\n\nExample 3:\n\nInput:\n num = \"3456237490\", target = 9191\n\nOutput:\n []\n\nExplanation:\n There are no expressions that can be created from \"3456237490\" to evaluate to 9191.\n\n \n\nConstraints:\n\n1 <= num.length <= 10\n\nnum\n consists of only digits.\n\n-2\n31\n <= target <= 2\n31\n - 1",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"123\"\n6",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"232\"\n8",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"3456237490\"\n9191",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Find Median from Data Stream",
+    "description": "The \nmedian\n is the middle value in an ordered integer list. If the size of the list is even, there is no middle value, and the median is the mean of the two middle values.\n\nFor example, for \narr = [2,3,4]\n, the median is \n3\n.\n\nFor example, for \narr = [2,3]\n, the median is \n(2 + 3) / 2 = 2.5\n.\n\nImplement the MedianFinder class:\n\nMedianFinder()\n initializes the \nMedianFinder\n object.\n\nvoid addNum(int num)\n adds the integer \nnum\n from the data stream to the data structure.\n\ndouble findMedian()\n returns the median of all elements so far. Answers within \n10\n-5\n of the actual answer will be accepted.\n\n \n\nExample 1:\n\nInput\n\n[\"MedianFinder\", \"addNum\", \"addNum\", \"findMedian\", \"addNum\", \"findMedian\"]\n[[], [1], [2], [], [3], []]\n\nOutput\n\n[null, null, null, 1.5, null, 2.0]\n\nExplanation\n\nMedianFinder medianFinder = new MedianFinder();\nmedianFinder.addNum(1);    // arr = [1]\nmedianFinder.addNum(2);    // arr = [1, 2]\nmedianFinder.findMedian(); // return 1.5 (i.e., (1 + 2) / 2)\nmedianFinder.addNum(3);    // arr[1, 2, 3]\nmedianFinder.findMedian(); // return 2.0\n\n \n\nConstraints:\n\n-10\n5\n <= num <= 10\n5\n\nThere will be at least one element in the data structure before calling \nfindMedian\n.\n\nAt most \n5 * 10\n4\n calls will be made to \naddNum\n and \nfindMedian\n.\n\n \n\nFollow up:\n\nIf all integer numbers from the stream are in the range \n[0, 100]\n, how would you optimize your solution?\n\nIf \n99%\n of all integer numbers from the stream are in the range \n[0, 100]\n, how would you optimize your solution?",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[\"MedianFinder\",\"addNum\",\"addNum\",\"findMedian\",\"addNum\",\"findMedian\"]\n[[],[1],[2],[],[3],[]]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Serialize and Deserialize Binary Tree",
+    "description": "Serialization is the process of converting a data structure or object into a sequence of bits so that it can be stored in a file or memory buffer, or transmitted across a network connection link to be reconstructed later in the same or another computer environment.\n\nDesign an algorithm to serialize and deserialize a binary tree. There is no restriction on how your serialization/deserialization algorithm should work. You just need to ensure that a binary tree can be serialized to a string and this string can be deserialized to the original tree structure.\n\nClarification:\n The input/output format is the same as \nhow LeetCode serializes a binary tree\n. You do not necessarily need to follow this format, so please be creative and come up with different approaches yourself.\n\n \n\nExample 1:\n\nInput:\n root = [1,2,3,null,null,4,5]\n\nOutput:\n [1,2,3,null,null,4,5]\n\nExample 2:\n\nInput:\n root = []\n\nOutput:\n []\n\n \n\nConstraints:\n\nThe number of nodes in the tree is in the range \n[0, 10\n4\n]\n.\n\n-1000 <= Node.val <= 1000",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[1,2,3,null,null,4,5]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Remove Invalid Parentheses",
+    "description": "Given a string \ns\n that contains parentheses and letters, remove the minimum number of invalid parentheses to make the input string valid.\n\nReturn \na list of \nunique strings\n that are valid with the minimum number of removals\n. You may return the answer in \nany order\n.\n\n \n\nExample 1:\n\nInput:\n s = \"()())()\"\n\nOutput:\n [\"(())()\",\"()()()\"]\n\nExample 2:\n\nInput:\n s = \"(a)())()\"\n\nOutput:\n [\"(a())()\",\"(a)()()\"]\n\nExample 3:\n\nInput:\n s = \")(\"\n\nOutput:\n [\"\"]\n\n \n\nConstraints:\n\n1 <= s.length <= 25\n\ns\n consists of lowercase English letters and parentheses \n'('\n and \n')'\n.\n\nThere will be at most \n20\n parentheses in \ns\n.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "\"()())()\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\"(a)())()\"",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "\")(\"",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Burst Balloons",
+    "description": "You are given \nn\n balloons, indexed from \n0\n to \nn - 1\n. Each balloon is painted with a number on it represented by an array \nnums\n. You are asked to burst all the balloons.\n\nIf you burst the \ni\nth\n balloon, you will get \nnums[i - 1] * nums[i] * nums[i + 1]\n coins. If \ni - 1\n or \ni + 1\n goes out of bounds of the array, then treat it as if there is a balloon with a \n1\n painted on it.\n\nReturn \nthe maximum coins you can collect by bursting the balloons wisely\n.\n\n \n\nExample 1:\n\nInput:\n nums = [3,1,5,8]\n\nOutput:\n 167\n\nExplanation:\n\nnums = [3,1,5,8] --> [3,5,8] --> [3,8] --> [8] --> []\ncoins =  3*1*5    +   3*5*8   +  1*3*8  + 1*8*1 = 167\n\nExample 2:\n\nInput:\n nums = [1,5]\n\nOutput:\n 10\n\n \n\nConstraints:\n\nn == nums.length\n\n1 <= n <= 300\n\n0 <= nums[i] <= 100",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[3,1,5,8]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[1,5]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Count of Smaller Numbers After Self",
+    "description": "Given an integer array \nnums\n, return\n an integer array \ncounts\n where \ncounts[i]\n is the number of smaller elements to the right of \nnums[i]\n.\n\n \n\nExample 1:\n\nInput:\n nums = [5,2,6,1]\n\nOutput:\n [2,1,1,0]\n\nExplanation:\n\nTo the right of 5 there are \n2\n smaller elements (2 and 1).\nTo the right of 2 there is only \n1\n smaller element (1).\nTo the right of 6 there is \n1\n smaller element (1).\nTo the right of 1 there is \n0\n smaller element.\n\nExample 2:\n\nInput:\n nums = [-1]\n\nOutput:\n [0]\n\nExample 3:\n\nInput:\n nums = [-1,-1]\n\nOutput:\n [0,0]\n\n \n\nConstraints:\n\n1 <= nums.length <= 10\n5\n\n-10\n4\n <= nums[i] <= 10\n4",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[5,2,6,1]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[-1]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[-1,-1]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Create Maximum Number",
+    "description": "You are given two integer arrays \nnums1\n and \nnums2\n of lengths \nm\n and \nn\n respectively. \nnums1\n and \nnums2\n represent the digits of two numbers. You are also given an integer \nk\n.\n\nCreate the maximum number of length \nk <= m + n\n from digits of the two numbers. The relative order of the digits from the same array must be preserved.\n\nReturn an array of the \nk\n digits representing the answer.\n\n \n\nExample 1:\n\nInput:\n nums1 = [3,4,6,5], nums2 = [9,1,2,5,8,3], k = 5\n\nOutput:\n [9,8,6,5,3]\n\nExample 2:\n\nInput:\n nums1 = [6,7], nums2 = [6,0,4], k = 5\n\nOutput:\n [6,7,6,0,4]\n\nExample 3:\n\nInput:\n nums1 = [3,9], nums2 = [8,9], k = 3\n\nOutput:\n [9,8,9]\n\n \n\nConstraints:\n\nm == nums1.length\n\nn == nums2.length\n\n1 <= m, n <= 500\n\n0 <= nums1[i], nums2[i] <= 9\n\n1 <= k <= m + n\n\nnums1\n and \nnums2\n do not have leading zeros.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[3,4,6,5]\n[9,1,2,5,8,3]\n5",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[6,7]\n[6,0,4]\n5",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[3,9]\n[8,9]\n3",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Count of Range Sum",
+    "description": "Given an integer array \nnums\n and two integers \nlower\n and \nupper\n, return \nthe number of range sums that lie in\n \n[lower, upper]\n \ninclusive\n.\n\nRange sum \nS(i, j)\n is defined as the sum of the elements in \nnums\n between indices \ni\n and \nj\n inclusive, where \ni <= j\n.\n\n \n\nExample 1:\n\nInput:\n nums = [-2,5,-1], lower = -2, upper = 2\n\nOutput:\n 3\n\nExplanation:\n The three ranges are: [0,0], [2,2], and [0,2] and their respective sums are: -2, -1, 2.\n\nExample 2:\n\nInput:\n nums = [0], lower = 0, upper = 0\n\nOutput:\n 1\n\n \n\nConstraints:\n\n1 <= nums.length <= 10\n5\n\n-2\n31\n <= nums[i] <= 2\n31\n - 1\n\n-10\n5\n <= lower <= upper <= 10\n5\n\nThe answer is \nguaranteed\n to fit in a \n32-bit\n integer.",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[-2,5,-1]\n-2\n2",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[0]\n0\n0",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
+  },
+  {
+    "title": "Longest Increasing Path in a Matrix",
+    "description": "Given an \nm x n\n integers \nmatrix\n, return \nthe length of the longest increasing path in \nmatrix\n.\n\nFrom each cell, you can either move in four directions: left, right, up, or down. You \nmay not\n move \ndiagonally\n or move \noutside the boundary\n (i.e., wrap-around is not allowed).\n\n \n\nExample 1:\n\nInput:\n matrix = [[9,9,4],[6,6,8],[2,1,1]]\n\nOutput:\n 4\n\nExplanation:\n The longest increasing path is \n[1, 2, 6, 9]\n.\n\nExample 2:\n\nInput:\n matrix = [[3,4,5],[3,2,6],[2,2,1]]\n\nOutput:\n 4\n\nExplanation: \nThe longest increasing path is \n[3, 4, 5, 6]\n. Moving diagonally is not allowed.\n\nExample 3:\n\nInput:\n matrix = [[1]]\n\nOutput:\n 1\n\n \n\nConstraints:\n\nm == matrix.length\n\nn == matrix[i].length\n\n1 <= m, n <= 200\n\n0 <= matrix[i][j] <= 2\n31\n - 1",
+    "difficulty": "HARD",
+    "time_limit": 1000,
+    "memory_limit": 256,
+    "test_cases": [
+      {
+        "input": "[[9,9,4],[6,6,8],[2,1,1]]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[3,4,5],[3,2,6],[2,2,1]]",
+        "expected_output": "",
+        "is_hidden": false
+      },
+      {
+        "input": "[[1]]",
+        "expected_output": "",
+        "is_hidden": false
+      }
+    ]
   }
 ]
