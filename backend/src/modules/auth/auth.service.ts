@@ -169,8 +169,14 @@ export class AuthService implements OnModuleDestroy {
   }
 
   async login(loginDto: LoginDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: loginDto.email },
+    if (!loginDto.email && !loginDto.username) {
+      throw new UnauthorizedException('Vui lòng nhập email hoặc tên đăng nhập');
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: loginDto.email
+        ? { email: loginDto.email.trim().toLowerCase() }
+        : { username: loginDto.username?.trim() },
     });
 
     if (!user) {
