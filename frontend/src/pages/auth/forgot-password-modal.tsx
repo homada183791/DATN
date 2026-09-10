@@ -1,26 +1,50 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import styles from "./forgot-password-modal.module.css";
 
+/**
+ * Màn hình 1/3 của luồng quên mật khẩu: nhập email để nhận mã xác nhận.
+ */
 export function ForgotPasswordModal({
   onClose,
   onSwitchToLogin,
+  onCodeSent,
 }: {
   onClose: () => void;
   onSwitchToLogin: () => void;
+  onCodeSent: (email: string) => void;
 }) {
-  const [sent, setSent] = useState(false);
-  const [identifier, setIdentifier] = useState("");
+  const { forgotPassword } = useAuth();
+  const { showToast } = useToast();
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!identifier.trim()) {
+    setError("");
+
+    if (!email.trim()) {
       return;
     }
-    // TODO: nối API backend
-    // POST /api/auth/forgot-password { identifier }
-    setSent(true);
+
+    setSubmitting(true);
+    forgotPassword(email.trim()).then((result) => {
+      setSubmitting(false);
+
+      if (!result.ok) {
+        const message = result.message ?? "Không thể gửi mã xác nhận lúc này.";
+        setError(message);
+        showToast(message, "error");
+        return;
+      }
+
+      showToast("Mã xác nhận đã được gửi tới email của bạn.", "success");
+      onCodeSent(email.trim());
+    });
   }
 
   return (
@@ -32,38 +56,35 @@ export function ForgotPasswordModal({
         aria-label="Quên mật khẩu"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          type="button"
-          className={styles.closeBtn}
-          onClick={onClose}
-          aria-label="Đóng"
-        >
+        <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Đóng">
           <CloseIcon />
         </button>
 
         <h2 className={styles.title}>Quên mật khẩu</h2>
         <p className={styles.subtitle}>
-          Nhập tên đăng nhập hoặc email. Chúng tôi sẽ gửi liên kết đặt lại
-          mật khẩu.
+          Nhập email đã đăng ký. Chúng tôi sẽ gửi mã xác nhận gồm 6 chữ số
+          (có hiệu lực trong 10 phút).
         </p>
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <label className={styles.field}>
             <span className={styles.label}>
-              Tên đăng nhập hoặc email <span className={styles.required}>*</span>
+              Email <span className={styles.required}>*</span>
             </span>
             <input
-              type="text"
+              type="email"
               name="identifier"
               required
-              autoComplete="username"
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </label>
 
-          <button type="submit" className={styles.submitBtn}>
-            {sent ? "Đã gửi liên kết" : "Gửi liên kết đặt lại"}
+          {error ? <p className={styles.errorMessage}>{error}</p> : null}
+
+          <button type="submit" className={styles.submitBtn} disabled={submitting}>
+            {submitting ? "Đang gửi..." : "Gửi mã xác nhận"}
           </button>
         </form>
 
@@ -78,12 +99,7 @@ export function ForgotPasswordModal({
 function CloseIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M6 6l12 12M18 6L6 18"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
+      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }

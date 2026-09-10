@@ -61,6 +61,11 @@ services:
       - JUDGE_RUNNER_URL=http://judge-runner:4000
       - REDIS_URL=redis://redis:6379
       - RABBITMQ_URL=amqp://root:rootpassword@rabbitmq:5672
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - SMTP_FROM=${SMTP_FROM:-no-reply@example.com}
     depends_on:
       - postgres
       - redis
