@@ -60,13 +60,13 @@ export function LoginModal({
         <form className={styles.form} onSubmit={handleSubmit}>
           <label className={styles.field}>
             <span className={styles.label}>
-              Tên đăng nhập hoặc email <span className={styles.required}>*</span>
+              Email <span className={styles.required}>*</span>
             </span>
             <input
-              type="text"
+              type="email"
               name="identifier"
               required
-              autoComplete="username"
+              autoComplete="email"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
             />

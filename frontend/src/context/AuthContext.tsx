@@ -29,11 +29,14 @@ interface AuthContextType {
 }
 
 interface AuthResponse {
-  access_token: string;
-  user: {
-    id: string;
-    email: string;
-    role: BackendRole;
+  success: boolean;
+  data: {
+    access_token: string;
+    user: {
+      id: string;
+      email: string;
+      role: BackendRole;
+    };
   };
 }
 
@@ -68,12 +71,17 @@ function normalizeUser(identifier: string, role: User['role'], fullName?: string
   };
 }
 
+interface ProfileResponse {
+  success: boolean;
+  data: { userId: string; email: string; role: BackendRole };
+}
+
 async function hydrateProfile(token: string) {
-  const profile = await apiFetch<{ id: string; email: string; role: BackendRole }>('/api/v1/auth/profile', {
+  const res = await apiFetch<ProfileResponse>('/api/v1/auth/profile', {
     headers: { Authorization: `Bearer ${token}` },
   });
-
-  return normalizeUser(profile.email, normalizeRole(profile.role), undefined, profile.id);
+  const profile = res.data;
+  return normalizeUser(profile.email, normalizeRole(profile.role), undefined, profile.userId);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -98,21 +106,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (identifier: string, password: string) => {
-    const email = identifier.trim().toLowerCase();
+    const trimmed = identifier.trim();
+
+    // Hệ thống chỉ hỗ trợ đăng nhập bằng email
+    if (!trimmed.includes('@')) {
+      return { ok: false, message: 'Vui lòng đăng nhập bằng địa chỉ email của bạn.' };
+    }
+
+    const email = trimmed.toLowerCase();
 
     try {
       const response = await apiFetch<AuthResponse>('/api/v1/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
-      window.localStorage.setItem(ACCESS_TOKEN_KEY, response.access_token);
-      setUser(normalizeUser(response.user.email, normalizeRole(response.user.role), undefined, response.user.id));
+      const { access_token, user: backendUser } = response.data;
+      window.localStorage.setItem(ACCESS_TOKEN_KEY, access_token);
+      setUser(normalizeUser(backendUser.email, normalizeRole(backendUser.role), undefined, backendUser.id));
       return { ok: true };
     } catch (error) {
       if (error instanceof ApiError) {
         return {
           ok: false,
-          message: error.status === 401 ? 'Sai tài khoản hoặc mật khẩu.' : error.message,
+          message: error.status === 401 ? 'Sai email hoặc mật khẩu.' : error.message,
         };
       }
       return { ok: false, message: 'Không thể đăng nhập lúc này.' };
