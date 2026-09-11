@@ -18,6 +18,7 @@ import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { VerifyResetCodeDto } from './dto/verify-reset-code.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { GoogleLoginDto } from './dto/google-login.dto';
 
 interface ResetCodeRecord {
   code: string;
@@ -177,6 +178,12 @@ export class AuthService implements OnModuleDestroy {
       throw new UnauthorizedException('Email hoặc mật khẩu không chính xác');
     }
 
+    if (!user.password) {
+      throw new UnauthorizedException(
+        'Tài khoản này đăng nhập bằng Google. Vui lòng dùng nút "Đăng nhập bằng Google".',
+      );
+    }
+
     const isPasswordValid = await bcrypt.compare(
       loginDto.password,
       user.password,
@@ -297,6 +304,77 @@ export class AuthService implements OnModuleDestroy {
       success: true,
       data: {
         message: 'Mật khẩu đã được đặt lại thành công.',
+      },
+    };
+  }
+
+  private async fetchGoogleUserInfo(accessToken: string) {
+    const response = await fetch(
+      `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${encodeURIComponent(accessToken)}`,
+    );
+
+    if (!response.ok) {
+      throw new UnauthorizedException(
+        'Access token Google không hợp lệ hoặc đã hết hạn.',
+      );
+    }
+
+    return response.json() as Promise<{
+      sub: string;
+      email?: string;
+      email_verified?: boolean;
+      name?: string;
+      picture?: string;
+    }>;
+  }
+
+  async googleLogin(googleLoginDto: GoogleLoginDto) {
+    const googleUser = await this.fetchGoogleUserInfo(
+      googleLoginDto.accessToken,
+    );
+
+    if (!googleUser.email) {
+      throw new UnauthorizedException(
+        'Không lấy được email từ tài khoản Google.',
+      );
+    }
+
+    if (googleUser.email_verified === false) {
+      throw new UnauthorizedException('Email Google chưa được xác minh.');
+    }
+
+    const email = this.normalizeEmail(googleUser.email);
+    let user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      // Tài khoản mới đăng nhập lần đầu bằng Google: tạo user không có mật khẩu.
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          password: null,
+          google_id: googleUser.sub,
+        },
+      });
+    } else if (!user.google_id) {
+      // Email này đã đăng ký bằng form thường trước đó: liên kết thêm Google
+      // để lần sau có thể đăng nhập bằng cả 2 cách.
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: { google_id: googleUser.sub },
+      });
+    }
+
+    const payload = { sub: user.id, email: user.email, role: user.role };
+
+    return {
+      success: true,
+      data: {
+        access_token: await this.jwtService.signAsync(payload),
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+        },
       },
     };
   }

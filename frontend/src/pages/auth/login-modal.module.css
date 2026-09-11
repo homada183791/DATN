@@ -214,3 +214,8 @@
 .ssoBtn:hover {
   background: var(--ws-hover);
 }
+
+.ssoBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
