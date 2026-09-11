@@ -29,5 +29,9 @@ export function fetchSubmissions() {
 }
 
 export function useSubmissionsQuery() {
-  return useQuery({ queryKey: ['submissions'], queryFn: fetchSubmissions });
+  return useQuery({ 
+    queryKey: ['submissions'], 
+    queryFn: fetchSubmissions,
+    enabled: !!window.localStorage.getItem('accessToken')
+  });
 }

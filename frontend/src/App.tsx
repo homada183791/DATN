@@ -74,6 +74,7 @@ export default function App() {
           <Route path="/instructor/students" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorStudent /></Layout></ProtectedRoute>} />
           <Route path="/instructor/homework" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorHomework /></Layout></ProtectedRoute>} />
           <Route path="/instructor/problems" element={<ProtectedRoute allowedRole="instructor"><Layout><ProblemList /></Layout></ProtectedRoute>} />
+          <Route path="/instructor/submissions" element={<ProtectedRoute allowedRole="instructor"><Layout><Submission /></Layout></ProtectedRoute>} />
 
           {/* Invite link: /join/CODE */}
           <Route path="/join/:code" element={<JoinClass />} />

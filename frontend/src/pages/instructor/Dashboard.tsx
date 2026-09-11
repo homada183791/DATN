@@ -151,7 +151,7 @@ export default function InstructorDashboard() {
         <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold font-serif text-[#191919]">Bài nộp gần đây</h3>
-            <Link to="/student/submission" className="text-sm text-[#193a2b] hover:text-[#2d5a3f] font-medium flex items-center gap-1">
+            <Link to="/instructor/submissions" className="text-sm text-[#193a2b] hover:text-[#2d5a3f] font-medium flex items-center gap-1">
               Xem tất cả <ArrowRight size={14} />
             </Link>
           </div>
