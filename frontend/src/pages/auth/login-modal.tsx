@@ -1,9 +1,25 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import styles from "./login-modal.module.css";
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        oauth2: {
+          initTokenClient: (config: {
+            client_id: string;
+            scope: string;
+            callback: (response: { access_token?: string; error?: string }) => void;
+          }) => { requestAccessToken: () => void };
+        };
+      };
+    };
+  }
+}
 
 export function LoginModal({
   onClose,
@@ -14,12 +30,66 @@ export function LoginModal({
   onSwitchToRegister: () => void;
   onSwitchToForgotPassword: () => void;
 }) {
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const { showToast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const googleTokenClientRef = useRef<{ requestAccessToken: () => void } | null>(null);
+
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+    if (!clientId) return;
+
+    let cancelled = false;
+
+    function trySetup() {
+      if (cancelled) return;
+      if (window.google?.accounts?.oauth2) {
+        googleTokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
+          client_id: clientId!,
+          scope: "openid email profile",
+          callback: (response) => {
+            if (!response.access_token) {
+              setGoogleLoading(false);
+              showToast("Đăng nhập Google thất bại hoặc đã bị hủy.", "error");
+              return;
+            }
+            loginWithGoogle(response.access_token).then((result) => {
+              setGoogleLoading(false);
+              if (!result.ok) {
+                const message = result.message ?? "Không thể đăng nhập bằng Google.";
+                setError(message);
+                showToast(message, "error");
+                return;
+              }
+              showToast("Đăng nhập thành công.", "success");
+            });
+          },
+        });
+      } else {
+        // Script GSI (async defer) có thể chưa load xong, thử lại sau 300ms.
+        setTimeout(trySetup, 300);
+      }
+    }
+
+    trySetup();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loginWithGoogle, showToast]);
+
+  function handleGoogleClick() {
+    if (!googleTokenClientRef.current) {
+      showToast("Đăng nhập Google chưa sẵn sàng, vui lòng thử lại sau ít giây.", "error");
+      return;
+    }
+    setGoogleLoading(true);
+    googleTokenClientRef.current.requestAccessToken();
+  }
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -127,9 +197,9 @@ export function LoginModal({
           <span>Hoặc tiếp tục với</span>
         </div>
 
-        <button type="button" className={styles.ssoBtn}>
+        <button type="button" className={styles.ssoBtn} onClick={handleGoogleClick} disabled={googleLoading}>
           <GoogleIcon />
-          Đăng nhập bằng Google
+          {googleLoading ? "Đang đăng nhập..." : "Đăng nhập bằng Google"}
         </button>
       </div>
     </div>
