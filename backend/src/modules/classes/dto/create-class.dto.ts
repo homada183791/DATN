@@ -8,6 +8,12 @@ export class CreateClassDto {
   @MaxLength(255, { message: 'Tên lớp học không được vượt quá 255 ký tự' })
   name: string;
 
+  @ApiPropertyOptional({ description: 'Học kỳ', example: 'Học kỳ 2 - 2024/2025' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  semester?: string;
+
   @ApiPropertyOptional({
     description: 'Mô tả lớp học',
     example: 'Lớp học dành cho người mới bắt đầu',

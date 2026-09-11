@@ -119,13 +119,13 @@ export default function InstructorDashboard() {
         <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold font-serif text-[#191919]">Lớp học</h3>
-            <Link to="/instructor/students" className="text-sm text-[#193a2b] hover:text-[#2d5a3f] font-medium flex items-center gap-1">
+            <Link to="/instructor/classes" className="text-sm text-[#193a2b] hover:text-[#2d5a3f] font-medium flex items-center gap-1">
               Xem tất cả <ArrowRight size={14} />
             </Link>
           </div>
           <div className="space-y-3">
             {myClasses.map((cls) => (
-              <div key={cls.id} className="p-4 bg-[#f7f4eb]/50 rounded-xl border border-[#e5dac9]/50 hover:border-[#193a2b]/30 transition-all">
+              <Link key={cls.id} to="/instructor/classes" className="block p-4 bg-[#f7f4eb]/50 rounded-xl border border-[#e5dac9]/50 hover:border-[#193a2b]/30 hover:bg-[#f0ebd9]/50 transition-all cursor-pointer">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-[#193a2b] to-[#2d5a3f] rounded-lg flex items-center justify-center shadow-sm">
@@ -133,7 +133,7 @@ export default function InstructorDashboard() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-[#191919]">{cls.name}</p>
-                      <p className="text-xs text-[#8a8073] mt-0.5">{cls.code} • {cls.semester}</p>
+                      <p className="text-xs text-[#8a8073] mt-0.5">{cls.code}{cls.semester ? ` • ${cls.semester}` : ''}</p>
                     </div>
                   </div>
                   <span className="text-xs font-semibold text-[#8a8073] bg-[#f0ebd9] px-2 py-0.5 rounded-full border border-[#e5dac9]">{cls.studentCount} SV</span>
@@ -142,7 +142,7 @@ export default function InstructorDashboard() {
                   <span className="flex items-center gap-1"><BookOpen size={12} /> {cls.homeworkCount} bài tập</span>
                   <span className="flex items-center gap-1"><Trophy size={12} /> {cls.contestCount} kỳ thi</span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

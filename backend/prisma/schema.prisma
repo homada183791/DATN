@@ -164,6 +164,7 @@ model Class {
   id          String   @id @default(uuid())
   name        String
   description String?  @db.Text
+  semester    String?
   invite_code String   @unique
   admin_id    String
   created_at  DateTime @default(now())

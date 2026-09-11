@@ -18,6 +18,7 @@ export class ClassesService {
       data: {
         name: createClassDto.name,
         description: createClassDto.description,
+        semester: createClassDto.semester,
         invite_code: inviteCode,
         admin_id: adminId,
       },
@@ -113,5 +114,13 @@ export class ClassesService {
     return this.prisma.classStudent.create({
       data: { class_id: classId, student_id: studentId },
     });
+  }
+
+  async joinByCode(inviteCode: string, studentId: string) {
+    const cls = await this.prisma.class.findUnique({
+      where: { invite_code: inviteCode.trim().toUpperCase() },
+    });
+    if (!cls) throw new NotFoundException(`Không tìm thấy lớp với mã "${inviteCode}".`);
+    return this.joinStudent(cls.id, studentId);
   }
 }

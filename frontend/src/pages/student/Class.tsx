@@ -31,6 +31,7 @@ export default function ClassPage() {
   const [selectedHw, setSelectedHw] = useState<string | null>(null);
   const [expandedProblem, setExpandedProblem] = useState<string | null>(null);
   const [joinMsg, setJoinMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [leaveConfirmId, setLeaveConfirmId] = useState<string | null>(null);
   const hasDocument = typeof document !== 'undefined';
 
   /* banner khi vừa join qua link /join/CODE */
@@ -165,13 +166,27 @@ export default function ClassPage() {
                     <div className="w-12 h-12 bg-gradient-to-br from-[#193a2b] to-[#2d5a3f] rounded-xl flex items-center justify-center shadow-md">
                       <GraduationCap size={24} className="text-white" />
                     </div>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); leaveClass(cls.id); }}
-                      className="flex items-center gap-1 text-[11px] text-[#8a8073] hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Rời lớp"
-                    >
-                      <LogOut size={12} /> Rời lớp
-                    </button>
+                    {leaveConfirmId === cls.id ? (
+                      <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                        <span className="text-[11px] text-red-600 font-medium">Rời lớp?</span>
+                        <button
+                          onClick={async (e) => { e.stopPropagation(); await leaveClass(cls.id); setLeaveConfirmId(null); }}
+                          className="px-2 py-1 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-500"
+                        >Xác nhận</button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setLeaveConfirmId(null); }}
+                          className="px-2 py-1 bg-[#f0ebd9] text-[#5c5446] text-xs font-semibold rounded-lg hover:bg-[#e5dac9]"
+                        >Huỷ</button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setLeaveConfirmId(cls.id); }}
+                        className="flex items-center gap-1 text-[11px] text-[#8a8073] hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Rời lớp"
+                      >
+                        <LogOut size={12} /> Rời lớp
+                      </button>
+                    )}
                   </div>
                   <h3 className="text-lg font-bold font-serif text-[#191919] mb-1">{cls.name}</h3>
                   <p className="text-sm text-[#8a8073] mb-1">{cls.code} • {cls.semester}</p>

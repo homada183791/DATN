@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './AuthContext';
-import { createClass as createClassApi, deleteClass as deleteClassApi, removeClassStudent, useClassesQuery } from '../api/classes';
+import { createClass as createClassApi, deleteClass as deleteClassApi, removeClassStudent, joinClassByCode, useClassesQuery } from '../api/classes';
 import { apiFetch } from '../api/http';
 
 export interface ClassInfo {
@@ -33,6 +33,7 @@ interface ClassContextType {
   createClass: (data: { name: string; semester: string; description: string }) => Promise<ClassInfo>;
   deleteClass: (classId: string) => Promise<void>;
   joinByCode: (code: string) => Promise<{ ok: boolean; message: string; classId?: string }>;
+  joinByInviteCode: (code: string) => Promise<{ ok: boolean; message: string; classId?: string }>;
   leaveClass: (classId: string) => Promise<void>;
   removeMember: (classId: string, username: string) => Promise<void>;
 }
@@ -49,7 +50,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
     name: cls.name,
     code: cls.invite_code,
     instructor: cls.admin?.email ?? '',
-    semester: '',
+    semester: cls.semester ?? '',
     studentCount: cls.students?.length ?? 0,
     homeworkCount: 0,
     contestCount: 0,
@@ -81,14 +82,14 @@ export function ClassProvider({ children }: { children: ReactNode }) {
   }, [allClasses, user, apiClasses]);
 
   const createClass: ClassContextType['createClass'] = async (data) => {
-    const created = await createClassApi({ name: data.name, description: data.description });
+    const created = await createClassApi({ name: data.name, semester: data.semester, description: data.description });
     await queryClient.invalidateQueries({ queryKey: ['classes'] });
     return {
       id: created.id,
       name: created.name,
       code: created.invite_code,
       instructor: created.admin?.email ?? user?.email ?? '',
-      semester: data.semester,
+      semester: created.semester ?? data.semester,
       studentCount: created.students?.length ?? 0,
       homeworkCount: 0,
       contestCount: 0,
@@ -111,6 +112,24 @@ export function ClassProvider({ children }: { children: ReactNode }) {
     return { ok: true, message: `Đã tham gia lớp "${cls.name}".`, classId: cls.id };
   };
 
+  /** Gọi thẳng API join-by-code — không phụ thuộc allClasses cache */
+  const joinByInviteCode: ClassContextType['joinByInviteCode'] = async (code) => {
+    if (!user) return { ok: false, message: 'Cần đăng nhập để tham gia lớp.' };
+    try {
+      const result = await joinClassByCode(code);
+      await queryClient.invalidateQueries({ queryKey: ['classes'] });
+      const cls = allClasses.find((c) => c.id === result?.class_id);
+      return { ok: true, message: `Đã tham gia lớp thành công.`, classId: result?.class_id };
+    } catch (e: any) {
+      const msg: string = e?.message ?? '';
+      if (msg.includes('Sinh viên đã nằm trong lớp')) {
+        const cls = allClasses.find((c) => c.code.toLowerCase() === code.trim().toLowerCase());
+        return { ok: false, message: `Bạn đã là thành viên của lớp này.`, classId: cls?.id };
+      }
+      return { ok: false, message: e?.message || 'Không thể tham gia lớp.' };
+    }
+  };
+
   const leaveClass: ClassContextType['leaveClass'] = async (classId) => {
     if (!user) return;
     await apiFetch(`/api/v1/classes/${classId}/leave`, { method: 'DELETE' });
@@ -126,7 +145,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
 
   return (
     <ClassContext.Provider
-      value={{ allClasses, myClasses, enrolledClasses, membersOf, isEnrolled, createClass, deleteClass, joinByCode, leaveClass, removeMember }}
+      value={{ allClasses, myClasses, enrolledClasses, membersOf, isEnrolled, createClass, deleteClass, joinByCode, joinByInviteCode, leaveClass, removeMember }}
     >
       {children}
     </ClassContext.Provider>

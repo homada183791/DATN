@@ -17,6 +17,13 @@ import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
+import { IsNotEmpty, IsString } from 'class-validator';
+
+class JoinByCodeDto {
+  @IsNotEmpty()
+  @IsString()
+  code: string;
+}
 
 @Controller('classes')
 @UseGuards(AuthGuard('jwt'))
@@ -64,9 +71,19 @@ export class ClassesController {
     return this.classesService.addStudent(id, addStudentDto);
   }
 
+  /** Tham gia lớp bằng ID (từ context cache) */
   @Post(':id/join')
   join(@Param('id') id: string, @Request() req: { user: { userId: string } }) {
     return this.classesService.joinStudent(id, req.user.userId);
+  }
+
+  /** Tham gia lớp bằng mã mời — KHÔNG cần allClasses cache trước */
+  @Post('join-by-code')
+  joinByCode(
+    @Body() dto: JoinByCodeDto,
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.classesService.joinByCode(dto.code, req.user.userId);
   }
 
   @Delete(':id/leave')

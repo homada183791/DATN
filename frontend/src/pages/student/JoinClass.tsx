@@ -6,15 +6,14 @@ import { GraduationCap, Loader2 } from 'lucide-react';
 
 /**
  * Xử lý link mời: /join/INT1009
- * - Sinh viên: tự động ghi danh rồi chuyển về /student/class (kèm banner).
+ * - Sinh viên: gọi thẳng API join-by-code, không cần allClasses cache.
  * - Chưa đăng nhập / giảng viên: chuyển về trang phù hợp kèm thông báo.
  */
 export default function JoinClass() {
   const { code } = useParams();
   const { isAuthenticated, user } = useAuth();
-  const { joinByCode, allClasses } = useClass();
+  const { joinByInviteCode } = useClass();
   const [redirect, setRedirect] = useState<string | null>(null);
-  const [attempted, setAttempted] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -26,16 +25,14 @@ export default function JoinClass() {
       setRedirect('/instructor/classes');
       return;
     }
-    // Chờ allClasses load xong trước khi tìm lớp
-    // allClasses.length > 0 nghĩa là query đã fetch xong ít nhất 1 lần
-    if (attempted) return;
+
+    // Gọi thẳng API backend — không phụ thuộc cache allClasses
     void (async () => {
-      setAttempted(true);
-      const res = await joinByCode(code ?? '');
+      const res = await joinByInviteCode(code ?? '');
       if (res.ok && res.classId) {
         sessionStorage.setItem('jh-joined', res.classId);
-      } else if (res.classId) {
-        // đã là thành viên
+      } else if (!res.ok && res.classId) {
+        // đã là thành viên → vẫn redirect về lớp đó
         sessionStorage.setItem('jh-joined', res.classId);
       } else {
         sessionStorage.setItem('jh-joined-error', res.message);
@@ -43,7 +40,7 @@ export default function JoinClass() {
       setRedirect('/student/class');
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code, isAuthenticated, allClasses]);
+  }, [code, isAuthenticated]);
 
   if (redirect) return <Navigate to={redirect} replace />;
 
@@ -57,7 +54,6 @@ export default function JoinClass() {
         <p className="text-sm text-[var(--ws-muted)] mt-2 flex items-center justify-center gap-2">
           <Loader2 size={14} className="animate-spin" /> Kiểm tra mã mời và ghi danh
         </p>
-        <p className="text-[11px] text-[var(--ws-faint)] mt-4 font-mono">{allClasses.length} lớp trên hệ thống</p>
       </div>
     </div>
   );
