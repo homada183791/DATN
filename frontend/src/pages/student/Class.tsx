@@ -358,12 +358,29 @@ export default function ClassPage() {
 
               <div className="mt-6">
                 {isEnrolled(selectedClassData.id) ? (
-                  <button
-                    onClick={() => { leaveClass(selectedClassData.id); setSelectedClass(null); }}
-                    className="w-full py-2.5 bg-red-50 text-red-700 border border-red-200 font-medium rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <LogOut size={15} /> Rời lớp
-                  </button>
+                  leaveConfirmId === `modal-${selectedClassData.id}` ? (
+                    <div className="flex gap-3">
+                      <button
+                        onClick={async () => { await leaveClass(selectedClassData.id); setSelectedClass(null); setLeaveConfirmId(null); }}
+                        className="flex-1 py-2.5 bg-red-600 text-white font-medium rounded-xl hover:bg-red-500 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <LogOut size={15} /> Xác nhận rời lớp
+                      </button>
+                      <button
+                        onClick={() => setLeaveConfirmId(null)}
+                        className="px-5 py-2.5 bg-[#f0ebd9] text-[#5c5446] border border-[#e5dac9] font-medium rounded-xl hover:bg-[#e5dac9]"
+                      >
+                        Huỷ
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setLeaveConfirmId(`modal-${selectedClassData.id}`)}
+                      className="w-full py-2.5 bg-red-50 text-red-700 border border-red-200 font-medium rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <LogOut size={15} /> Rời lớp
+                    </button>
+                  )
                 ) : (
                   <button
                     onClick={() => { handleJoin(selectedClassData.code); setSelectedClass(null); }}
@@ -373,6 +390,7 @@ export default function ClassPage() {
                   </button>
                 )}
               </div>
+
             </div>
           </div>
         </div>

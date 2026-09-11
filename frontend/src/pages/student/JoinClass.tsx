@@ -11,11 +11,14 @@ import { GraduationCap, Loader2 } from 'lucide-react';
  */
 export default function JoinClass() {
   const { code } = useParams();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isInitializing } = useAuth();
   const { joinByInviteCode } = useClass();
   const [redirect, setRedirect] = useState<string | null>(null);
 
   useEffect(() => {
+    // Chờ auth khởi tạo xong mới xử lý — tránh flash login khi đang hydrate token
+    if (isInitializing) return;
+
     if (!isAuthenticated) {
       setRedirect('/login');
       return;
@@ -40,7 +43,7 @@ export default function JoinClass() {
       setRedirect('/student/class');
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code, isAuthenticated]);
+  }, [code, isAuthenticated, isInitializing]);
 
   if (redirect) return <Navigate to={redirect} replace />;
 
