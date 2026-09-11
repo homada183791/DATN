@@ -30,6 +30,9 @@ export default function InstructorClass() {
   const [hwClassId, setHwClassId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [isCreatingClass, setIsCreatingClass] = useState(false);
+  const [isSavingHw, setIsSavingHw] = useState(false);
+  const [confirmKickId, setConfirmKickId] = useState<string | null>(null);
 
   const [form, setForm] = useState({ name: '', semester: 'Học kỳ 2 - 2024/2025', description: '' });
   const [formError, setFormError] = useState('');
@@ -47,21 +50,29 @@ export default function InstructorClass() {
     setHwClassId(classId);
   };
 
-  const saveHomework = () => {
+  const saveHomework = async () => {
     if (!hwClass) return;
     if (hwForm.title.trim().length < 3) return setHwError('Tiêu đề cần ít nhất 3 ký tự.');
     if (!hwForm.deadline) return setHwError('Vui lòng chọn hạn nộp.');
     if (hwProblems.length === 0) return setHwError('Cần ít nhất 1 bài toán trong bài tập.');
-    createHomework({
-      title: hwForm.title.trim(),
-      description: hwForm.description.trim(),
-      deadline: hwForm.deadline.replace('T', ' '),
-      problems: hwProblems,
-      classId: hwClass.id,
-      className: `${hwClass.name} - ${hwClass.code}`,
-      totalStudents: membersOf(hwClass.id).length,
-    });
-    setHwClassId(null);
+    setIsSavingHw(true);
+    setHwError('');
+    try {
+      await createHomework({
+        title: hwForm.title.trim(),
+        description: hwForm.description.trim(),
+        deadline: hwForm.deadline.replace('T', ' '),
+        problems: hwProblems,
+        classId: hwClass.id,
+        className: `${hwClass.name} - ${hwClass.code}`,
+        totalStudents: membersOf(hwClass.id).length,
+      });
+      setHwClassId(null);
+    } catch (e: any) {
+      setHwError(e.message || 'Có lỗi xảy ra khi giao bài.');
+    } finally {
+      setIsSavingHw(false);
+    }
   };
 
   const rosterClass = myClasses.find((c) => c.id === rosterId);
@@ -77,15 +88,22 @@ export default function InstructorClass() {
 
   const inviteLink = (code: string) => `${window.location.origin}/join/${code}`;
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (form.name.trim().length < 3) {
       setFormError('Tên lớp cần ít nhất 3 ký tự.');
       return;
     }
-    createClass({ name: form.name.trim(), semester: form.semester, description: form.description.trim() });
-    setForm({ name: '', semester: 'Học kỳ 2 - 2024/2025', description: '' });
+    setIsCreatingClass(true);
     setFormError('');
-    setShowCreate(false);
+    try {
+      await createClass({ name: form.name.trim(), semester: form.semester, description: form.description.trim() });
+      setForm({ name: '', semester: 'Học kỳ 2 - 2024/2025', description: '' });
+      setShowCreate(false);
+    } catch (e: any) {
+      setFormError(e.message || 'Có lỗi xảy ra khi tạo lớp.');
+    } finally {
+      setIsCreatingClass(false);
+    }
   };
 
   return (
@@ -313,10 +331,11 @@ export default function InstructorClass() {
                 💡 Mã lớp (VD: INT4821) và link mời sẽ được tạo tự động — bạn chỉ cần chia sẻ cho sinh viên.
               </p>
               <div className="flex gap-3 pt-1">
-                <button onClick={handleCreate} className="flex-1 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md">
+                <button onClick={handleCreate} disabled={isCreatingClass} className="flex-1 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md disabled:opacity-50 flex justify-center items-center gap-2">
+                  {isCreatingClass && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                   Tạo lớp
                 </button>
-                <button onClick={() => setShowCreate(false)} className="px-6 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] font-medium rounded-xl hover:bg-[var(--ws-hover)]">
+                <button onClick={() => setShowCreate(false)} disabled={isCreatingClass} className="px-6 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] font-medium rounded-xl hover:bg-[var(--ws-hover)] disabled:opacity-50">
                   Huỷ
                 </button>
               </div>
@@ -334,7 +353,7 @@ export default function InstructorClass() {
                 <h3 className="font-bold font-serif text-[16px]">Danh sách sinh viên — {rosterClass.name}</h3>
                 <p className="text-xs text-[var(--ws-muted)] mt-0.5">{roster.length} thành viên • mã lớp {rosterClass.code}</p>
               </div>
-              <button onClick={() => setRosterId(null)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={18} /></button>
+              <button onClick={() => { setRosterId(null); setConfirmKickId(null); }} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={18} /></button>
             </div>
             <div className="overflow-y-auto max-h-[calc(80vh-70px)]">
               {roster.length === 0 ? (
@@ -366,13 +385,27 @@ export default function InstructorClass() {
                         <td className="py-3 px-4 text-right text-sm font-semibold text-emerald-700">{m.solvedCount ?? '—'}</td>
                         <td className="py-3 px-4 text-right text-sm font-semibold text-[#193a2b]">{m.rating ?? '—'}</td>
                         <td className="py-3 px-5 text-right">
-                          <button
-                            onClick={() => removeMember(rosterClass.id, m.username)}
-                            className="p-1.5 text-[#8a8073] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Gỡ khỏi lớp"
-                          >
-                            <UserMinus size={14} />
-                          </button>
+                          {confirmKickId === m.id ? (
+                            <div className="flex items-center gap-1.5 justify-end">
+                              <span className="text-[11px] text-red-600 font-medium">Xoá?</span>
+                              <button
+                                onClick={async () => { await removeMember(rosterClass.id, m.username); setConfirmKickId(null); }}
+                                className="px-2 py-1 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-500"
+                              >Xoá</button>
+                              <button
+                                onClick={() => setConfirmKickId(null)}
+                                className="px-2 py-1 bg-[#f0ebd9] text-[#5c5446] text-xs font-semibold rounded-lg hover:bg-[#e5dac9]"
+                              >Huỷ</button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmKickId(m.id)}
+                              className="p-1.5 text-[#8a8073] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Gỡ khỏi lớp"
+                            >
+                              <UserMinus size={14} />
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -419,8 +452,11 @@ export default function InstructorClass() {
                 🔒 Chỉ {membersOf(hwClass.id).length} sinh viên trong lớp này mới nhìn thấy bài tập.
               </p>
               <div className="flex gap-3 pt-1">
-                <button onClick={saveHomework} className="flex-1 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md">Giao bài</button>
-                <button onClick={() => setHwClassId(null)} className="px-6 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] font-medium rounded-xl hover:bg-[var(--ws-hover)]">Huỷ</button>
+                <button onClick={saveHomework} disabled={isSavingHw} className="flex-1 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md disabled:opacity-50 flex justify-center items-center gap-2">
+                  {isSavingHw && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  Giao bài
+                </button>
+                <button onClick={() => setHwClassId(null)} disabled={isSavingHw} className="px-6 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] font-medium rounded-xl hover:bg-[var(--ws-hover)] disabled:opacity-50">Huỷ</button>
               </div>
             </div>
           </div>

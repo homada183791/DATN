@@ -33,6 +33,8 @@ export function useClassesQuery() {
   return useQuery({ 
     queryKey: ['classes'], 
     queryFn: fetchClasses,
-    enabled: !!window.localStorage.getItem('accessToken')
+    enabled: !!window.localStorage.getItem('accessToken'),
+    staleTime: 0,               // Luôn refetch để tránh cache cũ sau khi bị kick khỏi lớp
+    refetchOnWindowFocus: true,
   });
 }

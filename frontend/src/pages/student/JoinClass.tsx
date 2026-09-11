@@ -14,6 +14,7 @@ export default function JoinClass() {
   const { isAuthenticated, user } = useAuth();
   const { joinByCode, allClasses } = useClass();
   const [redirect, setRedirect] = useState<string | null>(null);
+  const [attempted, setAttempted] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -25,7 +26,11 @@ export default function JoinClass() {
       setRedirect('/instructor/classes');
       return;
     }
+    // Chờ allClasses load xong trước khi tìm lớp
+    // allClasses.length > 0 nghĩa là query đã fetch xong ít nhất 1 lần
+    if (attempted) return;
     void (async () => {
+      setAttempted(true);
       const res = await joinByCode(code ?? '');
       if (res.ok && res.classId) {
         sessionStorage.setItem('jh-joined', res.classId);
@@ -38,7 +43,7 @@ export default function JoinClass() {
       setRedirect('/student/class');
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code, isAuthenticated]);
+  }, [code, isAuthenticated, allClasses]);
 
   if (redirect) return <Navigate to={redirect} replace />;
 
