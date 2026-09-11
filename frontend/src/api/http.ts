@@ -67,14 +67,15 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   if (!response.ok) {
     if (response.status === 401) {
       window.localStorage.removeItem('accessToken');
-      
-      const now = Date.now();
-      if (now - last401Time > 3000) {
-        last401Time = now;
-        notifyGlobalToast('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'error');
-      }
 
+      // Chỉ hiện toast "hết hạn" và redirect khi KHÔNG ở trang login.
+      // Khi ở trang login, 401 nghĩa là sai mật khẩu — form tự xử lý lỗi.
       if (window.location.pathname !== '/login') {
+        const now = Date.now();
+        if (now - last401Time > 3000) {
+          last401Time = now;
+          notifyGlobalToast('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'error');
+        }
         window.location.assign('/login');
       }
     } else if (response.status === 429) {
