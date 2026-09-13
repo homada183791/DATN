@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { CreateHomeworkDto } from './dto/create-homework.dto';
@@ -32,8 +32,15 @@ export class HomeworksService {
     });
   }
 
-  async update(id: string, dto: UpdateHomeworkDto) {
-    await this.findOne(id);
+  async update(id: string, dto: UpdateHomeworkDto, requestorId: string) {
+    const homework = await this.findOne(id);
+
+    // Kiểm tra ownership: homework phải thuộc lớp do requestor quản lý
+    const cls = await this.prisma.class.findUnique({ where: { id: homework.class_id } });
+    if (!cls || cls.admin_id !== requestorId) {
+      throw new ForbiddenException('Bạn không có quyền chỉnh sửa bài tập này.');
+    }
+
     const data: Prisma.HomeworkUncheckedUpdateInput = {};
     if (dto.title !== undefined) data.title = dto.title;
     if (dto.description !== undefined) data.description = dto.description;
@@ -53,8 +60,15 @@ export class HomeworksService {
     return homework;
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(id: string, requestorId: string) {
+    const homework = await this.findOne(id);
+
+    // Kiểm tra ownership: homework phải thuộc lớp do requestor quản lý
+    const cls = await this.prisma.class.findUnique({ where: { id: homework.class_id } });
+    if (!cls || cls.admin_id !== requestorId) {
+      throw new ForbiddenException('Bạn không có quyền xoá bài tập này.');
+    }
+
     return this.prisma.homework.delete({ where: { id } });
   }
 }

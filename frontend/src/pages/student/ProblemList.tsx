@@ -68,9 +68,9 @@ export default function ProblemList() {
     return (data ?? []).filter((problem) => {
       const matchesSearch =
         !search ||
-        problem.title.toLowerCase().includes(search) ||
-        problem.id.toLowerCase().includes(search) ||
-        problem.description.toLowerCase().includes(search);
+        (problem.title ?? '').toLowerCase().includes(search) ||
+        (problem.id ?? '').toLowerCase().includes(search) ||
+        (problem.description ?? '').toLowerCase().includes(search);
       const matchesDifficulty = difficulty === 'all' || problem.difficulty === difficulty;
       return matchesSearch && matchesDifficulty;
     });

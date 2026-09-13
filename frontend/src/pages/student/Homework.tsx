@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useClass } from '../../context/ClassContext';
 import { useHomework } from '../../context/HomeworkContext';
+import { formatVN } from '../../utils/dateTime';
 import {
   BookOpen,
   Clock,
@@ -110,7 +111,7 @@ export default function Homework() {
             <div className="p-6 overflow-y-auto max-h-[calc(80vh-80px)]">
               <div className="flex flex-wrap gap-4 mb-6">
                 <div className="flex items-center gap-2 text-sm text-[#5c5446]">
-                  <Calendar size={14} /> Hạn: {selectedHw.deadline}
+                  <Calendar size={14} /> Hạn: {formatVN(selectedHw.deadline)}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-[#5c5446]">
                   <BookOpen size={14} /> {selectedHw.problemCount} bài
@@ -215,7 +216,7 @@ export default function Homework() {
                   <p className="text-sm text-[#5c5446] mb-3 leading-relaxed">{hw.description}</p>
                   <div className="flex flex-wrap items-center gap-4 text-sm text-[#8a8073]">
                     <span className="flex items-center gap-1">
-                      <Clock size={14} /> Hạn: {hw.deadline}
+                      <Clock size={14} /> Hạn: {formatVN(hw.deadline)}
                     </span>
                     <span className="flex items-center gap-1">
                       <BookOpen size={14} /> {hw.problemCount} bài

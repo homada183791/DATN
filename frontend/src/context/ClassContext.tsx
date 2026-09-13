@@ -72,7 +72,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
 
   const myClasses = useMemo(() => {
     if (user?.role !== 'instructor') return [];
-    return allClasses.filter((c) => c.instructor === user.email || c.instructor === user.fullName);
+    return allClasses.filter((c) => c.instructor === user.email);
   }, [allClasses, user]);
 
   const enrolledClasses = useMemo(() => {
@@ -118,7 +118,6 @@ export function ClassProvider({ children }: { children: ReactNode }) {
     try {
       const result = await joinClassByCode(code);
       await queryClient.invalidateQueries({ queryKey: ['classes'] });
-      const cls = allClasses.find((c) => c.id === result?.class_id);
       return { ok: true, message: `Đã tham gia lớp thành công.`, classId: result?.class_id };
     } catch (e: any) {
       const msg: string = e?.message ?? '';

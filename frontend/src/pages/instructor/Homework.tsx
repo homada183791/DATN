@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useClass } from '../../context/ClassContext';
 import { useHomework, deadlineProgress, HomeworkInput, HomeworkProblem, Homework } from '../../context/HomeworkContext';
 import ProblemManager from '../../components/ProblemManager';
+import { formatVN, toDatetimeLocal } from '../../utils/dateTime';
 import {
   ClipboardList,
   Plus,
@@ -65,7 +66,8 @@ export default function InstructorHomework() {
     setForm({
       title: hw.title,
       description: hw.description,
-      deadline: hw.deadline.replace(' ', 'T').slice(0, 16),
+      // hw.deadline là ISO UTC từ BE → convert sang datetime-local theo UTC+7
+      deadline: toDatetimeLocal(hw.deadline),
       classId: hw.classId,
     });
     setDraftProblems(problemsOf(hw.id));
@@ -222,7 +224,7 @@ export default function InstructorHomework() {
                     </button>
                     {confirmDelete === hw.id ? (
                       <div className="flex items-center gap-1.5">
-                        <button onClick={() => { deleteHomework(hw.id); setConfirmDelete(null); }} className="px-2.5 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-500">Xoá</button>
+                        <button onClick={async () => { setConfirmDelete(null); try { await deleteHomework(hw.id); } catch { setError('Xoá bài tập thất bại.'); } }} className="px-2.5 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-500">Xoá</button>
                         <button onClick={() => setConfirmDelete(null)} className="px-2.5 py-1.5 bg-[#f0ebd9] text-[#5c5446] text-xs font-semibold rounded-lg hover:bg-[#e5dac9]">Huỷ</button>
                       </div>
                     ) : (
@@ -237,7 +239,7 @@ export default function InstructorHomework() {
                 <div className="mt-5 pt-4 border-t border-[#e5dac9]/60">
                   <div className="flex items-center justify-between text-xs mb-1.5">
                     <span className="flex items-center gap-1.5 text-[#8a8073]">
-                      <Clock size={13} /> Hạn nộp: <span className="font-medium text-[#5c5446]">{hw.deadline}</span>
+                      <span className="flex items-center gap-1"><Clock size={14} /> Hạn nộp: <span className="font-medium text-[#5c5446]">{formatVN(hw.deadline)}</span></span>
                     </span>
                     <span className={`font-semibold ${p.overdue ? 'text-[#cc5a37]' : p.daysLeft <= 3 ? 'text-yellow-700' : 'text-emerald-700'}`}>
                       {p.label}
@@ -344,7 +346,7 @@ export default function InstructorHomework() {
                 </div>
               </div>
               <div className="flex items-center gap-2 text-sm text-[var(--ws-muted)]">
-                <Calendar size={14} className="text-[var(--ws-muted)]" /> Hạn nộp: <span className="font-medium text-[var(--ws-text)]">{viewHw.deadline}</span>
+                <Calendar size={14} className="text-[var(--ws-muted)]" /> Hạn nộp: <span className="font-medium text-[var(--ws-text)]">{formatVN(viewHw.deadline)}</span>
               </div>
 
               {/* problem list */}

@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, ReactNode } from 'react';
 import { useHomeworkMutations, useHomeworksQuery, HomeworkTaskDto } from '../api/homeworks';
+import { datetimeLocalToISO } from '../utils/dateTime';
 
 export interface Homework {
   id: string;
@@ -81,7 +82,8 @@ export function HomeworkProvider({ children }: { children: ReactNode }) {
     const created = await mutations.create({
       title: input.title,
       description: input.description,
-      deadline: new Date(input.deadline.replace(' ', 'T')).toISOString(),
+      // input.deadline là giá trị từ input[datetime-local] → coi là UTC+7 → convert sang ISO UTC
+      deadline: datetimeLocalToISO(input.deadline),
       class_id: input.classId,
       tasks: input.problems,
     });
@@ -92,7 +94,8 @@ export function HomeworkProvider({ children }: { children: ReactNode }) {
     await mutations.update(id, {
       ...(input.title !== undefined ? { title: input.title } : {}),
       ...(input.description !== undefined ? { description: input.description } : {}),
-      ...(input.deadline !== undefined ? { deadline: new Date(input.deadline.replace(' ', 'T')).toISOString() } : {}),
+      // input.deadline là giá trị từ input[datetime-local] → coi là UTC+7 → convert sang ISO UTC
+      ...(input.deadline !== undefined ? { deadline: datetimeLocalToISO(input.deadline) } : {}),
       ...(input.classId !== undefined ? { class_id: input.classId } : {}),
       ...(input.problems !== undefined ? { tasks: input.problems } : {}),
     });

@@ -27,14 +27,21 @@ export class HomeworksController {
   @Patch(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.INSTRUCTOR)
-  update(@Param('id') id: string, @Body() dto: UpdateHomeworkDto) {
-    return this.homeworksService.update(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateHomeworkDto,
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.homeworksService.update(id, dto, req.user.userId);
   }
 
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.INSTRUCTOR)
-  remove(@Param('id') id: string) {
-    return this.homeworksService.remove(id);
+  remove(
+    @Param('id') id: string,
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.homeworksService.remove(id, req.user.userId);
   }
 }
