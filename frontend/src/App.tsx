@@ -19,6 +19,7 @@ import PersonalPage from './pages/student/PersonalPage';
 import SettingsPage from './pages/student/SettingsPage';
 import ProblemList from './pages/student/ProblemList';
 import ProblemSolve from './pages/student/ProblemSolve';
+import StudentHomework from './pages/student/Homework';
 
 import Contest from './pages/student/Contest';
 import Submission from './pages/student/Submission';
@@ -59,7 +60,7 @@ export default function App() {
           <Route path="/student/dashboard" element={<ProtectedRoute allowedRole="student"><Layout><StudentDashboard /></Layout></ProtectedRoute>} />
           <Route path="/student/problems" element={<ProtectedRoute allowedRole="student"><Layout><ProblemList /></Layout></ProtectedRoute>} />
           <Route path="/student/problem/:id" element={<ProtectedRoute allowedRole="student"><Layout fullBleed><ProblemSolve /></Layout></ProtectedRoute>} />
-          <Route path="/student/homework" element={<ProtectedRoute allowedRole="student"><Navigate to="/student/class" replace /></ProtectedRoute>} />
+          <Route path="/student/homework" element={<ProtectedRoute allowedRole="student"><Layout><StudentHomework /></Layout></ProtectedRoute>} />
           <Route path="/student/contest" element={<ProtectedRoute allowedRole="student"><Layout><Contest /></Layout></ProtectedRoute>} />
           <Route path="/student/submission" element={<ProtectedRoute allowedRole="student"><Layout><Submission /></Layout></ProtectedRoute>} />
           <Route path="/student/class" element={<ProtectedRoute allowedRole="student"><Layout><ClassPage /></Layout></ProtectedRoute>} />

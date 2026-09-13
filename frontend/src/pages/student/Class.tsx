@@ -333,6 +333,14 @@ export default function ClassPage() {
                       );
                     })}
                   </div>
+                  {/* link sang trang bài tập về nhà riêng */}
+                  <Link
+                    to="/student/homework"
+                    onClick={() => setSelectedClass(null)}
+                    className="mt-2 flex items-center justify-center gap-1.5 w-full py-2 text-xs font-semibold text-[#193a2b] border border-[#193a2b]/30 rounded-xl hover:bg-[#193a2b] hover:text-white transition-colors"
+                  >
+                    <ClipboardList size={13} /> Xem tất cả bài tập về nhà
+                  </Link>
                 </div>
               )}
 

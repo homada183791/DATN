@@ -152,7 +152,7 @@ export default function ProblemFormModal({
           {([
             { key: 'desc',  label: 'Thông tin đề bài', icon: AlignLeft,    err: !!(errors.title || errors.description) },
             { key: 'cases', label: 'Test Cases',        icon: FlaskConical, err: caseErrCount > 0, count: testCases.length },
-          ] as const).map(({ key, label, icon: Icon, err, count }) => (
+          ] as const).map(({ key, label, icon: Icon, err, count}) => (
             <button
               key={key}
               type="button"
