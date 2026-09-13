@@ -64,7 +64,7 @@ export default function StudentDashboard() {
   return (
     <div className="space-y-6 text-[#191919]">
       <div className="bg-linear-to-r from-[#193a2b]/10 via-[#e5dac9]/20 to-[#cc5a37]/10 border border-[#e5dac9] rounded-2xl p-6 shadow-sm">
-        <h2 className="text-2xl font-bold text-[#191919] font-serif">Xin chào, {user?.fullName}! </h2>
+        <h2 className="text-2xl font-bold text-[#191919] font-serif">Xin chào, {user?.fullName}!</h2>
         <p className="text-sm text-[#5c5446] mt-1">Theo dõi tiến độ học tập và các kỳ thi sắp tới của bạn tại đây.</p>
       </div>
 
@@ -150,7 +150,7 @@ export default function StudentDashboard() {
         <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-[#191919] font-serif">Bảng xếp hạng</h3>
-            <span className="text-xs text-[#8a8073]">{activeContestId ?? 'N/A'}</span>
+            {activeContestId && <span className="text-xs text-[#8a8073]">{activeContestId}</span>}
           </div>
           {leaderboardError instanceof ApiError && <p className="text-sm text-red-600 mb-3">{leaderboardError.message}</p>}
           {leaderboardLoading ? (

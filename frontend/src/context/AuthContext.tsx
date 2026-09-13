@@ -45,7 +45,7 @@ const ACCESS_TOKEN_KEY = 'accessToken';
 
 const baseUserFields = {
   avatar: '',
-  institution: 'JudgeHub Academy',
+  institution: 'University Of Science',
   solvedCount: 0,
   submissionCount: 0,
   rating: 0,

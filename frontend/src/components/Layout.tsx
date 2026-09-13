@@ -3,7 +3,8 @@ import { Link, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useProblemsQuery } from '../api/problems';
-import { contests, submissions, type Contest } from '../data/mockData';
+import { useContestsQuery } from '../api/contests';
+import { useSubmissionsQuery } from '../api/submissions';
 import {
   LayoutDashboard,
   BookOpen,
@@ -33,6 +34,27 @@ interface SidebarItem {
   icon: React.ReactNode;
   path: string;
 }
+
+function relativeTime(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 1) return 'vừa xong';
+  if (minutes < 60) return `${minutes} phút trước`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} giờ trước`;
+  const days = Math.floor(hours / 24);
+  return `${days} ngày trước`;
+}
+
+const SUBMISSION_STATUS_LABELS: Record<string, string> = {
+  ACCEPTED: 'AC',
+  WRONG_ANSWER: 'WA',
+  TIME_LIMIT_EXCEEDED: 'TLE',
+  RUNTIME_ERROR: 'RTE',
+  COMPILE_ERROR: 'CE',
+  PENDING: 'Đang chờ',
+  IN_QUEUE: 'Trong hàng đợi',
+};
 
 const studentItems: SidebarItem[] = [
   { label: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/student/dashboard' },
@@ -98,6 +120,8 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
   const { user, logout, isAuthenticated, isInitializing } = useAuth();
   const { dark, toggleTheme, theme, setThemeId, themes } = useTheme();
   const { data: problems = [] } = useProblemsQuery();
+  const { data: contests = [] } = useContestsQuery();
+  const { data: submissions = [] } = useSubmissionsQuery();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -166,7 +190,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
         {/* Logo */}
         <div className="flex items-center h-16 px-4 border-b border-[#e5dac9]">
           <div className="flex items-center gap-3 overflow-hidden w-full">
-            <div className="shrink-0 w-10 h-10 border-[#e5dac9] rounded-xl flex items-center justify-center overflow-hidden">
+            <div className="shrink-0 w-10 h-10 bg-white border border-[#e5dac9] rounded-xl flex items-center justify-center overflow-hidden">
               <img src="/logo-hcmus.png" alt="HCMUS logo" className="w-full h-full object-contain p-1" />
             </div>
             {sidebarOpen && (
@@ -356,18 +380,42 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
             {bellOpen && (
               <div className="absolute right-0 top-full mt-2 w-80 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl z-60 animate-slide-up">
                 <p className="px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-widest text-[#8a8073] border-b border-[#e5dac9]">Thông báo</p>
-                <div className="px-4 py-3 border-b border-[#e5dac9]/60 hover:bg-(--ws-hover) cursor-pointer">
-                  <p className="text-[13px] font-semibold text-[#191919]">Kỳ thi "Luyện tập Đồ thị" đang diễn ra</p>
-                  <p className="text-[11px] text-[#8a8073] mt-0.5">
-                    5 phút trước • {contests.filter((c: Contest) => c.status === 'running').reduce((s: number, c: Contest) => s + c.participantCount, 0)} người tham gia
-                  </p>
-                </div>
-                <div className="px-4 py-3 hover:bg-(--ws-hover) cursor-pointer">
-                  <p className="text-[13px] font-semibold text-[#191919]">
-                    Bài nộp {submissions[0]?.id} đã được chấm: <span className="text-emerald-600">AC</span>
-                  </p>
-                  <p className="text-[11px] text-[#8a8073] mt-0.5">1 giờ trước</p>
-                </div>
+                {(() => {
+                  const runningContest = contests.find((c) => c.status === 'running');
+                  const mySubmissions = submissions
+                    .filter((s) => s.user_id === user?.id)
+                    .slice()
+                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                  const latestSubmission = mySubmissions[0];
+
+                  if (!runningContest && !latestSubmission) {
+                    return (
+                      <p className="px-4 py-6 text-center text-[12.5px] text-[#8a8073]">Không có thông báo mới.</p>
+                    );
+                  }
+
+                  return (
+                    <>
+                      {runningContest && (
+                        <div className="px-4 py-3 border-b border-[#e5dac9]/60 hover:bg-(--ws-hover) cursor-pointer">
+                          <p className="text-[13px] font-semibold text-[#191919]">Kỳ thi "{runningContest.title}" đang diễn ra</p>
+                          <p className="text-[11px] text-[#8a8073] mt-0.5">{relativeTime(runningContest.startTime)}</p>
+                        </div>
+                      )}
+                      {latestSubmission && (
+                        <div className="px-4 py-3 hover:bg-(--ws-hover) cursor-pointer">
+                          <p className="text-[13px] font-semibold text-[#191919]">
+                            Bài nộp "{latestSubmission.problem_title}" đã được chấm:{' '}
+                            <span className={latestSubmission.status === 'ACCEPTED' ? 'text-emerald-600' : 'text-[#cc5a37]'}>
+                              {SUBMISSION_STATUS_LABELS[latestSubmission.status] ?? latestSubmission.status}
+                            </span>
+                          </p>
+                          <p className="text-[11px] text-[#8a8073] mt-0.5">{relativeTime(latestSubmission.created_at)}</p>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             )}
           </div>

@@ -85,33 +85,38 @@ export default function PersonalPage() {
     <div className="space-y-6 text-[#191919]">
       {/* Profile Header */}
       <div className="bg-white border border-[#e5dac9] rounded-2xl overflow-hidden shadow-sm">
-        <div className="h-32 bg-linear-to-r from-[#193a2b]/20 via-[#e5dac9]/30 to-[#cc5a37]/20 relative">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIi8+PC9zdmc+')] opacity-50" />
-        </div>
-        <div className="px-6 pb-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-12">
-            <div className="w-24 h-24 bg-linear-to-br from-[#193a2b] to-[#2d5a3f] rounded-2xl flex items-center justify-center text-white text-3xl font-bold font-serif border-4 border-white shadow-lg">
-              {user?.fullName?.charAt(0)}
-            </div>
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold text-[#191919] font-serif">{user?.fullName}</h2>
-              <p className="text-[#8a8073] text-sm">@{user?.username}</p>
-              <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-[#5c5446]">
-                <span className="flex items-center gap-1">
-                  <MapPin size={14} className="text-[#8a8073]" /> {user?.institution}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar size={14} className="text-[#8a8073]" /> Tham gia {formatDate(me?.created_at)}
-                </span>
+        <div className="px-6 sm:px-8 pt-6 pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
+            <div className="flex items-end gap-4">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 bg-[#193a2b] rounded-2xl flex items-center justify-center text-white text-3xl font-bold font-serif shadow-md">
+                {user?.fullName?.charAt(0)}
+              </div>
+              <div className="pb-1">
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <h2 className="text-2xl font-bold text-[#191919] font-serif">{user?.fullName}</h2>
+                  <span className="text-[#8a8073] text-sm">@{user?.username}</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-[13px] text-[#5c5446]">
+                  <span className="flex items-center gap-1.5">
+                    <MapPin size={13} className="text-[#8a8073]" /> {user?.institution}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Calendar size={13} className="text-[#8a8073]" /> Tham gia {formatDate(me?.created_at)}
+                  </span>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-yellow-50 border border-yellow-200 rounded-xl">
-              <Trophy size={20} className="text-yellow-600" />
-              <span className="text-xl font-bold text-yellow-600 font-serif">{rating}</span>
-              <span className="text-xs text-yellow-700/60 font-medium">Rating</span>
+            <div className="flex items-center gap-3 px-5 py-3 bg-[#fdf8ee] border border-[#f0d999] rounded-2xl self-start sm:self-auto">
+              <div className="w-9 h-9 rounded-full bg-yellow-100 flex items-center justify-center shrink-0">
+                <Trophy size={17} className="text-yellow-600" />
+              </div>
+              <div className="leading-tight">
+                <p className="text-xl font-bold text-[#191919] font-serif">{rating}</p>
+                <p className="text-[11px] text-[#8a8073] font-medium">Rating</p>
+              </div>
             </div>
           </div>
-          {user?.bio && <p className="mt-4 text-[#5c5446] text-sm leading-relaxed">{user.bio}</p>}
+          {user?.bio && <p className="mt-4 text-[#5c5446] text-sm leading-relaxed max-w-2xl">{user.bio}</p>}
         </div>
       </div>
 
