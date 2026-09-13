@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useClass } from '../../context/ClassContext';
 import { useHomework, deadlineProgress } from '../../context/HomeworkContext';
-import { contests } from '../../data/legacyData';
+import { useContestsQuery } from '../../api/contests';
 import {
   GraduationCap,
   Users,
@@ -24,6 +24,7 @@ import {
 export default function ClassPage() {
   const { allClasses, enrolledClasses, membersOf, joinByCode, leaveClass, isEnrolled } = useClass();
   const { homeworksOfClass, problemsOf } = useHomework();
+  const { data: allContests } = useContestsQuery();
   const [searchQuery, setSearchQuery] = useState('');
   const [codeInput, setCodeInput] = useState('');
   const [tab, setTab] = useState<'my' | 'explore'>('my');
@@ -53,7 +54,7 @@ export default function ClassPage() {
 
   const selectedClassData = allClasses.find((c) => c.id === selectedClass);
   const selectedClassHws = selectedClass ? homeworksOfClass(selectedClass) : [];
-  const selectedClassContests = contests.filter((c) => c.classId === selectedClass);
+  const selectedClassContests = (allContests ?? []).filter((c) => c.classId === selectedClass);
   const hwDetail = selectedHw
     ? selectedClassHws.find((h) => h.id === selectedHw)
     : null;
@@ -162,7 +163,7 @@ export default function ClassPage() {
                   onClick={() => setSelectedClass(cls.id)}
                 >
                   <div className="flex items-start justify-between mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-[#193a2b] to-[#2d5a3f] rounded-xl flex items-center justify-center shadow-md">
+                    <div className="w-12 h-12 bg-linear-to-br from-[#193a2b] to-[#2d5a3f] rounded-xl flex items-center justify-center shadow-md">
                       <GraduationCap size={24} className="text-white" />
                     </div>
                     <button
@@ -204,7 +205,7 @@ export default function ClassPage() {
           <div className="bg-white border border-[#e5dac9] rounded-2xl overflow-hidden shadow-sm">
             {discoverable.map((cls) => (
               <div key={cls.id} className="flex flex-col sm:flex-row sm:items-center gap-3 px-5 py-4 hover:bg-[#f7f4eb]/70 transition-colors">
-                <div className="w-10 h-10 bg-[#f0ebd9] rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-[#f0ebd9] rounded-lg flex items-center justify-center shrink-0">
                   <GraduationCap size={20} className="text-[#193a2b]" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -241,7 +242,7 @@ export default function ClassPage() {
 
       {/* ===== detail modal ===== */}
       {selectedClass && selectedClassData && !hwDetail && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-[90] flex items-center justify-center p-4" onClick={() => setSelectedClass(null)}>
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setSelectedClass(null)}>
           <div className="bg-[#f7f4eb] border border-[#e5dac9] rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-[#e5dac9]">
               <div>
@@ -290,11 +291,11 @@ export default function ClassPage() {
                         <button
                           key={hw.id}
                           onClick={() => setSelectedHw(hw.id)}
-                          className="w-full text-left p-3.5 bg-white rounded-xl border border-[#e5dac9] hover:bg-[var(--ws-hover)] transition-colors"
+                          className="w-full text-left p-3.5 bg-white rounded-xl border border-[#e5dac9] hover:bg-(--ws-hover) transition-colors"
                         >
                           <div className="flex items-center justify-between mb-2">
                             <p className="text-sm text-[#191919] font-semibold truncate">{hw.title}</p>
-                            <span className="flex items-center gap-1 flex-shrink-0">
+                            <span className="flex items-center gap-1 shrink-0">
                               <span className={`text-[11px] font-semibold ${p.overdue ? 'text-[#cc5a37]' : p.daysLeft <= 3 ? 'text-yellow-700' : 'text-emerald-700'}`}>
                                 {p.label}
                               </span>
@@ -365,7 +366,7 @@ export default function ClassPage() {
 
       {/* ===== homework detail modal (deadline + đề bài) ===== */}
       {hwDetail && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-[95] flex items-center justify-center p-4" onClick={() => setSelectedHw(null)}>
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-95 flex items-center justify-center p-4" onClick={() => setSelectedHw(null)}>
           <div className="bg-[#f7f4eb] border border-[#e5dac9] rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5dac9] sticky top-0 bg-[#f7f4eb] z-10">
               <h3 className="font-bold font-serif text-[16px] text-[#191919]">{hwDetail.title}</h3>
@@ -383,7 +384,7 @@ export default function ClassPage() {
                     </div>
                     <div className="w-full h-2 bg-[#f0ebd9] rounded-full overflow-hidden">
                       <div
-                        className={`h-full rounded-full ${p.overdue ? 'bg-[#cc5a37]' : p.daysLeft <= 3 ? 'bg-gradient-to-r from-yellow-500 to-[#cc5a37]' : 'bg-gradient-to-r from-[#193a2b] to-emerald-500'}`}
+                        className={`h-full rounded-full ${p.overdue ? 'bg-[#cc5a37]' : p.daysLeft <= 3 ? 'bg-linear-to-r from-yellow-500 to-[#cc5a37]' : 'bg-linear-to-r from-[#193a2b] to-emerald-500'}`}
                         style={{ width: `${p.overdue ? 100 : p.pct}%` }}
                       />
                     </div>
@@ -407,7 +408,7 @@ export default function ClassPage() {
                     const dl: Record<string, string> = { Easy: 'Dễ', Medium: 'TB', Hard: 'Khó' };
                     return (
                       <div key={p.id} className="bg-white rounded-xl border border-[#e5dac9] overflow-hidden">
-                        <button onClick={() => setExpandedProblem(open ? null : p.id)} className="w-full flex items-center gap-3 p-3 text-left hover:bg-[var(--ws-hover)] transition-colors">
+                        <button onClick={() => setExpandedProblem(open ? null : p.id)} className="w-full flex items-center gap-3 p-3 text-left hover:bg-(--ws-hover) transition-colors">
                           <span className="text-xs text-[#8a8073] font-mono w-5">{i + 1}.</span>
                           <span className="flex-1 text-sm font-medium text-[#191919] truncate">{p.title}</span>
                           <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${dc[p.difficulty]}`}>{dl[p.difficulty]}</span>
