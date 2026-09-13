@@ -9,6 +9,8 @@ export interface HomeworkTaskDto {
   points: number;
   sampleInput?: string;
   sampleOutput?: string;
+  /** ID của bài toán trong Problem Bank (nếu có) → cho phép SV navigate sang /student/problem/:problem_id */
+  problem_id?: string;
 }
 
 export interface HomeworkDto {

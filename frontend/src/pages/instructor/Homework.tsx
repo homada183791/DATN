@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useClass } from '../../context/ClassContext';
 import { useHomework, deadlineProgress, HomeworkInput, HomeworkProblem, Homework } from '../../context/HomeworkContext';
@@ -183,11 +184,22 @@ export default function InstructorHomework() {
       {filtered.length === 0 ? (
         <div className="bg-white border border-[#e5dac9] rounded-xl p-14 text-center shadow-sm">
           <ClipboardList size={48} className="text-[#bfae99] mx-auto mb-4" />
-          <p className="font-semibold text-[#191919]">Chưa có bài tập nào</p>
-          <p className="text-sm text-[#8a8073] mt-1 mb-5">
-            {myClasses.length === 0 ? 'Bạn cần tạo lớp học trước khi giao bài tập.' : 'Giao bài tập đầu tiên cho lớp của bạn.'}
+          <p className="font-semibold text-[#191919]">
+            {myClasses.length === 0 ? 'Bạn chưa có lớp học nào' : 'Chưa có bài tập nào'}
           </p>
-          {myClasses.length > 0 && (
+          <p className="text-sm text-[#8a8073] mt-1 mb-5">
+            {myClasses.length === 0
+              ? 'Bạn cần tạo ít nhất 1 lớp học trước khi giao bài tập cho sinh viên.'
+              : 'Giao bài tập đầu tiên cho lớp của bạn.'}
+          </p>
+          {myClasses.length === 0 ? (
+            <Link
+              to="/instructor/class"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md"
+            >
+              <GraduationCap size={16} /> Đi tạo lớp học
+            </Link>
+          ) : (
             <button onClick={openCreate} className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md">
               <Plus size={16} /> Giao bài tập mới
             </button>

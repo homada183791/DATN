@@ -125,6 +125,7 @@ export default function Homework() {
               <div className="space-y-2">
                 {hwProblems.map((p, i) => {
                   const open = expandedProblem === p.id;
+                  const hasLink = !!p.problem_id;
                   return (
                     <div key={p.id} className="bg-white rounded-xl border border-[#e5dac9] overflow-hidden">
                       <div className="flex items-center justify-between p-3">
@@ -137,6 +138,11 @@ export default function Homework() {
                             {p.difficulty}
                           </span>
                           <span className="text-sm text-[#191919] font-medium truncate">{p.title}</span>
+                          {hasLink && (
+                            <span className="text-[9px] px-1.5 py-0.5 bg-blue-100 text-blue-700 border border-blue-200 rounded font-bold flex-shrink-0">
+                              CÓ THỂ NỘP
+                            </span>
+                          )}
                         </button>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <span className="text-xs text-[#8a8073]">{p.points}đ</span>
@@ -147,13 +153,22 @@ export default function Homework() {
                           >
                             <ChevronRight size={14} className={`transition-transform ${open ? 'rotate-90' : ''}`} />
                           </button>
-                          <Link
-                            to="/student/problems"
-                            className="p-1.5 bg-[#193a2b]/10 rounded-lg text-[#193a2b] hover:bg-[#193a2b] hover:text-white transition-colors"
-                            title="Vào làm bài"
-                          >
-                            <Play size={14} />
-                          </Link>
+                          {hasLink ? (
+                            <Link
+                              to={`/student/problem/${p.problem_id}`}
+                              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-lg hover:bg-[#143022] transition-colors"
+                              title="Vào làm bài và nộp code"
+                            >
+                              <Play size={12} /> Làm bài
+                            </Link>
+                          ) : (
+                            <span
+                              className="p-1.5 bg-[#f0ebd9] rounded-lg text-[#bfae99] cursor-not-allowed"
+                              title="Bài này chỉ có đề mô tả, chưa có bài toán để nộp code"
+                            >
+                              <Play size={14} />
+                            </span>
+                          )}
                         </div>
                       </div>
                       {open && (
@@ -169,6 +184,16 @@ export default function Homework() {
                                 <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#8a8073] bg-[#f0ebd9]">Output mẫu</p>
                                 <pre className="px-3 py-2 text-[12.5px] font-mono whitespace-pre-wrap text-[#191919]">{p.sampleOutput || '—'}</pre>
                               </div>
+                            </div>
+                          )}
+                          {hasLink && (
+                            <div className="mt-3">
+                              <Link
+                                to={`/student/problem/${p.problem_id}`}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-sm font-medium rounded-xl hover:bg-[#143022] shadow-sm transition-colors"
+                              >
+                                <Play size={14} /> Làm bài ngay
+                              </Link>
                             </div>
                           )}
                         </div>
