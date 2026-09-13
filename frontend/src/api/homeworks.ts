@@ -60,13 +60,18 @@ export function useHomeworksQuery() {
   return useQuery({ 
     queryKey: ['homeworks'], 
     queryFn: fetchHomeworks,
-    enabled: !!window.localStorage.getItem('accessToken')
+    enabled: typeof window !== 'undefined' && !!window.localStorage.getItem('accessToken'),
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 }
 
 export function useHomeworkMutations() {
   const queryClient = useQueryClient();
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['homeworks'] });
+  const invalidate = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['homeworks'] });
+    await queryClient.refetchQueries({ queryKey: ['homeworks'] });
+  };
   return {
     create: async (data: Parameters<typeof createHomework>[0]) => {
       const result = await createHomework(data);
@@ -83,4 +88,32 @@ export function useHomeworkMutations() {
       await invalidate();
     },
   };
+}
+
+// ─── Class-scoped homework endpoints ─────────────────────────────────────────
+
+/** GET /api/v1/classes/:classId/homeworks */
+export function fetchClassHomeworks(classId: string) {
+  return apiFetch<HomeworkDto[]>(`/api/v1/classes/${classId}/homeworks`);
+}
+
+/** GET /api/v1/classes/:classId/homeworks/:homeworkId */
+export function fetchClassHomework(classId: string, homeworkId: string) {
+  return apiFetch<HomeworkDto>(`/api/v1/classes/${classId}/homeworks/${homeworkId}`);
+}
+
+export function useClassHomeworksQuery(classId: string | undefined) {
+  return useQuery({
+    queryKey: ['class-homeworks', classId],
+    queryFn: () => fetchClassHomeworks(classId!),
+    enabled: !!classId && !!window.localStorage.getItem('accessToken'),
+  });
+}
+
+export function useClassHomeworkQuery(classId: string | undefined, homeworkId: string | undefined) {
+  return useQuery({
+    queryKey: ['class-homework', classId, homeworkId],
+    queryFn: () => fetchClassHomework(classId!, homeworkId!),
+    enabled: !!classId && !!homeworkId && !!window.localStorage.getItem('accessToken'),
+  });
 }

@@ -7,5 +7,6 @@ import { HomeworksService } from './homeworks.service';
   imports: [PrismaModule],
   controllers: [HomeworksController],
   providers: [HomeworksService],
+  exports: [HomeworksService],
 })
 export class HomeworksModule {}

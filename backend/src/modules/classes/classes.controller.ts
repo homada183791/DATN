@@ -18,6 +18,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { IsNotEmpty, IsString } from 'class-validator';
+import { HomeworksService } from '../homeworks/homeworks.service';
 
 class JoinByCodeDto {
   @IsNotEmpty()
@@ -28,7 +29,10 @@ class JoinByCodeDto {
 @Controller('classes')
 @UseGuards(AuthGuard('jwt'))
 export class ClassesController {
-  constructor(private readonly classesService: ClassesService) {}
+  constructor(
+    private readonly classesService: ClassesService,
+    private readonly homeworksService: HomeworksService,
+  ) {}
 
   @Post()
   @UseGuards(RolesGuard)
@@ -71,13 +75,13 @@ export class ClassesController {
     return this.classesService.addStudent(id, addStudentDto);
   }
 
-  /** Tham gia lớp bằng ID (từ context cache) */
+  /** Tham gia lớp bằng ID */
   @Post(':id/join')
   join(@Param('id') id: string, @Request() req: { user: { userId: string } }) {
     return this.classesService.joinStudent(id, req.user.userId);
   }
 
-  /** Tham gia lớp bằng mã mời — KHÔNG cần allClasses cache trước */
+  /** Tham gia lớp bằng mã mời */
   @Post('join-by-code')
   joinByCode(
     @Body() dto: JoinByCodeDto,
@@ -96,5 +100,26 @@ export class ClassesController {
   @Roles(Role.INSTRUCTOR)
   removeStudent(@Param('id') id: string, @Param('studentId') studentId: string) {
     return this.classesService.removeStudent(id, studentId);
+  }
+
+  // ─── Nested homework endpoints ─────────────────────────────────────────
+
+  /** GET /api/v1/classes/:classId/homeworks — danh sách bài tập trong lớp */
+  @Get(':classId/homeworks')
+  getClassHomeworks(
+    @Param('classId') classId: string,
+    @Request() req: { user: { userId: string; role: Role } },
+  ) {
+    return this.homeworksService.findHomeworksByClass(classId, req.user.userId, req.user.role);
+  }
+
+  /** GET /api/v1/classes/:classId/homeworks/:homeworkId — chi tiết bài tập */
+  @Get(':classId/homeworks/:homeworkId')
+  getClassHomework(
+    @Param('classId') classId: string,
+    @Param('homeworkId') homeworkId: string,
+    @Request() req: { user: { userId: string; role: Role } },
+  ) {
+    return this.homeworksService.findHomeworkByClass(classId, homeworkId, req.user.userId, req.user.role);
   }
 }
