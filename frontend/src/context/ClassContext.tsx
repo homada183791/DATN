@@ -9,6 +9,7 @@ export interface ClassInfo {
   name: string;
   code: string;
   instructor: string;
+  adminId?: string;
   semester: string;
   studentCount: number;
   homeworkCount: number;
@@ -50,6 +51,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
     name: cls.name,
     code: cls.invite_code,
     instructor: cls.admin?.email ?? '',
+    adminId: cls.admin?.id ?? '',
     semester: cls.semester ?? '',
     studentCount: cls.students?.length ?? 0,
     homeworkCount: 0,
@@ -68,11 +70,14 @@ export function ClassProvider({ children }: { children: ReactNode }) {
   };
 
   const isEnrolled = (classId: string) =>
-    !!user && membersOf(classId).some((m) => m.username === user.username);
+    !!user && membersOf(classId).some((m) => m.username === user.username || m.id === user.id || (user.email && m.fullName.toLowerCase() === user.email.toLowerCase()));
 
   const myClasses = useMemo(() => {
     if (user?.role !== 'instructor') return [];
-    return allClasses.filter((c) => c.instructor === user.email);
+    return allClasses.filter((c) =>
+      (c.adminId && user.id && c.adminId === user.id) ||
+      (c.instructor && user.email && c.instructor.toLowerCase() === user.email.toLowerCase())
+    );
   }, [allClasses, user]);
 
   const enrolledClasses = useMemo(() => {

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useClass } from '../../context/ClassContext';
@@ -28,7 +28,7 @@ const emptyForm = { title: '', description: '', deadline: '', classId: '' };
 
 export default function InstructorHomework() {
   const { myClasses, membersOf } = useClass();
-  const { allHomeworks, problemsOf, createHomework, updateHomework, deleteHomework } = useHomework();
+  const { allHomeworks, isLoading, refetch, problemsOf, createHomework, updateHomework, deleteHomework } = useHomework();
 
   const [editor, setEditor] = useState<EditorState>(null);
   const [viewId, setViewId] = useState<string | null>(null);
@@ -40,11 +40,9 @@ export default function InstructorHomework() {
   const [isSaving, setIsSaving] = useState(false);
   const hasDocument = typeof document !== 'undefined';
 
-  const myClassIds = useMemo(() => new Set(myClasses.map((c) => c.id)), [myClasses]);
-  const myHomeworks = useMemo(
-    () => allHomeworks.filter((h) => myClassIds.has(h.classId)),
-    [allHomeworks, myClassIds]
-  );
+  // Backend findAll(userId, 'INSTRUCTOR') đã filter theo các lớp do giảng viên này quản lý (admin_id = userId).
+  // Do đó allHomeworks chính là toàn bộ bài tập của giảng viên hiện tại.
+  const myHomeworks = allHomeworks;
 
   const filtered = classFilter === 'all' ? myHomeworks : myHomeworks.filter((h) => h.classId === classFilter);
   const viewHw = myHomeworks.find((h) => h.id === viewId);
@@ -82,7 +80,7 @@ export default function InstructorHomework() {
     if (!form.classId) return setError('Vui lòng chọn lớp để giao bài.');
     if (!form.deadline) return setError('Vui lòng chọn hạn nộp.');
     if (draftProblems.length === 0) return setError('Cần ít nhất 1 bài toán trong bài tập.');
-    const cls = myClasses.find((c) => c.id === form.classId)!;
+    const cls = myClasses.find((c) => c.id === form.classId);
     const deadline = form.deadline.replace('T', ' ');
     const payload: HomeworkInput = {
       title: form.title.trim(),
@@ -90,7 +88,7 @@ export default function InstructorHomework() {
       deadline,
       problems: draftProblems,
       classId: form.classId,
-      className: `${cls.name} - ${cls.code}`,
+      className: cls ? `${cls.name} - ${cls.code}` : '',
       totalStudents: membersOf(form.classId).length,
     };
     
@@ -102,6 +100,7 @@ export default function InstructorHomework() {
       } else {
         await createHomework(payload);
       }
+      await refetch();
       setEditor(null);
     } catch (e: any) {
       setError(e.message || 'Có lỗi xảy ra khi lưu bài tập.');
@@ -181,7 +180,11 @@ export default function InstructorHomework() {
       )}
 
       {/* list */}
-      {filtered.length === 0 ? (
+      {isLoading && myHomeworks.length === 0 ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="w-8 h-8 border-2 border-[#193a2b] border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="bg-white border border-[#e5dac9] rounded-xl p-14 text-center shadow-sm">
           <ClipboardList size={48} className="text-[#bfae99] mx-auto mb-4" />
           <p className="font-semibold text-[#191919]">
@@ -222,7 +225,7 @@ export default function InstructorHomework() {
                     </div>
                     <p className="text-sm text-[#5c5446] mb-3 leading-relaxed line-clamp-2">{hw.description || 'Chưa có mô tả.'}</p>
                     <div className="flex items-center gap-4 text-sm text-[#8a8073] flex-wrap">
-                      <span className="flex items-center gap-1"><GraduationCap size={14} /> {hw.className}</span>
+                      <span className="flex items-center gap-1"><GraduationCap size={14} /> {hw.className || myClasses.find((c) => c.id === hw.classId)?.name || 'Lớp học'}</span>
                       <span className="flex items-center gap-1"><BookOpen size={14} /> {hw.problemCount} bài</span>
                       <span className="flex items-center gap-1"><Users size={14} /> {hw.submittedStudents}/{hw.totalStudents} đã nộp</span>
                     </div>
@@ -340,7 +343,7 @@ export default function InstructorHomework() {
             <div className="p-6 space-y-4">
               <div className="flex flex-wrap gap-2">
                 <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${statusChip[viewHw.status]}`}>{statusLabel[viewHw.status]}</span>
-                <span className="text-xs px-2.5 py-1 rounded-full bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] flex items-center gap-1"><GraduationCap size={12} /> {viewHw.className}</span>
+                <span className="text-xs px-2.5 py-1 rounded-full bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] flex items-center gap-1"><GraduationCap size={12} /> {viewHw.className || myClasses.find((c) => c.id === viewHw.classId)?.name || 'Lớp học'}</span>
               </div>
               <p className="text-sm text-[var(--ws-muted)] leading-relaxed">{viewHw.description || 'Chưa có mô tả.'}</p>
               <div className="grid grid-cols-3 gap-3">

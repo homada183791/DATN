@@ -31,6 +31,8 @@ export type HomeworkInput = {
 
 interface HomeworkContextType {
   allHomeworks: Homework[];
+  isLoading: boolean;
+  refetch: () => Promise<any>;
   homeworksOfClass: (classId: string) => Homework[];
   problemsOf: (homeworkId: string) => HomeworkProblem[];
   createHomework: (data: HomeworkInput) => Promise<Homework>;
@@ -51,27 +53,28 @@ function normalizeHomework(item: {
   description?: string | null;
   deadline: string;
   class_id: string;
-  tasks: HomeworkProblem[];
+  tasks?: HomeworkProblem[] | null;
   class?: { name: string; students?: Array<{ student_id: string }> };
 }): Homework {
+  const tasks = Array.isArray(item.tasks) ? item.tasks : [];
   return {
     id: item.id,
     title: item.title,
     description: item.description ?? '',
     deadline: item.deadline,
     status: computeStatus(item.deadline),
-    problemCount: item.tasks.length,
+    problemCount: tasks.length,
     completedCount: 0,
     classId: item.class_id,
     className: item.class?.name ?? '',
     totalStudents: item.class?.students?.length ?? 0,
     submittedStudents: 0,
-    tasks: item.tasks,
+    tasks,
   };
 }
 
 export function HomeworkProvider({ children }: { children: ReactNode }) {
-  const { data = [] } = useHomeworksQuery();
+  const { data = [], isLoading, refetch } = useHomeworksQuery();
   const mutations = useHomeworkMutations();
   const allHomeworks = useMemo(() => data.map(normalizeHomework), [data]);
 
@@ -102,7 +105,7 @@ export function HomeworkProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <HomeworkContext.Provider value={{ allHomeworks, homeworksOfClass, problemsOf, createHomework, updateHomework, deleteHomework: mutations.remove }}>
+    <HomeworkContext.Provider value={{ allHomeworks, isLoading, refetch, homeworksOfClass, problemsOf, createHomework, updateHomework, deleteHomework: mutations.remove }}>
       {children}
     </HomeworkContext.Provider>
   );
