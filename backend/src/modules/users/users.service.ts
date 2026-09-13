@@ -82,13 +82,38 @@ export class UsersService {
       this.logger.log(
         `[Streak] User ${userId}: streak=${newStreak}, highest=${newHighest}`,
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Không throw để tránh làm gián đoạn luồng Webhook chính
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+
       this.logger.error(
-        `[Streak] Failed to update streak for user ${userId}: ${error.message}`,
-        error.stack,
+        `[Streak] Failed to update streak for user ${userId}: ${errorMessage}`,
+        errorStack,
       );
     }
+  }
+
+  /**
+   * Trả về thông tin hồ sơ đầy đủ của người dùng hiện tại (rating, streak,
+   * ngày tham gia...) — dùng cho trang Hồ sơ cá nhân.
+   */
+  async getMe(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        elo_rating: true,
+        current_streak: true,
+        highest_streak: true,
+        created_at: true,
+      },
+    });
+
+    return user;
   }
 
   /**

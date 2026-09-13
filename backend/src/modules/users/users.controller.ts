@@ -15,6 +15,16 @@ import {
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get('me')
+  @ApiOperation({ summary: 'Lấy hồ sơ đầy đủ của người dùng hiện tại' })
+  @ApiResponse({
+    status: 200,
+    description: 'Trả về id, email, role, elo_rating, streak, ngày tham gia.',
+  })
+  getMe(@Request() req: { user: { userId: string } }) {
+    return this.usersService.getMe(req.user.userId);
+  }
+
   @Get('me/heatmap')
   @ApiOperation({
     summary:
