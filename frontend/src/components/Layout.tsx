@@ -35,12 +35,12 @@ interface SidebarItem {
 }
 
 const studentItems: SidebarItem[] = [
-  { label: 'Dashboard',        icon: <LayoutDashboard size={20} />, path: '/student/dashboard' },
-  { label: 'Bài tập',          icon: <BookOpen size={20} />,        path: '/student/problems' },
-  { label: 'Bài tập về nhà',   icon: <ClipboardList size={20} />,   path: '/student/homework' },
-  { label: 'Kỳ thi',           icon: <Trophy size={20} />,          path: '/student/contest' },
-  { label: 'Nộp bài',          icon: <Send size={20} />,            path: '/student/submission' },
-  { label: 'Lớp học',          icon: <GraduationCap size={20} />,   path: '/student/class' },
+  { label: 'Dashboard',       icon: <LayoutDashboard size={20} />, path: '/student/dashboard' },
+  { label: 'Bài tập',         icon: <BookOpen size={20} />,       path: '/student/problems'  },
+  { label: 'Bài tập về nhà',  icon: <ClipboardList size={20} />,  path: '/student/homework'  },
+  { label: 'Kỳ thi',          icon: <Trophy size={20} />,         path: '/student/contest'   },
+  { label: 'Nộp bài',         icon: <Send size={20} />,           path: '/student/submission' },
+  { label: 'Lớp học',         icon: <GraduationCap size={20} />,  path: '/student/class'     },
 ];
 
 const instructorItems: SidebarItem[] = [

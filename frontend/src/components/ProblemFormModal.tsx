@@ -150,9 +150,9 @@ export default function ProblemFormModal({
         {/* ── TABS ── */}
         <div className="flex border-b border-[#e5dac9] flex-shrink-0 bg-[#f7f4eb]">
           {([
-            { key: 'desc',  label: 'Thông tin đề bài', icon: AlignLeft,    err: !!(errors.title || errors.description) },
-            { key: 'cases', label: 'Test Cases',        icon: FlaskConical, err: caseErrCount > 0, count: testCases.length },
-          ] as const).map(({ key, label, icon: Icon, err, count}) => (
+            { key: 'desc'  as const, label: 'Thông tin đề bài', icon: AlignLeft,    err: !!(errors.title || errors.description), count: undefined },
+            { key: 'cases' as const, label: 'Test Cases',        icon: FlaskConical, err: caseErrCount > 0,                        count: testCases.length },
+          ]).map(({ key, label, icon: Icon, err, count }) => (
             <button
               key={key}
               type="button"

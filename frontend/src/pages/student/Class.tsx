@@ -298,9 +298,18 @@ export default function ClassPage() {
 
               {selectedClassHws.length > 0 && (
                 <div className="mb-6">
-                  <h4 className="text-sm font-bold font-serif text-[#191919] mb-3 flex items-center gap-1.5">
-                    <ClipboardList size={15} /> Bài tập ({selectedClassHws.length})
-                  </h4>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-bold font-serif text-[#191919] flex items-center gap-1.5">
+                      <ClipboardList size={15} /> Bài tập ({selectedClassHws.length})
+                    </h4>
+                    <Link
+                      to={`/student/homework?class=${selectedClassData?.id}`}
+                      onClick={() => setSelectedClass(null)}
+                      className="text-xs text-[#193a2b] font-semibold hover:underline flex items-center gap-1"
+                    >
+                      Xem tất cả <ChevronRight size={12} />
+                    </Link>
+                  </div>
                   <div className="space-y-2.5">
                     {selectedClassHws.map((hw) => {
                       const p = deadlineProgress(hw.deadline);
@@ -333,14 +342,6 @@ export default function ClassPage() {
                       );
                     })}
                   </div>
-                  {/* link sang trang bài tập về nhà riêng */}
-                  <Link
-                    to="/student/homework"
-                    onClick={() => setSelectedClass(null)}
-                    className="mt-2 flex items-center justify-center gap-1.5 w-full py-2 text-xs font-semibold text-[#193a2b] border border-[#193a2b]/30 rounded-xl hover:bg-[#193a2b] hover:text-white transition-colors"
-                  >
-                    <ClipboardList size={13} /> Xem tất cả bài tập về nhà
-                  </Link>
                 </div>
               )}
 

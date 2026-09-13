@@ -19,7 +19,7 @@ import PersonalPage from './pages/student/PersonalPage';
 import SettingsPage from './pages/student/SettingsPage';
 import ProblemList from './pages/student/ProblemList';
 import ProblemSolve from './pages/student/ProblemSolve';
-import StudentHomework from './pages/student/Homework';
+import StudentHomework from './pages/student/StudentHomework';
 
 import Contest from './pages/student/Contest';
 import Submission from './pages/student/Submission';
