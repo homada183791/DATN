@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, ChevronRight, Search, Plus, Edit, Trash2, SortAsc, SortDesc, ArrowUpDown } from 'lucide-react';
+import { BookOpen, ChevronRight, Search, Plus, Edit, Trash2, ArrowUpDown } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '../../api/http';
 import { useProblemsQuery, createProblem, updateProblem, deleteProblem, type ProblemDto, type CreateProblemDto } from '../../api/problems';
@@ -127,8 +127,8 @@ export default function ProblemList() {
     return (
       <div className="space-y-6 text-[#191919]">
         <div>
-          <h2 className="text-3xl font-bold font-serif text-[#191919]">Ngân hàng bài tập</h2>
-          <p className="text-sm text-[#8a8073] mt-1">Đang tải danh sách bài tập...</p>
+          <h2 className="text-3xl font-bold font-serif text-[#191919]">Ngân hàng bài toán</h2>
+          <p className="text-sm text-[#8a8073] mt-1">Đang tải danh sách bài toán...</p>
         </div>
         <div className="space-y-3">
           {Array.from({ length: 6 }, (_, index) => (
@@ -160,7 +160,7 @@ export default function ProblemList() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-3xl font-bold font-serif text-[#191919]">
-            {isInstructor ? 'Ngân hàng bài tập' : 'Bài tập'}
+            {isInstructor ? 'Ngân hàng bài toán' : 'Bài toán'}
           </h2>
           <p className="text-sm text-[#8a8073] mt-1">
             Hiển thị <span className="font-semibold text-[#191919]">{filteredProblems.length}</span>

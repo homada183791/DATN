@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import { getDetail, LANG_LABELS, Lang, ProblemDetail } from '../../data/problemDetails';
@@ -94,11 +94,21 @@ interface SubmissionStatusPayload {
 const now = () => new Date().toLocaleTimeString('en-GB', { hour12: false });
 
 export default function ProblemSolve() {
-  const { id } = useParams();
+  // Hỗ trợ cả 2 URL pattern:
+  // - /student/problem/:id  (cũ)
+  // - /student/class/:classId/homework/:homeworkId/problem/:problemId  (mới)
+  const { id, problemId: pid, classId, homeworkId } = useParams<{
+    id?: string;
+    problemId?: string;
+    classId?: string;
+    homeworkId?: string;
+  }>();
+  const resolvedId = pid ?? id;
+  const navigate = useNavigate();
   const { showToast } = useToast();
-  const { data: apiProblem, isLoading, error } = useProblemQuery(id);
+  const { data: apiProblem, isLoading, error } = useProblemQuery(resolvedId);
 
-  const problemId = apiProblem?.id ?? id ?? 'unknown-problem';
+  const problemId = apiProblem?.id ?? resolvedId ?? 'unknown-problem';
   const problemTitle = apiProblem?.title ?? 'Bài tập';
   const problemDifficulty = apiProblem?.difficulty ?? 'MEDIUM';
   const problemDescription = apiProblem?.description ?? '';
@@ -507,6 +517,16 @@ export default function ProblemSolve() {
     <div className="flex-1 flex flex-col min-h-0 h-full text-[var(--ws-text)]">
       {/* problem header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--ws-border)] bg-[var(--ws-panel)] flex-wrap">
+          {/* Back button khi vào từ homework */}
+          {classId && homeworkId && (
+            <button
+              onClick={() => navigate(`/student/class/${classId}/homework/${homeworkId}`)}
+              className="flex items-center gap-1 text-[12px] text-[var(--ws-muted)] hover:text-[var(--ws-text)] transition-colors mr-1"
+              title="Quay lại bài tập"
+            >
+              ← Bài tập
+            </button>
+          )}
           <span className="text-[11px] font-bold tracking-wider px-2.5 py-1 rounded-md bg-[var(--ws-accent-soft)] text-[var(--ws-accent)]">
             {detail.code}
           </span>

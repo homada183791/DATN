@@ -35,21 +35,20 @@ interface SidebarItem {
 }
 
 const studentItems: SidebarItem[] = [
-  { label: 'Dashboard',       icon: <LayoutDashboard size={20} />, path: '/student/dashboard' },
-  { label: 'Bài tập',         icon: <BookOpen size={20} />,       path: '/student/problems'  },
-  { label: 'Bài tập về nhà',  icon: <ClipboardList size={20} />,  path: '/student/homework'  },
-  { label: 'Kỳ thi',          icon: <Trophy size={20} />,         path: '/student/contest'   },
-  { label: 'Nộp bài',         icon: <Send size={20} />,           path: '/student/submission' },
-  { label: 'Lớp học',         icon: <GraduationCap size={20} />,  path: '/student/class'     },
+  { label: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/student/dashboard'  },
+  { label: 'Bài tập',   icon: <BookOpen size={20} />,        path: '/student/homeworks'  },
+  { label: 'Lớp học',   icon: <GraduationCap size={20} />,   path: '/student/class'      },
+  { label: 'Kỳ thi',    icon: <Trophy size={20} />,          path: '/student/contest'    },
+  { label: 'Nộp bài',   icon: <Send size={20} />,            path: '/student/submission' },
 ];
 
 const instructorItems: SidebarItem[] = [
-  { label: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/instructor/dashboard' },
-  { label: 'Lớp học', icon: <GraduationCap size={20} />, path: '/instructor/classes' },
-  { label: 'Giao bài tập', icon: <ClipboardList size={20} />, path: '/instructor/homework' },
-  { label: 'Kỳ thi', icon: <Trophy size={20} />, path: '/instructor/contest' },
-  { label: 'Sinh viên', icon: <Users size={20} />, path: '/instructor/students' },
-  { label: 'Ngân hàng bài tập', icon: <BookOpen size={20} />, path: '/instructor/problems' },
+  { label: 'Dashboard',          icon: <LayoutDashboard size={20} />, path: '/instructor/dashboard' },
+  { label: 'Lớp học',            icon: <GraduationCap size={20} />,   path: '/instructor/classes'  },
+  { label: 'Bài tập',            icon: <ClipboardList size={20} />,   path: '/instructor/homework' },
+  { label: 'Kỳ thi',             icon: <Trophy size={20} />,          path: '/instructor/contest'  },
+  { label: 'Sinh viên',          icon: <Users size={20} />,           path: '/instructor/students' },
+  { label: 'Ngân hàng bài toán', icon: <BookOpen size={20} />,        path: '/instructor/problems' },
 ];
 
 function Breadcrumbs() {

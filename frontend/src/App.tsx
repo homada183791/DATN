@@ -19,8 +19,9 @@ import PersonalPage from './pages/student/PersonalPage';
 import SettingsPage from './pages/student/SettingsPage';
 import ProblemList from './pages/student/ProblemList';
 import ProblemSolve from './pages/student/ProblemSolve';
-import StudentHomework from './pages/student/StudentHomework';
-
+import ClassDetail from './pages/student/ClassDetail';
+import HomeworkDetail from './pages/student/HomeworkDetail';
+import HomeworkList from './pages/student/HomeworkList';
 import Contest from './pages/student/Contest';
 import Submission from './pages/student/Submission';
 import ClassPage from './pages/student/Class';
@@ -54,20 +55,30 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginRegister />} />
           <Route path="/" element={<Navigate to="/login" replace />} />
-          
-          {/* Student Routes - chỉ student mới được truy cập */}
+
+          {/* ── Student Routes ─────────────────────────────────────────────── */}
           <Route path="/student" element={<ProtectedRoute allowedRole="student"><Layout><Navigate to="/student/dashboard" replace /></Layout></ProtectedRoute>} />
           <Route path="/student/dashboard" element={<ProtectedRoute allowedRole="student"><Layout><StudentDashboard /></Layout></ProtectedRoute>} />
-          <Route path="/student/problems" element={<ProtectedRoute allowedRole="student"><Layout><ProblemList /></Layout></ProtectedRoute>} />
+
+          {/* Sidebar: Bài tập — tổng hợp từ tất cả lớp */}
+          <Route path="/student/homeworks" element={<ProtectedRoute allowedRole="student"><Layout><HomeworkList /></Layout></ProtectedRoute>} />
+
+          {/* Lớp học → Chi tiết lớp → Bài tập → Làm bài */}
+          <Route path="/student/class" element={<ProtectedRoute allowedRole="student"><Layout><ClassPage /></Layout></ProtectedRoute>} />
+          <Route path="/student/class/:classId" element={<ProtectedRoute allowedRole="student"><Layout><ClassDetail /></Layout></ProtectedRoute>} />
+          <Route path="/student/class/:classId/homework/:homeworkId" element={<ProtectedRoute allowedRole="student"><Layout><HomeworkDetail /></Layout></ProtectedRoute>} />
+          <Route path="/student/class/:classId/homework/:homeworkId/problem/:problemId" element={<ProtectedRoute allowedRole="student"><Layout fullBleed><ProblemSolve /></Layout></ProtectedRoute>} />
+
+          {/* Route cũ /student/problem/:id — giữ backward compat */}
           <Route path="/student/problem/:id" element={<ProtectedRoute allowedRole="student"><Layout fullBleed><ProblemSolve /></Layout></ProtectedRoute>} />
-          <Route path="/student/homework" element={<ProtectedRoute allowedRole="student"><Layout><StudentHomework /></Layout></ProtectedRoute>} />
+          <Route path="/student/problems" element={<ProtectedRoute allowedRole="student"><Layout><ProblemList /></Layout></ProtectedRoute>} />
+
           <Route path="/student/contest" element={<ProtectedRoute allowedRole="student"><Layout><Contest /></Layout></ProtectedRoute>} />
           <Route path="/student/submission" element={<ProtectedRoute allowedRole="student"><Layout><Submission /></Layout></ProtectedRoute>} />
-          <Route path="/student/class" element={<ProtectedRoute allowedRole="student"><Layout><ClassPage /></Layout></ProtectedRoute>} />
           <Route path="/student/profile" element={<ProtectedRoute allowedRole="student"><Layout><PersonalPage /></Layout></ProtectedRoute>} />
           <Route path="/student/settings" element={<ProtectedRoute allowedRole="student"><Layout><SettingsPage /></Layout></ProtectedRoute>} />
-          
-          {/* Instructor Routes - chỉ instructor mới được truy cập */}
+
+          {/* ── Instructor Routes ──────────────────────────────────────────── */}
           <Route path="/instructor" element={<ProtectedRoute allowedRole="instructor"><Layout><Navigate to="/instructor/dashboard" replace /></Layout></ProtectedRoute>} />
           <Route path="/instructor/dashboard" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorDashboard /></Layout></ProtectedRoute>} />
           <Route path="/instructor/classes" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorClass /></Layout></ProtectedRoute>} />

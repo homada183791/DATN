@@ -160,24 +160,20 @@ export default function ClassPage() {
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {enrolledClasses.map((cls) => (
-                <div
-                  key={cls.id}
-                  className="bg-white border border-[#e5dac9] rounded-xl p-6 hover:shadow-md hover:border-[#193a2b]/30 transition-all cursor-pointer group shadow-sm flex flex-col"
-                  onClick={() => setSelectedClass(cls.id)}
-                >
+                <div key={cls.id} className="bg-white border border-[#e5dac9] rounded-xl p-6 hover:shadow-md hover:border-[#193a2b]/30 transition-all shadow-sm flex flex-col">
                   <div className="flex items-start justify-between mb-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-[#193a2b] to-[#2d5a3f] rounded-xl flex items-center justify-center shadow-md">
                       <GraduationCap size={24} className="text-white" />
                     </div>
                     {leaveConfirmId === cls.id ? (
-                      <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-1.5">
                         <span className="text-[11px] text-red-600 font-medium">Rời lớp?</span>
                         <button
-                          onClick={async (e) => { e.stopPropagation(); await leaveClass(cls.id); setLeaveConfirmId(null); }}
+                          onClick={async () => { await leaveClass(cls.id); setLeaveConfirmId(null); }}
                           className="px-2 py-1 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-500"
                         >Xác nhận</button>
                         <button
-                          onClick={(e) => { e.stopPropagation(); setLeaveConfirmId(null); }}
+                          onClick={() => setLeaveConfirmId(null)}
                           className="px-2 py-1 bg-[#f0ebd9] text-[#5c5446] text-xs font-semibold rounded-lg hover:bg-[#e5dac9]"
                         >Huỷ</button>
                       </div>
@@ -194,11 +190,16 @@ export default function ClassPage() {
                   <h3 className="text-lg font-bold font-serif text-[#191919] mb-1">{cls.name}</h3>
                   <p className="text-sm text-[#8a8073] mb-1">{cls.code} • {cls.semester}</p>
                   <p className="text-xs text-[#8a8073] mb-4">GV: {cls.instructor}</p>
-                  <div className="flex items-center gap-4 text-sm text-[#8a8073] mt-auto">
+                  <div className="flex items-center gap-4 text-sm text-[#8a8073] mt-auto mb-4">
                     <span className="flex items-center gap-1"><Users size={14} /> {membersOf(cls.id).length}</span>
-                    <span className="flex items-center gap-1"><BookOpen size={14} /> {cls.homeworkCount}</span>
-                    <span className="flex items-center gap-1"><Trophy size={14} /> {cls.contestCount}</span>
                   </div>
+                  {/* CTA → ClassDetail */}
+                  <Link
+                    to={`/student/class/${cls.id}`}
+                    className="flex items-center justify-center gap-1.5 w-full py-2 bg-[#193a2b] text-white text-sm font-medium rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
+                  >
+                    <ChevronRight size={14} /> Xem bài tập
+                  </Link>
                 </div>
               ))}
             </div>
