@@ -10,9 +10,14 @@ import { CreateProblemDto, ProblemDifficulty, ProblemDto } from '../api/problems
 interface ProblemFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateProblemDto) => void;
+  onSubmit: (data: CreateProblemDto, points?: number) => void;
   initialData?: ProblemDto | null;
   isLoading?: boolean;
+  showPoints?: boolean;
+  initialPoints?: number;
+  titleText?: string;
+  subtitleText?: string;
+  submitText?: string;
 }
 
 const DIFFICULTY_CONFIG = {
@@ -31,10 +36,16 @@ const FIELD_ERR   = 'border-red-400 ring-1 ring-red-300 bg-red-50';
 
 export default function ProblemFormModal({
   isOpen, onClose, onSubmit, initialData, isLoading,
+  showPoints = false,
+  initialPoints = 100,
+  titleText,
+  subtitleText,
+  submitText,
 }: ProblemFormModalProps) {
   const [title,       setTitle]       = useState('');
   const [description, setDescription] = useState('');
   const [difficulty,  setDifficulty]  = useState<ProblemDifficulty>('EASY');
+  const [points,      setPoints]      = useState(initialPoints);
   const [timeLimit,   setTimeLimit]   = useState(1000);
   const [memoryLimit, setMemoryLimit] = useState(256);
   const [testCases,   setTestCases]   = useState<CreateProblemDto['test_cases']>([]);
@@ -64,10 +75,11 @@ export default function ProblemFormModal({
         setMemoryLimit(256);
         setTestCases([]);
       }
+      setPoints(initialPoints);
       setErrors({});
       setActiveTab('desc');
     }
-  }, [initialData, isOpen]);
+  }, [initialData, isOpen, initialPoints]);
 
   if (!isOpen) return null;
 
@@ -100,7 +112,7 @@ export default function ProblemFormModal({
       time_limit: timeLimit,
       memory_limit: memoryLimit,
       test_cases: testCases,
-    });
+    }, showPoints ? points : undefined);
   };
 
   const addTestCase    = () => setTestCases([...testCases, { input: '', expected_output: '', is_hidden: false }]);
@@ -132,10 +144,10 @@ export default function ProblemFormModal({
             </div>
             <div>
               <h2 className="font-serif text-lg font-bold text-[#191919] leading-tight">
-                {isEdit ? 'Chỉnh sửa bài tập' : 'Tạo bài tập mới'}
+                {titleText || (isEdit ? 'Chỉnh sửa bài tập' : 'Tạo bài tập mới')}
               </h2>
               <p className="text-xs text-[#8a8073]">
-                {isEdit ? `Cập nhật: ${initialData.title}` : 'Ngân hàng bài tập hệ thống'}
+                {subtitleText || (isEdit ? `Cập nhật: ${initialData.title}` : 'Ngân hàng bài tập hệ thống')}
               </p>
             </div>
           </div>
@@ -199,25 +211,41 @@ export default function ProblemFormModal({
                   )}
                 </div>
 
-                {/* Difficulty — visual toggle */}
-                <div>
-                  <label className="block text-sm font-semibold text-[#191919] mb-2">Độ khó</label>
-                  <div className="flex gap-2">
-                    {(Object.keys(DIFFICULTY_CONFIG) as ProblemDifficulty[]).map((d) => (
-                      <button
-                        key={d}
-                        type="button"
-                        onClick={() => setDifficulty(d)}
-                        className={`flex-1 py-2 rounded-xl border text-sm font-semibold transition-all ${
-                          difficulty === d
-                            ? DIFFICULTY_CONFIG[d].color + ' ring-2 shadow-sm'
-                            : 'border-[#e5dac9] text-[#8a8073] bg-white hover:border-[#d5c9b5] hover:text-[#191919]'
-                        }`}
-                      >
-                        {DIFFICULTY_CONFIG[d].label}
-                      </button>
-                    ))}
+                {/* Difficulty & Points */}
+                <div className={showPoints ? 'grid grid-cols-1 sm:grid-cols-3 gap-4' : ''}>
+                  <div className={showPoints ? 'sm:col-span-2' : ''}>
+                    <label className="block text-sm font-semibold text-[#191919] mb-2">Độ khó</label>
+                    <div className="flex gap-2">
+                      {(Object.keys(DIFFICULTY_CONFIG) as ProblemDifficulty[]).map((d) => (
+                        <button
+                          key={d}
+                          type="button"
+                          onClick={() => setDifficulty(d)}
+                          className={`flex-1 py-2 rounded-xl border text-sm font-semibold transition-all ${
+                            difficulty === d
+                              ? DIFFICULTY_CONFIG[d].color + ' ring-2 shadow-sm'
+                              : 'border-[#e5dac9] text-[#8a8073] bg-white hover:border-[#d5c9b5] hover:text-[#191919]'
+                          }`}
+                        >
+                          {DIFFICULTY_CONFIG[d].label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+                  {showPoints && (
+                    <div>
+                      <label className="block text-sm font-semibold text-[#191919] mb-2">Điểm số</label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={1000}
+                        value={points}
+                        onChange={(e) => setPoints(Number(e.target.value))}
+                        className={`${FIELD_BASE} ${FIELD_IDLE}`}
+                        placeholder="100"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Limits */}
@@ -450,6 +478,11 @@ export default function ProblemFormModal({
                 {DIFFICULTY_CONFIG[difficulty].label}
               </span>
               <span className="text-[#5c5446] font-medium">{testCases.length} test case{testCases.length !== 1 ? 's' : ''}</span>
+              {showPoints && (
+                <span className="px-2 py-0.5 rounded-md bg-[#193a2b]/10 text-[#193a2b] border border-[#193a2b]/20 text-[11px] font-bold">
+                  {points} điểm
+                </span>
+              )}
             </div>
             {/* Actions */}
             <div className="flex gap-2.5">
@@ -467,7 +500,7 @@ export default function ProblemFormModal({
                 className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[#193a2b] text-white text-sm font-semibold hover:bg-[#143022] disabled:opacity-50 transition-colors shadow-sm"
               >
                 {isLoading && <Loader2 size={15} className="animate-spin" />}
-                {isLoading ? 'Đang lưu...' : (isEdit ? 'Lưu thay đổi' : 'Tạo bài tập')}
+                {isLoading ? 'Đang lưu...' : (submitText || (isEdit ? 'Lưu thay đổi' : 'Tạo bài tập'))}
               </button>
             </div>
           </div>

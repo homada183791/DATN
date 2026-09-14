@@ -27,12 +27,12 @@ export class ProblemsService {
       select: {
         id: true,
         title: true,
+        description: true,
         difficulty: true,
         time_limit: true,
         memory_limit: true,
         created_at: true,
         updated_at: true,
-        // Cố tình không select description và test_cases ở danh sách
       },
       orderBy: {
         created_at: 'desc',

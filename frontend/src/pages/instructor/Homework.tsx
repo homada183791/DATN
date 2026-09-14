@@ -380,7 +380,7 @@ export default function InstructorHomework() {
                         <span className="text-xs text-[var(--ws-muted)] font-mono w-5">{i + 1}.</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-[var(--ws-text)] truncate">{p.title}</p>
-                          <p className="text-[11px] text-[var(--ws-muted)] truncate">{p.statement.slice(0, 70)}</p>
+                          <p className="text-[11px] text-[var(--ws-muted)] truncate">{p.statement?.slice(0, 70) || 'Chưa có mô tả'}</p>
                         </div>
                         <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${dc[p.difficulty]}`}>{dl[p.difficulty]}</span>
                         <span className="text-[11px] text-[var(--ws-muted)] w-9 text-right">{p.points}đ</span>

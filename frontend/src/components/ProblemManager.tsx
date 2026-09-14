@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { HomeworkProblem } from '../context/HomeworkContext';
-import { useProblemsQuery, createProblem, type CreateProblemDto } from '../api/problems';
+import { useProblemsQuery, createProblem, fetchProblem, type CreateProblemDto } from '../api/problems';
+import ProblemFormModal from './ProblemFormModal';
 import {
   Plus,
   Trash2,
-  Edit3,
   FileText,
   Check,
   ListChecks,
@@ -14,6 +14,8 @@ import {
   Search,
   X,
   Loader2,
+  Clock,
+  HardDrive,
 } from 'lucide-react';
 
 interface Props {
@@ -35,41 +37,14 @@ const diffMap: Record<string, HomeworkProblem['difficulty']> = {
   HARD: 'Hard',
 };
 
-// Map ngược để tạo Problem từ soạn mới
-const diffMapReverse: Record<HomeworkProblem['difficulty'], 'EASY' | 'MEDIUM' | 'HARD'> = {
-  Easy: 'EASY',
-  Medium: 'MEDIUM',
-  Hard: 'HARD',
-};
-
 type ModalType = 'link' | 'compose' | null;
-
-interface ComposeDraft {
-  title: string;
-  difficulty: HomeworkProblem['difficulty'];
-  points: number;
-  statement: string;
-  sampleInput: string;
-  sampleOutput: string;
-}
-
-const emptyCompose = (): ComposeDraft => ({
-  title: '',
-  difficulty: 'Easy',
-  points: 100,
-  statement: '',
-  sampleInput: '',
-  sampleOutput: '',
-});
 
 export default function ProblemManager({ problems, onChange }: Props) {
   const queryClient = useQueryClient();
   const [modalType, setModalType] = useState<ModalType>(null);
   const [linkSearch, setLinkSearch] = useState('');
   const [linkErr, setLinkErr] = useState('');
-
-  const [compose, setCompose] = useState<ComposeDraft>(emptyCompose());
-  const [composeErr, setComposeErr] = useState('');
+  const [linkingId, setLinkingId] = useState<string | null>(null);
   const [composeSaving, setComposeSaving] = useState(false);
 
   // Fetch Problem Bank để cho phép link bài
@@ -78,69 +53,82 @@ export default function ProblemManager({ problems, onChange }: Props) {
   const totalPoints = problems.reduce((s, p) => s + (p.points || 0), 0);
 
   // ── Link từ ngân hàng ────────────────────────────────────────────────────
-  const linkFromBank = (bankId: string) => {
+  const linkFromBank = async (bankId: string) => {
     const bank = bankProblems.find((p) => p.id === bankId);
     if (!bank) return;
     if (problems.some((p) => p.problem_id === bankId)) {
       setLinkErr('Bài này đã có trong danh sách.');
       return;
     }
-    const task: HomeworkProblem = {
-      id: `LINKED-${bankId}`,
-      problem_id: bankId,
-      title: bank.title,
-      statement: bank.description,
-      difficulty: diffMap[bank.difficulty] ?? 'Easy',
-      points: 100,
-      sampleInput: bank.test_cases?.find((tc) => !tc.is_hidden)?.input ?? '',
-      sampleOutput: bank.test_cases?.find((tc) => !tc.is_hidden)?.expected_output ?? '',
-    };
-    onChange([...problems, task]);
+    setLinkingId(bankId);
     setLinkErr('');
-    setModalType(null);
+    try {
+      // Gọi fetchProblem để lấy đầy đủ description và test_cases
+      const full = await fetchProblem(bankId);
+      const sampleTc = full.test_cases?.find((tc) => !tc.is_hidden) || full.test_cases?.[0];
+      const task: HomeworkProblem = {
+        id: `LINKED-${bankId}`,
+        problem_id: bankId,
+        title: full.title || bank.title,
+        statement: full.description || bank.description || '',
+        difficulty: diffMap[full.difficulty] ?? diffMap[bank.difficulty] ?? 'Easy',
+        points: 100,
+        sampleInput: sampleTc?.input ?? '',
+        sampleOutput: sampleTc?.expected_output ?? '',
+      };
+      onChange([...problems, task]);
+      setModalType(null);
+    } catch {
+      // Fallback an toàn nếu có lỗi kết nối
+      const task: HomeworkProblem = {
+        id: `LINKED-${bankId}`,
+        problem_id: bankId,
+        title: bank.title,
+        statement: bank.description || '',
+        difficulty: diffMap[bank.difficulty] ?? 'Easy',
+        points: 100,
+        sampleInput: '',
+        sampleOutput: '',
+      };
+      onChange([...problems, task]);
+      setModalType(null);
+    } finally {
+      setLinkingId(null);
+    }
   };
 
   // ── Soạn bài mới → tạo Problem trong ngân hàng rồi link ─────────────────
-  const saveCompose = async () => {
-    if (compose.title.trim().length < 2) return setComposeErr('Tên bài cần ít nhất 2 ký tự.');
-    if (compose.statement.trim().length < 5) return setComposeErr('Đề bài quá ngắn.');
-
+  const handleComposeSubmit = async (data: CreateProblemDto, points = 100) => {
     setComposeSaving(true);
-    setComposeErr('');
     try {
-      const dto: CreateProblemDto = {
-        title: compose.title.trim(),
-        description: compose.statement.trim(),
-        difficulty: diffMapReverse[compose.difficulty],
-        time_limit: 1000,
-        memory_limit: 256,
-        test_cases: compose.sampleInput.trim()
-          ? [{ input: compose.sampleInput.trim(), expected_output: compose.sampleOutput.trim(), is_hidden: false }]
-          : [],
-      };
-      const created = await createProblem(dto);
+      const created = await createProblem(data);
       queryClient.invalidateQueries({ queryKey: ['problems'] });
+
+      const sampleTc = data.test_cases?.find((tc) => !tc.is_hidden) || data.test_cases?.[0];
       const task: HomeworkProblem = {
         id: `LINKED-${created.id}`,
         problem_id: created.id,
         title: created.title,
-        statement: created.description,
+        statement: created.description || '',
         difficulty: diffMap[created.difficulty] ?? 'Easy',
-        points: compose.points,
-        sampleInput: compose.sampleInput,
-        sampleOutput: compose.sampleOutput,
+        points: points,
+        sampleInput: sampleTc?.input ?? '',
+        sampleOutput: sampleTc?.expected_output ?? '',
       };
       onChange([...problems, task]);
-      setCompose(emptyCompose());
       setModalType(null);
-    } catch (e: any) {
-      setComposeErr(e?.message ?? 'Có lỗi khi tạo bài. Thử lại.');
+    } catch (err: any) {
+      alert(err?.message || 'Có lỗi khi tạo bài toán vào ngân hàng đề.');
     } finally {
       setComposeSaving(false);
     }
   };
 
   const remove = (id: string) => onChange(problems.filter((p) => p.id !== id));
+
+  const updatePoints = (id: string, newPoints: number) => {
+    onChange(problems.map((p) => (p.id === id ? { ...p, points: Math.max(0, newPoints) } : p)));
+  };
 
   const bankFiltered = bankProblems.filter(
     (bp) =>
@@ -163,14 +151,14 @@ export default function ProblemManager({ problems, onChange }: Props) {
           <button
             type="button"
             onClick={() => { setLinkSearch(''); setLinkErr(''); setModalType('link'); }}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors shadow-sm"
           >
-            <Link2 size={12} /> Từ ngân hàng
+            <Link2 size={13} /> Từ ngân hàng
           </button>
           <button
             type="button"
-            onClick={() => { setCompose(emptyCompose()); setComposeErr(''); setModalType('compose'); }}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold bg-[#193a2b] text-white rounded-lg hover:bg-[#143022] transition-colors"
+            onClick={() => setModalType('compose')}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#193a2b] text-white rounded-lg hover:bg-[#143022] transition-colors shadow-sm"
           >
             <Plus size={13} /> Soạn mới
           </button>
@@ -197,12 +185,23 @@ export default function ProblemManager({ problems, onChange }: Props) {
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-[#8a8073] truncate">{p.statement.slice(0, 60) || 'Chưa có đề'}</p>
+                <p className="text-[11px] text-[#8a8073] truncate">{p.statement?.slice(0, 60) || 'Chưa có mô tả'}</p>
               </div>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium flex-shrink-0 ${diffChip[p.difficulty]}`}>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium flex-shrink-0 ${diffChip[p.difficulty]}`}>
                 {diffLabel[p.difficulty]}
               </span>
-              <span className="text-[11px] text-[#8a8073] w-10 text-right flex-shrink-0">{p.points}đ</span>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <input
+                  type="number"
+                  min={0}
+                  max={1000}
+                  value={p.points ?? 100}
+                  onChange={(e) => updatePoints(p.id, Number(e.target.value))}
+                  className="w-16 px-2 py-1 text-xs font-semibold text-right bg-[#f7f4eb] border border-[#e5dac9] rounded-lg text-[#191919] focus:outline-none focus:bg-white focus:ring-1 focus:ring-[#193a2b]"
+                  title="Chỉnh sửa điểm số cho bài này"
+                />
+                <span className="text-[11px] text-[#8a8073]">đ</span>
+              </div>
               <button
                 type="button"
                 onClick={() => remove(p.id)}
@@ -217,94 +216,134 @@ export default function ProblemManager({ problems, onChange }: Props) {
       </div>
 
       <p className="text-[11px] text-[#8a8073] mt-1.5">
-        💡 <strong>Soạn mới</strong>: tạo bài và thêm vào ngân hàng đề. <strong>Từ ngân hàng</strong>: liên kết bài có sẵn.
+        💡 <strong>Soạn mới</strong>: tạo bài toán đầy đủ (đề bài, test cases) vào ngân hàng đề và tự động gán vào bài tập. <strong>Từ ngân hàng</strong>: liên kết bài có sẵn.
       </p>
 
       {/* ───── Modal: Liên kết từ Ngân hàng ───── */}
       {modalType === 'link' && hasDocument && createPortal(
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-[200] flex items-center justify-center p-4"
-          onClick={() => setModalType(null)}
+          onClick={() => !linkingId && setModalType(null)}
         >
           <div
-            className="bg-[#f7f4eb] border border-[#e5dac9] rounded-2xl w-full max-w-md shadow-2xl animate-slide-up"
+            className="bg-[#f7f4eb] border border-[#e5dac9] rounded-2xl w-full max-w-xl shadow-2xl animate-slide-up flex flex-col max-h-[85vh] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[#e5dac9]">
-              <h4 className="text-sm font-bold text-[#191919] flex items-center gap-2">
-                <Link2 size={15} className="text-blue-600" /> Liên kết bài từ Ngân hàng đề
-              </h4>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5dac9] bg-[#f7f4eb] flex-shrink-0">
+              <div>
+                <h4 className="text-base font-bold text-[#191919] flex items-center gap-2">
+                  <Link2 size={17} className="text-blue-600" /> Liên kết bài từ Ngân hàng đề
+                </h4>
+                <p className="text-xs text-[#8a8073] mt-0.5">
+                  Chọn các bài toán đã biên soạn sẵn trong thư viện để đưa vào bài tập
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => setModalType(null)}
-                className="text-[#8a8073] hover:text-[#191919] transition-colors"
+                disabled={!!linkingId}
+                className="p-2 rounded-xl text-[#8a8073] hover:bg-[#e5dac9] hover:text-[#191919] transition-colors"
               >
                 <X size={18} />
               </button>
             </div>
 
             {/* Search */}
-            <div className="p-4 border-b border-[#e5dac9]">
+            <div className="p-4 border-b border-[#e5dac9] bg-white flex-shrink-0">
               <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a8073]" />
+                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8a8073]" />
                 <input
                   autoFocus
                   value={linkSearch}
                   onChange={(e) => { setLinkSearch(e.target.value); setLinkErr(''); }}
-                  placeholder="Tìm theo tên bài hoặc mã..."
-                  className="w-full pl-9 pr-4 py-2 bg-white border border-[#e5dac9] rounded-xl text-sm text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                  placeholder="Tìm theo tiêu đề bài hoặc mã ID..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-sm text-[#191919] placeholder-[#bfae99] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#193a2b]"
                 />
               </div>
               {linkErr && <p className="text-xs text-red-600 font-medium mt-2">{linkErr}</p>}
             </div>
 
             {/* List */}
-            <div className="max-h-72 overflow-y-auto p-3 space-y-1.5">
+            <div className="overflow-y-auto p-4 space-y-2 flex-1">
               {bankFiltered.length === 0 ? (
-                <p className="text-sm text-[#8a8073] text-center py-8">Không tìm thấy bài nào trong ngân hàng.</p>
+                <div className="py-12 text-center">
+                  <FileText size={36} className="text-[#bfae99] mx-auto mb-2" />
+                  <p className="text-sm text-[#8a8073]">Không tìm thấy bài nào trong ngân hàng đề.</p>
+                </div>
               ) : (
                 bankFiltered.map((bp) => {
                   const alreadyAdded = problems.some((p) => p.problem_id === bp.id);
+                  const isLinking = linkingId === bp.id;
                   return (
-                    <button
+                    <div
                       key={bp.id}
-                      type="button"
-                      onClick={() => !alreadyAdded && linkFromBank(bp.id)}
-                      disabled={alreadyAdded}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-colors ${
+                      className={`flex items-start justify-between gap-3 p-3.5 rounded-xl border transition-all ${
                         alreadyAdded
-                          ? 'border-[#e5dac9] bg-[#f0ebd9] opacity-60 cursor-not-allowed'
-                          : 'border-[#e5dac9] bg-white hover:border-[#193a2b]/40 hover:bg-[#f7f4eb]'
+                          ? 'border-[#e5dac9] bg-[#f0ebd9]/60 opacity-60'
+                          : 'border-[#e5dac9] bg-white hover:border-[#193a2b]/40 hover:shadow-sm'
                       }`}
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#191919] truncate">{bp.title}</p>
-                        <p className="text-[11px] text-[#8a8073] font-mono truncate">{bp.id}</p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-sm font-bold text-[#191919] truncate">{bp.title}</p>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold flex-shrink-0 ${
+                            bp.difficulty === 'EASY' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
+                            bp.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                            'bg-red-100 text-red-800 border-red-200'
+                          }`}>
+                            {bp.difficulty === 'EASY' ? 'Dễ' : bp.difficulty === 'MEDIUM' ? 'Trung bình' : 'Khó'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-[#8a8073] line-clamp-1 mb-1.5">
+                          {bp.description || 'Chưa có mô tả chi tiết'}
+                        </p>
+                        <div className="flex items-center gap-3 text-[11px] text-[#8a8073]">
+                          <span className="font-mono text-[#5c5446]">{bp.id}</span>
+                          <span className="flex items-center gap-1"><Clock size={11} />{bp.time_limit}ms</span>
+                          <span className="flex items-center gap-1"><HardDrive size={11} />{bp.memory_limit}MB</span>
+                        </div>
                       </div>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold flex-shrink-0 ${
-                        bp.difficulty === 'EASY' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
-                        bp.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
-                        'bg-red-100 text-red-800 border-red-200'
-                      }`}>
-                        {bp.difficulty === 'EASY' ? 'Dễ' : bp.difficulty === 'MEDIUM' ? 'TB' : 'Khó'}
-                      </span>
-                      {alreadyAdded ? (
-                        <Check size={15} className="text-emerald-600 flex-shrink-0" />
-                      ) : (
-                        <Plus size={15} className="text-[#193a2b] flex-shrink-0" />
-                      )}
-                    </button>
+
+                      <button
+                        type="button"
+                        onClick={() => !alreadyAdded && !isLinking && linkFromBank(bp.id)}
+                        disabled={alreadyAdded || isLinking}
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold flex-shrink-0 transition-all ${
+                          alreadyAdded
+                            ? 'bg-emerald-100 text-emerald-800 cursor-not-allowed border border-emerald-200'
+                            : 'bg-[#193a2b] text-white hover:bg-[#143022] shadow-sm disabled:opacity-50'
+                        }`}
+                      >
+                        {isLinking ? (
+                          <>
+                            <Loader2 size={13} className="animate-spin" /> Đang thêm...
+                          </>
+                        ) : alreadyAdded ? (
+                          <>
+                            <Check size={13} /> Đã thêm
+                          </>
+                        ) : (
+                          <>
+                            <Plus size={13} /> Thêm bài
+                          </>
+                        )}
+                      </button>
+                    </div>
                   );
                 })
               )}
             </div>
 
-            <div className="px-4 pb-4">
+            {/* Footer */}
+            <div className="px-6 py-3.5 border-t border-[#e5dac9] bg-[#eee8d8] flex justify-between items-center flex-shrink-0">
+              <span className="text-xs text-[#8a8073]">
+                Hiển thị {bankFiltered.length} bài toán trong thư viện
+              </span>
               <button
                 type="button"
                 onClick={() => setModalType(null)}
-                className="w-full py-2.5 bg-[#f0ebd9] border border-[#e5dac9] text-[#5c5446] font-medium text-sm rounded-xl hover:bg-[#e5dac9] transition-colors"
+                className="px-5 py-2 bg-white border border-[#e5dac9] text-[#5c5446] font-medium text-xs rounded-xl hover:bg-[#f0ebd9] transition-colors"
               >
                 Đóng
               </button>
@@ -314,137 +353,18 @@ export default function ProblemManager({ problems, onChange }: Props) {
         document.body
       )}
 
-      {/* ───── Modal: Soạn bài mới ───── */}
-      {modalType === 'compose' && hasDocument && createPortal(
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-[200] flex items-center justify-center p-4"
-          onClick={() => !composeSaving && setModalType(null)}
-        >
-          <div
-            className="bg-[#f7f4eb] border border-[#e5dac9] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[#e5dac9] sticky top-0 bg-[#f7f4eb] z-10">
-              <h4 className="text-sm font-bold text-[#191919] flex items-center gap-2">
-                <Edit3 size={15} className="text-[#193a2b]" /> Soạn bài toán mới
-              </h4>
-              <button
-                type="button"
-                onClick={() => !composeSaving && setModalType(null)}
-                className="text-[#8a8073] hover:text-[#191919] transition-colors"
-                disabled={composeSaving}
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="p-5 space-y-4">
-              {/* Tên bài */}
-              <div>
-                <label className="block text-sm font-semibold text-[#5c5446] mb-1.5">Tên bài *</label>
-                <input
-                  autoFocus
-                  value={compose.title}
-                  onChange={(e) => setCompose({ ...compose, title: e.target.value })}
-                  placeholder="VD: Tổng hai số"
-                  className="w-full px-4 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b] text-sm"
-                />
-              </div>
-
-              {/* Độ khó + Điểm */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-[#5c5446] mb-1.5">Độ khó</label>
-                  <select
-                    value={compose.difficulty}
-                    onChange={(e) => setCompose({ ...compose, difficulty: e.target.value as HomeworkProblem['difficulty'] })}
-                    className="w-full px-4 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b] text-sm"
-                  >
-                    <option value="Easy">Dễ</option>
-                    <option value="Medium">Trung bình</option>
-                    <option value="Hard">Khó</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-[#5c5446] mb-1.5">Điểm</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={1000}
-                    value={compose.points}
-                    onChange={(e) => setCompose({ ...compose, points: Number(e.target.value) })}
-                    className="w-full px-4 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b] text-sm"
-                  />
-                </div>
-              </div>
-
-              {/* Đề bài */}
-              <div>
-                <label className="block text-sm font-semibold text-[#5c5446] mb-1.5">Đề bài *</label>
-                <textarea
-                  value={compose.statement}
-                  onChange={(e) => setCompose({ ...compose, statement: e.target.value })}
-                  rows={5}
-                  placeholder="Mô tả yêu cầu, ràng buộc, định dạng vào/ra…"
-                  className="w-full px-4 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none font-mono text-[13px] leading-6"
-                />
-              </div>
-
-              {/* Input/Output mẫu */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-[#5c5446] mb-1.5">Input mẫu</label>
-                  <textarea
-                    value={compose.sampleInput}
-                    onChange={(e) => setCompose({ ...compose, sampleInput: e.target.value })}
-                    rows={3}
-                    placeholder="3 5"
-                    className="w-full px-3 py-2 bg-white border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none font-mono text-[13px]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-[#5c5446] mb-1.5">Output mẫu</label>
-                  <textarea
-                    value={compose.sampleOutput}
-                    onChange={(e) => setCompose({ ...compose, sampleOutput: e.target.value })}
-                    rows={3}
-                    placeholder="8"
-                    className="w-full px-3 py-2 bg-white border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none font-mono text-[13px]"
-                  />
-                </div>
-              </div>
-
-              <p className="text-[11px] text-[#8a8073] bg-[#f0ebd9] border border-[#e5dac9] rounded-lg px-3 py-2">
-                💡 Bài soạn mới sẽ được thêm vào <strong>Ngân hàng đề</strong> và sinh viên có thể nộp code.
-              </p>
-
-              {composeErr && <p className="text-xs text-red-600 font-medium">{composeErr}</p>}
-
-              <div className="flex gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={saveCompose}
-                  disabled={composeSaving}
-                  className="flex-1 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {composeSaving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
-                  {composeSaving ? 'Đang tạo...' : 'Tạo và thêm vào bài tập'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => !composeSaving && setModalType(null)}
-                  disabled={composeSaving}
-                  className="px-6 py-2.5 bg-white border border-[#e5dac9] text-[#5c5446] font-medium rounded-xl hover:bg-[#f0ebd9] disabled:opacity-50"
-                >
-                  Huỷ
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      {/* ───── Modal: Soạn bài mới (Full ProblemFormModal) ───── */}
+      <ProblemFormModal
+        isOpen={modalType === 'compose'}
+        onClose={() => !composeSaving && setModalType(null)}
+        onSubmit={handleComposeSubmit}
+        isLoading={composeSaving}
+        showPoints
+        initialPoints={100}
+        titleText="Soạn bài toán mới cho bài tập"
+        subtitleText="Bài toán sẽ được lưu vào Ngân hàng bài tập và tự động thêm vào bài tập này"
+        submitText="Tạo & Thêm vào bài tập"
+      />
     </div>
   );
 }
