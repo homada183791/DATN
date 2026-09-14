@@ -54,7 +54,7 @@ function normalizeHomework(item: {
   deadline: string;
   class_id: string;
   tasks?: HomeworkProblem[] | null;
-  class?: { name: string; students?: Array<{ student_id: string }> };
+  class?: { id?: string; name: string; students?: Array<{ student_id: string }> };
 }): Homework {
   const tasks = Array.isArray(item.tasks) ? item.tasks : [];
   return {
@@ -65,7 +65,7 @@ function normalizeHomework(item: {
     status: computeStatus(item.deadline),
     problemCount: tasks.length,
     completedCount: 0,
-    classId: item.class_id,
+    classId: String(item.class_id || item.class?.id || ''),
     className: item.class?.name ?? '',
     totalStudents: item.class?.students?.length ?? 0,
     submittedStudents: 0,
@@ -78,7 +78,8 @@ export function HomeworkProvider({ children }: { children: ReactNode }) {
   const mutations = useHomeworkMutations();
   const allHomeworks = useMemo(() => data.map(normalizeHomework), [data]);
 
-  const homeworksOfClass = (classId: string) => allHomeworks.filter((item) => item.classId === classId);
+  const homeworksOfClass = (classId: string) =>
+    allHomeworks.filter((item) => String(item.classId || '').trim() === String(classId || '').trim());
   const problemsOf = (homeworkId: string) => allHomeworks.find((item) => item.id === homeworkId)?.tasks ?? [];
 
   const createHomework: HomeworkContextType['createHomework'] = async (input) => {

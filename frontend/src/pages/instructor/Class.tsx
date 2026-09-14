@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useClass, Member } from '../../context/ClassContext';
 import { useHomework, deadlineProgress, HomeworkProblem } from '../../context/HomeworkContext';
@@ -24,7 +25,11 @@ import {
 
 export default function InstructorClass() {
   const { myClasses, createClass, deleteClass, membersOf, removeMember } = useClass();
-  const { homeworksOfClass, createHomework } = useHomework();
+  const { homeworksOfClass, createHomework, refetch } = useHomework();
+
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
   const [showCreate, setShowCreate] = useState(false);
   const [rosterId, setRosterId] = useState<string | null>(null);
   const [hwClassId, setHwClassId] = useState<string | null>(null);
@@ -67,6 +72,7 @@ export default function InstructorClass() {
         className: `${hwClass.name} - ${hwClass.code}`,
         totalStudents: membersOf(hwClass.id).length,
       });
+      await refetch();
       setHwClassId(null);
     } catch (e: any) {
       setHwError(e.message || 'Có lỗi xảy ra khi giao bài.');
@@ -192,34 +198,6 @@ export default function InstructorClass() {
                   <span className="flex items-center gap-1"><Trophy size={14} /> {cls.contestCount}</span>
                 </div>
 
-                {/* homework preview */}
-                {homeworksOfClass(cls.id).length > 0 && (
-                  <div className="mb-4 space-y-1.5">
-                    {homeworksOfClass(cls.id).slice(0, 2).map((hw) => {
-                      const p = deadlineProgress(hw.deadline);
-                      return (
-                        <div key={hw.id} className="p-2.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-lg">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-medium text-[#191919] truncate">{hw.title}</span>
-                            <span className={`text-[10px] font-semibold flex items-center gap-0.5 ${p.overdue ? 'text-[#cc5a37]' : p.daysLeft <= 3 ? 'text-yellow-700' : 'text-emerald-700'}`}>
-                              <Clock size={10} /> {p.label}
-                            </span>
-                          </div>
-                          <div className="w-full h-1.5 bg-[#e5dac9] rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full ${p.overdue ? 'bg-[#cc5a37]' : p.daysLeft <= 3 ? 'bg-yellow-500' : 'bg-[#193a2b]'}`}
-                              style={{ width: `${p.overdue ? 100 : p.pct}%` }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
-                    {homeworksOfClass(cls.id).length > 2 && (
-                      <p className="text-[11px] text-[#8a8073] pl-1">+{homeworksOfClass(cls.id).length - 2} bài tập khác</p>
-                    )}
-                  </div>
-                )}
-
                 {/* invite link */}
                 <div className="flex items-center gap-2 p-2.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-lg mb-4">
                   <Link2 size={14} className="text-[#8a8073] flex-shrink-0" />
@@ -238,6 +216,79 @@ export default function InstructorClass() {
                   >
                     {copied === `code-${cls.id}` ? <Check size={14} className="text-emerald-600" /> : <Hash size={14} />}
                   </button>
+                </div>
+
+                {/* homework preview list (nằm giữa link join và các nút) */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between text-xs font-bold text-[#5c5446] mb-2">
+                    <span className="flex items-center gap-1.5">
+                      <ClipboardList size={14} className="text-[#193a2b]" />
+                      Bài tập ({homeworksOfClass(cls.id).length})
+                    </span>
+                    {homeworksOfClass(cls.id).length > 0 && (
+                      <Link
+                        to="/instructor/homework"
+                        className="text-[11px] text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
+                      >
+                        Tất cả &rarr;
+                      </Link>
+                    )}
+                  </div>
+
+                  {homeworksOfClass(cls.id).length === 0 ? (
+                    <div className="px-3 py-2.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-center">
+                      <p className="text-xs text-[#8a8073]">Chưa có bài tập nào được giao cho lớp này.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {homeworksOfClass(cls.id).slice(0, 3).map((hw) => {
+                        const p = deadlineProgress(hw.deadline);
+                        return (
+                          <div
+                            key={hw.id}
+                            className="p-2.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl hover:border-[#193a2b]/30 transition-all"
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs font-semibold text-[#191919] truncate max-w-[65%]" title={hw.title}>
+                                {hw.title}
+                              </span>
+                              <span
+                                className={`text-[10px] font-semibold flex items-center gap-0.5 px-2 py-0.5 rounded-full border ${
+                                  p.overdue
+                                    ? 'bg-red-50 text-red-700 border-red-200'
+                                    : p.daysLeft <= 3
+                                    ? 'bg-yellow-50 text-yellow-800 border-yellow-200'
+                                    : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                }`}
+                              >
+                                <Clock size={10} /> {p.label}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-[11px] text-[#8a8073] mb-1">
+                              <span>{hw.problemCount} bài toán</span>
+                              <span>{hw.submittedStudents}/{members.length} đã nộp</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-[#e5dac9] rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all ${
+                                  p.overdue ? 'bg-[#cc5a37]' : p.daysLeft <= 3 ? 'bg-yellow-500' : 'bg-[#193a2b]'
+                                }`}
+                                style={{ width: `${p.overdue ? 100 : p.pct}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {homeworksOfClass(cls.id).length > 3 && (
+                        <Link
+                          to="/instructor/homework"
+                          className="block text-center text-[11px] text-[#8a8073] hover:text-[#193a2b] font-medium py-1 hover:underline"
+                        >
+                          +{homeworksOfClass(cls.id).length - 3} bài tập khác &bull; Xem tất cả
+                        </Link>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* actions */}
