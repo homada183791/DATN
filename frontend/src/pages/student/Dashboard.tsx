@@ -2,10 +2,10 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Calendar, CheckCircle2, Loader2, Send, Target, Trophy } from 'lucide-react';
 import { ApiError } from '../../api/http';
-import { useContestsQuery } from '../../api/contests';
-import { useLeaderboardQuery } from '../../api/contests';
+import { useContestsQuery, useLeaderboardQuery, type LeaderboardEntryDto } from '../../api/contests';
 import { useSubmissionsQuery } from '../../api/submissions';
 import { useAuth } from '../../context/AuthContext';
+import { formatVNFull } from '../../utils/dateTime';
 
 const verdictColors: Record<string, string> = {
   AC: 'text-emerald-700 bg-emerald-100 border-emerald-300',
@@ -27,9 +27,7 @@ export default function StudentDashboard() {
   const { data: leaderboard, isLoading: leaderboardLoading, error: leaderboardError } = useLeaderboardQuery(activeContestId);
   const { data: submissions, isLoading: submissionsLoading, error: submissionsError } = useSubmissionsQuery();
 
-  const leaderboardRows = Array.isArray(leaderboard)
-    ? leaderboard
-    : leaderboard?.standings ?? [];
+  const leaderboardRows: LeaderboardEntryDto[] = (leaderboard ?? []) as LeaderboardEntryDto[];
 
   const runningContests = (contests ?? []).filter((contest) => contest.status === 'running');
   const upcomingContests = (contests ?? []).filter((contest) => contest.status === 'upcoming');
@@ -202,7 +200,7 @@ export default function StudentDashboard() {
                     <span className={`text-xs px-2 py-1 rounded-md font-bold border ${verdictColors[sub.verdict]}`}>{sub.verdict}</span>
                     <div>
                       <p className="text-sm text-[#191919] font-medium">{sub.problemTitle}</p>
-                      <p className="text-xs text-[#8a8073] mt-0.5">{sub.language} • {sub.timestamp.slice(5, 16)}</p>
+                      <p className="text-xs text-[#8a8073] mt-0.5">{sub.language} • {formatVNFull(sub.timestamp)}</p>
                     </div>
                   </div>
                   <div className="text-right text-xs text-[#8a8073]">

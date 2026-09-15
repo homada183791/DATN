@@ -2,17 +2,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useClassHomeworksQuery } from '../../api/homeworks';
 import { useClassesQuery } from '../../api/classes';
 import { useMemo } from 'react';
-import {
-  GraduationCap,
-  Clock,
-  BookOpen,
-  ChevronRight,
-  ArrowLeft,
-  Users,
-  AlertTriangle,
-  CheckCircle2,
-  Lock,
-} from 'lucide-react';
+import { formatVNFull } from '../../utils/dateTime';
 
 function deadlineInfo(deadline: string) {
   const now = Date.now();
@@ -25,12 +15,17 @@ function deadlineInfo(deadline: string) {
   return { label: `Còn ${days} ngày`, color: 'text-emerald-700', chipClass: 'bg-emerald-50 text-emerald-800 border-emerald-200', closed: false };
 }
 
-function formatDate(s: string) {
-  return new Date(s).toLocaleString('vi-VN', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  });
-}
+import {
+  GraduationCap,
+  Clock,
+  BookOpen,
+  ChevronRight,
+  ArrowLeft,
+  Users,
+  AlertTriangle,
+  CheckCircle2,
+  Lock,
+} from 'lucide-react';
 
 export default function StudentClassDetail() {
   const { classId } = useParams<{ classId: string }>();
@@ -161,7 +156,7 @@ export default function StudentClassDetail() {
                           </span>
                         )}
                         <span className="flex items-center gap-1">
-                          <Clock size={12} /> {formatDate(hw.deadline)}
+                          <Clock size={12} /> {formatVNFull(hw.deadline)}
                         </span>
                       </div>
                     </div>

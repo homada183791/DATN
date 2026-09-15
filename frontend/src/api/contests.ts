@@ -25,14 +25,22 @@ interface ContestApiResponse {
   end_time: string;
   is_private: boolean;
   class_id?: string | null;
+  _count?: {
+    problems?: number;
+    contest_sessions?: number;
+  };
 }
 
 export interface LeaderboardEntryDto {
   rank: number;
   username: string;
   fullName: string;
+  email: string;
+  solved: number;
   solvedCount: number;
+  penalty: number;
   rating: number;
+  user_id: string;
 }
 
 export interface LeaderboardDto {
@@ -57,8 +65,8 @@ export function fetchContests() {
         startTime: contest.start_time,
         endTime: contest.end_time,
         status,
-        participantCount: 0,
-        problemCount: 0,
+        participantCount: contest._count?.contest_sessions ?? 0,
+        problemCount: contest._count?.problems ?? 0,
         type: 'ICPC',
         visibility: contest.is_private ? 'private' : 'public',
         classId: contest.class_id ?? undefined,
@@ -93,7 +101,27 @@ export function deleteContest(id: string) {
 }
 
 export function fetchLeaderboard(contestId: string) {
-  return apiFetch<LeaderboardDto | LeaderboardEntryDto[]>(`/api/v1/contests/${contestId}/leaderboard`);
+  return apiFetch<LeaderboardEntryDto[]>(`/api/v1/contests/${contestId}/leaderboard`);
+}
+
+export function fetchContestDetail(contestId: string) {
+  return apiFetch<{
+    id: string; title: string; description?: string | null;
+    start_time: string; end_time: string; is_private: boolean;
+    class_id?: string | null;
+    problems: Array<{ problem_id: string; problem: { id: string; title: string; difficulty: string } }>;
+  }>(`/api/v1/contests/${contestId}`);
+}
+
+export function addProblemToContest(contestId: string, problemId: string) {
+  return apiFetch<{ id: string; contest_id: string; problem_id: string }>(
+    `/api/v1/contests/${contestId}/problems`,
+    { method: 'POST', body: JSON.stringify({ problem_id: problemId }) }
+  );
+}
+
+export function removeProblemFromContest(contestId: string, problemId: string) {
+  return apiFetch<void>(`/api/v1/contests/${contestId}/problems/${problemId}`, { method: 'DELETE' });
 }
 
 export function useContestsQuery() {

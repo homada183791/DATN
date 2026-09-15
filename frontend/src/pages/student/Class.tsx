@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useClass } from '../../context/ClassContext';
 import { useHomework, deadlineProgress } from '../../context/HomeworkContext';
-import { formatVN } from '../../utils/dateTime';
+import { formatVNFull } from '../../utils/dateTime';
 import { contests } from '../../data/legacyData';
 import {
   GraduationCap,
@@ -330,7 +330,7 @@ export default function ClassPage() {
                             </span>
                           </div>
                           <div className="flex items-center justify-between text-[11px] text-[#8a8073] mb-1.5">
-                            <span className="flex items-center gap-1"><Clock size={11} /> {formatVN(hw.deadline)}</span>
+                            <span className="flex items-center gap-1"><Clock size={11} /> {formatVNFull(hw.deadline)}</span>
                             <span className="flex items-center gap-1"><BookOpen size={11} /> {hw.problemCount} bài</span>
                           </div>
                           <div className="w-full h-1.5 bg-[#f0ebd9] rounded-full overflow-hidden">
@@ -424,7 +424,7 @@ export default function ClassPage() {
                 return (
                   <div className="p-4 bg-white rounded-xl border border-[#e5dac9]">
                     <div className="flex items-center justify-between text-xs mb-2">
-                      <span className="flex items-center gap-1.5 text-[#8a8073]"><Clock size={13} /> Hạn nộp: <span className="font-medium text-[#5c5446]">{formatVN(hwDetail.deadline)}</span></span>
+                      <span className="flex items-center gap-1.5 text-[#8a8073]"><Clock size={13} /> Hạn nộp: <span className="font-medium text-[#5c5446]">{formatVNFull(hwDetail.deadline)}</span></span>
                       <span className={`font-semibold ${p.overdue ? 'text-[#cc5a37]' : p.daysLeft <= 3 ? 'text-yellow-700' : 'text-emerald-700'}`}>{p.label}</span>
                     </div>
                     <div className="w-full h-2 bg-[#f0ebd9] rounded-full overflow-hidden">

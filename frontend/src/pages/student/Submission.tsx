@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ApiError } from '../../api/http';
 import { useSubmissionsQuery } from '../../api/submissions';
+import { formatVNFull } from '../../utils/dateTime';
 import {
   Search,
   Filter,
@@ -211,7 +212,7 @@ export default function Submission() {
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-[#e5dac9] text-center shadow-sm">
                   <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">Thời điểm</p>
-                  <p className="text-sm text-[#191919] font-semibold">{selectedSub.timestamp.slice(5, 16)}</p>
+                   <p className="text-sm text-[#191919] font-semibold">{formatVNFull(selectedSub.timestamp)}</p>
                 </div>
               </div>
 
@@ -278,7 +279,7 @@ export default function Submission() {
                   <td className="py-3 px-4 text-sm text-[#5c5446]">{sub.language}</td>
                   <td className="py-3 px-4 text-sm text-[#5c5446] text-right">{sub.executionTime}ms</td>
                   <td className="py-3 px-4 text-sm text-[#5c5446] text-right">{sub.memory}MB</td>
-                  <td className="py-3 px-4 text-sm text-[#8a8073] text-right">{sub.timestamp.slice(5, 16)}</td>
+                   <td className="py-3 px-4 text-sm text-[#8a8073] text-right">{formatVNFull(sub.timestamp)}</td>
                 </tr>
               ))}
             </tbody>

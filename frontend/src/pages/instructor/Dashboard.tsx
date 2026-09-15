@@ -16,6 +16,7 @@ import { useClass } from '../../context/ClassContext';
 import { useHomework } from '../../context/HomeworkContext';
 import { useSubmissionsQuery } from '../../api/submissions';
 import { useContestsQuery } from '../../api/contests';
+import { formatVNFull } from '../../utils/dateTime';
 
 export default function InstructorDashboard() {
   const { user } = useAuth();
@@ -169,7 +170,7 @@ export default function InstructorDashboard() {
                 </div>
                 <div className="text-right text-xs text-[#8a8073]">
                   <p>{sub.executionTime}ms</p>
-                  <p className="mt-0.5">{sub.timestamp.slice(5, 16)}</p>
+                  <p className="mt-0.5">{formatVNFull(sub.timestamp)}</p>
                 </div>
               </div>
             ))}

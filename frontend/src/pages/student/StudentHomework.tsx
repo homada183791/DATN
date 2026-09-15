@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useClass } from '../../context/ClassContext';
 import { useHomework, deadlineProgress } from '../../context/HomeworkContext';
-import { formatVN } from '../../utils/dateTime';
+import { formatVNFull } from '../../utils/dateTime';
 import {
   ClipboardList,
   Search,
@@ -213,7 +213,7 @@ export default function StudentHomework() {
                       <span className="flex items-center gap-1"><GraduationCap size={12} />{hw.className}</span>
                       <span className="flex items-center gap-1"><BookOpen size={12} />{hw.problemCount} bài</span>
                       <span className={`flex items-center gap-1 font-medium ${p.overdue ? 'text-[#cc5a37]' : p.daysLeft <= 3 ? 'text-yellow-700' : 'text-[#5c5446]'}`}>
-                        <Clock size={12} />{formatVN(hw.deadline)}
+                        <Clock size={12} />{formatVNFull(hw.deadline)}
                       </span>
                     </div>
                   </div>
@@ -270,7 +270,7 @@ export default function StudentHomework() {
                     <div className="flex items-center justify-between text-xs mb-2">
                       <span className="flex items-center gap-1.5 text-[#8a8073]">
                         <Calendar size={13} /> Hạn nộp:
-                        <span className="font-semibold text-[#5c5446]">{formatVN(selectedHw.deadline)}</span>
+                        <span className="font-semibold text-[#5c5446]">{formatVNFull(selectedHw.deadline)}</span>
                       </span>
                       <span className={`font-bold ${p.overdue ? 'text-[#cc5a37]' : p.daysLeft <= 3 ? 'text-yellow-700' : 'text-emerald-700'}`}>
                         {p.label}

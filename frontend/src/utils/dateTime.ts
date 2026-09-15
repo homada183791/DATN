@@ -21,10 +21,11 @@ export function parseDate(value: string): Date {
 /**
  * Format một Date (hoặc chuỗi ISO) sang dạng đọc được theo UTC+7.
  * VD: "13/10/2026 10:33" hoặc "13/10/2026"
+ * Khi opts.seconds = true: "13/10/2026 10:33:45"
  */
 export function formatVN(
   value: string | Date,
-  opts: { time?: boolean } = { time: true },
+  opts: { time?: boolean; seconds?: boolean } = { time: true },
 ): string {
   const date = typeof value === 'string' ? new Date(value) : value;
   if (isNaN(date.getTime())) return '—';
@@ -35,8 +36,39 @@ export function formatVN(
     month: '2-digit',
     year: 'numeric',
     ...(opts.time ? { hour: '2-digit', minute: '2-digit', hour12: false } : {}),
+    ...(opts.seconds ? { second: '2-digit' } : {}),
   };
   return new Intl.DateTimeFormat('vi-VN', timeOpts).format(date);
+}
+
+/**
+ * Format đầy đủ hh:mm:ss dd-mm-yyyy theo UTC+7 (Ho Chi Minh City).
+ * Đây là format chuẩn dùng để hiển thị mốc thời gian trong toàn bộ app.
+ * VD: "07:30:00 14-09-2026"
+ */
+export function formatVNFull(value: string | Date): string {
+  const date = typeof value === 'string' ? new Date(value) : value;
+  if (isNaN(date.getTime())) return '—';
+
+  const parts = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: VN_TZ,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(date);
+
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '00';
+  const hh = get('hour');
+  const mm = get('minute');
+  const ss = get('second');
+  const dd = get('day');
+  const mo = get('month');
+  const yyyy = get('year');
+  return `${hh}:${mm}:${ss} ${dd}-${mo}-${yyyy}`;
 }
 
 /**

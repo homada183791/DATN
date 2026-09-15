@@ -121,6 +121,20 @@ export class EventsGateway
     }
   }
 
+  public emitLeaderboardUpdate(payload: { contest_id: string; user_id?: string; status?: string }) {
+    try {
+      // Broadcast to all connected clients so FE can invalidate leaderboard queries
+      this.server.emit('leaderboard_updated', payload);
+      this.logger.log(
+        `[EventsGateway] Emitted leaderboard_updated for contest ${payload.contest_id}`,
+      );
+    } catch (error: any) {
+      this.logger.error(
+        `[EventsGateway] Error emitting leaderboard update: ${error.message}`,
+      );
+    }
+  }
+
   public emitCustomRunResult(sessionId: string, payload: any) {
     try {
       const roomName = `custom_run_${sessionId}`;
@@ -146,15 +160,6 @@ export class EventsGateway
       this.logger.error(
         `[EventsGateway] Error emitting cheat warning: ${error.message}`,
       );
-    }
-  }
-
-  public emitLeaderboardUpdate(payload: any) {
-    try {
-      this.server.emit('leaderboard_updated', payload);
-      this.logger.log('[EventsGateway] Emitted leaderboard update');
-    } catch (error) {
-      this.logger.error(`[EventsGateway] Error emitting leaderboard update: ${error.message}`);
     }
   }
 }

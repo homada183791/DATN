@@ -1,5 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useClassHomeworkQuery } from '../../api/homeworks';
+import { formatVNFull } from '../../utils/dateTime';
 import {
   ArrowLeft,
   BookOpen,
@@ -27,13 +28,6 @@ function deadlineInfo(deadline: string) {
   if (days <= 1) return { label: 'Còn < 1 ngày', chipClass: 'bg-red-50 text-red-700 border-red-200', closed: false };
   if (days <= 3) return { label: `Còn ${days} ngày`, chipClass: 'bg-yellow-50 text-yellow-800 border-yellow-200', closed: false };
   return { label: `Còn ${days} ngày`, chipClass: 'bg-emerald-50 text-emerald-800 border-emerald-200', closed: false };
-}
-
-function formatDate(s: string) {
-  return new Date(s).toLocaleString('vi-VN', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  });
 }
 
 export default function HomeworkDetail() {
@@ -124,7 +118,7 @@ export default function HomeworkDetail() {
             <Trophy size={14} /> {totalPoints} điểm
           </span>
           <span className="flex items-center gap-1.5">
-            <Clock size={14} /> Hạn: {formatDate(homework.deadline)}
+            <Clock size={14} /> Hạn: {formatVNFull(homework.deadline)}
           </span>
         </div>
       </div>

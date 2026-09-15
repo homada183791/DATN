@@ -143,11 +143,16 @@ export class LeaderboardService implements OnModuleDestroy {
     });
 
     // Loại bỏ dữ liệu tracking nội bộ trước khi trả về
-    const result = leaderboard.map((stat) => ({
+    const result = leaderboard.map((stat, index) => ({
+      rank: index + 1,
       user_id: stat.user_id,
+      username: stat.email.split('@')[0],
+      fullName: stat.email.split('@')[0],
       email: stat.email,
       solved: stat.solved,
+      solvedCount: stat.solved,
       penalty: stat.penalty,
+      rating: 0,
     }));
 
     // Cấu hình lưu mảng kết quả này vào Redis với TTL là 30 giây (ex 30)

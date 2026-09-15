@@ -212,6 +212,12 @@ export class WebhookService {
             cp.contest_id,
             adminPayload,
           );
+          // Emit leaderboard_updated so FE invalidates leaderboard cache
+          this.eventsGateway.emitLeaderboardUpdate({
+            contest_id: cp.contest_id,
+            user_id: submission.user_id,
+            status: updatedSubmission.status,
+          });
         }
       }
     } catch (e: any) {

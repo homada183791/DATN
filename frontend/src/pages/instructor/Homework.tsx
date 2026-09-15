@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { useClass } from '../../context/ClassContext';
 import { useHomework, deadlineProgress, HomeworkInput, HomeworkProblem, Homework } from '../../context/HomeworkContext';
 import ProblemManager from '../../components/ProblemManager';
-import { formatVN, toDatetimeLocal } from '../../utils/dateTime';
+import { formatVNFull, toDatetimeLocal } from '../../utils/dateTime';
 import {
   ClipboardList,
   Plus,
@@ -254,7 +254,7 @@ export default function InstructorHomework() {
                 <div className="mt-5 pt-4 border-t border-[#e5dac9]/60">
                   <div className="flex items-center justify-between text-xs mb-1.5">
                     <span className="flex items-center gap-1.5 text-[#8a8073]">
-                      <span className="flex items-center gap-1"><Clock size={14} /> Hạn nộp: <span className="font-medium text-[#5c5446]">{formatVN(hw.deadline)}</span></span>
+                      <span className="flex items-center gap-1"><Clock size={14} /> Hạn nộp: <span className="font-medium text-[#5c5446]">{formatVNFull(hw.deadline)}</span></span>
                     </span>
                     <span className={`font-semibold ${p.overdue ? 'text-[#cc5a37]' : p.daysLeft <= 3 ? 'text-yellow-700' : 'text-emerald-700'}`}>
                       {p.label}
@@ -361,7 +361,7 @@ export default function InstructorHomework() {
                 </div>
               </div>
               <div className="flex items-center gap-2 text-sm text-[var(--ws-muted)]">
-                <Calendar size={14} className="text-[var(--ws-muted)]" /> Hạn nộp: <span className="font-medium text-[var(--ws-text)]">{formatVN(viewHw.deadline)}</span>
+                <Calendar size={14} className="text-[var(--ws-muted)]" /> Hạn nộp: <span className="font-medium text-[var(--ws-text)]">{formatVNFull(viewHw.deadline)}</span>
               </div>
 
               {/* problem list */}

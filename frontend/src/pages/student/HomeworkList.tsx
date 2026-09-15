@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useHomeworksQuery } from '../../api/homeworks';
 import { useClass } from '../../context/ClassContext';
+import { formatVNFull } from '../../utils/dateTime';
 import {
   BookOpen,
   Clock,
@@ -23,12 +24,6 @@ function deadlineInfo(deadline: string) {
   return { label: `Còn ${days} ngày`, chipClass: 'bg-emerald-50 text-emerald-700 border-emerald-200', closed: false, daysLeft: days };
 }
 
-function formatDate(s: string) {
-  return new Date(s).toLocaleString('vi-VN', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  });
-}
 
 type SortKey = 'deadline_asc' | 'deadline_desc' | 'name_az' | 'name_za';
 type StatusFilter = 'all' | 'open' | 'closed';
@@ -228,7 +223,7 @@ export default function HomeworkList() {
                       <BookOpen size={11} /> {tasks.length} bài toán
                     </span>
                     <span className="flex items-center gap-1">
-                      <Clock size={11} /> {formatDate(hw.deadline)}
+                      <Clock size={11} /> {formatVNFull(hw.deadline)}
                     </span>
                   </div>
                 </div>

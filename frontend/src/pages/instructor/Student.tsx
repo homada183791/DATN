@@ -12,6 +12,7 @@ import {
   GraduationCap,
   CheckCircle2,
 } from 'lucide-react';
+import { formatVNFull } from '../../utils/dateTime';
 
 export default function InstructorStudent() {
   const { myClasses, membersOf } = useClass();
@@ -231,7 +232,7 @@ export default function InstructorStudent() {
                         <p className="text-xs text-[var(--ws-muted)] mt-0.5">{sub.language} • {sub.executionTime}ms</p>
                       </div>
                     </div>
-                    <span className="text-xs text-[var(--ws-muted)]">{sub.timestamp.slice(5, 16)}</span>
+                    <span className="text-xs text-[var(--ws-muted)]">{formatVNFull(sub.timestamp)}</span>
                   </div>
                 ))}
                 {selectedStudentSubs.length === 0 && (

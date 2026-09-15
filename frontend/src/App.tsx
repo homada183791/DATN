@@ -35,8 +35,12 @@ export default function App() {
     const socketUrl = (import.meta.env.VITE_SOCKET_URL as string | undefined) ?? window.location.origin;
     const socket = io(socketUrl, { transports: ['websocket'] });
 
-    socket.on('leaderboard_updated', () => {
+    socket.on('leaderboard_updated', (payload: { contest_id?: string }) => {
+      // Invalidate both the list and the specific leaderboard for this contest
       queryClient.invalidateQueries({ queryKey: ['contests'] });
+      if (payload?.contest_id) {
+        queryClient.invalidateQueries({ queryKey: ['contests', payload.contest_id, 'leaderboard'] });
+      }
     });
 
     return () => {

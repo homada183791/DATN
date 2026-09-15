@@ -40,6 +40,11 @@ export class ContestsService {
     if (user.role === 'INSTRUCTOR') {
       return this.prisma.contest.findMany({
         orderBy: { created_at: 'desc' },
+        include: {
+          _count: {
+            select: { problems: true, contest_sessions: true },
+          },
+        },
       });
     }
 
@@ -58,6 +63,11 @@ export class ContestsService {
         ],
       },
       orderBy: { created_at: 'desc' },
+      include: {
+        _count: {
+          select: { problems: true, contest_sessions: true },
+        },
+      },
     });
   }
 
