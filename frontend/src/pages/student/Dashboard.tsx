@@ -31,11 +31,22 @@ export default function StudentDashboard() {
 
   const runningContests = (contests ?? []).filter((contest) => contest.status === 'running');
   const upcomingContests = (contests ?? []).filter((contest) => contest.status === 'upcoming');
+  const STATUS_MAP: Record<string, string> = {
+    ACCEPTED: 'AC',
+    WRONG_ANSWER: 'WA',
+    TIME_LIMIT_EXCEEDED: 'TLE',
+    MEMORY_LIMIT_EXCEEDED: 'MLE',
+    COMPILE_ERROR: 'CE',
+    RUNTIME_ERROR: 'RTE',
+    PENDING: 'PENDING',
+    IN_QUEUE: 'PENDING',
+    JUDGING: 'JUDGING',
+  };
   const recentSubmissions = (submissions ?? []).slice(0, 5).map((submission) => ({
     id: submission.id,
     problemTitle: submission.problem_title,
     language: submission.language,
-    verdict: submission.status === 'ACCEPTED' ? 'AC' : submission.status,
+    verdict: STATUS_MAP[submission.status] ?? submission.status,
     timestamp: submission.created_at,
     executionTime: submission.execution_time,
     memory: submission.memory_used,

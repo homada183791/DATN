@@ -140,6 +140,7 @@ export default function ProblemSolve() {
   /* judge state */
   const [bottomTab, setBottomTab] = useState<BottomTab>('tests');
   const [samples, setSamples] = useState(detail.samples.map((s) => ({ ...s })));
+  const [sampleOutputs, setSampleOutputs] = useState<Record<number, { actual: string; ok: boolean; time?: number }>>({});
   const [consoleLines, setConsoleLines] = useState<ConsoleLine[]>([]);
   const [running, setRunning] = useState(false);
   const [judging, setJudging] = useState(false);
@@ -166,11 +167,14 @@ export default function ProblemSolve() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<number | null>(null);
   const submissionSocketRef = useRef<Socket | null>(null);
+  const customRunSocketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
     return () => {
       submissionSocketRef.current?.disconnect();
       submissionSocketRef.current = null;
+      customRunSocketRef.current?.disconnect();
+      customRunSocketRef.current = null;
     };
   }, []);
 
@@ -202,6 +206,7 @@ export default function ProblemSolve() {
     setFinalVerdict(null);
     setConsoleLines([]);
     setSamples(detail.samples.map((s) => ({ ...s })));
+    setSampleOutputs({});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [problemId, lang, detail]);
 
@@ -260,35 +265,95 @@ export default function ProblemSolve() {
     }
   };
 
-  /* -------- local sample run -------- */
-  const codeLooksCorrect = detail.successPattern.test(code) && code.trim().length > 30;
+  /* -------- real custom run via API + Socket -------- */
+  const LANG_API: Record<Lang, string> = { cpp: 'CPP', python: 'PYTHON', java: 'JAVA' };
 
-  const hashTime = (seed: number) => 4 + ((code.length * 7 + seed * 13) % 46);
+  const runOneSample = (
+    socket: Socket,
+    sessionId: string,
+  ): Promise<{ output: string; time?: number; ok: boolean }> =>
+    new Promise((resolve) => {
+      const timeout = window.setTimeout(() => {
+        resolve({ output: '(timeout)', time: undefined, ok: false });
+      }, 30_000);
+      const handler = (payload: { session_id: string; output?: string; stderr?: string; execution_time?: number; status?: string }) => {
+        if (payload.session_id !== sessionId) return;
+        window.clearTimeout(timeout);
+        socket.off('custom_run_result', handler);
+        const raw = (payload.output ?? payload.stderr ?? '(no output)').trim();
+        resolve({ output: raw, time: payload.execution_time ?? undefined, ok: payload.status === 'OK' || payload.status === 'ACCEPTED' });
+      };
+      socket.on('custom_run_result', handler);
+    });
 
   const runSamples = async () => {
+    if (code.trim().length < 10) {
+      pushConsole('error: code rỗng — không có gì để chạy.', 'err');
+      return;
+    }
     setRunning(true);
     setBottomTab('console');
     setConsoleLines([]);
-    pushConsole(`$ judge --run ${detail.code} --lang ${LANG_LABELS[lang]}`, 'sys');
-    pushConsole(`Compiling ${LANG_LABELS[lang]} source...`, 'info');
-    await new Promise((r) => setTimeout(r, 650));
-    if (code.trim().length < 20) {
-      pushConsole('error: main function not found — nothing to run.', 'err');
+    setSampleOutputs({});
+    pushConsole(`$ run --lang ${LANG_LABELS[lang]} --samples ${samples.length}`, 'sys');
+
+    const socketUrl = (import.meta.env.VITE_SOCKET_URL as string | undefined) ?? window.location.origin;
+    customRunSocketRef.current?.disconnect();
+    const socket = io(socketUrl, { transports: ['websocket'] });
+    customRunSocketRef.current = socket;
+
+    // Wait for connection
+    const connected = await new Promise<boolean>((res) => {
+      socket.once('connect', () => res(true));
+      socket.once('connect_error', () => res(false));
+      setTimeout(() => res(false), 5000);
+    });
+    if (!connected) {
+      pushConsole('error: không thể kết nối Socket.io để nhận kết quả.', 'err');
       setRunning(false);
+      socket.disconnect();
+      customRunSocketRef.current = null;
       return;
     }
-    pushConsole('Compilation finished in 0.42s — 0 warning(s).', 'ok');
+
+    const newOutputs: Record<number, { actual: string; ok: boolean; time?: number }> = {};
+
     for (let i = 0; i < samples.length; i++) {
-      await new Promise((r) => setTimeout(r, 380));
-      const ok = codeLooksCorrect;
-      pushConsole(
-        ok
-          ? `Test mẫu ${i + 1}: OK (${hashTime(i)}ms, ${(1 + (i % 3) * 0.4).toFixed(1)} MB)`
-          : `Test mẫu ${i + 1}: WRONG ANSWER — đầu ra khác kỳ vọng.`,
-        ok ? 'ok' : 'err'
-      );
+      pushConsole(`Đang chạy test mẫu ${i + 1}/${samples.length}...`, 'info');
+      try {
+        const resp = await apiFetch<{ success: boolean; session_id: string }>('/api/v1/submissions/run-custom', {
+          method: 'POST',
+          body: JSON.stringify({
+            language: LANG_API[lang],
+            source_code: code,
+            custom_input: samples[i].input,
+          }),
+        });
+        socket.emit('join_custom_run', { session_id: resp.session_id });
+        const result = await runOneSample(socket, resp.session_id);
+        const expected = samples[i].output.trim();
+        const isCorrect = result.output === expected;
+        newOutputs[i] = { actual: result.output, ok: isCorrect, time: result.time };
+        setSampleOutputs({ ...newOutputs });
+        if (isCorrect) {
+          pushConsole(`Test ${i + 1}: OK${result.time !== undefined ? ` (${result.time}ms)` : ''}`, 'ok');
+        } else {
+          pushConsole(`Test ${i + 1}: WRONG ANSWER`, 'err');
+          pushConsole(`  Expected: ${expected.slice(0, 100)}${expected.length > 100 ? '\u2026' : ''}`, 'info');
+          pushConsole(`  Got:      ${result.output.slice(0, 100)}${result.output.length > 100 ? '\u2026' : ''}`, 'err');
+        }
+      } catch (err) {
+        const msg = err instanceof ApiError ? err.message : 'Lỗi không xác định';
+        pushConsole(`Test ${i + 1}: ERROR — ${msg}`, 'err');
+        newOutputs[i] = { actual: `ERROR: ${msg}`, ok: false };
+        setSampleOutputs({ ...newOutputs });
+      }
     }
+
+    socket.disconnect();
+    customRunSocketRef.current = null;
     setRunning(false);
+    pushConsole('Hoàn thành chạy test mẫu.', 'sys');
   };
 
   const submit = async () => {
@@ -889,11 +954,21 @@ export default function ProblemSolve() {
                               </button>
                             </div>
                           </div>
-                          {s.note && <p className="mt-1.5 text-[11.5px] italic text-[var(--ws-faint)]">{s.note}</p>}
+                          {sampleOutputs[i] !== undefined && (
+                            <div className={`mt-2 rounded-lg border px-3 py-2 text-[12px] font-mono ${sampleOutputs[i].ok ? 'border-[var(--ws-ok)]/30 bg-[var(--ws-ok)]/5' : 'border-[var(--ws-danger)]/30 bg-[var(--ws-danger)]/5'}`}>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${sampleOutputs[i].ok ? 'bg-[var(--ws-ok)]/20 text-[var(--ws-ok)]' : 'bg-[var(--ws-danger)]/20 text-[var(--ws-danger)]'}`}>
+                                  {sampleOutputs[i].ok ? `OK${sampleOutputs[i].time !== undefined ? ` · ${sampleOutputs[i].time}ms` : ''}` : 'WRONG ANSWER'}
+                                </span>
+                                <span className="text-[var(--ws-faint)] text-[11px]">Kết quả thực tế</span>
+                              </div>
+                              <pre className="whitespace-pre-wrap break-all text-[var(--ws-text)] leading-5">{sampleOutputs[i].actual || '(không có output)'}</pre>
+                            </div>
+                          )}
                         </div>
                       ))}
                       <p className="text-[11.5px] italic text-[var(--ws-faint)]">
-                        Diff sẽ hiển thị sau khi chạy custom input trên case này (mỗi trường thử).
+                        Nhấn &quot;Chạy&quot; để thực thi code với từng test mẫu và xem output thực tế.
                       </p>
                     </div>
                   )}

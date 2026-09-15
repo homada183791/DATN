@@ -226,7 +226,7 @@ export class SubmissionsService {
       message: 'Code has been submitted and is pending execution.',
     };
   }
-  runCustomCode(userId: string, dto: RunCustomCodeDto) {
+  async runCustomCode(userId: string, dto: RunCustomCodeDto) {
     const { language, source_code, custom_input = '' } = dto;
     const sessionId = randomUUID();
 
