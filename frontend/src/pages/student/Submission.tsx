@@ -204,11 +204,11 @@ export default function Submission() {
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-[#e5dac9] text-center shadow-sm">
                   <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">Thời gian</p>
-                  <p className="text-sm text-[#191919] font-semibold">{selectedSub.executionTime}ms</p>
+                  <p className="text-sm text-[#191919] font-semibold">{selectedSub.executionTime !== null && selectedSub.executionTime !== undefined ? `${selectedSub.executionTime}ms` : '—'}</p>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-[#e5dac9] text-center shadow-sm">
                   <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">Bộ nhớ</p>
-                  <p className="text-sm text-[#191919] font-semibold">{selectedSub.memory}MB</p>
+                  <p className="text-sm text-[#191919] font-semibold">{selectedSub.memory !== null && selectedSub.memory !== undefined ? `${selectedSub.memory}MB` : '—'}</p>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-[#e5dac9] text-center shadow-sm">
                   <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">Thời điểm</p>
