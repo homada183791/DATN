@@ -276,11 +276,12 @@ export default function ProblemSolve() {
       const timeout = window.setTimeout(() => {
         resolve({ output: '(timeout)', time: undefined, ok: false });
       }, 30_000);
-      const handler = (payload: { session_id: string; output?: string; stderr?: string; execution_time?: number; status?: string }) => {
+      const handler = (payload: { session_id: string; stdout?: string; stderr?: string; execution_time?: number; memory_used?: number | null; status?: string }) => {
         if (payload.session_id !== sessionId) return;
         window.clearTimeout(timeout);
         socket.off('custom_run_result', handler);
-        const raw = (payload.output ?? payload.stderr ?? '(no output)').trim();
+        // Webhook emits { stdout, stderr } — prefer stdout, fallback to stderr for compile errors
+        const raw = (payload.stdout?.trim() || payload.stderr?.trim() || '(no output)');
         resolve({ output: raw, time: payload.execution_time ?? undefined, ok: payload.status === 'OK' || payload.status === 'ACCEPTED' });
       };
       socket.on('custom_run_result', handler);
@@ -412,6 +413,7 @@ export default function ProblemSolve() {
       ACCEPTED: 'AC',
       WRONG_ANSWER: 'WA',
       TIME_LIMIT_EXCEEDED: 'TLE',
+      MEMORY_LIMIT_EXCEEDED: 'MLE',
       COMPILE_ERROR: 'CE',
       RUNTIME_ERROR: 'RTE',
     };
