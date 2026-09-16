@@ -9,6 +9,7 @@ import { ClassProvider } from './context/ClassContext';
 import { HomeworkProvider } from './context/HomeworkContext';
 import { ContributedProvider } from './context/ContributedContext';
 import InstructorClass from './pages/instructor/Class';
+import InstructorClassDetail from './pages/instructor/ClassDetail';
 import InstructorHomework from './pages/instructor/Homework';
 import JoinClass from './pages/student/JoinClass';
 import Layout from './components/Layout';
@@ -86,10 +87,13 @@ export default function App() {
           <Route path="/instructor" element={<ProtectedRoute allowedRole="instructor"><Layout><Navigate to="/instructor/dashboard" replace /></Layout></ProtectedRoute>} />
           <Route path="/instructor/dashboard" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorDashboard /></Layout></ProtectedRoute>} />
           <Route path="/instructor/classes" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorClass /></Layout></ProtectedRoute>} />
+          <Route path="/instructor/class/:classId" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorClassDetail /></Layout></ProtectedRoute>} />
+          <Route path="/instructor/classes/:classId" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorClassDetail /></Layout></ProtectedRoute>} />
           <Route path="/instructor/contest" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorContest /></Layout></ProtectedRoute>} />
           <Route path="/instructor/students" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorStudent /></Layout></ProtectedRoute>} />
           <Route path="/instructor/homework" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorHomework /></Layout></ProtectedRoute>} />
           <Route path="/instructor/problems" element={<ProtectedRoute allowedRole="instructor"><Layout><ProblemList /></Layout></ProtectedRoute>} />
+          <Route path="/instructor/problem/:id" element={<ProtectedRoute allowedRole="instructor"><Layout fullBleed><ProblemSolve /></Layout></ProtectedRoute>} />
           <Route path="/instructor/submission" element={<ProtectedRoute allowedRole="instructor"><Layout><Submission /></Layout></ProtectedRoute>} />
           <Route path="/instructor/submissions" element={<ProtectedRoute allowedRole="instructor"><Layout><Submission /></Layout></ProtectedRoute>} />
 

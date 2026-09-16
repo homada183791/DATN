@@ -604,14 +604,22 @@ export default function ProblemSolve() {
     <div className="flex-1 flex flex-col min-h-0 h-full text-[var(--ws-text)]">
       {/* problem header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--ws-border)] bg-[var(--ws-panel)] flex-wrap">
-          {/* Back button khi vào từ homework */}
-          {classId && homeworkId && (
+          {/* Back button */}
+          {classId && homeworkId ? (
             <button
               onClick={() => navigate(`/student/class/${classId}/homework/${homeworkId}`)}
               className="flex items-center gap-1 text-[12px] text-[var(--ws-muted)] hover:text-[var(--ws-text)] transition-colors mr-1"
               title="Quay lại bài tập"
             >
               ← Bài tập
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-1 text-[12px] text-[var(--ws-muted)] hover:text-[var(--ws-text)] transition-colors mr-1"
+              title="Quay lại danh sách"
+            >
+              ← Quay lại
             </button>
           )}
           <span className="text-[11px] font-bold tracking-wider px-2.5 py-1 rounded-md bg-[var(--ws-accent-soft)] text-[var(--ws-accent)]">

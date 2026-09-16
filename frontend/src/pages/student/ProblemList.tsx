@@ -244,7 +244,7 @@ export default function ProblemList() {
         {filteredProblems.map((problem) => (
           <Link
             key={problem.id}
-            to={`/student/problem/${problem.id}`}
+            to={isInstructor ? `/instructor/problem/${problem.id}` : `/student/problem/${problem.id}`}
             className="group flex flex-col gap-3 rounded-2xl border border-[#e5dac9] bg-white px-5 py-4 shadow-sm transition-all hover:border-[#193a2b]/40 hover:shadow-md sm:flex-row sm:items-center"
           >
             <div className="flex-1 min-w-0">
