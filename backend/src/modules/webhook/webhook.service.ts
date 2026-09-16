@@ -129,11 +129,7 @@ export class WebhookService {
     }
 
     // Dùng transaction để vừa cập nhật submission, vừa tạo test results
-    const transaction = this.prisma.$transaction as unknown as <T>(
-      callback: (tx: SubmissionTransactionClient) => Promise<T>,
-    ) => Promise<T>;
-
-    const updatedSubmission = await transaction(
+    const updatedSubmission = await (this.prisma.$transaction as any)(
       async (tx: SubmissionTransactionClient): Promise<UpdatedSubmission> => {
         let score = 0;
 

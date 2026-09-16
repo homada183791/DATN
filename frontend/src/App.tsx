@@ -78,6 +78,7 @@ export default function App() {
 
           <Route path="/student/contest" element={<ProtectedRoute allowedRole="student"><Layout><Contest /></Layout></ProtectedRoute>} />
           <Route path="/student/submission" element={<ProtectedRoute allowedRole="student"><Layout><Submission /></Layout></ProtectedRoute>} />
+          <Route path="/student/submissions" element={<ProtectedRoute allowedRole="student"><Layout><Submission /></Layout></ProtectedRoute>} />
           <Route path="/student/profile" element={<ProtectedRoute allowedRole="student"><Layout><PersonalPage /></Layout></ProtectedRoute>} />
           <Route path="/student/settings" element={<ProtectedRoute allowedRole="student"><Layout><SettingsPage /></Layout></ProtectedRoute>} />
 
@@ -89,6 +90,7 @@ export default function App() {
           <Route path="/instructor/students" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorStudent /></Layout></ProtectedRoute>} />
           <Route path="/instructor/homework" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorHomework /></Layout></ProtectedRoute>} />
           <Route path="/instructor/problems" element={<ProtectedRoute allowedRole="instructor"><Layout><ProblemList /></Layout></ProtectedRoute>} />
+          <Route path="/instructor/submission" element={<ProtectedRoute allowedRole="instructor"><Layout><Submission /></Layout></ProtectedRoute>} />
           <Route path="/instructor/submissions" element={<ProtectedRoute allowedRole="instructor"><Layout><Submission /></Layout></ProtectedRoute>} />
 
           {/* Invite link: /join/CODE */}
