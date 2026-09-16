@@ -119,7 +119,25 @@ export default function ProblemSolve() {
     return 200;
   }, [problemDifficulty]);
 
+  const problemTimeLimit = apiProblem?.time_limit ? `${apiProblem.time_limit} ms` : detail.timeLimit;
+  const problemMemoryLimit = apiProblem?.memory_limit ? `${apiProblem.memory_limit} MB` : detail.memoryLimit;
+
   const detail: ProblemDetail = useMemo(() => getDetail(problemId, problemTitle, problemPoints), [problemId, problemTitle, problemPoints]);
+
+  const getInitialSamples = useCallback(() => {
+    if (apiProblem?.test_cases && apiProblem.test_cases.length > 0) {
+      const visible = apiProblem.test_cases.filter((tc) => !tc.is_hidden);
+      if (visible.length > 0) {
+        return visible.map((tc, idx) => ({
+          id: idx + 1,
+          input: tc.input,
+          output: tc.expected_output,
+          explanation: '',
+        }));
+      }
+    }
+    return detail.samples.map((s) => ({ ...s }));
+  }, [apiProblem?.test_cases, detail.samples]);
 
   /* ui state */
   const [layout, setLayout] = useState<LayoutMode>('split');
@@ -140,7 +158,7 @@ export default function ProblemSolve() {
 
   /* judge state */
   const [bottomTab, setBottomTab] = useState<BottomTab>('tests');
-  const [samples, setSamples] = useState(detail.samples.map((s) => ({ ...s })));
+  const [samples, setSamples] = useState(() => getInitialSamples());
   const [sampleOutputs, setSampleOutputs] = useState<Record<number, { actual: string; ok: boolean; time?: number }>>({});
   const [consoleLines, setConsoleLines] = useState<ConsoleLine[]>([]);
   const [running, setRunning] = useState(false);
@@ -206,10 +224,14 @@ export default function ProblemSolve() {
     setTestVerdicts([]);
     setFinalVerdict(null);
     setConsoleLines([]);
-    setSamples(detail.samples.map((s) => ({ ...s })));
+    setSamples(getInitialSamples());
     setSampleOutputs({});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [problemId, lang, detail]);
+  }, [problemId, lang, detail, getInitialSamples]);
+
+  useEffect(() => {
+    setSamples(getInitialSamples());
+  }, [getInitialSamples]);
 
   useEffect(() => {
     setAssistantMessages([
@@ -666,11 +688,11 @@ export default function ProblemSolve() {
                 <div className="grid grid-cols-3 gap-6 pb-5 border-b border-[var(--ws-border)]">
                   <div>
                     <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">Thời gian giới hạn</p>
-                    <p className="text-[15px] font-bold font-mono">{detail.timeLimit}</p>
+                    <p className="text-[15px] font-bold font-mono">{problemTimeLimit}</p>
                   </div>
                   <div>
                     <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">Bộ nhớ giới hạn</p>
-                    <p className="text-[15px] font-bold font-mono">{detail.memoryLimit}</p>
+                    <p className="text-[15px] font-bold font-mono">{problemMemoryLimit}</p>
                   </div>
                   <div>
                     <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">Điểm tối đa</p>
