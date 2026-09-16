@@ -20,10 +20,11 @@ const verdictColors: Record<string, string> = {
 export default function StudentDashboard() {
   const { user } = useAuth();
   const { data: contests, isLoading: contestsLoading, error: contestsError } = useContestsQuery();
-  const activeContestId = useMemo(
-    () => contests?.find((contest) => contest.status === 'running')?.id ?? contests?.[0]?.id,
+  const activeContest = useMemo(
+    () => contests?.find((contest) => contest.status === 'running') ?? contests?.[0],
     [contests]
   );
+  const activeContestId = activeContest?.id;
   const { data: leaderboard, isLoading: leaderboardLoading, error: leaderboardError } = useLeaderboardQuery(activeContestId);
   const { data: submissions, isLoading: submissionsLoading, error: submissionsError } = useSubmissionsQuery();
 
@@ -159,7 +160,11 @@ export default function StudentDashboard() {
         <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-[#191919] font-serif">Bảng xếp hạng</h3>
-            <span className="text-xs text-[#8a8073]">{activeContestId ?? 'N/A'}</span>
+            {activeContest && (
+              <span className="text-xs text-[#8a8073] font-medium max-w-[160px] truncate" title={activeContest.title}>
+                {activeContest.title}
+              </span>
+            )}
           </div>
           {leaderboardError instanceof ApiError && <p className="text-sm text-red-600 mb-3">{leaderboardError.message}</p>}
           {leaderboardLoading ? (
