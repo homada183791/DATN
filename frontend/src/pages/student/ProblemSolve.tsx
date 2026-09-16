@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import { getDetail, LANG_LABELS, Lang, ProblemDetail } from '../../data/problemDetails';
 import { ApiError, apiFetch } from '../../api/http';
 import { useProblemQuery } from '../../api/problems';
+import { useToast } from '../../context/ToastContext';
 import { type Socket } from 'socket.io-client';
 import { createSocket } from '../../api/socket';
 import {
