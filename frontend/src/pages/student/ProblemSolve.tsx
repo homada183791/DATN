@@ -119,10 +119,10 @@ export default function ProblemSolve() {
     return 200;
   }, [problemDifficulty]);
 
+  const detail: ProblemDetail = useMemo(() => getDetail(problemId, problemTitle, problemPoints), [problemId, problemTitle, problemPoints]);
+
   const problemTimeLimit = apiProblem?.time_limit ? `${apiProblem.time_limit} ms` : detail.timeLimit;
   const problemMemoryLimit = apiProblem?.memory_limit ? `${apiProblem.memory_limit} MB` : detail.memoryLimit;
-
-  const detail: ProblemDetail = useMemo(() => getDetail(problemId, problemTitle, problemPoints), [problemId, problemTitle, problemPoints]);
 
   const getInitialSamples = useCallback(() => {
     if (apiProblem?.test_cases && apiProblem.test_cases.length > 0) {
