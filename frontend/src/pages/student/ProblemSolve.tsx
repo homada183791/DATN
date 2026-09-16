@@ -5,8 +5,8 @@ import ReactMarkdown from 'react-markdown';
 import { getDetail, LANG_LABELS, Lang, ProblemDetail } from '../../data/problemDetails';
 import { ApiError, apiFetch } from '../../api/http';
 import { useProblemQuery } from '../../api/problems';
-import { useToast } from '../../context/ToastContext';
-import { io, type Socket } from 'socket.io-client';
+import { type Socket } from 'socket.io-client';
+import { createSocket } from '../../api/socket';
 import {
   HelpCircle,
   Send,
@@ -298,9 +298,8 @@ export default function ProblemSolve() {
     setSampleOutputs({});
     pushConsole(`$ run --lang ${LANG_LABELS[lang]} --samples ${samples.length}`, 'sys');
 
-    const socketUrl = (import.meta.env.VITE_SOCKET_URL as string | undefined) ?? window.location.origin;
     customRunSocketRef.current?.disconnect();
-    const socket = io(socketUrl, { transports: ['websocket'] });
+    const socket = createSocket();
     customRunSocketRef.current = socket;
 
     // Wait for connection
@@ -404,8 +403,7 @@ export default function ProblemSolve() {
       return;
     }
 
-    const socketUrl = (import.meta.env.VITE_SOCKET_URL as string | undefined) ?? window.location.origin;
-    const socket = io(socketUrl, { transports: ['websocket'] });
+    const socket = createSocket();
     submissionSocketRef.current?.disconnect();
     submissionSocketRef.current = socket;
 
@@ -427,7 +425,7 @@ export default function ProblemSolve() {
 
     socket.on('connect', () => {
       socket.emit('join_submission', { submission_id: submissionId });
-      pushConsole(`Đã kết nối theo dõi bài nộp ${submissionId}.`, 'info');
+      pushConsole(`Đã kết nối Socket.io theo dõi bài nộp #${submissionId.slice(0, 8)}. Đang chờ máy chấm...`, 'info');
     });
 
     socket.on('submission_status_changed', (payload: SubmissionStatusPayload) => {
@@ -446,10 +444,10 @@ export default function ProblemSolve() {
       submissionSocketRef.current = null;
     });
 
-    socket.on('connect_error', () => {
+    socket.on('connect_error', (err) => {
       window.clearTimeout(watchdogTimer);
       showToast('Không thể kết nối máy chủ chấm bài.', 'error');
-      pushConsole('error: không thể kết nối Socket.io.', 'err');
+      pushConsole(`error: không thể kết nối Socket.io (${err?.message || 'Lỗi kết nối'}).`, 'err');
       setJudging(false);
       socket.disconnect();
       submissionSocketRef.current = null;

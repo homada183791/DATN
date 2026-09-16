@@ -82,6 +82,8 @@ export default function Submission() {
     RTE: 'text-orange-800 bg-orange-100 border-orange-300',
     CE: 'text-blue-800 bg-blue-100 border-blue-300',
     PE: 'text-pink-800 bg-pink-100 border-pink-300',
+    PENDING: 'text-amber-800 bg-amber-100 border-amber-300',
+    IN_QUEUE: 'text-sky-800 bg-sky-100 border-sky-300',
   };
 
   const verdictFullNames: Record<string, string> = {
@@ -92,6 +94,8 @@ export default function Submission() {
     RTE: 'Runtime Error',
     CE: 'Compilation Error',
     PE: 'Presentation Error',
+    PENDING: 'Đang chờ chấm',
+    IN_QUEUE: 'Trong hàng đợi',
   };
 
   const languages = [...new Set(allSubmissions.map((s) => s.language))];
@@ -223,16 +227,26 @@ export default function Submission() {
                 </div>
               </div>
 
-              {selectedSub.verdict !== 'AC' && selectedSub.verdict !== 'CE' && (
+              {selectedSub.verdict !== 'AC' && selectedSub.verdict !== 'CE' && selectedSub.verdict !== 'PENDING' && selectedSub.verdict !== 'IN_QUEUE' && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
                   <div className="flex items-center gap-2 mb-2">
                     <AlertTriangle size={16} className="text-red-700" />
-                    <span className="text-sm font-bold text-red-700 font-serif">{verdictFullNames[selectedSub.verdict]}</span>
+                    <span className="text-sm font-bold text-red-700 font-serif">{verdictFullNames[selectedSub.verdict] || selectedSub.verdict}</span>
                   </div>
                   <p className="text-xs text-red-600 leading-relaxed">
                     {selectedSub.verdict === 'WA' && 'Kết quả không chính xác trên một số bộ test dữ liệu. Vui lòng kiểm tra lại tính đúng đắn của thuật toán.'}
                     {selectedSub.verdict === 'TLE' && 'Chương trình chạy vượt quá giới hạn thời gian cho phép. Cần tối ưu thuật toán có độ phức tạp thời gian tốt hơn.'}
                     {selectedSub.verdict === 'RTE' && 'Chương trình phát sinh lỗi trong quá trình thực thi. Ví dụ: truy cập mảng ngoài biên, chia cho 0.'}
+                  </p>
+                </div>
+              )}
+              {(selectedSub.verdict === 'PENDING' || selectedSub.verdict === 'IN_QUEUE') && (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm font-bold text-amber-800 font-serif">Đang chờ chấm bài</span>
+                  </div>
+                  <p className="text-xs text-amber-700 leading-relaxed">
+                    Bài nộp đang nằm trong hàng đợi của hệ thống chấm bài. Vui lòng chờ ít phút hoặc tải lại trang.
                   </p>
                 </div>
               )}
@@ -272,13 +286,13 @@ export default function Submission() {
                     <td className="py-3 px-4 text-sm text-[#5c5446]">@{sub.username}</td>
                   )}
                   <td className="py-3 px-4">
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-bold border ${verdictColors[sub.verdict]}`}>
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-bold border ${verdictColors[sub.verdict] ?? 'text-gray-700 bg-gray-100 border-gray-300'}`}>
                       {sub.verdict}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-sm text-[#5c5446]">{sub.language}</td>
-                  <td className="py-3 px-4 text-sm text-[#5c5446] text-right">{sub.executionTime}ms</td>
-                  <td className="py-3 px-4 text-sm text-[#5c5446] text-right">{sub.memory}MB</td>
+                  <td className="py-3 px-4 text-sm text-[#5c5446] text-right">{sub.executionTime != null ? `${sub.executionTime}ms` : '—'}</td>
+                  <td className="py-3 px-4 text-sm text-[#5c5446] text-right">{sub.memory != null ? `${sub.memory}MB` : '—'}</td>
                    <td className="py-3 px-4 text-sm text-[#8a8073] text-right">{formatVNFull(sub.timestamp)}</td>
                 </tr>
               ))}
