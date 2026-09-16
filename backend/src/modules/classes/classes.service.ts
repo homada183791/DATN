@@ -28,11 +28,32 @@ export class ClassesService {
   async findAll() {
     return this.prisma.class.findMany({
       include: {
-        admin: { select: { id: true, email: true } },
+        admin: { select: { id: true, email: true, username: true } },
         students: {
-          include: { student: { select: { id: true, email: true } } },
+          include: {
+            student: {
+              select: {
+                id: true,
+                email: true,
+                username: true,
+                elo_rating: true,
+                _count: {
+                  select: {
+                    submissions: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        homeworks: {
+          select: { id: true },
+        },
+        contests: {
+          select: { id: true },
         },
       },
+      orderBy: { created_at: 'desc' },
     });
   }
 
@@ -40,9 +61,31 @@ export class ClassesService {
     const cls = await this.prisma.class.findUnique({
       where: { id },
       include: {
-        admin: { select: { id: true, email: true } },
+        admin: { select: { id: true, email: true, username: true } },
         students: {
-          include: { student: { select: { id: true, email: true } } },
+          include: {
+            student: {
+              select: {
+                id: true,
+                email: true,
+                username: true,
+                elo_rating: true,
+                created_at: true,
+                _count: {
+                  select: {
+                    submissions: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: { joined_at: 'asc' },
+        },
+        homeworks: {
+          orderBy: { deadline: 'asc' },
+        },
+        contests: {
+          select: { id: true, title: true, start_time: true, end_time: true },
         },
       },
     });

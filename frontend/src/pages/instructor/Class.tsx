@@ -177,7 +177,11 @@ export default function InstructorClass() {
                       <GraduationCap size={24} className="text-white" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold font-serif text-[#191919]">{cls.name}</h3>
+                      <Link to={`/instructor/class/${cls.id}`} className="group/link block">
+                        <h3 className="text-lg font-bold font-serif text-[#191919] group-hover/link:text-[#193a2b] group-hover/link:underline transition-colors flex items-center gap-1.5">
+                          {cls.name}
+                        </h3>
+                      </Link>
                       <p className="text-xs text-[#8a8073] flex items-center gap-1 mt-0.5">
                         <Calendar size={12} /> {cls.semester}
                       </p>
@@ -293,17 +297,17 @@ export default function InstructorClass() {
 
                 {/* actions */}
                 <div className="flex items-center gap-2">
+                  <Link
+                    to={`/instructor/class/${cls.id}`}
+                    className="flex items-center gap-1.5 px-3.5 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-lg hover:bg-[#143022] transition-colors shadow-sm"
+                  >
+                    Chi tiết lớp &rarr;
+                  </Link>
                   <button
                     onClick={() => openHwModal(cls.id)}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-lg hover:bg-[#143022] transition-colors shadow-sm"
-                  >
-                    <Plus size={13} /> Giao bài tập
-                  </button>
-                  <button
-                    onClick={() => setRosterId(cls.id)}
                     className="flex items-center gap-1.5 px-3 py-2 bg-[#f0ebd9] text-[#191919] text-xs font-semibold rounded-lg hover:bg-[#e5dac9] transition-colors"
                   >
-                    <Eye size={13} /> Danh sách SV
+                    <Plus size={13} /> Giao bài
                   </button>
                   {confirmDelete === cls.id ? (
                     <div className="flex items-center gap-1.5 ml-auto">
