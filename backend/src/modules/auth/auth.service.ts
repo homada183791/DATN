@@ -192,7 +192,8 @@ export class AuthService implements OnModuleDestroy {
       throw new UnauthorizedException('Email hoặc mật khẩu không chính xác');
     }
 
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const username = user.username ?? user.email.split('@')[0];
+    const payload = { sub: user.id, email: user.email, role: user.role, username };
 
     return {
       success: true,
@@ -202,6 +203,7 @@ export class AuthService implements OnModuleDestroy {
           id: user.id,
           email: user.email,
           role: user.role,
+          username,
         },
       },
     };

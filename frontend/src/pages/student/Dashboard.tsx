@@ -5,7 +5,7 @@ import { ApiError } from '../../api/http';
 import { useContestsQuery, useLeaderboardQuery, type LeaderboardEntryDto } from '../../api/contests';
 import { useSubmissionsQuery } from '../../api/submissions';
 import { useAuth } from '../../context/AuthContext';
-import { formatVNFull } from '../../utils/dateTime';
+import { formatVN, formatVNFull } from '../../utils/dateTime';
 
 const verdictColors: Record<string, string> = {
   AC: 'text-emerald-700 bg-emerald-100 border-emerald-300',
@@ -137,7 +137,7 @@ export default function StudentDashboard() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-[#191919] truncate">{contest.title}</p>
                   <p className="text-xs text-[#8a8073] flex items-center gap-1 mt-0.5">
-                    <Calendar size={12} /> {contest.startTime ?? '-'}
+                    <Calendar size={12} /> {contest.startTime ? formatVN(contest.startTime) : '-'}
                   </p>
                 </div>
                 <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${contest.status === 'running' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-yellow-100 text-yellow-800 border border-yellow-200'}`}>
@@ -215,8 +215,8 @@ export default function StudentDashboard() {
                     </div>
                   </div>
                   <div className="text-right text-xs text-[#8a8073]">
-                    <p>{sub.executionTime}ms</p>
-                    <p>{sub.memory}MB</p>
+                    <p>{sub.executionTime !== null && sub.executionTime !== undefined ? `${sub.executionTime}ms` : '—'}</p>
+                    <p>{sub.memory !== null && sub.memory !== undefined ? `${sub.memory}MB` : '—'}</p>
                   </div>
                 </div>
               ))}

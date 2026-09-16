@@ -34,6 +34,7 @@ interface AuthResponse {
     id: string;
     email: string;
     role: BackendRole;
+    username?: string;
   };
 }
 
@@ -69,13 +70,13 @@ function normalizeUser(identifier: string, role: User['role'], fullName?: string
   };
 }
 
-// profile endpoint trả về { success, data: { userId, email, role } }
-// apiFetch unwrap → nhận được { userId, email, role }
+// profile endpoint trả về { success, data: { userId, email, role, username } }
+// apiFetch unwrap → nhận được { userId, email, role, username }
 async function hydrateProfile(token: string) {
-  const profile = await apiFetch<{ userId: string; email: string; role: BackendRole }>('/api/v1/auth/profile', {
+  const profile = await apiFetch<{ userId: string; email: string; role: BackendRole; username?: string }>('/api/v1/auth/profile', {
     headers: { Authorization: `Bearer ${token}` },
   });
-  return normalizeUser(profile.email, normalizeRole(profile.role), undefined, profile.userId);
+  return normalizeUser(profile.email, normalizeRole(profile.role), profile.username, profile.userId);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -111,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, username, password }),
       });
       window.localStorage.setItem(ACCESS_TOKEN_KEY, response.access_token);
-      setUser(normalizeUser(response.user.email, normalizeRole(response.user.role), undefined, response.user.id));
+      setUser(normalizeUser(response.user.email, normalizeRole(response.user.role), response.user.username, response.user.id));
       return { ok: true };
     } catch (error) {
       if (error instanceof ApiError) {

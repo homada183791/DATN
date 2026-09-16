@@ -169,7 +169,7 @@ export default function InstructorDashboard() {
                   </div>
                 </div>
                 <div className="text-right text-xs text-[#8a8073]">
-                  <p>{sub.executionTime}ms</p>
+                  <p>{sub.executionTime !== null && sub.executionTime !== undefined ? `${sub.executionTime}ms` : '—'}</p>
                   <p className="mt-0.5">{formatVNFull(sub.timestamp)}</p>
                 </div>
               </div>
