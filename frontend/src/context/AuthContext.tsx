@@ -125,18 +125,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (_username: string, email: string, password: string, _fullName: string) => {
+  const register = async (username: string, email: string, password: string, _fullName: string) => {
     try {
+      const trimmedUsername = username.trim();
       await apiFetch('/api/v1/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify({
+          email: email.trim(),
+          username: trimmedUsername || undefined,
+          password,
+        }),
       });
       return { ok: true };
     } catch (error) {
-      if (error instanceof ApiError && error.status === 409) {
-        return { ok: false, message: 'Email đã tồn tại.' };
+      if (error instanceof ApiError) {
+        return { ok: false, message: error.message };
       }
-      return { ok: false, message: error instanceof ApiError ? error.message : 'Vui lòng nhập đầy đủ thông tin bắt buộc.' };
+      return { ok: false, message: 'Vui lòng nhập đầy đủ thông tin bắt buộc.' };
     }
   };
 

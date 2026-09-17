@@ -73,6 +73,27 @@ export function RegisterModal({
     e.preventDefault();
     setError("");
 
+    const trimmedUsername = username.trim();
+    if (!trimmedUsername) {
+      setError("Vui lòng nhập tên đăng nhập.");
+      return;
+    }
+
+    if (trimmedUsername.length < 3 || trimmedUsername.length > 30) {
+      setError("Tên đăng nhập phải từ 3 đến 30 ký tự.");
+      return;
+    }
+
+    if (trimmedUsername.includes("@")) {
+      setError("Tên đăng nhập không được chứa ký tự '@'.");
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_.-]+$/.test(trimmedUsername)) {
+      setError("Tên đăng nhập chỉ được chứa chữ cái, số, gạch dưới, gạch ngang và dấu chấm.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("Mật khẩu xác nhận không khớp.");
       return;
@@ -83,7 +104,7 @@ export function RegisterModal({
       return;
     }
 
-    register(username.trim(), email.trim(), password, fullName.trim()).then((result) => {
+    register(trimmedUsername, email.trim(), password, fullName.trim()).then((result) => {
       if (!result.ok) {
         const message = result.message ?? "Vui lòng nhập đầy đủ thông tin bắt buộc.";
         setError(message);

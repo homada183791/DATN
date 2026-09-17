@@ -27,7 +27,7 @@ export class SubmissionsService {
       problem_id: string;
       problem: { id: string; title: string };
       user_id: string;
-      user: { id: string; email: string };
+      user: { id: string; email: string; username?: string | null };
       language: string;
       status: SubmissionStatus;
       execution_time: number | null;
@@ -45,7 +45,7 @@ export class SubmissionsService {
       orderBy: { created_at: 'desc' },
       include: {
         problem: { select: { id: true, title: true } },
-        user: { select: { id: true, email: true } },
+        user: { select: { id: true, email: true, username: true } },
       },
     })) as unknown as SubmissionListRow[];
 
@@ -54,7 +54,7 @@ export class SubmissionsService {
       problem_id: submission.problem_id,
       problem_title: submission.problem.title,
       user_id: submission.user_id,
-      username: submission.user.email.split('@')[0],
+      username: submission.user.username ?? submission.user.email.split('@')[0],
       language: submission.language,
       status: submission.status as SubmissionStatus,
       execution_time: submission.execution_time,

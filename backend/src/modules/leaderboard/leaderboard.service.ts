@@ -68,7 +68,7 @@ export class LeaderboardService implements OnModuleDestroy {
       orderBy: { created_at: 'asc' }, // Bắt buộc sắp xếp tăng dần để duyệt từ đầu kỳ thi
       include: {
         user: {
-          select: { id: true, email: true },
+          select: { id: true, email: true, username: true },
         },
       },
     });
@@ -77,6 +77,7 @@ export class LeaderboardService implements OnModuleDestroy {
     interface UserStat {
       user_id: string;
       email: string;
+      username?: string | null;
       solved: number;
       penalty: number;
       problems: Record<string, { isSolved: boolean; wrongAttempts: number }>;
@@ -90,6 +91,7 @@ export class LeaderboardService implements OnModuleDestroy {
         userStatsMap[userId] = {
           user_id: userId,
           email: sub.user.email,
+          username: sub.user.username,
           solved: 0,
           penalty: 0,
           problems: {}, // Track trạng thái của từng problem
@@ -146,8 +148,8 @@ export class LeaderboardService implements OnModuleDestroy {
     const result = leaderboard.map((stat, index) => ({
       rank: index + 1,
       user_id: stat.user_id,
-      username: stat.email.split('@')[0],
-      fullName: stat.email.split('@')[0],
+      username: stat.username ?? stat.email.split('@')[0],
+      fullName: stat.username ?? stat.email.split('@')[0],
       email: stat.email,
       solved: stat.solved,
       solvedCount: stat.solved,

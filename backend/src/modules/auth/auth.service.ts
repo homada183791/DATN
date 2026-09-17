@@ -138,12 +138,33 @@ export class AuthService implements OnModuleDestroy {
   }
 
   async register(registerDto: RegisterDto) {
+    const normalizedEmail = registerDto.email.trim().toLowerCase();
     const existingUser = await this.prisma.user.findUnique({
-      where: { email: registerDto.email },
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
       throw new ConflictException('Email đã tồn tại');
+    }
+
+    const trimmedUsername = registerDto.username?.trim();
+    if (trimmedUsername) {
+      if (trimmedUsername.includes('@')) {
+        throw new BadRequestException('Tên đăng nhập không được chứa ký tự @');
+      }
+
+      const existingUserByUsername = await this.prisma.user.findFirst({
+        where: {
+          username: {
+            equals: trimmedUsername,
+            mode: 'insensitive',
+          },
+        },
+      });
+
+      if (existingUserByUsername) {
+        throw new ConflictException('Tên đăng nhập đã được sử dụng');
+      }
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -151,12 +172,14 @@ export class AuthService implements OnModuleDestroy {
 
     const user = await this.prisma.user.create({
       data: {
-        email: registerDto.email,
+        email: normalizedEmail,
+        username: trimmedUsername || null,
         password: hashedPassword,
       },
       select: {
         id: true,
         email: true,
+        username: true,
         role: true,
         created_at: true,
       },
@@ -176,7 +199,12 @@ export class AuthService implements OnModuleDestroy {
     const user = await this.prisma.user.findFirst({
       where: loginDto.email
         ? { email: loginDto.email.trim().toLowerCase() }
-        : { username: loginDto.username?.trim() },
+        : {
+            username: {
+              equals: loginDto.username?.trim(),
+              mode: 'insensitive',
+            },
+          },
     });
 
     if (!user) {
