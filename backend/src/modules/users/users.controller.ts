@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, UseGuards, Request, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -14,6 +14,13 @@ import {
 @ApiBearerAuth()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Get('top-rated')
+  @ApiOperation({ summary: 'Lấy bảng xếp hạng top sinh viên có ELO rating cao nhất' })
+  @ApiResponse({ status: 200, description: 'Danh sách sinh viên top rated' })
+  getTopRated(@Query('limit') limit?: string) {
+    return this.usersService.getTopRated(limit ? parseInt(limit, 10) : 10);
+  }
 
   @Get('me/heatmap')
   @ApiOperation({
@@ -39,3 +46,4 @@ export class UsersController {
     return this.usersService.getHeatmap(req.user.userId);
   }
 }
+

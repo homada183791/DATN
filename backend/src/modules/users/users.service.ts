@@ -126,4 +126,46 @@ export class UsersService {
       activity_logs: logs,
     };
   }
+
+  /**
+   * Lấy danh sách sinh viên có ELO rating cao nhất toàn trường.
+   */
+  async getTopRated(limit = 10) {
+    const take = Number(limit) > 0 ? Math.min(Number(limit), 50) : 10;
+    const users = await this.prisma.user.findMany({
+      where: { role: 'STUDENT' },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        elo_rating: true,
+        current_streak: true,
+        highest_streak: true,
+        created_at: true,
+        _count: {
+          select: {
+            submissions: {
+              where: { status: 'ACCEPTED' },
+            },
+          },
+        },
+      },
+      orderBy: [
+        { elo_rating: 'desc' },
+        { current_streak: 'desc' },
+      ],
+      take,
+    });
+
+    return users.map((u) => ({
+      id: u.id,
+      username: u.username || u.email.split('@')[0],
+      email: u.email,
+      elo_rating: u.elo_rating,
+      current_streak: u.current_streak,
+      highest_streak: u.highest_streak,
+      solved_count: u._count.submissions,
+      created_at: u.created_at,
+    }));
+  }
 }
