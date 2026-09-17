@@ -26,6 +26,7 @@ import {
   Palette,
   Check,
   ChevronDown,
+  Calendar,
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -39,16 +40,18 @@ const studentItems: SidebarItem[] = [
   { label: 'Bài tập',   icon: <BookOpen size={20} />,        path: '/student/homeworks'  },
   { label: 'Lớp học',   icon: <GraduationCap size={20} />,   path: '/student/class'      },
   { label: 'Kỳ thi',    icon: <Trophy size={20} />,          path: '/student/contest'    },
+  { label: 'Lịch biểu', icon: <Calendar size={20} />,        path: '/student/calendar'   },
   { label: 'Nộp bài',   icon: <Send size={20} />,            path: '/student/submission' },
 ];
 
 const instructorItems: SidebarItem[] = [
   { label: 'Dashboard',          icon: <LayoutDashboard size={20} />, path: '/instructor/dashboard' },
-  { label: 'Lớp học',            icon: <GraduationCap size={20} />,   path: '/instructor/classes'  },
-  { label: 'Bài tập',            icon: <ClipboardList size={20} />,   path: '/instructor/homework' },
-  { label: 'Kỳ thi',             icon: <Trophy size={20} />,          path: '/instructor/contest'  },
-  { label: 'Sinh viên',          icon: <Users size={20} />,           path: '/instructor/students' },
-  { label: 'Ngân hàng bài toán', icon: <BookOpen size={20} />,        path: '/instructor/problems' },
+  { label: 'Lớp học',            icon: <GraduationCap size={20} />,   path: '/instructor/classes'   },
+  { label: 'Bài tập',            icon: <ClipboardList size={20} />,   path: '/instructor/homework'  },
+  { label: 'Kỳ thi',             icon: <Trophy size={20} />,          path: '/instructor/contest'   },
+  { label: 'Lịch biểu',          icon: <Calendar size={20} />,        path: '/instructor/calendar'  },
+  { label: 'Sinh viên',          icon: <Users size={20} />,           path: '/instructor/students'  },
+  { label: 'Ngân hàng bài toán', icon: <BookOpen size={20} />,        path: '/instructor/problems'  },
 ];
 
 function Breadcrumbs() {
@@ -68,6 +71,7 @@ function Breadcrumbs() {
     profile: 'Hồ sơ',
     settings: 'Cài đặt',
     students: 'Sinh viên',
+    calendar: 'Lịch biểu',
   };
 
   return (

@@ -102,3 +102,33 @@ export function datetimeLocalToISO(localValue: string): string {
   if (!localValue) return '';
   return parseDate(localValue).toISOString();
 }
+
+/**
+ * Trích xuất chính xác các thành phần ngày giờ theo múi giờ UTC+7 (Asia/Ho_Chi_Minh).
+ * Dùng cho Lịch biểu để không bị ảnh hưởng bởi timezone local của máy người dùng.
+ */
+export function getVNParts(value: string | Date) {
+  const date = typeof value === 'string' ? new Date(value) : value;
+  if (isNaN(date.getTime())) return null;
+
+  const parts = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: VN_TZ,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(date);
+
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '00';
+  const year = parseInt(get('year'), 10);
+  const month = parseInt(get('month'), 10); // 1-12
+  const day = parseInt(get('day'), 10);
+  const hour = parseInt(get('hour'), 10);
+  const minute = parseInt(get('minute'), 10);
+  const dateString = `${get('year')}-${get('month')}-${get('day')}`;
+  const timeString = `${get('hour')}:${get('minute')}`;
+  return { year, month, day, hour, minute, dateString, timeString };
+}

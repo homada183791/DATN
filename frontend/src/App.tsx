@@ -29,6 +29,7 @@ import ClassPage from './pages/student/Class';
 import InstructorDashboard from './pages/instructor/Dashboard';
 import InstructorContest from './pages/instructor/Contest';
 import InstructorStudent from './pages/instructor/Student';
+import CalendarPage from './pages/calendar/CalendarPage';
 import NotFoundPage from './pages/NotFound';
 
 export default function App() {
@@ -78,6 +79,7 @@ export default function App() {
           <Route path="/student/problems" element={<ProtectedRoute allowedRole="student"><Layout><ProblemList /></Layout></ProtectedRoute>} />
 
           <Route path="/student/contest" element={<ProtectedRoute allowedRole="student"><Layout><Contest /></Layout></ProtectedRoute>} />
+          <Route path="/student/calendar" element={<ProtectedRoute allowedRole="student"><Layout><CalendarPage userRole="student" /></Layout></ProtectedRoute>} />
           <Route path="/student/submission" element={<ProtectedRoute allowedRole="student"><Layout><Submission /></Layout></ProtectedRoute>} />
           <Route path="/student/submissions" element={<ProtectedRoute allowedRole="student"><Layout><Submission /></Layout></ProtectedRoute>} />
           <Route path="/student/profile" element={<ProtectedRoute allowedRole="student"><Layout><PersonalPage /></Layout></ProtectedRoute>} />
@@ -89,6 +91,7 @@ export default function App() {
           <Route path="/instructor/classes" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorClass /></Layout></ProtectedRoute>} />
           <Route path="/instructor/class/:classId" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorClassDetail /></Layout></ProtectedRoute>} />
           <Route path="/instructor/classes/:classId" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorClassDetail /></Layout></ProtectedRoute>} />
+          <Route path="/instructor/calendar" element={<ProtectedRoute allowedRole="instructor"><Layout><CalendarPage userRole="instructor" /></Layout></ProtectedRoute>} />
           <Route path="/instructor/contest" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorContest /></Layout></ProtectedRoute>} />
           <Route path="/instructor/students" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorStudent /></Layout></ProtectedRoute>} />
           <Route path="/instructor/homework" element={<ProtectedRoute allowedRole="instructor"><Layout><InstructorHomework /></Layout></ProtectedRoute>} />
