@@ -124,8 +124,8 @@ export default function TopRatedLeaderboard({ maxItems = 5, showTitle = true }: 
               key={u.id}
               className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
                 rank <= 3
-                  ? 'bg-[#fbf9f4] border-[#e5dac9] hover:border-[#193a2b]/40'
-                  : 'bg-white border-[#f0ebd9] hover:border-[#e5dac9]'
+                  ? 'bg-[#f7f4eb] border-amber-500/30 hover:border-amber-500/60 shadow-2xs'
+                  : 'bg-[#f7f4eb]/60 border-[#e5dac9] hover:border-[#193a2b]/40'
               }`}
             >
               <div className="flex items-center gap-3 min-w-0">

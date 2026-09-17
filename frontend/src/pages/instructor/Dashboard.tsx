@@ -56,14 +56,14 @@ export default function InstructorDashboard() {
   const recentSubmissions = submissions.slice(0, 5);
 
   const verdictColors: Record<string, string> = {
-    AC: 'text-emerald-800 bg-emerald-50 border-emerald-300',
-    WA: 'text-red-800 bg-red-50 border-red-300',
-    TLE: 'text-amber-800 bg-amber-50 border-amber-300',
-    MLE: 'text-amber-800 bg-amber-50 border-amber-300',
-    RTE: 'text-orange-800 bg-orange-50 border-orange-300',
-    CE: 'text-blue-800 bg-blue-50 border-blue-300',
-    PE: 'text-pink-800 bg-pink-50 border-pink-300',
-    PENDING: 'text-slate-800 bg-slate-50 border-slate-300',
+    AC: 'text-emerald-700 bg-emerald-100 border-emerald-300',
+    WA: 'text-red-700 bg-red-100 border-red-300',
+    TLE: 'text-amber-700 bg-amber-100 border-amber-300',
+    MLE: 'text-amber-700 bg-amber-100 border-amber-300',
+    RTE: 'text-orange-700 bg-orange-100 border-orange-300',
+    CE: 'text-blue-700 bg-blue-100 border-blue-300',
+    PE: 'text-pink-700 bg-pink-100 border-pink-300',
+    PENDING: 'text-slate-700 bg-slate-100 border-slate-300',
   };
 
   return (
@@ -170,7 +170,7 @@ export default function InstructorDashboard() {
                 <Link
                   key={cls.id}
                   to={`/instructor/class/${cls.id}`}
-                  className="block p-4 bg-[#fbf9f4] rounded-xl border border-[#e5dac9] hover:border-[#193a2b]/40 hover:bg-[#f0ebd9]/30 transition-all group"
+                  className="block p-4 bg-[#f7f4eb] rounded-xl border border-[#e5dac9] hover:border-[#193a2b]/40 hover:bg-[#f0ebd9]/50 transition-all group"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3 min-w-0">
@@ -223,7 +223,7 @@ export default function InstructorDashboard() {
 
             <div className="space-y-2">
               {recentSubmissions.map((sub) => (
-                <div key={sub.id} className="flex items-center justify-between p-3 bg-[#fbf9f4] rounded-xl border border-[#e5dac9] hover:border-[#193a2b]/30 transition-all">
+                <div key={sub.id} className="flex items-center justify-between p-3 bg-[#f7f4eb] rounded-xl border border-[#e5dac9] hover:border-[#193a2b]/30 transition-all">
                   <div className="flex items-center gap-3 min-w-0">
                     <span className={`text-xs px-2.5 py-1 rounded-md font-bold font-mono border ${verdictColors[sub.verdict] || 'bg-slate-100 text-slate-800'}`}>
                       {sub.verdict}
@@ -270,13 +270,13 @@ export default function InstructorDashboard() {
 
             <div className="space-y-2.5">
               {allHomeworks.filter((h) => h.status === 'active').slice(0, 4).map((hw) => (
-                <div key={hw.id} className="p-3 bg-[#fbf9f4] rounded-xl border border-[#e5dac9]">
+                <div key={hw.id} className="p-3 bg-[#f7f4eb] rounded-xl border border-[#e5dac9]">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="text-xs font-semibold text-[#191919] truncate">{hw.title}</p>
                       <p className="text-[11px] text-[#8a8073] mt-0.5">{hw.className}</p>
                     </div>
-                    <span className="text-[10px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 flex-shrink-0 flex items-center gap-1">
+                    <span className="text-[10px] font-semibold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300 flex-shrink-0 flex items-center gap-1">
                       <Clock size={10} /> {hw.deadline}
                     </span>
                   </div>
@@ -341,7 +341,7 @@ export default function InstructorDashboard() {
             const percentage = totalSubmissions > 0 ? Math.round((count / totalSubmissions) * 100) : 0;
 
             return (
-              <div key={verdict} className="p-3 bg-[#fbf9f4] rounded-xl border border-[#e5dac9] text-center">
+              <div key={verdict} className="p-3 bg-[#f7f4eb] rounded-xl border border-[#e5dac9] text-center">
                 <p className={`text-xl font-bold font-serif ${vTextColors[verdict] || 'text-[#191919]'}`}>
                   {count}
                 </p>

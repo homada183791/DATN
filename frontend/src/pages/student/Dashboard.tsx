@@ -10,13 +10,13 @@ import UpcomingContestCountdown from '../../components/UpcomingContestCountdown'
 import TopRatedLeaderboard from '../../components/TopRatedLeaderboard';
 
 const verdictColors: Record<string, string> = {
-  AC: 'text-emerald-700 bg-emerald-50 border-emerald-300',
-  WA: 'text-red-700 bg-red-50 border-red-300',
-  TLE: 'text-amber-700 bg-amber-50 border-amber-300',
-  MLE: 'text-amber-700 bg-amber-50 border-amber-300',
-  RTE: 'text-orange-700 bg-orange-50 border-orange-300',
-  CE: 'text-blue-700 bg-blue-50 border-blue-300',
-  PE: 'text-pink-700 bg-pink-50 border-pink-300',
+  AC: 'text-emerald-700 bg-emerald-100 border-emerald-300',
+  WA: 'text-red-700 bg-red-100 border-red-300',
+  TLE: 'text-amber-700 bg-amber-100 border-amber-300',
+  MLE: 'text-amber-700 bg-amber-100 border-amber-300',
+  RTE: 'text-orange-700 bg-orange-100 border-orange-300',
+  CE: 'text-blue-700 bg-blue-100 border-blue-300',
+  PE: 'text-pink-700 bg-pink-100 border-pink-300',
 };
 
 export default function StudentDashboard() {
@@ -177,7 +177,7 @@ export default function StudentDashboard() {
                 <Link
                   key={contest.id}
                   to={`/student/contest/${contest.id}`}
-                  className="w-full flex items-center gap-4 p-3.5 bg-[#fbf9f4] rounded-xl border border-[#e5dac9] hover:border-[#193a2b]/40 hover:bg-[#f0ebd9]/30 transition-all text-left group"
+                  className="w-full flex items-center gap-4 p-3.5 bg-[#f7f4eb] rounded-xl border border-[#e5dac9] hover:border-[#193a2b]/40 hover:bg-[#f0ebd9]/50 transition-all text-left group"
                 >
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                     contest.status === 'running' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
@@ -244,7 +244,7 @@ export default function StudentDashboard() {
             ) : (
               <div className="space-y-2">
                 {recentSubmissions.map((sub) => (
-                  <div key={sub.id} className="flex items-center justify-between p-3 bg-[#fbf9f4] rounded-xl border border-[#e5dac9] hover:border-[#193a2b]/30 transition-all">
+                  <div key={sub.id} className="flex items-center justify-between p-3 bg-[#f7f4eb] rounded-xl border border-[#e5dac9] hover:border-[#193a2b]/30 transition-all">
                     <div className="flex items-center gap-3 min-w-0">
                       <span className={`text-xs px-2.5 py-1 rounded-md font-bold font-mono border ${verdictColors[sub.verdict] || 'bg-slate-100 text-slate-800'}`}>
                         {sub.verdict}
@@ -287,7 +287,7 @@ export default function StudentDashboard() {
 
               <div className="space-y-2">
                 {leaderboardRows.slice(0, 4).map((entry) => (
-                  <div key={`${entry.rank}-${entry.username}`} className="flex items-center justify-between p-2 rounded-lg bg-[#fbf9f4] border border-[#f0ebd9]">
+                  <div key={`${entry.rank}-${entry.username}`} className="flex items-center justify-between p-2 rounded-lg bg-[#f7f4eb] border border-[#e5dac9]">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="w-5 h-5 rounded-full bg-[#f0ebd9] text-[#191919] text-[11px] font-bold flex items-center justify-center flex-shrink-0">
                         {entry.rank}
