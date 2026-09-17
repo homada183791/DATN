@@ -82,15 +82,15 @@ export default function CalendarPage({ userRole = 'student' }: Props) {
   const isLoading = contestsLoading || hwLoading;
 
   return (
-    <div className="space-y-3 text-[var(--ws-text)] max-w-7xl mx-auto">
-      {/* Top Banner (Compact) */}
-      <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] rounded-xl p-3 px-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-[var(--ws-accent)]/15 text-[var(--ws-accent)] flex items-center justify-center font-bold flex-shrink-0">
-            <CalendarIcon size={16} />
+    <div className="space-y-2.5 text-[var(--ws-text)] max-w-[1040px] mx-auto px-2">
+      {/* Top Banner (Clean & Compact) */}
+      <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] rounded-xl p-2.5 px-3.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-lg bg-[var(--ws-accent)]/15 text-[var(--ws-accent)] flex items-center justify-center font-bold flex-shrink-0">
+            <CalendarIcon size={14} />
           </div>
           <div>
-            <h1 className="text-base font-bold font-serif text-[var(--ws-text)] leading-tight flex items-center gap-2">
+            <h1 className="text-sm md:text-base font-bold font-serif text-[var(--ws-text)] leading-tight flex items-center gap-2">
               Lịch biểu học thuật
               <span className="text-[11px] font-normal text-[var(--ws-muted)] hidden md:inline">
                 • Đồng bộ hạn chót bài tập & lịch thi (UTC+7)
@@ -103,9 +103,9 @@ export default function CalendarPage({ userRole = 'student' }: Props) {
           <div className="flex items-center gap-2">
             <Link
               to="/instructor/classes"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--ws-accent)] text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-2xs"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--ws-accent)] text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-2xs"
             >
-              <Plus size={14} /> Giao bài tập
+              <Plus size={13} /> Giao bài tập
             </Link>
           </div>
         )}

@@ -9,13 +9,13 @@ export interface ThemeDef {
 }
 
 export const THEMES: ThemeDef[] = [
+  { id: 'nord', name: 'Nord', desc: 'Mặc định • Bắc cực xanh băng', dark: true, sw: ['#242933', '#2e3440', '#88c0d0'] },
+  { id: 'ember', name: 'Ember', desc: 'Than ấm + hổ phách', dark: true, sw: ['#161210', '#1f1915', '#f5a524'] },
   { id: 'midnight', name: 'Midnight Teal', desc: 'IDE workspace nguyên bản', dark: true, sw: ['#0a0f0e', '#101716', '#2dd4bf'] },
-  { id: 'ember', name: 'Ember', desc: 'Than ấm + hổ phách', dark: true, sw: ['#161210', '#1d1815', '#f5a524'] },
-  { id: 'nord', name: 'Nord', desc: 'Mặc định • Bắc cực xanh băng', dark: true, sw: ['#272c36', '#2e3440', '#88c0d0'] },
-  { id: 'sakura', name: 'Sakura', desc: 'Mận thẫm + hồng anh đào', dark: true, sw: ['#17121a', '#1e1723', '#f472b6'] },
+  { id: 'sakura', name: 'Sakura', desc: 'Mận thẫm + hồng anh đào', dark: true, sw: ['#18121d', '#211827', '#f472b6'] },
   { id: 'gruvbox', name: 'Gruvbox', desc: 'Nâu retro cổ điển', dark: true, sw: ['#1d2021', '#282828', '#fe8019'] },
-  { id: 'paper', name: 'Paper', desc: 'Giấy ngà học thuật', dark: false, sw: ['#f4f1e8', '#ffffff', '#0f766e'] },
-  { id: 'frost', name: 'Frost', desc: 'Sương sớm ban ngày', dark: false, sw: ['#eef2f6', '#ffffff', '#0369a1'] },
+  { id: 'paper', name: 'Paper Vintage', desc: 'Bản thảo giấy ngà cổ điển', dark: false, sw: ['#f5f0e3', '#fcf9f2', '#8b2500'] },
+  { id: 'frost', name: 'Frost Glacier', desc: 'Băng giá tuyết tuyền mát lạnh', dark: false, sw: ['#e5f0fb', '#ffffff', '#0284c7'] },
 ];
 
 interface ThemeContextType {
@@ -71,6 +71,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
     root.classList.remove(otherModeClass);
     body.classList.remove(otherModeClass);
+    THEMES.forEach((t) => {
+      root.classList.remove(`theme-${t.id}`);
+      body.classList.remove(`theme-${t.id}`);
+    });
     root.classList.add(modeClass, themeClass);
     body.classList.add(modeClass, themeClass);
 

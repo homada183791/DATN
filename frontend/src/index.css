@@ -20,26 +20,46 @@
   --ws-danger: #f87171;
   --ws-warn: #fbbf24;
   --ws-ok: #34d399;
+
+  /* Specific Homework & Contest tokens for harmonious theme synchronization */
+  --ws-hw-dot: #2dd4bf;
+  --ws-hw-text: #5eead4;
+  --ws-hw-bg: rgba(45, 212, 191, 0.12);
+  --ws-hw-border: rgba(45, 212, 191, 0.3);
+  --ws-contest-dot: #fbbf24;
+  --ws-contest-text: #fde047;
+  --ws-contest-bg: rgba(251, 191, 36, 0.12);
+  --ws-contest-border: rgba(251, 191, 36, 0.3);
 }
 
 .ws-light {
-  --ws-bg: #f4f1e8;
-  --ws-panel: #ffffff;
-  --ws-panel2: #f0ebd9;
-  --ws-border: #e2d8c4;
-  --ws-border-soft: #ece4d3;
-  --ws-text: #1c1b17;
-  --ws-muted: #6f6656;
-  --ws-faint: #a3987f;
-  --ws-accent: #0f766e;
-  --ws-accent-strong: #115e59;
-  --ws-accent-soft: rgba(15, 118, 110, 0.1);
-  --ws-editor: #fbf9f2;
-  --ws-gutter: #b3a88f;
-  --ws-hover: #f0ebd9;
-  --ws-danger: #dc2626;
-  --ws-warn: #d97706;
-  --ws-ok: #059669;
+  --ws-bg: #f5f0e3;
+  --ws-panel: #fcf9f2;
+  --ws-panel2: #eee6d3;
+  --ws-border: #d4c5a9;
+  --ws-border-soft: #e2d7c3;
+  --ws-text: #2c251e;
+  --ws-muted: #6b5c49;
+  --ws-faint: #988874;
+  --ws-accent: #8b2500;
+  --ws-accent-strong: #6a1c00;
+  --ws-accent-soft: rgba(139, 37, 0, 0.08);
+  --ws-editor: #f8f3ea;
+  --ws-gutter: #b8a994;
+  --ws-hover: #e8ded0;
+  --ws-danger: #b91c1c;
+  --ws-warn: #b45309;
+  --ws-ok: #15803d;
+
+  /* Light mode defaults */
+  --ws-hw-dot: #2d6a4f;
+  --ws-hw-text: #1b4332;
+  --ws-hw-bg: #e2eee6;
+  --ws-hw-border: #a3ccb4;
+  --ws-contest-dot: #9e2a2b;
+  --ws-contest-text: #781d1e;
+  --ws-contest-bg: #fae8e8;
+  --ws-contest-border: #e2a8aa;
 }
 
 /* ================= Base ================= */
@@ -129,46 +149,47 @@ tr, .group { transition: background-color .14s ease; }
 .ws-light .tok-pp  { color: #0070c1; }
 
 /* ============================================================
-   Dark-mode remap: every warm palette token used across pages
+   Theme remap: remap vintage hardcoded tokens to dynamic --ws-*
+   tokens for dark themes AND non-parchment light themes (Frost).
    ============================================================ */
 
 /* --- backgrounds --- */
-.ws-dark .bg-white { background-color: var(--ws-panel); }
-.ws-dark .bg-\[\#fbf9f4\],
-.ws-dark .bg-\[\#fbf9f4\]\/30,
-.ws-dark .bg-\[\#fbf9f4\]\/50,
-.ws-dark .bg-\[\#fbf9f4\]\/60,
-.ws-dark .bg-\[\#fbf9f4\]\/70,
-.ws-dark .bg-\[\#fbf9f4\]\/80,
-.ws-dark .bg-\[\#f7f4eb\],
-.ws-dark .bg-\[\#f7f4eb\]\/30,
-.ws-dark .bg-\[\#f7f4eb\]\/50,
-.ws-dark .bg-\[\#f7f4eb\]\/60,
-.ws-dark .bg-\[\#f7f4eb\]\/70,
-.ws-dark .bg-\[\#f7f4eb\]\/80,
-.ws-dark .bg-\[\#f0ebd9\],
-.ws-dark .bg-\[\#f0ebd9\]\/30,
-.ws-dark .bg-\[\#f0ebd9\]\/40,
-.ws-dark .bg-\[\#f0ebd9\]\/50 { background-color: var(--ws-panel2); }
-.ws-dark .bg-\[\#e5dac9\] { background-color: var(--ws-border); }
-.ws-dark .bg-\[\#eadecc\]\/60 { background-color: rgba(45, 212, 191, 0.08); }
-.ws-dark .bg-\[\#eadecc\]\/20 { background-color: rgba(45, 212, 191, 0.05); }
-.ws-dark .bg-\[\#d8cfbe\] { background-color: #2c3d37; }
-.ws-dark .bg-\[\#193a2b\] { background-color: var(--ws-accent-strong); }
-.ws-dark .bg-\[\#193a2b\]\/10 { background-color: var(--ws-accent-soft); }
-.ws-dark .bg-\[\#193a2b\]\/20 { background-color: rgba(45, 212, 191, 0.2); }
-.ws-dark .bg-\[\#cc5a37\]\/10 { background-color: rgba(204, 90, 55, 0.14); }
+:is(.ws-dark, .theme-frost) .bg-white { background-color: var(--ws-panel); }
+:is(.ws-dark, .theme-frost) .bg-\[\#fbf9f4\],
+:is(.ws-dark, .theme-frost) .bg-\[\#fbf9f4\]\/30,
+:is(.ws-dark, .theme-frost) .bg-\[\#fbf9f4\]\/50,
+:is(.ws-dark, .theme-frost) .bg-\[\#fbf9f4\]\/60,
+:is(.ws-dark, .theme-frost) .bg-\[\#fbf9f4\]\/70,
+:is(.ws-dark, .theme-frost) .bg-\[\#fbf9f4\]\/80,
+:is(.ws-dark, .theme-frost) .bg-\[\#f7f4eb\],
+:is(.ws-dark, .theme-frost) .bg-\[\#f7f4eb\]\/30,
+:is(.ws-dark, .theme-frost) .bg-\[\#f7f4eb\]\/50,
+:is(.ws-dark, .theme-frost) .bg-\[\#f7f4eb\]\/60,
+:is(.ws-dark, .theme-frost) .bg-\[\#f7f4eb\]\/70,
+:is(.ws-dark, .theme-frost) .bg-\[\#f7f4eb\]\/80,
+:is(.ws-dark, .theme-frost) .bg-\[\#f0ebd9\],
+:is(.ws-dark, .theme-frost) .bg-\[\#f0ebd9\]\/30,
+:is(.ws-dark, .theme-frost) .bg-\[\#f0ebd9\]\/40,
+:is(.ws-dark, .theme-frost) .bg-\[\#f0ebd9\]\/50 { background-color: var(--ws-panel2); }
+:is(.ws-dark, .theme-frost) .bg-\[\#e5dac9\] { background-color: var(--ws-border); }
+:is(.ws-dark, .theme-frost) .bg-\[\#eadecc\]\/60 { background-color: var(--ws-accent-soft); }
+:is(.ws-dark, .theme-frost) .bg-\[\#eadecc\]\/20 { background-color: var(--ws-accent-soft); }
+:is(.ws-dark, .theme-frost) .bg-\[\#d8cfbe\] { background-color: var(--ws-border); }
+:is(.ws-dark, .theme-frost) .bg-\[\#193a2b\] { background-color: var(--ws-accent-strong); }
+:is(.ws-dark, .theme-frost) .bg-\[\#193a2b\]\/10 { background-color: var(--ws-accent-soft); }
+:is(.ws-dark, .theme-frost) .bg-\[\#193a2b\]\/20 { background-color: var(--ws-accent-soft); }
+:is(.ws-dark, .theme-frost) .bg-\[\#cc5a37\]\/10 { background-color: rgba(204, 90, 55, 0.14); }
 
-.ws-dark .hover\:bg-\[\#fbf9f4\]:hover,
-.ws-dark .hover\:bg-\[\#f7f4eb\]:hover,
-.ws-dark .hover\:bg-\[\#f7f4eb\]\/50:hover,
-.ws-dark .hover\:bg-\[\#f0ebd9\]:hover,
-.ws-dark .hover\:bg-\[\#f0ebd9\]\/30:hover,
-.ws-dark .hover\:bg-\[\#f0ebd9\]\/50:hover,
-.ws-dark .hover\:bg-\[\#e5dac9\]:hover { background-color: var(--ws-hover); }
-.ws-dark .hover\:bg-\[\#143022\]:hover { background-color: #0b5e57; }
-.ws-dark .hover\:bg-\[\#eadecc\]\/60:hover { background-color: rgba(45, 212, 191, 0.1); }
-.ws-dark .hover\:bg-\[\#193a2b\]:hover { background-color: #0d9488; }
+:is(.ws-dark, .theme-frost) .hover\:bg-\[\#fbf9f4\]:hover,
+:is(.ws-dark, .theme-frost) .hover\:bg-\[\#f7f4eb\]:hover,
+:is(.ws-dark, .theme-frost) .hover\:bg-\[\#f7f4eb\]\/50:hover,
+:is(.ws-dark, .theme-frost) .hover\:bg-\[\#f0ebd9\]:hover,
+:is(.ws-dark, .theme-frost) .hover\:bg-\[\#f0ebd9\]\/30:hover,
+:is(.ws-dark, .theme-frost) .hover\:bg-\[\#f0ebd9\]\/50:hover,
+:is(.ws-dark, .theme-frost) .hover\:bg-\[\#e5dac9\]:hover { background-color: var(--ws-hover); }
+:is(.ws-dark, .theme-frost) .hover\:bg-\[\#143022\]:hover { background-color: var(--ws-accent-strong); }
+:is(.ws-dark, .theme-frost) .hover\:bg-\[\#eadecc\]\/60:hover { background-color: var(--ws-hover); }
+:is(.ws-dark, .theme-frost) .hover\:bg-\[\#193a2b\]:hover { background-color: var(--ws-accent); }
 
 /* status chips → translucent on dark */
 .ws-dark .bg-emerald-100,
@@ -191,20 +212,20 @@ tr, .group { transition: background-color .14s ease; }
 .ws-dark .bg-slate-50 { background-color: rgba(148, 163, 184, 0.15); }
 
 /* --- borders --- */
-.ws-dark .border-\[\#e5dac9\],
-.ws-dark .border-\[\#e5dac9\]\/30,
-.ws-dark .border-\[\#e5dac9\]\/40,
-.ws-dark .border-\[\#e5dac9\]\/50,
-.ws-dark .border-\[\#e5dac9\]\/60,
-.ws-dark .border-\[\#f0ebd9\],
-.ws-dark .border-\[\#f0ebd9\]\/50,
-.ws-dark .border-\[\#f0ebd9\]\/60,
-.ws-dark .border-\[\#d8cfbe\] { border-color: var(--ws-border); }
-.ws-dark .border-\[\#193a2b\]\/30 { border-color: var(--ws-border-soft); }
-.ws-dark .hover\:border-\[\#193a2b\]\/30:hover,
-.ws-dark .hover\:border-\[\#193a2b\]\/40:hover { border-color: var(--ws-accent); }
-.ws-dark .hover\:border-\[\#bfae99\]:hover { border-color: var(--ws-border); }
-.ws-dark .divide-\[\#e5dac9\]\/60 > :not([hidden]) ~ :not([hidden]) { border-color: var(--ws-border); }
+:is(.ws-dark, .theme-frost) .border-\[\#e5dac9\],
+:is(.ws-dark, .theme-frost) .border-\[\#e5dac9\]\/30,
+:is(.ws-dark, .theme-frost) .border-\[\#e5dac9\]\/40,
+:is(.ws-dark, .theme-frost) .border-\[\#e5dac9\]\/50,
+:is(.ws-dark, .theme-frost) .border-\[\#e5dac9\]\/60,
+:is(.ws-dark, .theme-frost) .border-\[\#f0ebd9\],
+:is(.ws-dark, .theme-frost) .border-\[\#f0ebd9\]\/50,
+:is(.ws-dark, .theme-frost) .border-\[\#f0ebd9\]\/60,
+:is(.ws-dark, .theme-frost) .border-\[\#d8cfbe\] { border-color: var(--ws-border); }
+:is(.ws-dark, .theme-frost) .border-\[\#193a2b\]\/30 { border-color: var(--ws-border-soft); }
+:is(.ws-dark, .theme-frost) .hover\:border-\[\#193a2b\]\/30:hover,
+:is(.ws-dark, .theme-frost) .hover\:border-\[\#193a2b\]\/40:hover { border-color: var(--ws-accent); }
+:is(.ws-dark, .theme-frost) .hover\:border-\[\#bfae99\]:hover { border-color: var(--ws-border); }
+:is(.ws-dark, .theme-frost) .divide-\[\#e5dac9\]\/60 > :not([hidden]) ~ :not([hidden]) { border-color: var(--ws-border); }
 .ws-dark .border-emerald-200,
 .ws-dark .border-emerald-300 { border-color: rgba(16, 185, 129, 0.35); }
 .ws-dark .border-red-200,
@@ -225,14 +246,14 @@ tr, .group { transition: background-color .14s ease; }
 .ws-dark .border-slate-300 { border-color: rgba(148, 163, 184, 0.3); }
 
 /* --- text --- */
-.ws-dark .text-\[\#191919\] { color: var(--ws-text); }
-.ws-dark .text-\[\#5c5446\] { color: var(--ws-text); opacity: 0.88; }
-.ws-dark .text-\[\#8a8073\] { color: var(--ws-muted); }
-.ws-dark .text-\[\#bfae99\] { color: var(--ws-faint); }
-.ws-dark .text-\[\#193a2b\] { color: var(--ws-accent); }
-.ws-dark .hover\:text-\[\#191919\]:hover { color: var(--ws-text); }
-.ws-dark .hover\:text-\[\#193a2b\]:hover { color: var(--ws-accent); }
-.ws-dark .placeholder-\[\#bfae99\]::placeholder { color: var(--ws-faint); }
+:is(.ws-dark, .theme-frost) .text-\[\#191919\] { color: var(--ws-text); }
+:is(.ws-dark, .theme-frost) .text-\[\#5c5446\] { color: var(--ws-text); opacity: 0.88; }
+:is(.ws-dark, .theme-frost) .text-\[\#8a8073\] { color: var(--ws-muted); }
+:is(.ws-dark, .theme-frost) .text-\[\#bfae99\] { color: var(--ws-faint); }
+:is(.ws-dark, .theme-frost) .text-\[\#193a2b\] { color: var(--ws-accent); }
+:is(.ws-dark, .theme-frost) .hover\:text-\[\#191919\]:hover { color: var(--ws-text); }
+:is(.ws-dark, .theme-frost) .hover\:text-\[\#193a2b\]:hover { color: var(--ws-accent); }
+:is(.ws-dark, .theme-frost) .placeholder-\[\#bfae99\]::placeholder { color: var(--ws-faint); }
 
 /* chip text → bright variants on dark */
 .ws-dark .text-emerald-800 { color: #6ee7b7; }
@@ -261,8 +282,8 @@ tr, .group { transition: background-color .14s ease; }
 .ws-dark .text-slate-700 { color: #cbd5e1; }
 
 /* --- gradients (avatars / accents) --- */
-.ws-dark .from-\[\#193a2b\] { --tw-gradient-from: #0d9488; }
-.ws-dark .to-\[\#2d5a3f\] { --tw-gradient-to: #115e59; }
+:is(.ws-dark, .theme-frost) .from-\[\#193a2b\] { --tw-gradient-from: var(--ws-accent-strong); }
+:is(.ws-dark, .theme-frost) .to-\[\#2d5a3f\] { --tw-gradient-to: var(--ws-accent); }
 
 /* ================= Animations ================= */
 
@@ -297,22 +318,32 @@ tr, .group { transition: background-color .14s ease; }
 /* 🕯️ Ember — warm charcoal, amber glow (night lamp coding) */
 .theme-ember {
   --ws-bg: #161210;
-  --ws-panel: #1d1815;
-  --ws-panel2: #261e19;
-  --ws-border: #3a2d24;
-  --ws-border-soft: #2d231c;
-  --ws-text: #f2e9df;
-  --ws-muted: #a89684;
-  --ws-faint: #7a6a5a;
+  --ws-panel: #1f1915;
+  --ws-panel2: #2a221d;
+  --ws-border: #3d3028;
+  --ws-border-soft: #2e241e;
+  --ws-text: #f5ebe1;
+  --ws-muted: #b09c89;
+  --ws-faint: #7f6e5e;
   --ws-accent: #f5a524;
   --ws-accent-strong: #d97706;
-  --ws-accent-soft: rgba(245, 165, 36, 0.14);
+  --ws-accent-soft: rgba(245, 165, 36, 0.15);
   --ws-editor: #130f0d;
   --ws-gutter: #6b5a49;
   --ws-hover: #2b211a;
   --ws-danger: #f87171;
   --ws-warn: #fbbf24;
   --ws-ok: #4ade80;
+
+  /* Ember specific: Jade embers for homework, Fiery flame for contest */
+  --ws-hw-dot: #10b981;
+  --ws-hw-text: #6ee7b7;
+  --ws-hw-bg: rgba(16, 185, 129, 0.15);
+  --ws-hw-border: rgba(16, 185, 129, 0.35);
+  --ws-contest-dot: #f97316;
+  --ws-contest-text: #fdba74;
+  --ws-contest-bg: rgba(249, 115, 22, 0.15);
+  --ws-contest-border: rgba(249, 115, 22, 0.35);
 }
 .theme-ember .tok-kw  { color: #ff8f5e; }
 .theme-ember .tok-ty  { color: #ffcf6b; }
@@ -326,23 +357,33 @@ tr, .group { transition: background-color .14s ease; }
 
 /* ❄️ Nord — arctic blue-gray, frost accent (classic IDE) */
 .theme-nord {
-  --ws-bg: #272c36;
+  --ws-bg: #242933;
   --ws-panel: #2e3440;
   --ws-panel2: #363d4b;
-  --ws-border: #404859;
-  --ws-border-soft: #39404e;
+  --ws-border: #434c5e;
+  --ws-border-soft: #3b4252;
   --ws-text: #eceff4;
   --ws-muted: #9aa5b8;
   --ws-faint: #6b7689;
   --ws-accent: #88c0d0;
   --ws-accent-strong: #5e81ac;
-  --ws-accent-soft: rgba(136, 192, 208, 0.14);
+  --ws-accent-soft: rgba(136, 192, 208, 0.15);
   --ws-editor: #252a34;
   --ws-gutter: #5f6b80;
   --ws-hover: #353c4a;
   --ws-danger: #bf616a;
   --ws-warn: #ebcb8b;
   --ws-ok: #a3be8c;
+
+  /* Nord specific: Aurora Green for homework, Aurora Gold for contest */
+  --ws-hw-dot: #a3be8c;
+  --ws-hw-text: #a3be8c;
+  --ws-hw-bg: rgba(163, 190, 140, 0.15);
+  --ws-hw-border: rgba(163, 190, 140, 0.35);
+  --ws-contest-dot: #ebcb8b;
+  --ws-contest-text: #ebcb8b;
+  --ws-contest-bg: rgba(235, 203, 139, 0.15);
+  --ws-contest-border: rgba(235, 203, 139, 0.35);
 }
 .theme-nord .tok-kw  { color: #81a1c1; }
 .theme-nord .tok-ty  { color: #8fbcbb; }
@@ -356,23 +397,33 @@ tr, .group { transition: background-color .14s ease; }
 
 /* 🌸 Sakura — deep plum, rose accent + mint secondary */
 .theme-sakura {
-  --ws-bg: #17121a;
-  --ws-panel: #1e1723;
-  --ws-panel2: #271d2e;
-  --ws-border: #3b2c45;
-  --ws-border-soft: #2f2438;
-  --ws-text: #f3edf5;
-  --ws-muted: #a795b0;
-  --ws-faint: #7d6b8f;
+  --ws-bg: #18121d;
+  --ws-panel: #211827;
+  --ws-panel2: #2b1f33;
+  --ws-border: #422f4e;
+  --ws-border-soft: #33243d;
+  --ws-text: #f6eff8;
+  --ws-muted: #b09bb9;
+  --ws-faint: #816e8a;
   --ws-accent: #f472b6;
   --ws-accent-strong: #db2777;
-  --ws-accent-soft: rgba(244, 114, 182, 0.13);
+  --ws-accent-soft: rgba(244, 114, 182, 0.15);
   --ws-editor: #150f18;
   --ws-gutter: #6d5a78;
   --ws-hover: #2c2034;
   --ws-danger: #fb7185;
   --ws-warn: #fcd34d;
   --ws-ok: #6ee7b7;
+
+  /* Sakura specific: Spring Jade for homework, Cherry Blossom Pink for contest */
+  --ws-hw-dot: #2dd4bf;
+  --ws-hw-text: #5eead4;
+  --ws-hw-bg: rgba(45, 212, 191, 0.15);
+  --ws-hw-border: rgba(45, 212, 191, 0.35);
+  --ws-contest-dot: #f472b6;
+  --ws-contest-text: #f9a8d4;
+  --ws-contest-bg: rgba(244, 114, 182, 0.15);
+  --ws-contest-border: rgba(244, 114, 182, 0.35);
 }
 .theme-sakura .tok-kw  { color: #c792ea; }
 .theme-sakura .tok-ty  { color: #82aaff; }
@@ -396,13 +447,23 @@ tr, .group { transition: background-color .14s ease; }
   --ws-faint: #7c6f64;
   --ws-accent: #fe8019;
   --ws-accent-strong: #d65d0e;
-  --ws-accent-soft: rgba(254, 128, 25, 0.14);
+  --ws-accent-soft: rgba(254, 128, 25, 0.15);
   --ws-editor: #1d2021;
   --ws-gutter: #665c54;
   --ws-hover: #32302f;
   --ws-danger: #fb4934;
   --ws-warn: #fabd2f;
   --ws-ok: #b8bb26;
+
+  /* Gruvbox specific: Gruvbox Aqua for homework, Gruvbox Orange for contest */
+  --ws-hw-dot: #8ec07c;
+  --ws-hw-text: #8ec07c;
+  --ws-hw-bg: rgba(142, 192, 124, 0.15);
+  --ws-hw-border: rgba(142, 192, 124, 0.35);
+  --ws-contest-dot: #fe8019;
+  --ws-contest-text: #fabd2f;
+  --ws-contest-bg: rgba(254, 128, 25, 0.15);
+  --ws-contest-border: rgba(254, 128, 25, 0.35);
 }
 .theme-gruvbox .tok-kw  { color: #fb4934; }
 .theme-gruvbox .tok-ty  { color: #8ec07c; }
@@ -414,23 +475,78 @@ tr, .group { transition: background-color .14s ease; }
 .theme-gruvbox .bg-\[\#193a2b\] { background-color: #d65d0e; }
 .theme-gruvbox .hover\:bg-\[\#143022\]:hover { background-color: #b34e0c; }
 
-/* 🧊 Frost — cool light mode (blue-gray daylight) */
+/* 📜 Paper — Vintage Academic Manuscript (Warm parchment, iron gall ink, deep academic contrast) */
+.theme-paper {
+  --ws-bg: #f5f0e3;
+  --ws-panel: #fcf9f2;
+  --ws-panel2: #eee6d3;
+  --ws-border: #d4c5a9;
+  --ws-border-soft: #e2d7c3;
+  --ws-text: #2c251e;
+  --ws-muted: #6b5c49;
+  --ws-faint: #988874;
+  --ws-accent: #8b2500;
+  --ws-accent-strong: #6a1c00;
+  --ws-accent-soft: rgba(139, 37, 0, 0.08);
+  --ws-editor: #f8f3ea;
+  --ws-gutter: #b8a994;
+  --ws-hover: #e8ded0;
+  --ws-danger: #b91c1c;
+  --ws-warn: #b45309;
+  --ws-ok: #15803d;
+
+  /* Paper specific: Oxford Forest Green for homework, Burgundy Wine Red for contest */
+  --ws-hw-dot: #2d6a4f;
+  --ws-hw-text: #1b4332;
+  --ws-hw-bg: #e2eee6;
+  --ws-hw-border: #a3ccb4;
+  --ws-contest-dot: #9e2a2b;
+  --ws-contest-text: #781d1e;
+  --ws-contest-bg: #fae8e8;
+  --ws-contest-border: #e2a8aa;
+}
+.theme-paper .tok-kw  { color: #8b2500; }
+.theme-paper .tok-ty  { color: #1b4332; }
+.theme-paper .tok-str { color: #2d6a4f; }
+.theme-paper .tok-com { color: #8a7a67; font-style: italic; }
+.theme-paper .tok-num { color: #9e2a2b; }
+.theme-paper .tok-fn  { color: #78350f; }
+.theme-paper .tok-pp  { color: #0284c7; }
+
+/* 🧊 Frost — Crisp Glacial Ice (Pure frozen cyan-blue daylight, crystal white, sapphire & arctic cyan) */
 .theme-frost {
-  --ws-bg: #eef2f6;
+  --ws-bg: #e5f0fb;
   --ws-panel: #ffffff;
-  --ws-panel2: #e3eaf2;
-  --ws-border: #d4dde8;
-  --ws-border-soft: #e0e7ef;
-  --ws-text: #16202b;
-  --ws-muted: #5a6b7e;
-  --ws-faint: #8fa0b3;
-  --ws-accent: #0369a1;
-  --ws-accent-strong: #075985;
-  --ws-accent-soft: rgba(3, 105, 161, 0.1);
-  --ws-editor: #f8fafc;
-  --ws-gutter: #9fb0c3;
-  --ws-hover: #e3eaf2;
+  --ws-panel2: #d6e8f7;
+  --ws-border: #b8d5ee;
+  --ws-border-soft: #cce1f5;
+  --ws-text: #0d2238;
+  --ws-muted: #436384;
+  --ws-faint: #789bbd;
+  --ws-accent: #0284c7;
+  --ws-accent-strong: #0369a1;
+  --ws-accent-soft: rgba(2, 132, 199, 0.12);
+  --ws-editor: #f0f7ff;
+  --ws-gutter: #91acc7;
+  --ws-hover: #d2e5f5;
   --ws-danger: #dc2626;
   --ws-warn: #d97706;
   --ws-ok: #059669;
+
+  /* Frost specific: Arctic Glacial Cyan for homework, Deep Sapphire Ice Blue for contest */
+  --ws-hw-dot: #0891b2;
+  --ws-hw-text: #0e7490;
+  --ws-hw-bg: #e0f6fa;
+  --ws-hw-border: #99e0ee;
+  --ws-contest-dot: #2563eb;
+  --ws-contest-text: #1d4ed8;
+  --ws-contest-bg: #ebf1ff;
+  --ws-contest-border: #b3ccfc;
 }
+.theme-frost .tok-kw  { color: #2563eb; }
+.theme-frost .tok-ty  { color: #0891b2; }
+.theme-frost .tok-str { color: #059669; }
+.theme-frost .tok-com { color: #64748b; font-style: italic; }
+.theme-frost .tok-num { color: #7c3aed; }
+.theme-frost .tok-fn  { color: #0284c7; }
+.theme-frost .tok-pp  { color: #0369a1; }

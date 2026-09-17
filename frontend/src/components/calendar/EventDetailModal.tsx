@@ -54,19 +54,22 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
         <div className="flex items-start justify-between p-5 border-b border-[var(--ws-border)]">
           <div className="flex items-center gap-3">
             <div
-              className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                isContest ? 'bg-amber-100 text-amber-800' : 'bg-teal-100 text-teal-800'
-              }`}
+              style={{
+                backgroundColor: isContest ? 'var(--ws-contest-bg)' : 'var(--ws-hw-bg)',
+                color: isContest ? 'var(--ws-contest-text)' : 'var(--ws-hw-text)',
+              }}
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
             >
               {isContest ? <Trophy size={20} /> : <BookOpen size={20} />}
             </div>
             <div>
               <span
-                className={`inline-block text-[11px] font-bold px-2 py-0.5 rounded-md border ${
-                  isContest
-                    ? 'bg-amber-100 text-amber-800 border-amber-300'
-                    : 'bg-teal-100 text-teal-800 border-teal-300'
-                }`}
+                style={{
+                  backgroundColor: isContest ? 'var(--ws-contest-bg)' : 'var(--ws-hw-bg)',
+                  color: isContest ? 'var(--ws-contest-text)' : 'var(--ws-hw-text)',
+                  borderColor: isContest ? 'var(--ws-contest-border)' : 'var(--ws-hw-border)',
+                }}
+                className="inline-block text-[11px] font-bold px-2 py-0.5 rounded-md border"
               >
                 {isContest ? 'Kỳ thi' : 'Bài tập về nhà'}
               </span>

@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Calendar as CalendarIcon,
   BookOpen,
   Trophy,
@@ -51,6 +52,19 @@ export default function CalendarView({ events, userRole = 'student', classes = [
   const [typeFilter, setTypeFilter] = useState<'all' | 'homework' | 'contest'>('all');
   const [classFilter, setClassFilter] = useState<string>('all');
   const [activeModalEvent, setActiveModalEvent] = useState<CalendarEvent | null>(null);
+  const [showMonthPicker, setShowMonthPicker] = useState<boolean>(false);
+  const monthPickerRef = useRef<HTMLDivElement>(null);
+
+  // Close month picker when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (monthPickerRef.current && !monthPickerRef.current.contains(e.target as Node)) {
+        setShowMonthPicker(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Navigation handlers
   const goToToday = () => {
@@ -247,12 +261,13 @@ export default function CalendarView({ events, userRole = 'student', classes = [
   ];
 
   return (
-    <div className="space-y-2.5">
-      {/* Calendar Header Card (Compact ~3/5) */}
-      <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] rounded-xl p-2.5 px-3.5 shadow-2xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
-          {/* Left: Today + Arrows + Month/Year */}
-          <div className="flex items-center gap-2.5">
+    <>
+      {/* Unified Google Calendar Card */}
+      <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] rounded-2xl shadow-sm overflow-hidden flex flex-col">
+        {/* 1. Integrated Header Toolbar */}
+        <div className="p-2.5 px-3.5 border-b border-[var(--ws-border)] bg-[var(--ws-panel2)]/35 flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+          {/* Left: Today + Arrows + Month/Year Picker Dropdown */}
+          <div className="flex items-center gap-2">
             <button
               onClick={goToToday}
               className="px-2.5 py-1 rounded-lg border border-[var(--ws-border)] text-[11.5px] font-semibold text-[var(--ws-text)] hover:bg-[var(--ws-hover)] transition-colors"
@@ -277,13 +292,70 @@ export default function CalendarView({ events, userRole = 'student', classes = [
               </button>
             </div>
 
-            <div className="flex items-center gap-1.5 ml-1">
-              <h2 className="text-base md:text-lg font-bold font-serif text-[var(--ws-text)] tracking-tight">
-                {monthNamesEn[currentMonth - 1]} {currentYear}
-              </h2>
-              <span className="text-[11px] text-[var(--ws-muted)] hidden sm:inline">
-                (Tháng {currentMonth}, {currentYear})
-              </span>
+            {/* Month/Year Title with dropdown trigger (as in reference image: September 2026 ▾) */}
+            <div className="relative" ref={monthPickerRef}>
+              <button
+                type="button"
+                onClick={() => setShowMonthPicker((v) => !v)}
+                className="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-[var(--ws-hover)] transition-colors group cursor-pointer"
+                title="Chọn tháng / năm"
+              >
+                <h2 className="text-base font-bold font-serif text-[var(--ws-text)] tracking-tight">
+                  {monthNamesEn[currentMonth - 1]} {currentYear}
+                </h2>
+                <ChevronDown
+                  size={14}
+                  className={`text-[var(--ws-muted)] group-hover:text-[var(--ws-text)] transition-transform duration-200 ${
+                    showMonthPicker ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+
+              {/* Quick Month & Year Popover */}
+              {showMonthPicker && (
+                <div className="absolute top-full left-0 mt-1.5 w-64 p-3 bg-[var(--ws-panel)] border border-[var(--ws-border)] rounded-xl shadow-xl z-50">
+                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--ws-border)]">
+                    <span className="text-xs font-bold text-[var(--ws-text)]">Năm {currentYear}</span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setCurrentYear((y) => y - 1)}
+                        className="p-1 rounded hover:bg-[var(--ws-hover)] text-[var(--ws-muted)] hover:text-[var(--ws-text)]"
+                      >
+                        <ChevronLeft size={13} />
+                      </button>
+                      <button
+                        onClick={() => setCurrentYear((y) => y + 1)}
+                        className="p-1 rounded hover:bg-[var(--ws-hover)] text-[var(--ws-muted)] hover:text-[var(--ws-text)]"
+                      >
+                        <ChevronRight size={13} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-1">
+                    {monthNamesEn.map((mName, idx) => {
+                      const mNum = idx + 1;
+                      const isSelected = mNum === currentMonth;
+                      return (
+                        <button
+                          key={mName}
+                          onClick={() => {
+                            setCurrentMonth(mNum);
+                            setShowMonthPicker(false);
+                          }}
+                          className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                            isSelected
+                              ? 'bg-[var(--ws-accent)] text-white shadow-2xs'
+                              : 'text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:bg-[var(--ws-hover)]'
+                          }`}
+                        >
+                          {mName.slice(0, 3)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -303,9 +375,14 @@ export default function CalendarView({ events, userRole = 'student', classes = [
               </button>
               <button
                 onClick={() => setTypeFilter('homework')}
+                style={
+                  typeFilter === 'homework'
+                    ? { backgroundColor: 'var(--ws-hw-dot)', color: '#fff' }
+                    : undefined
+                }
                 className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all flex items-center gap-1 ${
                   typeFilter === 'homework'
-                    ? 'bg-teal-600 text-white shadow-2xs'
+                    ? 'shadow-2xs text-white'
                     : 'text-[var(--ws-muted)] hover:text-[var(--ws-text)]'
                 }`}
               >
@@ -313,9 +390,14 @@ export default function CalendarView({ events, userRole = 'student', classes = [
               </button>
               <button
                 onClick={() => setTypeFilter('contest')}
+                style={
+                  typeFilter === 'contest'
+                    ? { backgroundColor: 'var(--ws-contest-dot)', color: '#fff' }
+                    : undefined
+                }
                 className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all flex items-center gap-1 ${
                   typeFilter === 'contest'
-                    ? 'bg-amber-600 text-white shadow-2xs'
+                    ? 'shadow-2xs text-white'
                     : 'text-[var(--ws-muted)] hover:text-[var(--ws-text)]'
                 }`}
               >
@@ -383,289 +465,325 @@ export default function CalendarView({ events, userRole = 'student', classes = [
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Main Calendar Body */}
-      {viewMode === 'month' && (
-        <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] rounded-xl shadow-2xs overflow-hidden">
-          {/* Day of week headers */}
-          <div className="grid grid-cols-7 border-b border-[var(--ws-border)] bg-[var(--ws-panel2)]/50 text-center text-[11px] font-bold text-[var(--ws-muted)] py-1.5">
-            {DAYS_OF_WEEK.map((d) => (
-              <div key={d.key} className="tracking-wider">
-                <span className="hidden sm:inline">{d.labelEn}</span>
-                <span className="sm:hidden">{d.labelVi}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Month Day Grid (7 cols x 5/6 rows, compact ~3/5 size) */}
-          <div className="grid grid-cols-7 divide-x divide-y divide-[var(--ws-border)]">
-            {monthGridDays.map((cell) => {
-              const dayEvents = eventsByDate[cell.dateString] || [];
-              const hasEvents = dayEvents.length > 0;
-
-              return (
-                <div
-                  key={cell.dateString}
-                  onClick={() => setSelectedDate(cell.dateString)}
-                  className={`min-h-[60px] md:min-h-[68px] p-1 transition-colors flex flex-col justify-start cursor-pointer ${
-                    cell.isCurrentMonth
-                      ? 'bg-[var(--ws-panel)] hover:bg-[var(--ws-panel2)]/40'
-                      : 'bg-[var(--ws-panel2)]/30 opacity-40'
-                  }`}
-                >
-                  {/* Date Header inside cell */}
-                  <div className="flex items-center justify-between leading-none mb-0.5">
-                    {cell.isToday ? (
-                      <div className="w-5 h-5 rounded-full bg-[var(--ws-accent)] text-white font-bold text-[10.5px] flex items-center justify-center shadow-2xs">
-                        {cell.day}
-                      </div>
-                    ) : cell.isFirstOfMonth ? (
-                      <span className="text-[10.5px] font-bold text-[var(--ws-text)]">
-                        {monthNamesEn[cell.month - 1].slice(0, 3)} {cell.day}
-                      </span>
-                    ) : (
-                      <span className="text-[10.5px] font-medium text-[var(--ws-muted)] pl-0.5">
-                        {cell.day}
-                      </span>
-                    )}
-
-                    {hasEvents && (
-                      <span className="text-[9px] font-semibold text-[var(--ws-muted)] pr-0.5">
-                        {dayEvents.length}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Event list in cell */}
-                  <div className="space-y-0.5 flex-1 overflow-hidden">
-                    {dayEvents.slice(0, 2).map((ev) => {
-                      const isContest = ev.type === 'contest';
-                      return (
-                        <button
-                          key={ev.id}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActiveModalEvent(ev);
-                          }}
-                          className={`w-full text-left flex items-center gap-1 px-1 py-0.2 rounded text-[9.5px] leading-tight transition-all truncate group ${
-                            isContest
-                              ? 'text-amber-800 dark:text-amber-300 hover:bg-amber-100/50 dark:hover:bg-amber-900/30'
-                              : 'text-teal-800 dark:text-teal-300 hover:bg-teal-100/50 dark:hover:bg-teal-900/30'
-                          }`}
-                          title={`${ev.timeStr} • ${ev.title}`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                              isContest ? 'bg-amber-500' : 'bg-teal-500'
-                            }`}
-                          />
-                          <span className="font-mono text-[9px] opacity-80 flex-shrink-0">
-                            {ev.timeStr}
-                          </span>
-                          <span className="truncate font-medium">{ev.title}</span>
-                        </button>
-                      );
-                    })}
-
-                    {dayEvents.length > 2 && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedDate(cell.dateString);
-                          setViewMode('agenda');
-                        }}
-                        className="text-[9px] font-semibold text-[var(--ws-accent)] hover:underline pl-0.5 leading-none block"
-                      >
-                        +{dayEvents.length - 2} sự kiện
-                      </button>
-                    )}
-                  </div>
+        {/* 2. Month View Grid */}
+        {viewMode === 'month' && (
+          <div className="flex flex-col">
+            {/* Day of week headers (Centered like Google Calendar) */}
+            <div className="grid grid-cols-7 border-b border-[var(--ws-border)] bg-[var(--ws-panel2)]/50 text-center text-[11px] font-bold text-[var(--ws-muted)] py-1.5">
+              {DAYS_OF_WEEK.map((d) => (
+                <div key={d.key} className="tracking-wider">
+                  <span className="hidden sm:inline">{d.labelEn}</span>
+                  <span className="sm:hidden">{d.labelVi}</span>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Week View */}
-      {viewMode === 'week' && (
-        <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] rounded-xl shadow-2xs overflow-hidden">
-          {/* Week Headers */}
-          <div className="grid grid-cols-7 border-b border-[var(--ws-border)] bg-[var(--ws-panel2)]/50 divide-x divide-[var(--ws-border)]">
-            {weekDays.map((d) => (
-              <div
-                key={d.dateString}
-                className={`py-1.5 px-1 text-center ${
-                  d.isToday ? 'bg-[var(--ws-accent)]/10 font-bold' : ''
-                }`}
-              >
-                <p className="text-[10px] uppercase tracking-wider text-[var(--ws-muted)]">
-                  {d.dayName}
-                </p>
-                <div className="mt-0.5 flex items-center justify-center">
-                  {d.isToday ? (
-                    <span className="w-5 h-5 rounded-full bg-[var(--ws-accent)] text-white text-[10.5px] font-bold flex items-center justify-center shadow-2xs">
-                      {d.dayNumber}
-                    </span>
-                  ) : (
-                    <span className="text-xs font-semibold text-[var(--ws-text)]">
-                      {d.dayNumber}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Week Event Columns */}
-          <div className="grid grid-cols-7 divide-x divide-[var(--ws-border)] min-h-[220px]">
-            {weekDays.map((d) => {
-              const dayEvents = eventsByDate[d.dateString] || [];
-              return (
-                <div key={d.dateString} className="p-1.5 space-y-1.5 bg-[var(--ws-panel)]">
-                  {dayEvents.map((ev) => {
-                    const isContest = ev.type === 'contest';
-                    return (
-                      <button
-                        key={ev.id}
-                        onClick={() => setActiveModalEvent(ev)}
-                        className={`w-full text-left p-1.5 rounded-lg border transition-all text-[11px] ${
-                          isContest
-                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-800 dark:text-amber-200 hover:border-amber-500/60'
-                            : 'bg-teal-500/10 border-teal-500/30 text-teal-800 dark:text-teal-200 hover:border-teal-500/60'
-                        }`}
-                      >
-                        <div className="flex items-center gap-1 font-mono text-[9.5px] opacity-80 mb-0.5">
-                          <Clock size={10} /> {ev.timeStr}
-                        </div>
-                        <p className="font-semibold line-clamp-2 leading-tight">{ev.title}</p>
-                        {ev.className && (
-                          <p className="text-[9.5px] text-[var(--ws-muted)] mt-0.5 truncate">
-                            {ev.className}
-                          </p>
-                        )}
-                      </button>
-                    );
-                  })}
-
-                  {dayEvents.length === 0 && (
-                    <div className="py-6 text-center text-[10px] text-[var(--ws-muted)] opacity-40">
-                      —
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Agenda / Schedule View */}
-      {viewMode === 'agenda' && (
-        <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] rounded-xl p-3.5 shadow-2xs">
-          <div className="mb-2.5 pb-2 border-b border-[var(--ws-border)] flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-bold font-serif text-[var(--ws-text)]">
-                Lịch trình sự kiện sắp diễn ra
-              </h3>
-              <p className="text-[11px] text-[var(--ws-muted)] mt-0.5">
-                Tổng hợp bài tập cần nộp và các kỳ thi theo thứ tự thời gian
-              </p>
+              ))}
             </div>
-            <span className="text-[11px] font-semibold text-[var(--ws-muted)] bg-[var(--ws-panel2)] px-2 py-0.5 rounded-md border border-[var(--ws-border)]">
-              {filteredEvents.length} sự kiện
-            </span>
-          </div>
 
-          {filteredEvents.length === 0 ? (
-            <div className="py-8 text-center border border-dashed border-[var(--ws-border)] rounded-lg">
-              <CalendarIcon size={24} className="text-[var(--ws-faint)] mx-auto mb-1.5" />
-              <p className="text-xs text-[var(--ws-muted)]">
-                Không tìm thấy sự kiện hoặc hạn chót nào phù hợp với bộ lọc.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {filteredEvents.map((ev) => {
-                const isContest = ev.type === 'contest';
+            {/* Month Day Grid - Balanced cell proportions min-h-[82px] md:min-h-[90px] */}
+            <div className="grid grid-cols-7 divide-x divide-y divide-[var(--ws-border)]">
+              {monthGridDays.map((cell) => {
+                const dayEvents = eventsByDate[cell.dateString] || [];
+                const hasEvents = dayEvents.length > 0;
+
                 return (
                   <div
-                    key={ev.id}
-                    onClick={() => setActiveModalEvent(ev)}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 bg-[var(--ws-panel2)] rounded-lg border border-[var(--ws-border)] hover:border-[var(--ws-accent)]/40 transition-all cursor-pointer gap-2"
+                    key={cell.dateString}
+                    onClick={() => setSelectedDate(cell.dateString)}
+                    className={`min-h-[82px] md:min-h-[90px] p-1.5 transition-colors flex flex-col justify-start cursor-pointer ${
+                      cell.isCurrentMonth
+                        ? 'bg-[var(--ws-panel)] hover:bg-[var(--ws-panel2)]/30'
+                        : 'bg-[var(--ws-panel2)]/20 opacity-40'
+                    }`}
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          isContest ? 'bg-amber-100 text-amber-800' : 'bg-teal-100 text-teal-800'
-                        }`}
-                      >
-                        {isContest ? <Trophy size={15} /> : <BookOpen size={15} />}
-                      </div>
-
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span
-                            className={`text-[9.5px] font-bold uppercase px-1.5 py-0.2 rounded border ${
-                              isContest
-                                ? 'bg-amber-100 text-amber-800 border-amber-300'
-                                : 'bg-teal-100 text-teal-800 border-teal-300'
-                            }`}
-                          >
-                            {isContest ? 'Kỳ thi' : 'Bài tập'}
-                          </span>
-                          <span className="text-[11px] text-[var(--ws-muted)] font-mono">
-                            {formatVN(ev.startDateTime)}
-                          </span>
+                    {/* Centered Date Header as shown in the Codeforces screenshot */}
+                    <div className="relative text-center mb-1 leading-none">
+                      {cell.isToday ? (
+                        <div className="w-5 h-5 rounded-full bg-[var(--ws-accent)] text-white font-bold text-[10.5px] flex items-center justify-center mx-auto shadow-2xs">
+                          {cell.day}
                         </div>
-                        <p className="text-xs font-semibold text-[var(--ws-text)] mt-0.5 truncate">
-                          {ev.title}
-                        </p>
-                        {ev.className && (
-                          <p className="text-[10px] text-[var(--ws-muted)] mt-0.2">{ev.className}</p>
-                        )}
-                      </div>
+                      ) : cell.isFirstOfMonth ? (
+                        <span className="text-[10.5px] font-bold text-[var(--ws-text)]">
+                          {monthNamesEn[cell.month - 1].slice(0, 3)} {cell.day}
+                        </span>
+                      ) : (
+                        <span
+                          className={`text-[10.5px] font-medium ${
+                            cell.isCurrentMonth ? 'text-[var(--ws-text)]' : 'text-[var(--ws-muted)]'
+                          }`}
+                        >
+                          {cell.day}
+                        </span>
+                      )}
+
+                      {hasEvents && (
+                        <span className="absolute right-0 top-0 text-[9px] font-semibold text-[var(--ws-muted)] opacity-70 pr-0.5">
+                          {dayEvents.length}
+                        </span>
+                      )}
                     </div>
 
-                    <div className="flex items-center gap-2 self-end sm:self-center">
-                      <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[11px] font-semibold text-[var(--ws-text)] hover:bg-[var(--ws-hover)] transition-colors">
-                        Chi tiết <ExternalLink size={11} />
-                      </button>
+                    {/* Event list in cell */}
+                    <div className="space-y-0.5 flex-1 overflow-hidden">
+                      {dayEvents.slice(0, 2).map((ev) => {
+                        const isContest = ev.type === 'contest';
+                        return (
+                          <button
+                            key={ev.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveModalEvent(ev);
+                            }}
+                            style={{
+                              backgroundColor: isContest ? 'var(--ws-contest-bg)' : 'var(--ws-hw-bg)',
+                              color: isContest ? 'var(--ws-contest-text)' : 'var(--ws-hw-text)',
+                              border: `1px solid ${isContest ? 'var(--ws-contest-border)' : 'var(--ws-hw-border)'}`,
+                            }}
+                            className="w-full text-left flex items-center gap-1 px-1 py-0.5 rounded text-[9.5px] leading-tight transition-all truncate group hover:brightness-110"
+                            title={`${ev.timeStr} • ${ev.title}`}
+                          >
+                            <span
+                              style={{
+                                backgroundColor: isContest ? 'var(--ws-contest-dot)' : 'var(--ws-hw-dot)',
+                              }}
+                              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                            />
+                            <span className="font-mono text-[9px] opacity-80 flex-shrink-0">
+                              {ev.timeStr}
+                            </span>
+                            <span className="truncate font-medium">{ev.title}</span>
+                          </button>
+                        );
+                      })}
+
+                      {dayEvents.length > 2 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedDate(cell.dateString);
+                            setViewMode('agenda');
+                          }}
+                          className="text-[9px] font-semibold text-[var(--ws-accent)] hover:underline pl-0.5 leading-none block mt-0.5"
+                        >
+                          +{dayEvents.length - 2} sự kiện
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
               })}
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
 
-      {/* Calendar Bottom Legend & Info (Matching Google Calendar reference screenshot) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 p-2 px-3 text-[11px] text-[var(--ws-muted)] border-t border-[var(--ws-border)]">
-        <div>
-          <p className="font-semibold text-[var(--ws-text)] text-[11.5px]">
-            Programming Contests & Assignments Calendar
-          </p>
-          <p className="text-[10px] mt-0.5">
-            Events shown in time zone: (GMT+07:00) Indochina Time - Ho Chi Minh City
-          </p>
-        </div>
+        {/* 3. Week View */}
+        {viewMode === 'week' && (
+          <div className="flex flex-col">
+            {/* Week Headers */}
+            <div className="grid grid-cols-7 border-b border-[var(--ws-border)] bg-[var(--ws-panel2)]/50 divide-x divide-[var(--ws-border)]">
+              {weekDays.map((d) => (
+                <div
+                  key={d.dateString}
+                  className={`py-1.5 px-1 text-center ${
+                    d.isToday ? 'bg-[var(--ws-accent)]/10 font-bold' : ''
+                  }`}
+                >
+                  <p className="text-[10px] uppercase tracking-wider text-[var(--ws-muted)]">
+                    {d.dayName}
+                  </p>
+                  <div className="mt-0.5 flex items-center justify-center">
+                    {d.isToday ? (
+                      <span className="w-5 h-5 rounded-full bg-[var(--ws-accent)] text-white text-[10.5px] font-bold flex items-center justify-center shadow-2xs">
+                        {d.dayNumber}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-semibold text-[var(--ws-text)]">
+                        {d.dayNumber}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
 
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={downloadICS}
-            className="hover:underline font-semibold text-[var(--ws-accent)]"
-          >
-            Xuất lịch (.ics)
-          </button>
-          <span>•</span>
-          <span className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-teal-500" /> Bài tập
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Kỳ thi
-          </span>
+            {/* Week Event Columns */}
+            <div className="grid grid-cols-7 divide-x divide-[var(--ws-border)] min-h-[260px]">
+              {weekDays.map((d) => {
+                const dayEvents = eventsByDate[d.dateString] || [];
+                return (
+                  <div key={d.dateString} className="p-1.5 space-y-1.5 bg-[var(--ws-panel)]">
+                    {dayEvents.map((ev) => {
+                      const isContest = ev.type === 'contest';
+                      return (
+                        <button
+                          key={ev.id}
+                          onClick={() => setActiveModalEvent(ev)}
+                          style={{
+                            backgroundColor: isContest ? 'var(--ws-contest-bg)' : 'var(--ws-hw-bg)',
+                            color: isContest ? 'var(--ws-contest-text)' : 'var(--ws-hw-text)',
+                            borderColor: isContest ? 'var(--ws-contest-border)' : 'var(--ws-hw-border)',
+                          }}
+                          className="w-full text-left p-1.5 rounded-lg border transition-all text-[11px] hover:brightness-105"
+                        >
+                          <div className="flex items-center gap-1 font-mono text-[9.5px] opacity-80 mb-0.5">
+                            <Clock size={10} /> {ev.timeStr}
+                          </div>
+                          <p className="font-semibold line-clamp-2 leading-tight">{ev.title}</p>
+                          {ev.className && (
+                            <p className="text-[9.5px] opacity-75 mt-0.5 truncate">
+                              {ev.className}
+                            </p>
+                          )}
+                        </button>
+                      );
+                    })}
+
+                    {dayEvents.length === 0 && (
+                      <div className="py-8 text-center text-[10px] text-[var(--ws-muted)] opacity-40">
+                        —
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 4. Agenda / Schedule View */}
+        {viewMode === 'agenda' && (
+          <div className="p-3.5">
+            <div className="mb-2.5 pb-2 border-b border-[var(--ws-border)] flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold font-serif text-[var(--ws-text)]">
+                  Lịch trình sự kiện sắp diễn ra
+                </h3>
+                <p className="text-[11px] text-[var(--ws-muted)] mt-0.5">
+                  Tổng hợp bài tập cần nộp và các kỳ thi theo thứ tự thời gian
+                </p>
+              </div>
+              <span className="text-[11px] font-semibold text-[var(--ws-muted)] bg-[var(--ws-panel2)] px-2 py-0.5 rounded-md border border-[var(--ws-border)]">
+                {filteredEvents.length} sự kiện
+              </span>
+            </div>
+
+            {filteredEvents.length === 0 ? (
+              <div className="py-8 text-center border border-dashed border-[var(--ws-border)] rounded-lg">
+                <CalendarIcon size={24} className="text-[var(--ws-faint)] mx-auto mb-1.5" />
+                <p className="text-xs text-[var(--ws-muted)]">
+                  Không tìm thấy sự kiện hoặc hạn chót nào phù hợp với bộ lọc.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {filteredEvents.map((ev) => {
+                  const isContest = ev.type === 'contest';
+                  return (
+                    <div
+                      key={ev.id}
+                      onClick={() => setActiveModalEvent(ev)}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 bg-[var(--ws-panel2)] rounded-lg border border-[var(--ws-border)] hover:border-[var(--ws-accent)]/40 transition-all cursor-pointer gap-2"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div
+                          style={{
+                            backgroundColor: isContest ? 'var(--ws-contest-bg)' : 'var(--ws-hw-bg)',
+                            color: isContest ? 'var(--ws-contest-text)' : 'var(--ws-hw-text)',
+                          }}
+                          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                        >
+                          {isContest ? <Trophy size={15} /> : <BookOpen size={15} />}
+                        </div>
+
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              style={{
+                                backgroundColor: isContest ? 'var(--ws-contest-bg)' : 'var(--ws-hw-bg)',
+                                color: isContest ? 'var(--ws-contest-text)' : 'var(--ws-hw-text)',
+                                borderColor: isContest ? 'var(--ws-contest-border)' : 'var(--ws-hw-border)',
+                              }}
+                              className="text-[9.5px] font-bold uppercase px-1.5 py-0.2 rounded border"
+                            >
+                              {isContest ? 'Kỳ thi' : 'Bài tập'}
+                            </span>
+                            <span className="text-[11px] text-[var(--ws-muted)] font-mono">
+                              {formatVN(ev.startDateTime)}
+                            </span>
+                          </div>
+                          <p className="text-xs font-semibold text-[var(--ws-text)] mt-0.5 truncate">
+                            {ev.title}
+                          </p>
+                          {ev.className && (
+                            <p className="text-[10px] text-[var(--ws-muted)] mt-0.2">{ev.className}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-end sm:self-center">
+                        <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[11px] font-semibold text-[var(--ws-text)] hover:bg-[var(--ws-hover)] transition-colors">
+                          Chi tiết <ExternalLink size={11} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 5. Calendar Bottom Legend & Info (Matching Google Calendar in Codeforces screenshot) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 px-4 text-xs text-[var(--ws-muted)] border-t border-[var(--ws-border)] bg-[var(--ws-panel2)]/25">
+          <div>
+            <p className="font-semibold text-[var(--ws-text)] text-[11.5px]">
+              Programming Contests & Assignments Calendar
+            </p>
+            <div className="flex flex-wrap items-center gap-2 text-[10.5px] mt-0.5">
+              <span>Events shown in time zone: (GMT+07:00) Indochina Time - Ho Chi Minh City</span>
+              <span>•</span>
+              <button
+                onClick={downloadICS}
+                className="hover:underline font-semibold text-[var(--ws-accent)]"
+              >
+                Xuất lịch (.ics)
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 self-end sm:self-center">
+            <div className="flex items-center gap-2.5 text-[10.5px]">
+              <span className="flex items-center gap-1">
+                <span
+                  style={{ backgroundColor: 'var(--ws-hw-dot)' }}
+                  className="w-1.5 h-1.5 rounded-full"
+                />{' '}
+                Bài tập
+              </span>
+              <span className="flex items-center gap-1">
+                <span
+                  style={{ backgroundColor: 'var(--ws-contest-dot)' }}
+                  className="w-1.5 h-1.5 rounded-full"
+                />{' '}
+                Kỳ thi
+              </span>
+            </div>
+
+            <a
+              href="https://calendar.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-[11px] font-semibold text-[var(--ws-text)] hover:text-[var(--ws-accent)] transition-colors border border-[var(--ws-border)] bg-[var(--ws-panel)] px-2 py-0.5 rounded-md shadow-2xs"
+              title="Mở Google Calendar"
+            >
+              <span className="text-blue-500 font-bold">G</span>
+              <span className="text-red-500 font-bold">o</span>
+              <span className="text-yellow-500 font-bold">o</span>
+              <span className="text-blue-500 font-bold">g</span>
+              <span className="text-green-500 font-bold">l</span>
+              <span className="text-red-500 font-bold">e</span>
+              <span className="text-[var(--ws-text)] font-semibold ml-0.5">Calendar</span>
+            </a>
+          </div>
         </div>
       </div>
 
@@ -675,6 +793,6 @@ export default function CalendarView({ events, userRole = 'student', classes = [
         onClose={() => setActiveModalEvent(null)}
         userRole={userRole}
       />
-    </div>
+    </>
   );
 }
