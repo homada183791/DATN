@@ -3,10 +3,16 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma, Role } from '@prisma/client';
 import { CreateHomeworkDto } from './dto/create-homework.dto';
 import { UpdateHomeworkDto } from './dto/update-homework.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { EventsGateway } from '../../events/events.gateway';
 
 @Injectable()
 export class HomeworksService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+    private readonly eventsGateway: EventsGateway,
+  ) {}
 
   async findAll(userId: string, role: string) {
     const where = role === 'INSTRUCTOR'
@@ -68,7 +74,7 @@ export class HomeworksService {
   }
 
   async create(dto: CreateHomeworkDto) {
-    return this.prisma.homework.create({
+    const homework = await this.prisma.homework.create({
       data: {
         title: dto.title,
         description: dto.description,
@@ -76,7 +82,37 @@ export class HomeworksService {
         class_id: dto.class_id,
         tasks: dto.tasks as Prisma.InputJsonValue,
       },
+      include: {
+        class: {
+          select: { id: true, name: true, students: { select: { student_id: true } } },
+        },
+      },
     });
+
+    // ─── Fire-and-forget: thông báo sinh viên trong lớp ─────────────────────
+    const studentIds = homework.class?.students?.map((s) => s.student_id) ?? [];
+    if (studentIds.length > 0) {
+      const deadlineDate = new Date(dto.deadline).toLocaleDateString('vi-VN');
+      this.notificationsService
+        .createManyNotifications({
+          userIds: studentIds,
+          type: 'homework_assigned',
+          title: `📋 Bài tập mới: ${dto.title}`,
+          body: `Lớp "${homework.class?.name}" vừa giao bài tập mới. Hạn nộp: ${deadlineDate}.`,
+          link: `/student/homeworks`,
+        })
+        .then((notifications) => {
+          // Push real-time đến từng sinh viên
+          notifications.forEach((notification) => {
+            this.eventsGateway.emitNotification(notification.user_id, notification);
+          });
+        })
+        .catch(() => {
+          // silent fail — không block response
+        });
+    }
+
+    return homework;
   }
 
   async update(id: string, dto: UpdateHomeworkDto, requestorId: string) {

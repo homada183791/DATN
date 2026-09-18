@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useLocation, Navigate } from 'react-router-dom';
+import { Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useProblemsQuery } from '../api/problems';
-import { contests, submissions, type Contest } from '../data/mockData';
+import { useNotifications } from '../context/NotificationContext';
 import {
   LayoutDashboard,
   BookOpen,
@@ -27,6 +27,11 @@ import {
   Check,
   ChevronDown,
   Calendar,
+  CheckCheck,
+  FileText,
+  Award,
+  Clock,
+  Trash2,
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -102,6 +107,8 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
   const { user, logout, isAuthenticated, isInitializing } = useAuth();
   const { dark, toggleTheme, theme, setThemeId, themes } = useTheme();
   const { data: problems = [] } = useProblemsQuery();
+  const { notifications, unreadCount, markRead, markAllRead, removeNotification, loadMore, hasMore, loading } = useNotifications();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -355,22 +362,107 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
               title="Thông báo"
             >
               <Bell size={18} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#cc5a37] border-2 border-[#f7f4eb]" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-[#cc5a37] border-2 border-[#f7f4eb] flex items-center justify-center text-white text-[10px] font-bold leading-none px-0.5">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </button>
+
             {bellOpen && (
-              <div className="absolute right-0 top-full mt-2 w-80 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl z-60 animate-slide-up">
-                <p className="px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-widest text-[#8a8073] border-b border-[#e5dac9]">Thông báo</p>
-                <div className="px-4 py-3 border-b border-[#e5dac9]/60 hover:bg-(--ws-hover) cursor-pointer">
-                  <p className="text-[13px] font-semibold text-[#191919]">Kỳ thi "Luyện tập Đồ thị" đang diễn ra</p>
-                  <p className="text-[11px] text-[#8a8073] mt-0.5">
-                    5 phút trước • {contests.filter((c: Contest) => c.status === 'running').reduce((s: number, c: Contest) => s + c.participantCount, 0)} người tham gia
-                  </p>
+              <div className="absolute right-0 top-full mt-2 w-96 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden">
+                {/* Header */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-[#e5dac9]">
+                  <div className="flex items-center gap-2">
+                    <Bell size={14} className="text-[#8a8073]" />
+                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-[#8a8073]">Thông báo</p>
+                    {unreadCount > 0 && (
+                      <span className="px-1.5 py-0.5 rounded-full bg-[#cc5a37]/10 text-[#cc5a37] text-[10px] font-bold">{unreadCount} mới</span>
+                    )}
+                  </div>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={markAllRead}
+                      className="flex items-center gap-1 text-[11px] text-[#193a2b] hover:text-[#0d6b55] font-medium transition-colors"
+                      title="Đánh dấu tất cả đã đọc"
+                    >
+                      <CheckCheck size={13} />
+                      Đọc tất cả
+                    </button>
+                  )}
                 </div>
-                <div className="px-4 py-3 hover:bg-(--ws-hover) cursor-pointer">
-                  <p className="text-[13px] font-semibold text-[#191919]">
-                    Bài nộp {submissions[0]?.id} đã được chấm: <span className="text-emerald-600">AC</span>
-                  </p>
-                  <p className="text-[11px] text-[#8a8073] mt-0.5">1 giờ trước</p>
+
+                {/* Notification list */}
+                <div className="max-h-[400px] overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-10 text-[#8a8073]">
+                      <Bell size={28} className="mb-2 opacity-30" />
+                      <p className="text-[13px]">Chưa có thông báo nào</p>
+                    </div>
+                  ) : (
+                    notifications.map((n) => {
+                      const icon = {
+                        submission_judged: <Award size={15} className="shrink-0 text-emerald-600" />,
+                        homework_assigned: <FileText size={15} className="shrink-0 text-blue-500" />,
+                        contest_starting_soon: <Clock size={15} className="shrink-0 text-amber-500" />,
+                        contest_started: <Trophy size={15} className="shrink-0 text-amber-500" />,
+                        class_enrolled: <Users size={15} className="shrink-0 text-purple-500" />,
+                      }[n.type] ?? <Bell size={15} className="shrink-0 text-[#8a8073]" />;
+
+                      const timeAgo = (() => {
+                        const diff = Date.now() - new Date(n.created_at).getTime();
+                        if (diff < 60_000) return 'Vừa xong';
+                        if (diff < 3_600_000) return `${Math.floor(diff / 60_000)} phút trước`;
+                        if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)} giờ trước`;
+                        return `${Math.floor(diff / 86_400_000)} ngày trước`;
+                      })();
+
+                      return (
+                        <div
+                          key={n.id}
+                          className={`group flex items-start gap-3 px-4 py-3 border-b border-[#e5dac9]/60 cursor-pointer transition-colors ${
+                            n.is_read ? 'hover:bg-(--ws-hover)' : 'bg-[#193a2b]/5 hover:bg-[#193a2b]/10'
+                          }`}
+                          onClick={async () => {
+                            if (!n.is_read) await markRead(n.id);
+                            if (n.link) { navigate(n.link); setBellOpen(false); }
+                          }}
+                        >
+                          <div className="mt-0.5">{icon}</div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-[13px] leading-snug ${n.is_read ? 'text-[#5c5446]' : 'font-semibold text-[#191919]'}`}>
+                              {n.title}
+                            </p>
+                            <p className="text-[11.5px] text-[#8a8073] mt-0.5 line-clamp-2">{n.body}</p>
+                            <p className="text-[10.5px] text-[#bfae99] mt-1">{timeAgo}</p>
+                          </div>
+                          {!n.is_read && (
+                            <span className="shrink-0 mt-1.5 w-2 h-2 rounded-full bg-[#cc5a37]" />
+                          )}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); removeNotification(n.id); }}
+                            className="shrink-0 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-100 text-[#8a8073] hover:text-red-500 transition-all"
+                            title="Xoá thông báo"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      );
+                    })
+                  )}
+
+                  {/* Load more */}
+                  {hasMore && (
+                    <div className="p-3 text-center border-t border-[#e5dac9]/60">
+                      <button
+                        onClick={loadMore}
+                        disabled={loading}
+                        className="text-[12px] text-[#193a2b] font-medium hover:underline disabled:opacity-50"
+                      >
+                        {loading ? 'Đang tải...' : 'Xem thêm'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

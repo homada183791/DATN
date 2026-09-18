@@ -16,6 +16,7 @@ import { LeaderboardModule } from './modules/leaderboard/leaderboard.module';
 import { ClassesModule } from './modules/classes/classes.module';
 import { PlagiarismModule } from './modules/plagiarism/plagiarism.module';
 import { HomeworksModule } from './modules/homeworks/homeworks.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { HomeworksModule } from './modules/homeworks/homeworks.module';
     ClassesModule,
     PlagiarismModule,
     HomeworksModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

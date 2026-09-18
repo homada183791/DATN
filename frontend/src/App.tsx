@@ -8,6 +8,7 @@ import { ToastProvider } from './context/ToastContext';
 import { ClassProvider } from './context/ClassContext';
 import { HomeworkProvider } from './context/HomeworkContext';
 import { ContributedProvider } from './context/ContributedContext';
+import { NotificationProvider } from './context/NotificationContext';
 import InstructorClass from './pages/instructor/Class';
 import InstructorClassDetail from './pages/instructor/ClassDetail';
 import InstructorHomework from './pages/instructor/Homework';
@@ -53,6 +54,7 @@ export default function App() {
     <ThemeProvider>
       <ToastProvider>
       <AuthProvider>
+        <NotificationProvider>
         <ClassProvider>
         <HomeworkProvider>
         <ContributedProvider>
@@ -110,6 +112,7 @@ export default function App() {
         </ContributedProvider>
         </HomeworkProvider>
         </ClassProvider>
+        </NotificationProvider>
       </AuthProvider>
       </ToastProvider>
     </ThemeProvider>

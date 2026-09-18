@@ -3,12 +3,14 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { JudgeResultDto } from './dto/judge-result.dto';
 import { EventsGateway } from '../../events/events.gateway';
 import { UsersService } from '../users/users.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 type SubmissionWithContests = {
   id: string;
   user_id: string;
   problem_id: string;
   problem: {
+    title: string;
     contests: Array<{ contest_id: string }>;
   } | null;
 };
@@ -53,6 +55,18 @@ type SubmissionTransactionClient = {
   };
 };
 
+/** Map status → emoji + text mô tả ngắn gọn bằng tiếng Việt */
+const STATUS_LABELS: Record<string, string> = {
+  ACCEPTED: '✅ Accepted',
+  WRONG_ANSWER: '❌ Sai kết quả (Wrong Answer)',
+  TIME_LIMIT_EXCEEDED: '⏱ Quá thời gian (TLE)',
+  COMPILE_ERROR: '🔧 Lỗi biên dịch (CE)',
+  RUNTIME_ERROR: '💥 Lỗi runtime (RE)',
+  MEMORY_LIMIT_EXCEEDED: '💾 Quá bộ nhớ (MLE)',
+  PENDING: '⏳ Đang chờ',
+  IN_QUEUE: '🔄 Đang xử lý',
+};
+
 @Injectable()
 export class WebhookService {
   private readonly logger = new Logger(WebhookService.name);
@@ -61,6 +75,7 @@ export class WebhookService {
     private readonly prisma: PrismaService,
     private readonly eventsGateway: EventsGateway,
     private readonly usersService: UsersService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async processJudgeResult(judgeResultDto: JudgeResultDto) {
@@ -187,6 +202,28 @@ export class WebhookService {
       memory_used: updatedSubmission.memory_used,
       updated_at: updatedSubmission.updated_at,
     });
+
+    // ─── Tạo thông báo kết quả chấm bài ────────────────────────────────────
+    // Fire-and-forget: không block luồng chính
+    this.notificationsService
+      .createNotification({
+        userId: submission.user_id,
+        type: 'submission_judged',
+        title: `Kết quả bài nộp: ${STATUS_LABELS[status] ?? status}`,
+        body: submission.problem
+          ? `Bài toán "${submission.problem.title}" — Điểm: ${Math.round(updatedSubmission.score)}/100`
+          : `Bài nộp ${submission_id.slice(0, 8)} đã được chấm xong.`,
+        link: `/student/submission`,
+      })
+      .then((notification) => {
+        // Push real-time qua socket đến user room
+        this.eventsGateway.emitNotification(submission.user_id, notification);
+      })
+      .catch((err: any) => {
+        this.logger.error(
+          `[Judge Webhook] Failed to create submission notification: ${err.message}`,
+        );
+      });
 
     // Bắn sự kiện realtime cho Giảng viên (Admin Dashboard) nếu bài tập thuộc kỳ thi
     try {
