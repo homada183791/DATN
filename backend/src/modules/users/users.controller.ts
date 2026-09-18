@@ -1,4 +1,13 @@
-import { Controller, Get, UseGuards, Request, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  Query,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -7,6 +16,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -20,6 +31,40 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Danh sách sinh viên top rated' })
   getTopRated(@Query('limit') limit?: string) {
     return this.usersService.getTopRated(limit ? parseInt(limit, 10) : 10);
+  }
+
+  @Get('me')
+  @ApiOperation({ summary: 'Lấy thông tin hồ sơ và cài đặt của user hiện tại' })
+  @ApiResponse({ status: 200, description: 'Thông tin hồ sơ user' })
+  getProfile(@Request() req: { user: { userId: string } }) {
+    return this.usersService.getProfile(req.user.userId);
+  }
+
+  @Patch('me')
+  @ApiOperation({ summary: 'Cập nhật thông tin hồ sơ và cài đặt của user hiện tại' })
+  @ApiResponse({ status: 200, description: 'Cập nhật thành công' })
+  updateProfile(
+    @Request() req: { user: { userId: string } },
+    @Body() updateProfileDto: UpdateProfileDto,
+  ) {
+    return this.usersService.updateProfile(req.user.userId, updateProfileDto);
+  }
+
+  @Post('me/change-password')
+  @ApiOperation({ summary: 'Đổi mật khẩu cho user đang đăng nhập' })
+  @ApiResponse({ status: 200, description: 'Đổi mật khẩu thành công' })
+  changePassword(
+    @Request() req: { user: { userId: string } },
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    return this.usersService.changePassword(req.user.userId, changePasswordDto);
+  }
+
+  @Get('me/stats')
+  @ApiOperation({ summary: 'Lấy thống kê bài nộp và học tập thực tế của user' })
+  @ApiResponse({ status: 200, description: 'Thống kê bài nộp' })
+  getUserStats(@Request() req: { user: { userId: string } }) {
+    return this.usersService.getUserStats(req.user.userId);
   }
 
   @Get('me/heatmap')

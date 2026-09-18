@@ -220,16 +220,20 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
         {/* User Info */}
         <div className="border-t border-[#e5dac9] p-3 bg-[#eadecc]/20">
           <Link
-            to="/student/profile"
+            to={user?.role === 'instructor' ? '/instructor/profile' : '/student/profile'}
             onClick={() => setMobileSidebarOpen(false)}
             className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#eadecc]/60 transition-colors"
           >
-            <div className="shrink-0 w-9 h-9 bg-linear-to-br from-[#193a2b] to-[#2d5a3f] rounded-full flex items-center justify-center text-white font-bold text-sm">
-              {user?.fullName?.charAt(0) || 'U'}
+            <div className="shrink-0 w-9 h-9 bg-linear-to-br from-[#193a2b] to-[#2d5a3f] rounded-full flex items-center justify-center text-white font-bold text-sm overflow-hidden">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user.fullName || user.username} className="w-full h-full object-cover" />
+              ) : (
+                user?.fullName?.charAt(0) || user?.username?.charAt(0) || 'U'
+              )}
             </div>
             {sidebarOpen && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-[#191919] truncate">{user?.fullName}</p>
+                <p className="text-sm font-medium text-[#191919] truncate">{user?.fullName || user?.username}</p>
                 <p className="text-xs text-[#8a8073] truncate">{user?.role === 'instructor' ? 'Giảng viên' : 'Sinh viên'}</p>
               </div>
             )}
@@ -486,8 +490,12 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                 avatarOpen ? 'bg-[#eadecc]/60' : 'hover:bg-[#eadecc]/60'
               }`}
             >
-              <div className="w-9 h-9 rounded-full bg-linear-to-br from-[#193a2b] to-[#2d5a3f] flex items-center justify-center text-white text-sm font-bold">
-                {user?.fullName?.charAt(0)}
+              <div className="w-9 h-9 rounded-full bg-linear-to-br from-[#193a2b] to-[#2d5a3f] flex items-center justify-center text-white text-sm font-bold overflow-hidden">
+                {user?.avatar ? (
+                  <img src={user.avatar} alt={user.fullName || user.username} className="w-full h-full object-cover" />
+                ) : (
+                  user?.fullName?.charAt(0) || user?.username?.charAt(0) || 'U'
+                )}
               </div>
               <ChevronDown size={15} className={`text-[#8a8073] transition-transform ${avatarOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -496,8 +504,12 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
               <div className="absolute right-0 top-full mt-2 w-64 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden">
                 {/* header */}
                 <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#e5dac9] bg-[#f0ebd9]/50">
-                  <div className="w-11 h-11 rounded-full bg-linear-to-br from-[#193a2b] to-[#2d5a3f] flex items-center justify-center text-white text-base font-bold shrink-0">
-                    {user?.fullName?.charAt(0)}
+                  <div className="w-11 h-11 rounded-full bg-linear-to-br from-[#193a2b] to-[#2d5a3f] flex items-center justify-center text-white text-base font-bold shrink-0 overflow-hidden">
+                    {user?.avatar ? (
+                      <img src={user.avatar} alt={user.fullName || user.username} className="w-full h-full object-cover" />
+                    ) : (
+                      user?.fullName?.charAt(0) || user?.username?.charAt(0) || 'U'
+                    )}
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-[#191919] truncate">{user?.fullName}</p>
@@ -518,14 +530,14 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                 {/* menu */}
                 <div className="p-1.5">
                   <Link
-                    to="/student/profile"
+                    to={user?.role === 'instructor' ? '/instructor/profile' : '/student/profile'}
                     onClick={() => setAvatarOpen(false)}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-[#5c5446] hover:bg-(--ws-hover) transition-colors"
                   >
                     <User size={17} className="text-[#8a8073]" /> Hồ sơ của tôi
                   </Link>
                   <Link
-                    to="/student/settings"
+                    to={user?.role === 'instructor' ? '/instructor/settings' : '/student/settings'}
                     onClick={() => setAvatarOpen(false)}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-[#5c5446] hover:bg-(--ws-hover) transition-colors"
                   >

@@ -14,12 +14,16 @@ export interface User {
   rating: number;
   joinDate: string;
   bio: string;
+  notificationSettings?: Record<string, boolean>;
+  preferences?: Record<string, any>;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (identifier: string, password: string) => Promise<{ ok: boolean; message?: string }>;
   register: (username: string, email: string, password: string, fullName: string) => Promise<{ ok: boolean; message?: string }>;
+  updateUser: (updatedData: Partial<User>) => void;
+  refreshProfile: () => Promise<void>;
   forgotPassword: (email: string) => Promise<{ ok: boolean; message?: string }>;
   verifyResetCode: (email: string, code: string) => Promise<{ ok: boolean; token?: string; message?: string }>;
   resetPassword: (email: string, code: string, token: string, password: string) => Promise<{ ok: boolean; message?: string }>;
@@ -46,10 +50,10 @@ const ACCESS_TOKEN_KEY = 'accessToken';
 
 const baseUserFields = {
   avatar: '',
-  institution: 'JudgeHub Academy',
+  institution: '',
   solvedCount: 0,
   submissionCount: 0,
-  rating: 0,
+  rating: 1200,
   joinDate: new Date().toISOString().slice(0, 10),
   bio: '',
 };
@@ -70,18 +74,55 @@ function normalizeUser(identifier: string, role: User['role'], fullName?: string
   };
 }
 
-// profile endpoint trả về { success, data: { userId, email, role, username } }
-// apiFetch unwrap → nhận được { userId, email, role, username }
-async function hydrateProfile(token: string) {
-  const profile = await apiFetch<{ userId: string; email: string; role: BackendRole; username?: string }>('/api/v1/auth/profile', {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return normalizeUser(profile.email, normalizeRole(profile.role), profile.username, profile.userId);
+async function hydrateProfile(token: string): Promise<User> {
+  try {
+    const profile = await apiFetch<any>('/api/v1/users/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const role = normalizeRole(profile.role);
+    const username = profile.username || profile.email.split('@')[0];
+    return {
+      id: profile.id,
+      username,
+      email: profile.email,
+      fullName: profile.full_name || username,
+      avatar: profile.avatar_url || '',
+      role,
+      institution: profile.institution || '',
+      solvedCount: 0,
+      submissionCount: 0,
+      rating: profile.elo_rating ?? 1200,
+      joinDate: profile.created_at ? new Date(profile.created_at).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+      bio: profile.bio || '',
+      notificationSettings: profile.notification_settings || undefined,
+      preferences: profile.preferences || undefined,
+    };
+  } catch {
+    const fallback = await apiFetch<{ userId: string; email: string; role: BackendRole; username?: string }>('/api/v1/auth/profile', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return normalizeUser(fallback.email, normalizeRole(fallback.role), fallback.username, fallback.userId);
+  }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
+
+  const refreshProfile = async () => {
+    const token = window.localStorage.getItem(ACCESS_TOKEN_KEY);
+    if (!token) return;
+    try {
+      const refreshed = await hydrateProfile(token);
+      setUser(refreshed);
+    } catch {
+      // ignore
+    }
+  };
+
+  const updateUser = (updatedData: Partial<User>) => {
+    setUser((prev) => (prev ? { ...prev, ...updatedData } : null));
+  };
 
   useEffect(() => {
     const token = window.localStorage.getItem(ACCESS_TOKEN_KEY);
@@ -112,7 +153,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, username, password }),
       });
       window.localStorage.setItem(ACCESS_TOKEN_KEY, response.access_token);
-      setUser(normalizeUser(response.user.email, normalizeRole(response.user.role), response.user.username, response.user.id));
+      try {
+        const fullProfile = await hydrateProfile(response.access_token);
+        setUser(fullProfile);
+      } catch {
+        setUser(normalizeUser(response.user.email, normalizeRole(response.user.role), response.user.username, response.user.id));
+      }
       return { ok: true };
     } catch (error) {
       if (error instanceof ApiError) {
@@ -199,7 +245,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, forgotPassword, verifyResetCode, resetPassword, logout, isAuthenticated: !!user, isInitializing }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        register,
+        updateUser,
+        refreshProfile,
+        forgotPassword,
+        verifyResetCode,
+        resetPassword,
+        logout,
+        isAuthenticated: !!user,
+        isInitializing,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

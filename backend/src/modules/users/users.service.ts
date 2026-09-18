@@ -1,5 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import * as bcrypt from 'bcrypt';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class UsersService {
@@ -167,5 +175,200 @@ export class UsersService {
       solved_count: u._count.submissions,
       created_at: u.created_at,
     }));
+  }
+
+  /**
+   * Lấy thông tin profile đầy đủ của user
+   */
+  async getProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        full_name: true,
+        bio: true,
+        institution: true,
+        avatar_url: true,
+        role: true,
+        elo_rating: true,
+        current_streak: true,
+        highest_streak: true,
+        last_active_date: true,
+        notification_settings: true,
+        preferences: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+
+    return user;
+  }
+
+  /**
+   * Cập nhật thông tin profile và cấu hình cài đặt
+   */
+  async updateProfile(userId: string, dto: UpdateProfileDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+
+    const dataToUpdate: any = {};
+    if (dto.full_name !== undefined) dataToUpdate.full_name = dto.full_name?.trim() || null;
+    if (dto.bio !== undefined) dataToUpdate.bio = dto.bio?.trim() || null;
+    if (dto.institution !== undefined) dataToUpdate.institution = dto.institution?.trim() || null;
+    if (dto.avatar_url !== undefined) dataToUpdate.avatar_url = dto.avatar_url?.trim() || null;
+    if (dto.notification_settings !== undefined) dataToUpdate.notification_settings = dto.notification_settings;
+    if (dto.preferences !== undefined) dataToUpdate.preferences = dto.preferences;
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: dataToUpdate,
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        full_name: true,
+        bio: true,
+        institution: true,
+        avatar_url: true,
+        role: true,
+        elo_rating: true,
+        current_streak: true,
+        highest_streak: true,
+        last_active_date: true,
+        notification_settings: true,
+        preferences: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+
+    return updated;
+  }
+
+  /**
+   * Đổi mật khẩu cho người dùng đang đăng nhập (dùng bcrypt hash đồng bộ với hệ thống auth)
+   */
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+
+    const isPasswordValid = await bcrypt.compare(dto.current_password, user.password);
+    if (!isPasswordValid) {
+      throw new BadRequestException('Mật khẩu hiện tại không chính xác');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(dto.new_password, salt);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    return { success: true, message: 'Đổi mật khẩu thành công' };
+  }
+
+  /**
+   * Tính toán số liệu thống kê bài giải, nộp bài, tỷ lệ AC từ database thật
+   */
+  async getUserStats(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, role: true, elo_rating: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+
+    // Lấy toàn bộ bài nộp của user kèm thông tin problem
+    const submissions = await this.prisma.submission.findMany({
+      where: { user_id: userId },
+      select: {
+        id: true,
+        problem_id: true,
+        status: true,
+        created_at: true,
+        problem: {
+          select: {
+            id: true,
+            title: true,
+            difficulty: true,
+          },
+        },
+      },
+      orderBy: { created_at: 'desc' },
+    });
+
+    const totalSubmissions = submissions.length;
+    const acSubmissions = submissions.filter((s) => s.status === 'ACCEPTED');
+
+    // Danh sách bài đã giải (lọc distinct problem_id)
+    const solvedMap = new Map<string, { id: string; title: string; difficulty: string }>();
+    for (const s of acSubmissions) {
+      if (!solvedMap.has(s.problem_id)) {
+        solvedMap.set(s.problem_id, {
+          id: s.problem.id,
+          title: s.problem.title,
+          difficulty: s.problem.difficulty,
+        });
+      }
+    }
+    const solvedProblems = Array.from(solvedMap.values());
+    const solvedCount = solvedProblems.length;
+    const acRate = totalSubmissions > 0 ? Math.round((acSubmissions.length / totalSubmissions) * 100) : 0;
+
+    // Phân bố verdict
+    const verdictStats: Record<string, number> = {
+      AC: 0,
+      WA: 0,
+      TLE: 0,
+      MLE: 0,
+      RTE: 0,
+      CE: 0,
+    };
+    for (const s of submissions) {
+      const status = s.status;
+      if (status === 'ACCEPTED') verdictStats.AC++;
+      else if (status === 'WRONG_ANSWER') verdictStats.WA++;
+      else if (status === 'TIME_LIMIT_EXCEEDED') verdictStats.TLE++;
+      else if (status === 'COMPILE_ERROR') verdictStats.CE++;
+      else if (status === 'RUNTIME_ERROR') verdictStats.RTE++;
+      else if ((status as string) === 'MEMORY_LIMIT_EXCEEDED') verdictStats.MLE++;
+    }
+
+    // Thống kê dành cho Instructor (nếu là giảng viên)
+    let instructorStats: any = null;
+    if (user.role === 'INSTRUCTOR') {
+      const [managedClassesCount, createdContestsCount, studentsCount] = await Promise.all([
+        this.prisma.class.count({ where: { admin_id: userId } }),
+        this.prisma.contest.count({ where: { class: { admin_id: userId } } }),
+        this.prisma.classStudent.count({ where: { class: { admin_id: userId } } }),
+      ]);
+      instructorStats = {
+        classes_count: managedClassesCount,
+        contests_count: createdContestsCount,
+        total_students_count: studentsCount,
+      };
+    }
+
+    return {
+      total_submissions: totalSubmissions,
+      solved_count: solvedCount,
+      ac_rate: acRate,
+      verdict_stats: verdictStats,
+      solved_problems: solvedProblems,
+      instructor_stats: instructorStats,
+    };
   }
 }

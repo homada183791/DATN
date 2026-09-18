@@ -101,6 +101,8 @@ export default function App() {
           <Route path="/instructor/problem/:id" element={<ProtectedRoute allowedRole="instructor"><Layout fullBleed><ProblemSolve /></Layout></ProtectedRoute>} />
           <Route path="/instructor/submission" element={<ProtectedRoute allowedRole="instructor"><Layout><Submission /></Layout></ProtectedRoute>} />
           <Route path="/instructor/submissions" element={<ProtectedRoute allowedRole="instructor"><Layout><Submission /></Layout></ProtectedRoute>} />
+          <Route path="/instructor/profile" element={<ProtectedRoute allowedRole="instructor"><Layout><PersonalPage /></Layout></ProtectedRoute>} />
+          <Route path="/instructor/settings" element={<ProtectedRoute allowedRole="instructor"><Layout><SettingsPage /></Layout></ProtectedRoute>} />
 
           {/* Invite link: /join/CODE */}
           <Route path="/join/:code" element={<JoinClass />} />

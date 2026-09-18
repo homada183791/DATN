@@ -17,16 +17,22 @@ enum Role {
 
 model User {
   id                String    @id @default(uuid())
-  email             String    @unique
-  username          String?   @unique
-  password          String
-  role              Role      @default(STUDENT)
-  elo_rating        Int       @default(1200)
-  current_streak    Int       @default(0)
-  highest_streak    Int       @default(0)
-  last_active_date  DateTime?
-  created_at        DateTime  @default(now())
-  updated_at        DateTime  @updatedAt
+  email                 String    @unique
+  username              String?   @unique
+  password              String
+  full_name             String?
+  bio                   String?   @db.Text
+  institution           String?
+  avatar_url            String?
+  notification_settings Json?
+  preferences           Json?
+  role                  Role      @default(STUDENT)
+  elo_rating            Int       @default(1200)
+  current_streak        Int       @default(0)
+  highest_streak        Int       @default(0)
+  last_active_date      DateTime?
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
 
   submissions      Submission[]
   managed_classes  Class[]
