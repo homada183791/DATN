@@ -16,7 +16,6 @@ import {
   Copy,
   Check,
   Trash2,
-  Eye,
   UserMinus,
   Calendar,
   ClipboardList,

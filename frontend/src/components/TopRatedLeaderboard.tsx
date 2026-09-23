@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Trophy, Flame, CheckCircle2, ChevronRight, Award, Medal, Crown } from 'lucide-react';
-import { useTopRatedUsersQuery, TopRatedUserDto } from '../api/users';
+import { Flame, CheckCircle2, Award, Crown } from 'lucide-react';
+import { useTopRatedUsersQuery } from '../api/users';
 
 function getMSSV(email: string, username?: string | null, id?: string): string {
   const emailMatch = email.match(/^(\d{6,10})/);

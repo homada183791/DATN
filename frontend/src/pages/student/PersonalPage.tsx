@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { apiFetch } from '../../api/http';
+import ActivityHeatmap from '../../components/ActivityHeatmap';
 import {
   MapPin,
   Calendar,
@@ -39,6 +40,7 @@ interface UserStatsData {
 export default function PersonalPage() {
   const { user, refreshProfile } = useAuth();
   const [stats, setStats] = useState<UserStatsData | null>(null);
+  const [heatmap, setHeatmap] = useState<Array<{ date: string; count: number }>>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -47,9 +49,22 @@ export default function PersonalPage() {
 
     refreshProfile?.();
 
-    apiFetch<UserStatsData>('/api/v1/users/me/stats')
-      .then((data) => {
-        if (isMounted) setStats(data);
+    Promise.all([
+      apiFetch<UserStatsData>('/api/v1/users/me/stats'),
+      apiFetch<{ activity_logs: Array<{ activity_date: string; submission_count: number }> }>(
+        '/api/v1/users/me/heatmap',
+      ).catch(() => ({ activity_logs: [] })),
+    ])
+      .then(([statsData, heatmapResp]) => {
+        if (isMounted) {
+          setStats(statsData);
+          setHeatmap(
+            (heatmapResp.activity_logs ?? []).map((l) => ({
+              date: l.activity_date.slice(0, 10),
+              count: l.submission_count,
+            })),
+          );
+        }
       })
       .catch((err) => {
         console.error('Không thể tải thống kê người dùng:', err);
@@ -190,6 +205,9 @@ export default function PersonalPage() {
               <p className="text-xs text-[#8a8073] mt-0.5">Tỷ lệ nộp AC</p>
             </div>
           </div>
+
+          {/* Activity Heatmap */}
+          <ActivityHeatmap data={heatmap} />
 
           <div className="grid lg:grid-cols-2 gap-6">
             {/* Verdict Distribution (Thực tế) */}

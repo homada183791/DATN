@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Trophy, Calendar, Clock, ArrowRight, Sparkles } from 'lucide-react';
+import { Trophy, Clock, ArrowRight } from 'lucide-react';
 import { ContestDto } from '../api/contests';
 import { formatVNFull } from '../utils/dateTime';
 

@@ -6,7 +6,6 @@ import {
   Calendar as CalendarIcon,
   BookOpen,
   Trophy,
-  Filter,
   Download,
   Clock,
   ExternalLink,

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useClassDetailQuery, removeClassStudent } from '../../api/classes';
 import { useClassHomeworksQuery } from '../../api/homeworks';
@@ -12,7 +12,6 @@ import {
   ClipboardList,
   Calendar,
   Hash,
-  Copy,
   Check,
   Link2,
   Plus,
