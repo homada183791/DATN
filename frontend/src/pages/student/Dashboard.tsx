@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Calendar, CheckCircle2, Loader2, Send, Target, Trophy, Clock, Award } from 'lucide-react';
+import { ArrowRight, Calendar, CheckCircle2, Loader2, Send, Target, Trophy } from 'lucide-react';
 import { ApiError } from '../../api/http';
 import { useContestsQuery, useLeaderboardQuery, type LeaderboardEntryDto } from '../../api/contests';
 import { useSubmissionsQuery } from '../../api/submissions';
@@ -27,7 +27,7 @@ export default function StudentDashboard() {
     [contests]
   );
   const activeContestId = activeContest?.id;
-  const { data: leaderboard, isLoading: leaderboardLoading, error: leaderboardError } = useLeaderboardQuery(activeContestId);
+  const { data: leaderboard } = useLeaderboardQuery(activeContestId);
   const { data: submissions, isLoading: submissionsLoading, error: submissionsError } = useSubmissionsQuery();
 
   const leaderboardRows: LeaderboardEntryDto[] = (leaderboard ?? []) as LeaderboardEntryDto[];
@@ -87,7 +87,7 @@ export default function StudentDashboard() {
         </div>
         <div className="flex items-center gap-3">
           <Link
-            to="/student/problem"
+            to="/student/problems"
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#193a2b] text-white text-sm font-semibold hover:bg-[#143022] transition-colors shadow-xs"
           >
             Luyện tập bài toán

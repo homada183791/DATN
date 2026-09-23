@@ -1,6 +1,6 @@
-import { IsEnum, IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 import { Language } from '@prisma/client';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateSubmissionDto {
   @ApiProperty({ description: 'Mã bài tập', example: 'uuid-5678' })
@@ -30,4 +30,15 @@ export class CreateSubmissionDto {
   @IsString()
   @IsNotEmpty({ message: 'Source code không được để trống' })
   source_code: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Mã kỳ thi (chỉ truyền khi nộp bài trong phòng thi). Nếu không truyền, bài nộp được coi là luyện tập tự do.',
+    example: 'uuid-contest-1234',
+  })
+  @IsOptional()
+  @IsUUID(undefined, {
+    message: 'Mã kỳ thi (contest_id) không đúng định dạng UUID',
+  })
+  contest_id?: string;
 }

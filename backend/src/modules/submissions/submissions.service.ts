@@ -65,7 +65,7 @@ export class SubmissionsService {
   }
 
   async submitCode(userId: string, createSubmissionDto: CreateSubmissionDto) {
-    const { problem_id, language, source_code }: CreateSubmissionDto =
+    const { problem_id, language, source_code, contest_id }: CreateSubmissionDto =
       createSubmissionDto;
 
     // The Prisma delegate may be unresolved when the generated client is not
@@ -75,9 +75,6 @@ export class SubmissionsService {
     if (!user) throw new NotFoundException('Không tìm thấy người dùng');
 
     // B1: Kiểm tra problem_id có tồn tại
-    // The Prisma delegate may be unresolved when the generated client is not
-    // available to the type-aware linter.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     type SubmissionProblem = {
       id: string;
       contests: Array<{
@@ -92,8 +89,6 @@ export class SubmissionsService {
       }>;
     };
 
-    // Prisma's generated delegate may be unresolved when the generated client
-    // is unavailable to the type-aware linter.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const problem = (await this.prisma.problem.findUnique({
       where: { id: problem_id },
@@ -118,84 +113,75 @@ export class SubmissionsService {
       throw new NotFoundException('Không tìm thấy bài tập với mã cung cấp.');
     }
 
-    // RÀNG BUỘC KỲ THI (Nếu là STUDENT)
-    if (user.role === 'STUDENT' && problem.contests.length > 0) {
+    // RÀNG BUỘC KỲ THI: Chỉ áp dụng khi sinh viên nộp bài TRONG PHÒNG THI (có contest_id).
+    // Nếu không có contest_id, bài nộp là luyện tập tự do — không bị chặn bởi kỳ thi cũ.
+    if (user.role === 'STUDENT' && contest_id) {
       const now = new Date();
 
-      // Batch Query: Lấy tất cả thông tin một lần (N+1 Fix)
-      const contestIds = problem.contests.map((cp) => cp.contest_id);
-      const classIds = problem.contests
-        .filter((cp) => cp.contest.is_private && cp.contest.class_id)
-        .map((cp) => cp.contest.class_id as string);
+      // Tìm kỳ thi mà client chỉ định
+      const targetContestEntry = problem.contests.find(
+        (cp) => cp.contest_id === contest_id,
+      );
 
-      // Prisma delegates may be unresolved when generated client types are unavailable.
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      const [enrolledClasses, sessionResults] = await Promise.all([
-        classIds.length > 0
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-          ? this.prisma.classStudent.findMany({
-              where: { student_id: userId, class_id: { in: classIds } },
-            })
-          : Promise.resolve([]),
+      if (!targetContestEntry) {
+        throw new BadRequestException(
+          'Bài tập này không thuộc kỳ thi đã chỉ định.',
+        );
+      }
+
+      const contest = targetContestEntry.contest;
+
+      // 1. Kiểm tra Private Contest: sinh viên phải thuộc lớp liên kết
+      if (contest.is_private && contest.class_id) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-        this.prisma.contestSession.findMany({
-          where: { student_id: userId, contest_id: { in: contestIds } },
-        }),
-      ]);
-
-      const sessions = sessionResults as unknown as Array<{
-        is_disqualified: boolean;
-        contest_id: string;
-      }>;
-
-      const enrolledClassRows = enrolledClasses as unknown as Array<{
-        class_id: string;
-      }>;
-      const enrolledClassSet = new Set(
-        enrolledClassRows.map((c) => c.class_id),
-      );
-      const disqualifiedSessionSet = new Set(
-        sessions.filter((s) => s.is_disqualified).map((s) => s.contest_id),
-      );
-
-      for (const cp of problem.contests) {
-        const contest = cp.contest;
-
-        // 1. Kiểm tra Private Contest (Guard Clause gộp điều kiện)
-        if (
-          contest.is_private &&
-          contest.class_id &&
-          !enrolledClassSet.has(contest.class_id)
-        ) {
+        const enrollment = await this.prisma.classStudent.findUnique({
+          where: {
+            class_id_student_id: {
+              class_id: contest.class_id,
+              student_id: userId,
+            },
+          },
+        });
+        if (!enrollment) {
           throw new ForbiddenException(
-            'Bạn không có quyền nộp bài cho bài tập thuộc lớp học khác.',
+            'Bạn không có quyền nộp bài cho kỳ thi thuộc lớp học này.',
           );
         }
+      }
 
-        // 2. Kiểm tra Thời gian thi
-        if (now < contest.start_time) {
-          throw new BadRequestException(
-            'Kỳ thi chưa bắt đầu, không thể nộp bài.',
-          );
-        }
-        if (now > contest.end_time) {
-          throw new BadRequestException(
-            'Kỳ thi đã kết thúc, không thể nộp bài.',
-          );
-        }
+      // 2. Kiểm tra Thời gian thi
+      if (now < contest.start_time) {
+        throw new BadRequestException(
+          'Kỳ thi chưa bắt đầu, không thể nộp bài.',
+        );
+      }
+      if (now > contest.end_time) {
+        throw new BadRequestException(
+          'Kỳ thi đã kết thúc, không thể nộp bài.',
+        );
+      }
 
-        // 3. Kiểm tra cấm thi (Anti-cheat)
-        if (disqualifiedSessionSet.has(contest.id)) {
-          throw new ForbiddenException(
-            'Bạn đã bị truất quyền thi cử do vi phạm quy chế (gian lận).',
-          );
-        }
+      // 3. Kiểm tra cấm thi (Anti-cheat)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const session = await this.prisma.contestSession.findUnique({
+        where: {
+          contest_id_student_id: {
+            contest_id: contest.id,
+            student_id: userId,
+          },
+        },
+      });
+      const isDisqualified = (
+        session as unknown as { is_disqualified: boolean } | null
+      )?.is_disqualified;
+      if (isDisqualified) {
+        throw new ForbiddenException(
+          'Bạn đã bị truất quyền thi cử do vi phạm quy chế (gian lận).',
+        );
       }
     }
 
     // B2: Tạo bản ghi Submission mới với status mặc định PENDING
-    // Prisma's generated delegate and enum may be unresolved when the generated
-    // client is unavailable to the type-aware linter.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const submission = await this.prisma.submission.create({
       data: {
@@ -226,6 +212,7 @@ export class SubmissionsService {
       message: 'Code has been submitted and is pending execution.',
     };
   }
+
   async runCustomCode(userId: string, dto: RunCustomCodeDto) {
     const { language, source_code, custom_input = '' } = dto;
     const sessionId = randomUUID();

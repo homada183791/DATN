@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Calendar as CalendarIcon, Loader2, Sparkles, Plus } from 'lucide-react';
+import { Calendar as CalendarIcon, Loader2, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useContestsQuery } from '../../api/contests';
 import { useHomeworksQuery } from '../../api/homeworks';
@@ -46,7 +46,7 @@ export default function CalendarPage({ userRole = 'student' }: Props) {
         classId: c.classId,
         status: c.status,
         description: c.description,
-        link: userRole === 'instructor' ? `/instructor/contest` : `/student/contest/${c.id}`,
+        link: userRole === 'instructor' ? `/instructor/contest` : `/student/contest`,
       });
     }
 
