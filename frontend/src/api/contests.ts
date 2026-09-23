@@ -124,6 +124,14 @@ export function removeProblemFromContest(contestId: string, problemId: string) {
   return apiFetch<void>(`/api/v1/contests/${contestId}/problems/${problemId}`, { method: 'DELETE' });
 }
 
+export function joinContest(contestId: string) {
+  return apiFetch<{ success: boolean; session_id: string }>(
+    `/api/v1/contests/${contestId}/join`,
+    { method: 'POST' },
+  );
+}
+
+
 export function useContestsQuery() {
   return useQuery({ 
     queryKey: ['contests'], 

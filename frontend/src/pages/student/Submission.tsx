@@ -280,7 +280,7 @@ export default function Submission() {
                   className="border-b border-[#e5dac9]/50 hover:bg-[#f7f4eb]/50 cursor-pointer transition-colors"
                   onClick={() => setSelectedSubmission(sub.id)}
                 >
-                  <td className="py-3 px-4 text-sm text-[#8a8073]">{sub.id}</td>
+                  <td className="py-3 px-4 text-sm text-[#8a8073] font-mono" title={sub.id}>#{sub.id.slice(0, 8)}</td>
                   <td className="py-3 px-4 text-sm text-[#191919] font-semibold">{sub.problemTitle}</td>
                   {user?.role === 'instructor' && (
                     <td className="py-3 px-4 text-sm text-[#5c5446]">@{sub.username}</td>

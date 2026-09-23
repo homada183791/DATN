@@ -158,6 +158,38 @@ export class ContestsService {
     });
   }
 
+  async removeProblem(contestId: string, problemId: string) {
+    const contest = await this.prisma.contest.findUnique({ where: { id: contestId } });
+    if (!contest) throw new NotFoundException('Không tìm thấy kỳ thi');
+
+    const entry = await this.prisma.contestProblem.findUnique({
+      where: { contest_id_problem_id: { contest_id: contestId, problem_id: problemId } },
+    });
+    if (!entry) throw new NotFoundException('Bài tập này không tồn tại trong kỳ thi');
+
+    return this.prisma.contestProblem.delete({
+      where: { contest_id_problem_id: { contest_id: contestId, problem_id: problemId } },
+    });
+  }
+
+  async joinContest(contestId: string, studentId: string) {
+    const contest = await this.prisma.contest.findUnique({ where: { id: contestId } });
+    if (!contest) throw new NotFoundException('Không tìm thấy kỳ thi');
+
+    // Upsert: nếu đã có session thì không tạo mới (idempotent)
+    const session = await this.prisma.contestSession.upsert({
+      where: { contest_id_student_id: { contest_id: contestId, student_id: studentId } },
+      update: {}, // Không thay đổi gì nếu đã tồn tại
+      create: {
+        contest_id: contestId,
+        student_id: studentId,
+        cheat_warnings: 0,
+        is_disqualified: false,
+      },
+    });
+    return { success: true, session_id: session.id };
+  }
+
   async reportCheatWarning(contestId: string, studentId: string) {
     const contest = await this.prisma.contest.findUnique({
       where: { id: contestId },

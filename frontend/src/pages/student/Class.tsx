@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useClass } from '../../context/ClassContext';
 import { useHomework, deadlineProgress } from '../../context/HomeworkContext';
 import { formatVNFull } from '../../utils/dateTime';
-import { contests } from '../../data/legacyData';
+import { useContestsQuery } from '../../api/contests';
 import {
   GraduationCap,
   Users,
@@ -27,6 +27,7 @@ import {
 export default function ClassPage() {
   const { allClasses, enrolledClasses, membersOf, joinByCode, leaveClass, isEnrolled } = useClass();
   const { homeworksOfClass, problemsOf } = useHomework();
+  const { data: contestsData } = useContestsQuery();
   const [searchQuery, setSearchQuery] = useState('');
   const [codeInput, setCodeInput] = useState('');
   const [tab, setTab] = useState<'my' | 'explore'>('my');
@@ -57,7 +58,7 @@ export default function ClassPage() {
 
   const selectedClassData = allClasses.find((c) => c.id === selectedClass);
   const selectedClassHws = selectedClass ? homeworksOfClass(selectedClass) : [];
-  const selectedClassContests = contests.filter((c) => c.classId === selectedClass);
+  const selectedClassContests = (contestsData ?? []).filter((c) => c.classId === selectedClass);
   const hwDetail = selectedHw
     ? selectedClassHws.find((h) => h.id === selectedHw)
     : null;

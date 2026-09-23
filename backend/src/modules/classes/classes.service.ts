@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateClassDto } from './dto/create-class.dto';
@@ -93,23 +94,32 @@ export class ClassesService {
     return cls;
   }
 
-  async update(id: string, updateClassDto: UpdateClassDto) {
-    await this.findOne(id); // Check exists
+  async update(id: string, updateClassDto: UpdateClassDto, instructorId: string) {
+    const cls = await this.findOne(id);
+    if (cls.admin_id !== instructorId) {
+      throw new ForbiddenException('Bạn không có quyền chỉnh sửa lớp học này.');
+    }
     return this.prisma.class.update({
       where: { id },
       data: updateClassDto,
     });
   }
 
-  async remove(id: string) {
-    await this.findOne(id); // Check exists
+  async remove(id: string, instructorId: string) {
+    const cls = await this.findOne(id);
+    if (cls.admin_id !== instructorId) {
+      throw new ForbiddenException('Bạn không có quyền xóa lớp học này.');
+    }
     return this.prisma.class.delete({
       where: { id },
     });
   }
 
-  async addStudent(classId: string, addStudentDto: AddStudentDto) {
-    await this.findOne(classId); // Check class exists
+  async addStudent(classId: string, addStudentDto: AddStudentDto, instructorId: string) {
+    const cls = await this.findOne(classId);
+    if (cls.admin_id !== instructorId) {
+      throw new ForbiddenException('Bạn không có quyền thêm sinh viên vào lớp học này.');
+    }
 
     const user = await this.prisma.user.findUnique({
       where: { id: addStudentDto.student_id },
@@ -135,8 +145,13 @@ export class ClassesService {
     });
   }
 
-  async removeStudent(classId: string, studentId: string) {
-    await this.findOne(classId);
+  async removeStudent(classId: string, studentId: string, instructorId?: string) {
+    const cls = await this.findOne(classId);
+    // Chỉ kiểm tra quyền sở hữu khi kick sinh viên (instructorId được truyền).
+    // Sinh viên tự rời lớp (từ endpoint /leave) không truyền instructorId.
+    if (instructorId && cls.admin_id !== instructorId) {
+      throw new ForbiddenException('Bạn không có quyền xóa sinh viên khỏi lớp học này.');
+    }
     return this.prisma.classStudent.delete({
       where: {
         class_id_student_id: {

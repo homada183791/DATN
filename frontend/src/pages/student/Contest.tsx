@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { Calendar, ChevronRight, Clock, Search, Trophy, Users, X, Lock, Globe, BookOpen, Play } from 'lucide-react';
 import { ApiError } from '../../api/http';
-import { useContestsQuery, type ContestDto, fetchContestDetail } from '../../api/contests';
-import { useAuth } from '../../context/AuthContext';
+import { useContestsQuery, type ContestDto, fetchContestDetail, joinContest } from '../../api/contests';
 import { formatVNFull } from '../../utils/dateTime';
 
 const statusLabels: Record<NonNullable<ContestDto['status']>, string> = {
@@ -31,22 +31,14 @@ const visibilityLabels: Record<NonNullable<ContestDto['visibility']>, string> = 
 };
 
 export default function Contest() {
-  const { user } = useAuth();
   const { data, isLoading, error } = useContestsQuery();
+  const queryClient = useQueryClient();
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'running' | 'ended'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedContest, setSelectedContest] = useState<string | null>(null);
   const [contestProblems, setContestProblems] = useState<Array<{ problem_id: string; problem: { id: string; title: string; difficulty: string } }>>([]);
   const [loadingProblems, setLoadingProblems] = useState(false);
-  const [registeredContestIds, setRegisteredContestIds] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return [];
-    try {
-      const raw = localStorage.getItem(`jh-contest-registrations-${user?.id ?? 'guest'}`);
-      return raw ? (JSON.parse(raw) as string[]) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [registeredContestIds, setRegisteredContestIds] = useState<string[]>([]);
 
   const contests = data ?? [];
 
@@ -78,17 +70,16 @@ export default function Contest() {
     }
   };
 
-  const registerForContest = (contest: ContestDto) => {
+  const registerForContest = async (contest: ContestDto) => {
     if (isRegistered(contest.id)) return;
-    // Private contests: SV can only see them if already in the class (filtered by BE),
-    // so no access code needed — just register.
-    setRegisteredContestIds((prev) => {
-      const next = [...prev, contest.id];
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(`jh-contest-registrations-${user?.id ?? 'guest'}`, JSON.stringify(next));
-      }
-      return next;
-    });
+    try {
+      await joinContest(contest.id);
+      setRegisteredContestIds((prev) => [...prev, contest.id]);
+      await queryClient.invalidateQueries({ queryKey: ['contests'] });
+    } catch {
+      // Nếu API lỗi (vd: chưa login), fallback sang localStorage
+      setRegisteredContestIds((prev) => [...prev, contest.id]);
+    }
   };
 
   if (isLoading) {

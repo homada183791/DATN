@@ -17,6 +17,8 @@ export interface ClassDto {
       _count?: { submissions?: number };
     };
   }>;
+  homeworks?: Array<{ id: string }>;
+  contests?: Array<{ id: string }>;
   _count?: {
     homeworks?: number;
     contests?: number;

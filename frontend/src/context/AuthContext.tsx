@@ -76,9 +76,14 @@ function normalizeUser(identifier: string, role: User['role'], fullName?: string
 
 async function hydrateProfile(token: string): Promise<User> {
   try {
-    const profile = await apiFetch<any>('/api/v1/users/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const [profile, stats] = await Promise.all([
+      apiFetch<any>('/api/v1/users/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      apiFetch<{ solved_count: number; total_submissions: number }>('/api/v1/users/me/stats', {
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => ({ solved_count: 0, total_submissions: 0 })),
+    ]);
     const role = normalizeRole(profile.role);
     const username = profile.username || profile.email.split('@')[0];
     return {
@@ -89,8 +94,8 @@ async function hydrateProfile(token: string): Promise<User> {
       avatar: profile.avatar_url || '',
       role,
       institution: profile.institution || '',
-      solvedCount: 0,
-      submissionCount: 0,
+      solvedCount: stats.solved_count ?? 0,
+      submissionCount: stats.total_submissions ?? 0,
       rating: profile.elo_rating ?? 1200,
       joinDate: profile.created_at ? new Date(profile.created_at).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
       bio: profile.bio || '',

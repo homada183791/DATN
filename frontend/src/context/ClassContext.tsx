@@ -21,8 +21,10 @@ export interface Member {
   id: string;
   username: string;
   fullName: string;
+  email?: string;
   rating?: number;
   solvedCount?: number;
+  submissionCount?: number;
 }
 
 interface ClassContextType {
@@ -54,8 +56,8 @@ export function ClassProvider({ children }: { children: ReactNode }) {
     adminId: cls.admin?.id ?? '',
     semester: cls.semester ?? '',
     studentCount: cls.students?.length ?? 0,
-    homeworkCount: 0,
-    contestCount: 0,
+    homeworkCount: cls.homeworks?.length ?? 0,
+    contestCount: cls.contests?.length ?? 0,
     description: cls.description ?? '',
   })), [apiClasses]);
   const allClasses = serverClasses;
@@ -64,8 +66,12 @@ export function ClassProvider({ children }: { children: ReactNode }) {
     const cls = apiClasses.find((item) => item.id === classId);
     return (cls?.students ?? []).map(({ student }) => ({
       id: student.id,
-      username: student.email.split('@')[0],
+      username: student.username ?? student.email.split('@')[0],
       fullName: student.email,
+      email: student.email,
+      rating: student.elo_rating ?? 1200,
+      solvedCount: 0,
+      submissionCount: student._count?.submissions ?? 0,
     }));
   };
 

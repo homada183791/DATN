@@ -57,22 +57,33 @@ export class ClassesController {
   @Patch(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.INSTRUCTOR)
-  update(@Param('id') id: string, @Body() updateClassDto: UpdateClassDto) {
-    return this.classesService.update(id, updateClassDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateClassDto: UpdateClassDto,
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.classesService.update(id, updateClassDto, req.user.userId);
   }
 
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.INSTRUCTOR)
-  remove(@Param('id') id: string) {
-    return this.classesService.remove(id);
+  remove(
+    @Param('id') id: string,
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.classesService.remove(id, req.user.userId);
   }
 
   @Post(':id/students')
   @UseGuards(RolesGuard)
   @Roles(Role.INSTRUCTOR)
-  addStudent(@Param('id') id: string, @Body() addStudentDto: AddStudentDto) {
-    return this.classesService.addStudent(id, addStudentDto);
+  addStudent(
+    @Param('id') id: string,
+    @Body() addStudentDto: AddStudentDto,
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.classesService.addStudent(id, addStudentDto, req.user.userId);
   }
 
   /** Tham gia lớp bằng ID */
@@ -98,8 +109,12 @@ export class ClassesController {
   @Delete(':id/students/:studentId')
   @UseGuards(RolesGuard)
   @Roles(Role.INSTRUCTOR)
-  removeStudent(@Param('id') id: string, @Param('studentId') studentId: string) {
-    return this.classesService.removeStudent(id, studentId);
+  removeStudent(
+    @Param('id') id: string,
+    @Param('studentId') studentId: string,
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.classesService.removeStudent(id, studentId, req.user.userId);
   }
 
   // ─── Nested homework endpoints ─────────────────────────────────────────

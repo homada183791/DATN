@@ -99,6 +99,34 @@ export class ContestsController {
     return this.contestsService.addProblem(id, addProblemDto);
   }
 
+  @Delete(':id/problems/:problemId')
+  @Roles(Role.INSTRUCTOR)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Xóa bài tập khỏi kỳ thi' })
+  @ApiResponse({ status: 200, description: 'Bài tập đã được xóa khỏi kỳ thi.' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy kỳ thi hoặc bài tập.' })
+  removeProblem(
+    @Param('id') contestId: string,
+    @Param('problemId') problemId: string,
+  ) {
+    return this.contestsService.removeProblem(contestId, problemId);
+  }
+
+  @Post(':id/join')
+  @Roles(Role.STUDENT)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Sinh viên đăng ký tham gia kỳ thi (tạo ContestSession)' })
+  @ApiResponse({ status: 201, description: 'Đăng ký kỳ thi thành công.' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy kỳ thi.' })
+  joinContest(
+    @Param('id') contestId: string,
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.contestsService.joinContest(contestId, req.user.userId);
+  }
+
   @Post(':id/anti-cheat/warning')
   @Roles(Role.STUDENT)
   @ApiBearerAuth()

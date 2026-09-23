@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   createContest, deleteContest, updateContest,
   useContestsQuery, useLeaderboardQuery,
-  addProblemToContest, fetchContestDetail,
+  addProblemToContest, removeProblemFromContest, fetchContestDetail,
 } from '../../api/contests';
 import { useClassesQuery } from '../../api/classes';
 import { useProblemsQuery } from '../../api/problems';
@@ -103,6 +103,18 @@ export default function InstructorContest() {
       notifyGlobalToast(err instanceof ApiError ? err.message : 'Không thể thêm bài.');
     } finally {
       setAddingProblemId(null);
+    }
+  };
+
+  const handleRemoveProblem = async (contestId: string, problemId: string) => {
+    try {
+      await removeProblemFromContest(contestId, problemId);
+      const detail = await fetchContestDetail(contestId);
+      setContestProblems(detail.problems ?? []);
+      await queryClient.invalidateQueries({ queryKey: ['contests'] });
+      notifyGlobalToast('Đã xoá bài khỏi kỳ thi.', 'success');
+    } catch (err) {
+      notifyGlobalToast(err instanceof ApiError ? err.message : 'Không thể xoá bài.');
     }
   };
 
@@ -386,6 +398,13 @@ export default function InstructorContest() {
                           <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${diffColor[cp.problem.difficulty] ?? 'bg-gray-100 text-gray-600'}`}>
                             {diffMap[cp.problem.difficulty] ?? cp.problem.difficulty}
                           </span>
+                          <button
+                            onClick={() => handleRemoveProblem(showProblemManager!, cp.problem_id)}
+                            className="flex-shrink-0 p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Xoá bài khỏi kỳ thi"
+                          >
+                            <Trash2 size={14} />
+                          </button>
                         </div>
                       );
                     })}
