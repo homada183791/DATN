@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } fro
 import { useParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { useContributed } from '../../context/ContributedContext';
 import { problems, submissions } from '../../data/mockData';
 import { getDetail, LANG_LABELS, Lang, ProblemDetail } from '../../data/problemDetails';
@@ -88,6 +89,7 @@ interface AssistantMessage { id: number; role: 'user' | 'assistant'; content: st
 const now = () => new Date().toLocaleTimeString('en-GB', { hour12: false });
 
 export default function ProblemSolve() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const { user } = useAuth();
   const { contributed } = useContributed();
@@ -119,14 +121,14 @@ export default function ProblemSolve() {
       sections: [
         {
           paragraphs: [
-            contributedProblem.statement || 'Đề bài cộng đồng chưa có nội dung chi tiết.',
+            contributedProblem.statement || t('problemSolve.noDetailContent'),
           ],
         },
       ],
       samples: [
         {
-          input: contributedProblem.sampleInput || 'Không có input mẫu.',
-          output: contributedProblem.sampleOutput || 'Không có output mẫu.',
+          input: contributedProblem.sampleInput || t('problemSolve.noSampleInput'),
+          output: contributedProblem.sampleOutput || t('problemSolve.noSampleOutput'),
         },
       ],
     };
@@ -152,8 +154,8 @@ export default function ProblemSolve() {
   /* judge state */
   const [bottomTab, setBottomTab] = useState<BottomTab>('tests');
   const [bottomHeight, setBottomHeight] = useState(256);
-  const COLLAPSED_HEIGHT = 45;
-  const bottomCollapsed = bottomHeight <= COLLAPSED_HEIGHT + 1;
+  const COLLAPSED_HEIGHT = 44;
+  const bottomCollapsed = bottomHeight <= COLLAPSED_HEIGHT;
   const prevHeightRef = useRef(256);
   const resizingRef = useRef<{ startY: number; startHeight: number } | null>(null);
 
@@ -163,7 +165,8 @@ export default function ProblemSolve() {
     // hình — tránh trường hợp trừ cứng 1 con số ước lượng khiến hàng tab bị
     // đẩy chìm khỏi vùng nhìn thấy khi các thanh phía trên (topbar, tiêu đề
     // bài, thanh công cụ...) cao thấp khác nhau tuỳ màn hình.
-    const maxHeight = window.innerHeight * 0.6;
+    const handleTop = e.currentTarget.getBoundingClientRect().top;
+    const maxHeight = Math.max(window.innerHeight - handleTop - 8, COLLAPSED_HEIGHT);
 
     resizingRef.current = { startY: e.clientY, startHeight: bottomHeight };
     document.body.style.cursor = 'row-resize';
@@ -212,7 +215,7 @@ export default function ProblemSolve() {
     {
       id: 1,
       role: 'assistant',
-      content: `Xin chào! Tôi là trợ lý học tập cho bài “${problem.title}”. Bạn có thể hỏi về đề bài, gợi ý thuật toán hoặc cách viết code.`,
+      content: t('problemSolve.assistantWelcome', { title: problem.title }),
     },
   ]);
 
@@ -239,7 +242,7 @@ export default function ProblemSolve() {
       {
         id: Date.now(),
         role: 'assistant',
-        content: `Xin chào! Tôi là trợ lý học tập cho bài “${problem.title}”. Bạn có thể hỏi về đề bài, gợi ý thuật toán hoặc cách viết code.`,
+        content: t('problemSolve.assistantWelcome', { title: problem.title }),
       },
     ]);
     setShowAssistant(false);
@@ -302,11 +305,11 @@ export default function ProblemSolve() {
     pushConsole(`Compiling ${LANG_LABELS[lang]} source...`, 'info');
     await new Promise((r) => setTimeout(r, 650));
     if (code.trim().length < 20) {
-      pushConsole('error: main function not found — nothing to run.', 'err');
+      pushConsole(t('problemSolve.consoleNoMain'), 'err');
       setRunning(false);
       return;
     }
-    pushConsole('Compilation finished in 0.42s — 0 warning(s).', 'ok');
+    pushConsole(t('problemSolve.consoleCompileOk'), 'ok');
     for (let i = 0; i < samples.length; i++) {
       await new Promise((r) => setTimeout(r, 380));
       const ok = codeLooksCorrect;
@@ -328,7 +331,7 @@ export default function ProblemSolve() {
     setTestVerdicts([]);
     setJudgeProgress(0);
     pushConsole(`$ judge --submit ${detail.code} --lang ${LANG_LABELS[lang]}`, 'sys');
-    pushConsole('Đang gửi bài lên máy chấm...', 'info');
+    pushConsole(t('problemSolve.consoleSubmitting'), 'info');
     await new Promise((r) => setTimeout(r, 600));
     pushConsole('Compiling... OK', 'ok');
     const total = 8;
@@ -372,7 +375,7 @@ export default function ProblemSolve() {
       const text = await navigator.clipboard.readText();
       if (text) onCodeChange(code + text);
     } catch {
-      pushConsole('Không thể truy cập clipboard — hãy cấp quyền dán.', 'err');
+      pushConsole(t('problemSolve.consoleClipboardError'), 'err');
     }
   };
 
@@ -447,17 +450,17 @@ export default function ProblemSolve() {
             {detail.code}
           </span>
           <h1 className="text-[17px] font-bold">{problem.title}</h1>
-          <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-md ${diffChip}`}>{problem.difficulty === 'Easy' ? 'Dễ' : problem.difficulty === 'Medium' ? 'Trung bình' : 'Khó'}</span>
+          <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-md ${diffChip}`}>{problem.difficulty === 'Easy' ? t('instructorHomework.difficultyEasyFull') : problem.difficulty === 'Medium' ? t('instructorHomework.difficultyMediumFull') : t('instructorHomework.difficultyHard')}</span>
           {solved && (
             <span className="flex items-center gap-1 text-[12px] font-semibold text-[var(--ws-ok)]">
-              <CheckCircle2 size={14} /> Đã hoàn thành
+              <CheckCircle2 size={14} /> {t('studentHomework.completed')}
             </span>
           )}
           <div className="flex-1" />
           <button
             onClick={() => setShowGuide(true)}
             className="p-2 rounded-lg border border-[var(--ws-border)] text-[var(--ws-muted)] hover:text-[var(--ws-accent)] hover:border-[var(--ws-accent)] transition-colors"
-            title="Hướng dẫn sử dụng"
+            title={t("problemSolve.usageGuide")}
           >
             <HelpCircle size={15} />
           </button>
@@ -465,7 +468,7 @@ export default function ProblemSolve() {
             onClick={() => setShowSolution(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--ws-border)] text-[12.5px] font-medium text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:border-[var(--ws-accent)] transition-colors"
           >
-            <Eye size={14} /> Xem lời giải
+            <Eye size={14} /> {t('problemSolve.viewSolution')}
           </button>
           <div className="flex items-center rounded-lg border border-[var(--ws-border)] overflow-hidden">
             {([['split', <Columns size={14} key="c" />], ['statement', <FileText size={14} key="f" />], ['editor', <Code size={14} key="e" />]] as [LayoutMode, React.ReactNode][]).map(([mode, icon]) => (
@@ -473,7 +476,7 @@ export default function ProblemSolve() {
                 key={mode}
                 onClick={() => setLayout(mode)}
                 className={`px-2.5 py-2 transition-colors ${layout === mode ? 'bg-[var(--ws-accent-soft)] text-[var(--ws-accent)]' : 'text-[var(--ws-muted)] hover:text-[var(--ws-text)]'}`}
-                title={mode === 'split' ? 'Chia đôi' : mode === 'statement' ? 'Chỉ đề bài' : 'Chỉ editor'}
+                title={mode === 'split' ? t('problemSolve.modeSplit') : mode === 'statement' ? t('problemSolve.modeStatementOnly') : t('problemSolve.modeEditorOnly')}
               >
                 {icon}
               </button>
@@ -483,7 +486,7 @@ export default function ProblemSolve() {
             onClick={() => setShowAssistant((v) => !v)}
             className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[12.5px] font-medium transition-colors ${showAssistant ? 'border-[var(--ws-accent)] text-[var(--ws-accent)] bg-[var(--ws-accent-soft)]' : 'border-[var(--ws-border)] text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:border-[var(--ws-accent)]'}`}
           >
-            <MessageCircle size={14} /> {showAssistant ? 'Ẩn trợ lý' : 'Mở trợ lý'}
+            <MessageCircle size={14} /> {showAssistant ? t('problemSolve.hideAssistant') : t('problemSolve.openAssistant')}
           </button>
         </div>
 
@@ -495,36 +498,36 @@ export default function ProblemSolve() {
               onClick={() => setMobilePane(p)}
               className={`flex-1 py-2.5 text-[13px] font-semibold ${mobilePane === p ? 'text-[var(--ws-accent)] border-b-2 border-[var(--ws-accent)]' : 'text-[var(--ws-muted)]'}`}
             >
-              {p === 'statement' ? 'Đề bài' : 'Code'}
+              {p === 'statement' ? t('problemSolve.statementTab') : 'Code'}
             </button>
           ))}
         </div>
 
         {/* ============ SPLIT BODY ============ */}
-        <div className="flex-1 flex min-h-0 overflow-hidden">
+        <div className="flex-1 flex min-h-0">
           <div className="flex-1 flex min-h-0 min-w-0">
             {/* ---- statement pane ---- */}
             {(layout !== 'editor') && (
               <section
-                className={`overflow-y-auto overflow-x-hidden ws-editor-scroll bg-[var(--ws-bg)] ${
+                className={`overflow-y-auto ws-editor-scroll bg-[var(--ws-bg)] ${
                   layout === 'split'
                     ? `${mobilePane === 'statement' ? 'block' : 'hidden'} md:block md:w-1/2 border-r border-[var(--ws-border)]`
                     : 'w-full'
                 }`}
               >
-              <div className="px-7 py-6 max-w-3xl pb-20">
+              <div className="px-7 py-6 max-w-3xl">
                 {/* limits */}
                 <div className="grid grid-cols-3 gap-6 pb-5 border-b border-[var(--ws-border)]">
                   <div>
-                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">Thời gian giới hạn</p>
+                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">{t('problemSolve.timeLimit')}</p>
                     <p className="text-[15px] font-bold font-mono">{detail.timeLimit}</p>
                   </div>
                   <div>
-                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">Bộ nhớ giới hạn</p>
+                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">{t('problemSolve.memoryLimit')}</p>
                     <p className="text-[15px] font-bold font-mono">{detail.memoryLimit}</p>
                   </div>
                   <div>
-                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">Điểm tối đa</p>
+                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">{t('problemSolve.maxScore')}</p>
                     <p className="text-[15px] font-bold font-mono">{detail.points}</p>
                   </div>
                 </div>
@@ -533,7 +536,7 @@ export default function ProblemSolve() {
                   onClick={downloadStatement}
                   className="mt-5 flex items-center gap-1.5 text-[13px] font-medium text-[var(--ws-accent)] hover:underline"
                 >
-                  <Download size={14} /> Tải đề gốc
+                  <Download size={14} /> {t('problemSolve.downloadOriginal')}
                 </button>
 
                 <h2 className="mt-6 mb-5 text-[26px] font-extrabold leading-tight">{problem.title}</h2>
@@ -579,7 +582,7 @@ export default function ProblemSolve() {
                 ))}
 
                 {/* samples in statement */}
-                <h3 className="text-[19px] font-bold mb-3">Ví dụ</h3>
+                <h3 className="text-[19px] font-bold mb-3">{t('problemSolve.examplesTitle')}</h3>
                 {detail.samples.map((s, i) => (
                   <div key={i} className="mb-4 grid grid-cols-2 gap-3">
                     <div className="rounded-lg border border-[var(--ws-border)] bg-[var(--ws-panel)] overflow-hidden">
@@ -608,9 +611,9 @@ export default function ProblemSolve() {
               {/* editor toolbar */}
               <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--ws-border)] flex-wrap">
                 <div className="flex items-center rounded-lg border border-[var(--ws-border)] overflow-hidden text-[12.5px] font-semibold">
-                  <button className="px-3 py-1.5 bg-[var(--ws-accent-soft)] text-[var(--ws-accent)]">Viết code</button>
+                  <button className="px-3 py-1.5 bg-[var(--ws-accent-soft)] text-[var(--ws-accent)]">{t('problemSolve.writeCode')}</button>
                   <label className="px-3 py-1.5 text-[var(--ws-muted)] hover:text-[var(--ws-text)] cursor-pointer">
-                    Tải file
+                    {t('problemSolve.uploadFile')}
                     <input type="file" accept=".cpp,.py,.java,.txt" className="hidden" onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0])} />
                   </label>
                 </div>
@@ -625,13 +628,13 @@ export default function ProblemSolve() {
                 </select>
                 <label className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[var(--ws-border)] text-[12.5px] text-[var(--ws-muted)] cursor-pointer hover:text-[var(--ws-text)]">
                   <input type="checkbox" checked={wrap} onChange={(e) => setWrap(e.target.checked)} className="accent-[var(--ws-accent)]" />
-                  Xuống dòng
+                  {t('problemSolve.wordWrap')}
                 </label>
                 <button
                   onClick={() => onCodeChange(detail.templates[lang])}
                   className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[var(--ws-border)] text-[12.5px] text-[var(--ws-muted)] hover:text-[var(--ws-text)] transition-colors"
                 >
-                  <RotateCcw size={13} /> Đặt lại
+                  <RotateCcw size={13} /> {t('problemSolve.resetCode')}
                 </button>
                 <select
                   value={fontSize}
@@ -643,14 +646,14 @@ export default function ProblemSolve() {
 
                 <div className="flex-1" />
                 <button onClick={pasteIntoEditor} className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] font-semibold text-[var(--ws-accent)] hover:bg-[var(--ws-accent-soft)] transition-colors">
-                  <ClipboardPaste size={13} /> Dán vào
+                  <ClipboardPaste size={13} /> {t('problemSolve.pasteIn')}
                 </button>
                 <label className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] font-semibold text-[var(--ws-accent)] hover:bg-[var(--ws-accent-soft)] transition-colors cursor-pointer">
-                  <Upload size={13} /> Tải lên
+                  <Upload size={13} /> {t('problemSolve.uploadBtn')}
                   <input type="file" accept=".cpp,.py,.java,.txt" className="hidden" onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0])} />
                 </label>
                 <span className={`text-[11.5px] ${saveState === 'saved' ? 'text-[var(--ws-faint)]' : 'text-[var(--ws-warn)]'}`}>
-                  {saveState === 'saved' ? 'Đã lưu' : saveState === 'saving' ? 'Đang lưu…' : 'Chưa lưu'}
+                  {saveState === 'saved' ? t('problemSolve.saved') : saveState === 'saving' ? t('problemSolve.saving') : t('problemSolve.unsaved')}
                 </span>
               </div>
 
@@ -667,7 +670,7 @@ export default function ProblemSolve() {
                 </label>
                 {intelli && (
                   <span className="text-[11px] text-[var(--ws-faint)] hidden sm:block">
-                    {lineCount} dòng • {code.length} ký tự • {LANG_LABELS[lang]}
+                    {t('problemSolve.lineCount', { count: lineCount })} • {t('problemSolve.charCount', { count: code.length })} • {LANG_LABELS[lang]}
                   </span>
                 )}
               </div>
@@ -712,57 +715,24 @@ export default function ProblemSolve() {
               {/* ============ resize handle ============ */}
               <div
                 onMouseDown={startBottomResize}
-                className="
-                group
-                h-2
-                shrink-0
-                cursor-row-resize
-                bg-transparent
-                hover:bg-[var(--ws-accent-soft)]
-                active:bg-[var(--ws-accent)]
-                transition-colors
-                relative
-                z-20
-                "
+                className="group h-1.5 shrink-0 cursor-row-resize bg-transparent hover:bg-[var(--ws-accent-soft)] transition-colors relative"
                 role="separator"
                 aria-orientation="horizontal"
-                aria-label="Kéo để đổi chiều cao khung bên dưới"
+                aria-label={t("problemSolve.dragResizeLabel")}
               >
-                <div
-                  className="
-                  absolute
-                  inset-x-0
-                  top-1/2
-                  -translate-y-1/2
-                  h-px
-                  bg-[var(--ws-border)]
-                  group-hover:bg-[var(--ws-accent)]
-                  "
-                />
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-1 rounded-full bg-[var(--ws-border)] group-hover:bg-[var(--ws-accent)] transition-colors" />
               </div>
 
               {/* ============ bottom panel ============ */}
               <div
-                 className="
-                border-t
-                border-[var(--ws-border)]
-                bg-[var(--ws-panel)]
-                flex
-                flex-col
-                shrink-0
-                overflow-hidden
-                shadow-[0_-1px_0_rgba(0,0,0,0.08)]
-                "
-                style={{
-                  height: bottomHeight,
-                  minHeight: bottomCollapsed ? 0 : undefined,
-                }}
+                className="border-t border-[var(--ws-border)] bg-[var(--ws-panel)] flex flex-col shrink-0 overflow-hidden"
+                style={{ height: bottomHeight }}
               >
                 <div className="flex items-center gap-1 px-3 pt-2 border-b border-[var(--ws-border-soft)] shrink-0">
                   {([
-                    ['tests', 'Test mẫu', <FlaskConical size={13} key="i" />],
+                    ['tests', t('problemSolve.tabSamples'), <FlaskConical size={13} key="i" />],
                     ['console', 'Console', <Terminal size={13} key="i" />],
-                    ['results', 'Kết quả', <CheckCircle2 size={13} key="i" />],
+                    ['results', t('problemSolve.tabResults'), <CheckCircle2 size={13} key="i" />],
                     ['debug', 'Debug', <Bug size={13} key="i" />],
                   ] as [BottomTab, string, React.ReactNode][]).map(([tab, label, icon]) => (
                     <button
@@ -789,18 +759,18 @@ export default function ProblemSolve() {
                       disabled={running || judging}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--ws-border)] text-[12.5px] font-semibold text-[var(--ws-text)] hover:border-[var(--ws-accent)] hover:text-[var(--ws-accent)] transition-colors disabled:opacity-50"
                     >
-                      {running ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} />} Chạy
+                      {running ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} />} {t('problemSolve.runBtn')}
                     </button>
                     <button
                       onClick={submit}
                       disabled={running || judging}
                       className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[var(--ws-accent)] text-[#062a25] text-[12.5px] font-bold hover:brightness-110 transition-all disabled:opacity-50 shadow-[0_0_20px_var(--ws-accent-soft)]"
                     >
-                      {judging ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />} Nộp bài
+                      {judging ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />} {t('problemSolve.submitBtn')}
                     </button>
                     <button
                       onClick={toggleBottomCollapsed}
-                      title={bottomCollapsed ? 'Mở rộng khung' : 'Thu gọn khung'}
+                      title={bottomCollapsed ? t('problemSolve.expandPanel') : t('problemSolve.collapsePanel')}
                       className="flex items-center justify-center w-7 h-7 rounded-lg border border-[var(--ws-border)] text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:border-[var(--ws-accent)] transition-colors"
                     >
                       {bottomCollapsed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -813,7 +783,7 @@ export default function ProblemSolve() {
                   {judging && (
                     <div className="mb-4">
                       <div className="flex items-center justify-between text-[11.5px] text-[var(--ws-muted)] mb-1.5">
-                        <span>Đang chấm {Math.round(judgeProgress)}%</span>
+                        <span>{t('problemSolve.judging', { percent: Math.round(judgeProgress) })}</span>
                         <span>{Math.round((judgeProgress / 100) * 8)}/8 tests</span>
                       </div>
                       <div className="h-1.5 bg-[var(--ws-panel2)] rounded-full overflow-hidden">
@@ -826,7 +796,7 @@ export default function ProblemSolve() {
                     <div className="space-y-5">
                       {samples.map((s, i) => (
                         <div key={i}>
-                          <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-2">Nhóm {i + 1}</p>
+                          <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-2">{t('problemSolve.groupLabel', { index: i + 1 })}</p>
                           <div className="grid grid-cols-2 gap-3">
                             <div className="relative rounded-lg border border-[var(--ws-border)] bg-[var(--ws-editor)] overflow-hidden group">
                               <textarea
@@ -858,14 +828,14 @@ export default function ProblemSolve() {
                         </div>
                       ))}
                       <p className="text-[11.5px] italic text-[var(--ws-faint)]">
-                        Diff sẽ hiển thị sau khi chạy custom input trên case này (mỗi trường thử).
+                        {t('problemSolve.diffHint')}
                       </p>
                     </div>
                   )}
 
                   {bottomTab === 'console' && (
                     <div className="font-mono text-[12.5px] leading-6 space-y-0.5">
-                      {consoleLines.length === 0 && <p className="text-[var(--ws-faint)]">Console trống — nhấn "Chạy" để thực thi code với test mẫu.</p>}
+                      {consoleLines.length === 0 && <p className="text-[var(--ws-faint)]">{t('problemSolve.consoleEmpty')}</p>}
                       {consoleLines.map((l, i) => (
                         <p key={i} className="animate-slide-up">
                           <span className="text-[var(--ws-faint)] mr-2">[{l.time}]</span>
@@ -881,29 +851,29 @@ export default function ProblemSolve() {
                   {bottomTab === 'results' && (
                     <div>
                       {testVerdicts.length === 0 ? (
-                        <p className="text-[var(--ws-faint)] text-[13px]">Chưa có kết quả chấm — nhấn "Nộp bài" để gửi lên hệ thống.</p>
+                        <p className="text-[var(--ws-faint)] text-[13px]">{t('problemSolve.noResultYet')}</p>
                       ) : (
                         <>
                           <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg mb-4 font-bold text-[13px] ${
                             finalVerdict === 'AC' ? 'bg-[var(--ws-accent-soft)] text-[var(--ws-ok)]' : 'bg-red-500/10 text-[var(--ws-danger)]'
                           }`}>
                             {finalVerdict === 'AC' ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
-                            {finalVerdict === 'AC' ? `Accepted — ${detail.points}/${detail.points} điểm` : finalVerdict === 'TLE' ? 'Time Limit Exceeded' : 'Wrong Answer'}
+                            {finalVerdict === 'AC' ? t('problemSolve.acceptedLabel', { points: detail.points }) : finalVerdict === 'TLE' ? 'Time Limit Exceeded' : 'Wrong Answer'}
                           </div>
                           <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
-                            {testVerdicts.map((t) => (
+                            {testVerdicts.map((tv) => (
                               <div
-                                key={t.id}
-                                title={`Test ${t.id}: ${t.status} • ${t.time}ms • ${t.memory}MB`}
+                                key={tv.id}
+                                title={`Test ${tv.id}: ${tv.status} • ${tv.time}ms • ${tv.memory}MB`}
                                 className={`rounded-lg border px-2 py-2 text-center transition-transform hover:scale-105 ${
-                                  t.status === 'AC'
+                                  tv.status === 'AC'
                                     ? 'border-[var(--ws-ok)]/40 bg-[var(--ws-ok)]/10 text-[var(--ws-ok)]'
                                     : 'border-[var(--ws-danger)]/40 bg-[var(--ws-danger)]/10 text-[var(--ws-danger)]'
                                 }`}
                               >
-                                <p className="text-[10px] font-bold">#{t.id}</p>
-                                <p className="text-[13px] font-extrabold">{t.status}</p>
-                                <p className="text-[9.5px] opacity-75">{t.time}ms</p>
+                                <p className="text-[10px] font-bold">#{tv.id}</p>
+                                <p className="text-[13px] font-extrabold">{tv.status}</p>
+                                <p className="text-[9.5px] opacity-75">{tv.time}ms</p>
                               </div>
                             ))}
                           </div>
@@ -914,9 +884,9 @@ export default function ProblemSolve() {
 
                   {bottomTab === 'debug' && (
                     <div className="text-[13px] text-[var(--ws-muted)] space-y-2">
-                      <p className="flex items-center gap-2 text-[var(--ws-text)] font-semibold"><Bug size={14} /> Trình gỡ lỗi</p>
-                      <p>Không có ngoại lệ nào được ghi nhận ở lần chạy gần nhất.</p>
-                      <p className="text-[12px] text-[var(--ws-faint)]">Mẹo: dùng Console để xem output từng test và đối chiếu với đầu ra kỳ vọng ở tab Test mẫu.</p>
+                      <p className="flex items-center gap-2 text-[var(--ws-text)] font-semibold"><Bug size={14} /> {t('problemSolve.debuggerTitle')}</p>
+                      <p>{t('problemSolve.noExceptions')}</p>
+                      <p className="text-[12px] text-[var(--ws-faint)]">{t('problemSolve.debugHint')}</p>
                     </div>
                   )}
                 </div>
@@ -933,7 +903,7 @@ export default function ProblemSolve() {
                   <MessageCircle size={15} className="text-[var(--ws-accent)]" />
                   <div>
                     <p className="text-[13px] font-semibold text-[var(--ws-text)]">AI Assistant</p>
-                    <p className="text-[11px] text-[var(--ws-faint)]">Trợ lý AI cho bài hiện tại</p>
+                    <p className="text-[11px] text-[var(--ws-faint)]">{t('problemSolve.assistantSubtitle')}</p>
                   </div>
                 </div>
                 <button
@@ -955,7 +925,7 @@ export default function ProblemSolve() {
                 {assistantBusy && (
                   <div className="flex justify-start">
                     <div className="rounded-2xl border border-[var(--ws-border)] bg-[var(--ws-panel)] px-3 py-2 text-[13px] text-[var(--ws-muted)]">
-                      Đang suy nghĩ...
+                      {t('problemSolve.thinking')}
                     </div>
                   </div>
                 )}
@@ -967,7 +937,7 @@ export default function ProblemSolve() {
                   <input
                     value={assistantInput}
                     onChange={(e) => setAssistantInput(e.target.value)}
-                    placeholder="Hỏi về đề bài hoặc cách giải..."
+                    placeholder={t('problemSolve.askPlaceholder')}
                     className="flex-1 bg-transparent text-[13px] text-[var(--ws-text)] outline-none placeholder:text-[var(--ws-faint)]"
                   />
                   <button type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-[var(--ws-accent)] p-2 text-[#062a25] disabled:opacity-50">
@@ -984,7 +954,7 @@ export default function ProblemSolve() {
         className="fixed bottom-4 right-4 z-[85] flex lg:hidden items-center gap-2 rounded-full bg-[var(--ws-accent)] px-4 py-3 text-[13px] font-semibold text-[#062a25] shadow-xl transition-transform hover:scale-105"
       >
         <MessageCircle size={16} />
-        Trợ lý AI
+        {t('problemSolve.aiAssistantTitle')}
       </button>
 
       {showAssistantMobile && (
@@ -1010,7 +980,7 @@ export default function ProblemSolve() {
               {assistantBusy && (
                 <div className="flex justify-start">
                   <div className="rounded-2xl border border-[var(--ws-border)] bg-[var(--ws-panel)] px-3 py-2 text-[13px] text-[var(--ws-muted)]">
-                    Đang suy nghĩ...
+                    {t('problemSolve.thinking')}
                   </div>
                 </div>
               )}
@@ -1021,7 +991,7 @@ export default function ProblemSolve() {
                 <input
                   value={assistantInput}
                   onChange={(e) => setAssistantInput(e.target.value)}
-                  placeholder="Hỏi về đề bài hoặc cách giải..."
+                  placeholder={t('problemSolve.askPlaceholder')}
                   className="flex-1 bg-transparent text-[13px] text-[var(--ws-text)] outline-none placeholder:text-[var(--ws-faint)]"
                 />
                 <button type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-[var(--ws-accent)] p-2 text-[#062a25] disabled:opacity-50">
@@ -1038,7 +1008,7 @@ export default function ProblemSolve() {
         <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-[90] flex items-center justify-center p-4" onClick={() => setShowSolution(false)}>
           <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--ws-border)]">
-              <h3 className="font-bold text-[15px]">Lời giải tham khảo — {problem.title}</h3>
+              <h3 className="font-bold text-[15px]">{t('problemSolve.referenceSolutionTitle', { title: problem.title })}</h3>
               <button onClick={() => setShowSolution(false)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={18} /></button>
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(80vh-64px)]">
@@ -1057,17 +1027,17 @@ export default function ProblemSolve() {
         <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-[90] flex items-center justify-center p-4" onClick={() => setShowGuide(false)}>
           <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] rounded-2xl w-full max-w-lg shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--ws-border)]">
-              <h3 className="font-bold text-[15px]">Hướng dẫn sử dụng</h3>
+              <h3 className="font-bold text-[15px]">{t('problemSolve.usageGuide')}</h3>
               <button onClick={() => setShowGuide(false)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={18} /></button>
             </div>
             <div className="p-6 space-y-3 text-[13.5px] leading-6 text-[var(--ws-muted)]">
               {[
-                ['⌘K', 'Mở ô tìm kiếm bài tập từ bất kỳ đâu.'],
-                ['Chạy', 'Thực thi code với các test mẫu ở bảng dưới editor.'],
-                ['Nộp bài', 'Gửi code lên máy chấm với 8 test bí mật.'],
-                ['Đặt lại', 'Khôi phục template mặc định của ngôn ngữ đang chọn.'],
-                ['Tải lên / Dán vào', 'Nạp code từ file hoặc clipboard vào editor.'],
-                ['3 nút góc phải', 'Chuyển giữa chế độ chia đôi / chỉ đề / chỉ code.'],
+                ['⌘K', t('problemSolve.guideSearch')],
+                [t('problemSolve.runBtn'), t('problemSolve.guideRun')],
+                [t('problemSolve.submitBtn'), t('problemSolve.guideSubmit')],
+                [t('problemSolve.resetCode'), t('problemSolve.guideReset')],
+                [t('problemSolve.guideUploadPasteLabel'), t('problemSolve.guideUploadPaste')],
+                [t('problemSolve.guideModeLabel'), t('problemSolve.guideMode')],
               ].map(([k, v], i) => (
                 <div key={i} className="flex gap-3">
                   <span className="flex-shrink-0 text-[11px] font-bold px-2 py-0.5 h-fit rounded-md bg-[var(--ws-accent-soft)] text-[var(--ws-accent)]">{k}</span>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { contests, problems, submissions, Contest as ContestType, Problem as ProblemType } from '../../data/mockData';
 import {
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react';
 
 export default function Contest() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'running' | 'ended'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -66,8 +68,8 @@ export default function Contest() {
   };
 
   const visibilityLabel: Record<ContestType['visibility'], string> = {
-    public: 'Công khai',
-    private: 'Riêng tư',
+    public: t('studentContest.visibilityPublic'),
+    private: t('studentContest.visibilityPrivate'),
   };
 
   const visibilityColors: Record<ContestType['visibility'], string> = {
@@ -83,7 +85,7 @@ export default function Contest() {
       const expected = (contest.accessCode ?? '').trim().toLowerCase();
       const provided = accessCodeInput.trim().toLowerCase();
       if (!provided || provided !== expected) {
-        setAccessError('Mã truy cập không hợp lệ. Vui lòng kiểm tra lại.');
+        setAccessError(t('studentContest.wrongCode'));
         return;
       }
     }
@@ -106,9 +108,9 @@ export default function Contest() {
   };
 
   const statusLabels: Record<string, string> = {
-    upcoming: 'Sắp diễn ra',
-    running: 'Đang diễn ra',
-    ended: 'Đã kết thúc',
+    upcoming: t('instructorContest.statusUpcoming'),
+    running: t('instructorContest.statusRunning'),
+    ended: t('instructorContest.statusEnded'),
   };
 
   const typeColors: Record<string, string> = {
@@ -124,18 +126,18 @@ export default function Contest() {
   };
 
   const difficultyLabels: Record<string, string> = {
-    Easy: 'Dễ',
-    Medium: 'TB',
-    Hard: 'Khó',
+    Easy: t('instructorHomework.difficultyEasy'),
+    Medium: t('instructorHomework.difficultyMedium'),
+    Hard: t('instructorHomework.difficultyHard'),
   };
 
   return (
     <div className="space-y-6 text-[#191919]">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold font-serif text-[#191919]">Kỳ thi</h2>
+        <h2 className="text-2xl font-bold font-serif text-[#191919]">{t('nav.contest')}</h2>
         <div className="flex items-center gap-2">
           <span className="text-sm text-emerald-700 font-medium">
-            {contests.filter((c) => c.status === 'running').length} kỳ thi đang diễn ra
+            {t('studentContest.runningCount', { count: contests.filter((c) => c.status === 'running').length })}
           </span>
         </div>
       </div>
@@ -148,7 +150,7 @@ export default function Contest() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm kiếm kỳ thi..."
+            placeholder={t('instructorContest.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
           />
         </div>
@@ -163,7 +165,7 @@ export default function Contest() {
                   : 'bg-white text-[#5c5446] hover:text-[#191919] border border-[#e5dac9]'
               }`}
             >
-              {f === 'all' ? 'Tất cả' : statusLabels[f]}
+              {f === 'all' ? t('instructorContest.filterAll') : statusLabels[f]}
             </button>
           ))}
         </div>
@@ -192,29 +194,29 @@ export default function Contest() {
                 </span>
               </div>
               <p className="text-sm text-[#5c5446] mb-6 leading-relaxed">{selectedContestData.description}</p>
-              
+
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="p-4 bg-white rounded-xl border border-[#e5dac9]">
                   <div className="flex items-center gap-2 text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">
-                    <Calendar size={14} /> Bắt đầu
+                    <Calendar size={14} /> {t('instructorContest.fieldStart')}
                   </div>
                   <p className="text-sm text-[#191919] font-semibold">{selectedContestData.startTime}</p>
                 </div>
                 <div className="p-4 bg-white rounded-xl border border-[#e5dac9]">
                   <div className="flex items-center gap-2 text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">
-                    <Clock size={14} /> Kết thúc
+                    <Clock size={14} /> {t('instructorContest.fieldEnd')}
                   </div>
                   <p className="text-sm text-[#191919] font-semibold">{selectedContestData.endTime}</p>
                 </div>
                 <div className="p-4 bg-white rounded-xl border border-[#e5dac9]">
                   <div className="flex items-center gap-2 text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">
-                    <Users size={14} /> Người tham gia
+                    <Users size={14} /> {t('instructorContest.fieldParticipants')}
                   </div>
                   <p className="text-sm text-[#191919] font-semibold">{selectedContestData.participantCount}</p>
                 </div>
                 <div className="p-4 bg-white rounded-xl border border-[#e5dac9]">
                   <div className="flex items-center gap-2 text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">
-                    <Trophy size={14} /> Số lượng bài
+                    <Trophy size={14} /> {t('studentContest.problemCountLabel')}
                   </div>
                   <p className="text-sm text-[#191919] font-semibold">{selectedContestData.problemCount}</p>
                 </div>
@@ -222,10 +224,10 @@ export default function Contest() {
 
               {!isRegistered(selectedContestData.id) ? (
                 <div className="mb-6 border border-[#e5dac9] rounded-xl bg-[#f7f4eb] p-4">
-                  <h4 className="text-sm font-bold font-serif text-[#191919] mb-1.5">Đăng ký để mở danh sách bài</h4>
+                  <h4 className="text-sm font-bold font-serif text-[#191919] mb-1.5">{t('studentContest.registerToUnlock')}</h4>
                   <p className="text-xs text-[#8a8073] mb-3">
-                    Bạn cần bấm đăng ký/tham gia kỳ thi trước khi xem bài tập.
-                    {selectedContestData.visibility === 'private' ? ' Kỳ thi riêng tư yêu cầu mã truy cập do giảng viên cung cấp.' : ' Kỳ thi công khai, đăng ký chỉ mất một lần.'}
+                    {t('studentContest.registerHint')}
+                    {selectedContestData.visibility === 'private' ? ` ${t('studentContest.privateHint')}` : ` ${t('studentContest.publicHint')}`}
                   </p>
                   {selectedContestData.visibility === 'private' && (
                     <div className="mb-2">
@@ -235,7 +237,7 @@ export default function Contest() {
                           setAccessCodeInput(e.target.value);
                           if (accessError) setAccessError('');
                         }}
-                        placeholder="Nhập mã truy cập kỳ thi"
+                        placeholder={t('studentContest.accessCodePlaceholder')}
                         className="w-full px-3 py-2 bg-white border border-[#e5dac9] rounded-lg text-sm text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                       />
                     </div>
@@ -245,13 +247,13 @@ export default function Contest() {
                     onClick={() => registerForContest(selectedContestData)}
                     className="w-full py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] transition-all shadow-md"
                   >
-                    {selectedContestData.status === 'running' ? 'Tham gia kỳ thi' : 'Đăng ký kỳ thi'}
+                    {selectedContestData.status === 'running' ? t('studentContest.joinContestBtn') : t('studentContest.registerContestBtn')}
                   </button>
                 </div>
               ) : (
                 <div className="mb-6">
                   <h4 className="text-sm font-bold font-serif text-[#191919] mb-2.5 flex items-center gap-1.5">
-                    <BookOpen size={15} /> Bài tập trong kỳ thi
+                    <BookOpen size={15} /> {t('studentContest.problemsInContest')}
                   </h4>
                   <div className="border border-[#e5dac9] rounded-xl overflow-hidden divide-y divide-[#e5dac9]/60 bg-white">
                     {getContestProblems(selectedContestData).map((p, index) => {
@@ -269,11 +271,11 @@ export default function Contest() {
                           <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${difficultyColors[p.difficulty]}`}>
                             {difficultyLabels[p.difficulty]}
                           </span>
-                          <span className="text-[11px] text-[#8a8073] w-10 text-right">{p.points}đ</span>
+                          <span className="text-[11px] text-[#8a8073] w-10 text-right">{p.points}{t('instructorHomework.pointsSuffix')}</span>
                           <Link
                             to={`/student/problem/${p.id}`}
                             className="p-1.5 bg-[#193a2b]/10 rounded-lg text-[#193a2b] hover:bg-[#193a2b] hover:text-white transition-colors"
-                            title="Mở bài toán"
+                            title={t('studentContest.openProblem')}
                           >
                             <Play size={13} />
                           </Link>
@@ -286,12 +288,12 @@ export default function Contest() {
 
               {isRegistered(selectedContestData.id) && selectedContestData.status === 'running' && (
                 <button className="w-full py-3 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] transition-all flex items-center justify-center gap-2 shadow-md">
-                  Vào thi ngay
+                  {t('studentContest.enterNow')}
                 </button>
               )}
               {isRegistered(selectedContestData.id) && selectedContestData.status === 'upcoming' && (
                 <button className="w-full py-3 bg-[#cc5a37] text-white font-medium rounded-xl hover:bg-[#b04829] transition-all flex items-center justify-center gap-2 shadow-md">
-                  Đã đăng ký
+                  {t('studentContest.alreadyRegistered')}
                 </button>
               )}
             </div>
@@ -304,7 +306,7 @@ export default function Contest() {
         {filteredContests.length === 0 ? (
           <div className="bg-white border border-[#e5dac9] rounded-xl p-12 text-center shadow-sm">
             <Trophy size={48} className="text-[#bfae99] mx-auto mb-4" />
-            <p className="text-[#8a8073]">Không tìm thấy kỳ thi nào</p>
+            <p className="text-[#8a8073]">{t('studentContest.emptyState')}</p>
           </div>
         ) : (
           filteredContests.map((contest) => (
@@ -345,7 +347,7 @@ export default function Contest() {
                       <Calendar size={12} /> {contest.startTime}
                     </span>
                     <span className="flex items-center gap-1">
-                      <Users size={12} /> {contest.participantCount} người
+                      <Users size={12} /> {t('studentContest.peopleCount', { count: contest.participantCount })}
                     </span>
                   </div>
                   <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${statusColors[contest.status]}`}>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { problems, submissions } from '../../data/mockData';
 import { getDetail } from '../../data/problemDetails';
@@ -10,6 +11,7 @@ import ProblemManager from '../../components/ProblemManager';
 import { Search, CheckCircle2, Circle, ChevronRight, BookOpen, Flame, Plus, X, Users2, Trash2, Play } from 'lucide-react';
 
 export default function ProblemList() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { contributed, addContributed, removeContributed } = useContributed();
   const [query, setQuery] = useState('');
@@ -28,7 +30,7 @@ export default function ProblemList() {
     if (draft.length === 0) return;
     const items: ContributedProblem[] = draft.map((p) => ({
       ...p,
-      author: user?.fullName ?? 'Ẩn danh',
+      author: user?.fullName ?? t('problemList.anonymous'),
       authorRole: user?.role ?? 'student',
       category,
       createdAt: new Date().toISOString().slice(0, 10),
@@ -36,7 +38,7 @@ export default function ProblemList() {
     addContributed(items);
     setDraft([]);
     setShowContribute(false);
-    setToast(`Đã đóng góp ${items.length} bài tập cho cộng đồng. Cảm ơn bạn!`);
+    setToast(t('problemList.contributeSuccess', { count: items.length }));
     setTimeout(() => setToast(''), 4000);
   };
 
@@ -71,28 +73,32 @@ export default function ProblemList() {
     Medium: 'text-yellow-800 bg-yellow-100 border-yellow-200',
     Hard: 'text-red-800 bg-red-100 border-red-200',
   };
-  const diffLabel: Record<string, string> = { Easy: 'Dễ', Medium: 'Trung bình', Hard: 'Khó' };
+  const diffLabel: Record<string, string> = {
+    Easy: t('instructorHomework.difficultyEasyFull'),
+    Medium: t('instructorHomework.difficultyMediumFull'),
+    Hard: t('instructorHomework.difficultyHard'),
+  };
 
   return (
     <div className="space-y-6 text-[#191919]">
       {/* header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div>
-          <h2 className="text-3xl font-bold font-serif text-[#191919]">Bài tập</h2>
+          <h2 className="text-3xl font-bold font-serif text-[#191919]">{t('nav.problems')}</h2>
           <p className="text-sm text-[#8a8073] mt-1">
-            {problems.length} bài toán • {solvedIds.size} đã hoàn thành — chọn một bài để mở không gian làm việc.
+            {t('problemList.subtitle', { total: problems.length, solved: solvedIds.size })}
           </p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 px-3.5 py-2 bg-[#cc5a37]/10 border border-[#cc5a37]/25 rounded-xl">
             <Flame size={16} className="text-[#cc5a37]" />
-            <span className="text-sm font-semibold text-[#cc5a37]">Chuỗi 4 ngày</span>
+            <span className="text-sm font-semibold text-[#cc5a37]">{t('problemList.streak', { count: 4 })}</span>
           </div>
           <button
             onClick={() => { setDraft([]); setCategory('Khác'); setShowContribute(true); }}
             className="flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-sm font-medium rounded-xl hover:bg-[#143022] shadow-md"
           >
-            <Plus size={16} /> Đóng góp bài tập
+            <Plus size={16} /> {t('problemList.contributeBtn')}
           </button>
         </div>
       </div>
@@ -110,36 +116,36 @@ export default function ProblemList() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Tìm theo tên, mã bài hoặc chủ đề…"
+            placeholder={t('problemList.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
           />
         </div>
 
         <div className="grid gap-3 md:grid-cols-2">
           <label className="flex flex-col gap-1.5">
-            <span className="text-[12px] font-semibold uppercase tracking-[0.2em] text-[#8a8073]">Trạng thái</span>
+            <span className="text-[12px] font-semibold uppercase tracking-[0.2em] text-[#8a8073]">{t('problemList.statusLabel')}</span>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as 'all' | 'solved' | 'unsolved')}
               className="rounded-xl border border-[#e5dac9] bg-white px-3 py-2.5 text-sm text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
             >
-              <option value="all">Tất cả</option>
-              <option value="solved">Đã giải</option>
-              <option value="unsolved">Chưa giải</option>
+              <option value="all">{t('instructorContest.filterAll')}</option>
+              <option value="solved">{t('problemList.solvedOption')}</option>
+              <option value="unsolved">{t('problemList.unsolvedOption')}</option>
             </select>
           </label>
 
           <label className="flex flex-col gap-1.5">
-            <span className="text-[12px] font-semibold uppercase tracking-[0.2em] text-[#8a8073]">Độ khó</span>
+            <span className="text-[12px] font-semibold uppercase tracking-[0.2em] text-[#8a8073]">{t('problemList.difficultyLabel')}</span>
             <select
               value={diff}
               onChange={(e) => setDiff(e.target.value as 'all' | 'Easy' | 'Medium' | 'Hard')}
               className="rounded-xl border border-[#e5dac9] bg-white px-3 py-2.5 text-sm text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
             >
-              <option value="all">Tất cả</option>
-              <option value="Easy">Dễ</option>
-              <option value="Medium">Trung bình</option>
-              <option value="Hard">Khó</option>
+              <option value="all">{t('instructorContest.filterAll')}</option>
+              <option value="Easy">{t('instructorHomework.difficultyEasyFull')}</option>
+              <option value="Medium">{t('instructorHomework.difficultyMediumFull')}</option>
+              <option value="Hard">{t('instructorHomework.difficultyHard')}</option>
             </select>
           </label>
         </div>
@@ -154,7 +160,7 @@ export default function ProblemList() {
             }`}
           >
             <span className="flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.2em]">
-              <span>THẺ</span>
+              <span>{t('problemList.tagsLabel')}</span>
               <span className="text-[11px] font-medium text-[#8a8073]">{selectedTags.length > 0 ? `(${selectedTags.length})` : ''}</span>
             </span>
             <ChevronRight size={16} className={`transition-transform ${showTagFilters ? 'rotate-90' : ''}`} />
@@ -169,7 +175,7 @@ export default function ProblemList() {
                     selectedTags.length === 0 ? 'bg-[#193a2b] text-white shadow-sm' : 'bg-[#f7f4eb] text-[#5c5446] hover:text-[#191919]'
                   }`}
                 >
-                  Tất cả
+                  {t('instructorContest.filterAll')}
                 </button>
                 {tagOptions.map((tag) => {
                   const active = selectedTags.includes(tag);
@@ -217,16 +223,16 @@ export default function ProblemList() {
                   <span className={`text-[11px] px-2 py-0.5 rounded-full border font-medium ${diffStyle[p.difficulty]}`}>
                     {diffLabel[p.difficulty]}
                   </span>
-                  {p.tags.slice(0, 3).map((t) => (
-                    <span key={t} className="text-[11px] text-[#8a8073] bg-[#f7f4eb] border border-[#e5dac9] rounded-full px-2 py-0.5">
-                      {t}
+                  {p.tags.slice(0, 3).map((t2) => (
+                    <span key={t2} className="text-[11px] text-[#8a8073] bg-[#f7f4eb] border border-[#e5dac9] rounded-full px-2 py-0.5">
+                      {t2}
                     </span>
                   ))}
                 </div>
               </div>
               <div className="hidden md:block text-right flex-shrink-0">
-                <p className="text-sm font-semibold text-[#191919]">{p.points} <span className="text-[11px] text-[#8a8073] font-normal">điểm</span></p>
-                <p className="text-[11px] text-[#8a8073] mt-0.5">{p.solvedCount} người giải</p>
+                <p className="text-sm font-semibold text-[#191919]">{p.points} <span className="text-[11px] text-[#8a8073] font-normal">{t('problemList.pointsWord')}</span></p>
+                <p className="text-[11px] text-[#8a8073] mt-0.5">{t('problemList.solvedByCount', { count: p.solvedCount })}</p>
               </div>
               <ChevronRight size={18} className="text-[#d8cfbe] group-hover:text-[#193a2b] group-hover:translate-x-0.5 transition-all flex-shrink-0" />
             </Link>
@@ -235,7 +241,7 @@ export default function ProblemList() {
         {filteredList.length === 0 && (
           <div className="p-14 text-center">
             <BookOpen size={44} className="text-[#bfae99] mx-auto mb-3" />
-            <p className="text-[#8a8073]">Không có bài nào khớp bộ lọc.</p>
+            <p className="text-[#8a8073]">{t('problemList.emptyState')}</p>
           </div>
         )}
       </div>
@@ -248,7 +254,7 @@ export default function ProblemList() {
             disabled={safePage === 1}
             className="rounded-xl border border-[#e5dac9] bg-white px-3 py-2 text-sm font-medium text-[#5c5446] disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Trước
+            {t('problemList.prevPage')}
           </button>
           {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
             <button
@@ -266,7 +272,7 @@ export default function ProblemList() {
             disabled={safePage === totalPages}
             className="rounded-xl border border-[#e5dac9] bg-white px-3 py-2 text-sm font-medium text-[#5c5446] disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Sau
+            {t('problemList.nextPage')}
           </button>
         </div>
       )}
@@ -276,7 +282,7 @@ export default function ProblemList() {
         <div>
           <div className="flex items-center gap-2 mb-3">
             <Users2 size={18} className="text-[#193a2b]" />
-            <h3 className="text-lg font-bold font-serif text-[#191919]">Bài tập cộng đồng đóng góp</h3>
+            <h3 className="text-lg font-bold font-serif text-[#191919]">{t('problemList.communityTitle')}</h3>
             <span className="text-xs text-[#8a8073]">({contributed.length})</span>
           </div>
           <div className="bg-white border border-[#e5dac9] rounded-2xl overflow-hidden shadow-sm divide-y divide-[#e5dac9]/60">
@@ -290,8 +296,8 @@ export default function ProblemList() {
                       <div className="flex-1 min-w-0">
                         <p className="text-[15px] font-semibold text-[#191919] truncate">{p.title}</p>
                         <p className="text-[11px] text-[#8a8073] mt-0.5">
-                          {p.category} • {p.points}đ • đóng góp bởi <span className="font-medium">{p.author}</span>
-                          {p.authorRole === 'instructor' && <span className="ml-1 text-[#193a2b]">(GV)</span>} • {p.createdAt}
+                          {p.category} • {p.points}{t('instructorHomework.pointsSuffix')} • {t('problemList.contributedBy')} <span className="font-medium">{p.author}</span>
+                          {p.authorRole === 'instructor' && <span className="ml-1 text-[#193a2b]">({t('problemList.instructorAbbr')})</span>} • {p.createdAt}
                         </p>
                       </div>
                       <ChevronRight size={16} className={`text-[#8a8073] transition-transform flex-shrink-0 ${open ? 'rotate-90' : ''}`} />
@@ -299,12 +305,12 @@ export default function ProblemList() {
                     <Link
                       to={`/student/problem/${p.id}`}
                       className="p-1.5 text-[#193a2b] hover:text-white bg-[#193a2b]/10 hover:bg-[#193a2b] rounded-md transition-colors flex-shrink-0"
-                      title="Làm bài"
+                      title={t('studentHomework.goSolve')}
                     >
                       <Play size={14} />
                     </Link>
                     {(p.author === user?.fullName) && (
-                      <button onClick={() => removeContributed(p.id)} className="p-1.5 text-[#8a8073] hover:text-red-600 rounded-md transition-colors flex-shrink-0" title="Gỡ đóng góp">
+                      <button onClick={() => removeContributed(p.id)} className="p-1.5 text-[#8a8073] hover:text-red-600 rounded-md transition-colors flex-shrink-0" title={t('problemList.removeContribution')}>
                         <Trash2 size={14} />
                       </button>
                     )}
@@ -315,11 +321,11 @@ export default function ProblemList() {
                       {(p.sampleInput || p.sampleOutput) && (
                         <div className="grid grid-cols-2 gap-3 mt-3">
                           <div className="rounded-lg border border-[#e5dac9] overflow-hidden">
-                            <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#8a8073] bg-[#f0ebd9]">Input mẫu</p>
+                            <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#8a8073] bg-[#f0ebd9]">{t('studentHomework.sampleInput')}</p>
                             <pre className="px-3 py-2 text-[12.5px] font-mono whitespace-pre-wrap text-[#191919]">{p.sampleInput || '—'}</pre>
                           </div>
                           <div className="rounded-lg border border-[#e5dac9] overflow-hidden">
-                            <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#8a8073] bg-[#f0ebd9]">Output mẫu</p>
+                            <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#8a8073] bg-[#f0ebd9]">{t('studentHomework.sampleOutput')}</p>
                             <pre className="px-3 py-2 text-[12.5px] font-mono whitespace-pre-wrap text-[#191919]">{p.sampleOutput || '—'}</pre>
                           </div>
                         </div>
@@ -339,14 +345,14 @@ export default function ProblemList() {
           <div className="bg-[#f7f4eb] border border-[#e5dac9] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5dac9] sticky top-0 bg-[#f7f4eb] z-10">
               <div>
-                <h3 className="font-bold font-serif text-[16px] text-[#191919]">Đóng góp bài tập</h3>
-                <p className="text-xs text-[#8a8073] mt-0.5">Chia sẻ đề bài của bạn cho cộng đồng JudgeHub.</p>
+                <h3 className="font-bold font-serif text-[16px] text-[#191919]">{t('problemList.contributeModalTitle')}</h3>
+                <p className="text-xs text-[#8a8073] mt-0.5">{t('problemList.contributeModalSubtitle')}</p>
               </div>
               <button onClick={() => setShowContribute(false)} className="text-[#8a8073] hover:text-[#191919]"><X size={18} /></button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[#5c5446] mb-1.5">Chủ đề</label>
+                <label className="block text-sm font-medium text-[#5c5446] mb-1.5">{t('problemList.categoryLabel')}</label>
                 <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-4 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]">
                   {['Math', 'DP', 'Graph', 'Sorting', 'String', 'Data Structure', 'Binary Search', 'Khác'].map((c) => (
                     <option key={c} value={c}>{c}</option>
@@ -355,13 +361,13 @@ export default function ProblemList() {
               </div>
               <ProblemManager problems={draft} onChange={setDraft} />
               <p className="text-[11.5px] text-[#8a8073] bg-[#f0ebd9] border border-[#e5dac9] rounded-lg px-3 py-2">
-                🌍 Bài đóng góp sẽ hiển thị công khai trong mục "Bài tập cộng đồng" cho mọi người tham khảo.
+                🌍 {t('problemList.contributePublicHint')}
               </p>
               <div className="flex gap-3 pt-1">
                 <button onClick={submitContribution} disabled={draft.length === 0} className="flex-1 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md disabled:opacity-40 disabled:cursor-not-allowed">
-                  Đóng góp {draft.length > 0 ? `(${draft.length} bài)` : ''}
+                  {t('problemList.contributeBtn')} {draft.length > 0 ? `(${draft.length})` : ''}
                 </button>
-                <button onClick={() => setShowContribute(false)} className="px-6 py-2.5 bg-white border border-[#e5dac9] text-[#5c5446] font-medium rounded-xl hover:bg-[var(--ws-hover)]">Huỷ</button>
+                <button onClick={() => setShowContribute(false)} className="px-6 py-2.5 bg-white border border-[#e5dac9] text-[#5c5446] font-medium rounded-xl hover:bg-[var(--ws-hover)]">{t('common.cancel')}</button>
               </div>
             </div>
           </div>
