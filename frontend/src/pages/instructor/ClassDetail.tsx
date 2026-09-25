@@ -24,6 +24,7 @@ import {
   ArrowUpDown,
   BookOpen,
   UserX,
+  Copy,
 } from 'lucide-react';
 
 function getMSSV(email: string, username?: string | null, id?: string): string {
@@ -55,6 +56,10 @@ export default function InstructorClassDetail() {
   const [sortKey, setSortKey] = useState<'stt' | 'name_asc' | 'name_desc' | 'mssv_asc' | 'mssv_desc' | 'rating_desc' | 'subs_desc'>('stt');
   const [copied, setCopied] = useState<string | null>(null);
 
+  // Homework search & filter state
+  const [hwSearchQuery, setHwSearchQuery] = useState('');
+  const [hwStatusFilter, setHwStatusFilter] = useState<'all' | 'active' | 'overdue'>('all');
+
   // Homework creation modal state
   const [showCreateHw, setShowCreateHw] = useState(false);
   const [hwForm, setHwForm] = useState({ title: '', description: '', deadline: '' });
@@ -76,7 +81,33 @@ export default function InstructorClassDetail() {
     setTimeout(() => setCopied(null), 1500);
   };
 
-  const inviteLink = classData?.invite_code ? `${window.location.origin}/join/${classData.invite_code}` : '';
+  // Standard clean link display rules:
+  const displayCode = classData?.invite_code
+    ? (classData.invite_code.length > 10 ? `JH-${classData.invite_code.slice(0, 6).toUpperCase()}` : classData.invite_code.toUpperCase())
+    : 'CODE';
+  const displayInviteUrl = classData?.invite_code ? `judgehub.edu.vn/join/${displayCode}` : 'judgehub.edu.vn/join';
+  const fullInviteUrl = classData?.invite_code ? `${window.location.origin}/join/${classData.invite_code}` : '';
+
+  const activeHwCount = useMemo(() => {
+    return apiHomeworks.filter((hw: any) => !deadlineProgress(hw.deadline).overdue).length;
+  }, [apiHomeworks]);
+
+  const overdueHwCount = useMemo(() => {
+    return apiHomeworks.filter((hw: any) => deadlineProgress(hw.deadline).overdue).length;
+  }, [apiHomeworks]);
+
+  const filteredHomeworks = useMemo(() => {
+    return apiHomeworks.filter((hw: any) => {
+      const q = hwSearchQuery.trim().toLowerCase();
+      const matchSearch = !q || hw.title.toLowerCase().includes(q) || (hw.description && hw.description.toLowerCase().includes(q));
+      if (!matchSearch) return false;
+
+      const p = deadlineProgress(hw.deadline);
+      if (hwStatusFilter === 'active') return !p.overdue;
+      if (hwStatusFilter === 'overdue') return p.overdue;
+      return true;
+    });
+  }, [apiHomeworks, hwSearchQuery, hwStatusFilter]);
 
   // Members list with derived data
   const rawMembers = useMemo(() => {
@@ -223,21 +254,25 @@ export default function InstructorClassDetail() {
         </div>
 
         <div className="flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[#f0ebd9] border border-[#e5dac9] rounded-xl text-xs font-mono text-[#5c5446]">
+            <Link2 size={13} className="text-[#193a2b]" />
+            <span>{displayInviteUrl}</span>
+          </div>
           <button
-            onClick={() => copy(classData.invite_code, 'code')}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#f0ebd9] border border-[#e5dac9] text-xs font-semibold text-[#193a2b] rounded-lg hover:bg-[#e5dac9] transition-colors"
+            onClick={() => copy(fullInviteUrl, 'link')}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
+            title="Sao chép link mời đầy đủ cho sinh viên"
+          >
+            {copied === 'link' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+            <span>{copied === 'link' ? 'Đã sao chép' : 'Sao chép link'}</span>
+          </button>
+          <button
+            onClick={() => copy(classData.invite_code || '', 'code')}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#f0ebd9] border border-[#e5dac9] text-xs font-semibold text-[#193a2b] rounded-xl hover:bg-[#e5dac9] transition-colors"
             title="Sao chép mã lớp"
           >
             {copied === 'code' ? <Check size={14} className="text-emerald-700" /> : <Hash size={14} />}
-            Mã: <span className="font-mono">{classData.invite_code}</span>
-          </button>
-          <button
-            onClick={() => copy(inviteLink, 'link')}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-lg hover:bg-[#143022] transition-colors shadow-sm"
-            title="Sao chép link mời sinh viên"
-          >
-            {copied === 'link' ? <Check size={14} className="text-emerald-400" /> : <Link2 size={14} />}
-            Sao chép link mời
+            <span className="font-mono">{displayCode}</span>
           </button>
         </div>
       </div>
@@ -310,11 +345,17 @@ export default function InstructorClassDetail() {
 
       {/* ================= TAB 1: BÀI TẬP ================= */}
       {activeTab === 'homework' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-base font-bold text-[#191919]">Danh sách bài tập của lớp</h2>
-              <p className="text-xs text-[#8a8073]">Quản lý bài tập, theo dõi tiến độ nộp và chấm điểm sinh viên.</p>
+        <div className="space-y-4 animate-fade-in">
+          {/* Section Header (Tier 1: Synchronized with Members tab) */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#193a2b]/10 text-[#193a2b] flex items-center justify-center shadow-2xs shrink-0">
+                <ClipboardList size={20} />
+              </div>
+              <div>
+                <h2 className="text-base font-bold font-serif text-[#191919]">Danh sách bài tập của lớp</h2>
+                <p className="text-xs text-[#8a8073]">Quản lý bài tập, theo dõi tiến độ nộp và chấm điểm sinh viên.</p>
+              </div>
             </div>
             <button
               onClick={() => {
@@ -323,10 +364,70 @@ export default function InstructorClassDetail() {
                 setHwError('');
                 setShowCreateHw(true);
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-sm font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm shrink-0"
             >
-              <Plus size={16} /> Giao bài tập mới
+              <Plus size={15} /> Giao bài tập mới
             </button>
+          </div>
+
+          {/* Search & Filter Toolbar (Tier 2: Synchronized with Members tab) */}
+          <div className="bg-white border border-[#e5dac9] rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8a8073]" />
+              <input
+                value={hwSearchQuery}
+                onChange={(e) => setHwSearchQuery(e.target.value)}
+                placeholder="Tìm kiếm bài tập theo tiêu đề hoặc mô tả..."
+                className="w-full pl-10 pr-4 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-sm text-[#191919] placeholder:text-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+              />
+              {hwSearchQuery && (
+                <button
+                  onClick={() => setHwSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a8073] hover:text-[#191919]"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            {/* Filter buttons */}
+            <div className="flex items-center gap-1.5 p-1 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-xs font-semibold shrink-0">
+              <button
+                onClick={() => setHwStatusFilter('all')}
+                className={`px-3 py-1.5 rounded-lg transition-colors ${
+                  hwStatusFilter === 'all' ? 'bg-[#193a2b] text-white shadow-xs' : 'text-[#8a8073] hover:text-[#191919]'
+                }`}
+              >
+                Tất cả ({apiHomeworks.length})
+              </button>
+              <button
+                onClick={() => setHwStatusFilter('active')}
+                className={`px-3 py-1.5 rounded-lg transition-colors ${
+                  hwStatusFilter === 'active' ? 'bg-[#193a2b] text-white shadow-xs' : 'text-[#8a8073] hover:text-[#191919]'
+                }`}
+              >
+                Đang mở ({activeHwCount})
+              </button>
+              <button
+                onClick={() => setHwStatusFilter('overdue')}
+                className={`px-3 py-1.5 rounded-lg transition-colors ${
+                  hwStatusFilter === 'overdue' ? 'bg-[#193a2b] text-white shadow-xs' : 'text-[#8a8073] hover:text-[#191919]'
+                }`}
+              >
+                Đã hết hạn ({overdueHwCount})
+              </button>
+            </div>
+          </div>
+
+          {/* List Header Summary Bar */}
+          <div className="px-5 py-3 border border-[#e5dac9] rounded-xl bg-[#f7f4eb] flex items-center justify-between text-xs">
+            <span className="font-bold uppercase tracking-wider text-[#5c5446]">
+              Danh sách bài tập ({filteredHomeworks.length})
+            </span>
+            <span className="text-[#8a8073]">
+              Hiển thị <span className="font-semibold text-[#191919]">{filteredHomeworks.length}</span> / {apiHomeworks.length} bài tập
+            </span>
           </div>
 
           {apiHomeworks.length === 0 ? (
@@ -338,14 +439,22 @@ export default function InstructorClassDetail() {
               </p>
               <button
                 onClick={() => setShowCreateHw(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-sm font-semibold rounded-xl hover:bg-[#143022]"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm"
               >
-                <Plus size={16} /> Giao bài tập ngay
+                <Plus size={15} /> Giao bài tập ngay
               </button>
+            </div>
+          ) : filteredHomeworks.length === 0 ? (
+            <div className="bg-white border border-[#e5dac9] rounded-2xl p-10 text-center shadow-sm">
+              <Search size={36} className="text-[#bfae99] mx-auto mb-3" />
+              <h3 className="text-base font-bold text-[#191919]">Không tìm thấy bài tập phù hợp</h3>
+              <p className="text-xs text-[#8a8073] mt-1">
+                Thử thay đổi từ khóa tìm kiếm hoặc điều chỉnh bộ lọc trạng thái.
+              </p>
             </div>
           ) : (
             <div className="grid gap-4">
-              {apiHomeworks.map((hw: any) => {
+              {filteredHomeworks.map((hw: any) => {
                 const p = deadlineProgress(hw.deadline);
                 const problemsCount = Array.isArray(hw.tasks) ? hw.tasks.length : hw.problemCount ?? 0;
                 const submittedCount = hw.submittedStudents ?? 0;
@@ -442,8 +551,39 @@ export default function InstructorClassDetail() {
 
       {/* ================= TAB 2: THÀNH VIÊN ================= */}
       {activeTab === 'members' && (
-        <div className="space-y-4">
-          {/* Controls: Search, Sort, Stats */}
+        <div className="space-y-4 animate-fade-in">
+          {/* Section Header (Tier 1: Synchronized with Homework tab) */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#193a2b]/10 text-[#193a2b] flex items-center justify-center shadow-2xs shrink-0">
+                <Users size={20} />
+              </div>
+              <div>
+                <h2 className="text-base font-bold font-serif text-[#191919]">Danh sách thành viên lớp</h2>
+                <p className="text-xs text-[#8a8073]">Quản lý sinh viên ghi danh, theo dõi mức độ tích cực và kết quả học tập.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => copy(classData.invite_code || '', 'code')}
+                className="inline-flex items-center gap-1 px-2.5 py-2 bg-[#f0ebd9] border border-[#e5dac9] text-xs font-semibold text-[#193a2b] rounded-xl hover:bg-[#e5dac9] transition-colors"
+                title="Sao chép mã lớp"
+              >
+                {copied === 'code' ? <Check size={14} className="text-emerald-700" /> : <Hash size={14} />}
+                Mã: <span className="font-mono">{displayCode}</span>
+              </button>
+              <button
+                onClick={() => copy(fullInviteUrl, 'link')}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
+                title="Sao chép link mời sinh viên"
+              >
+                {copied === 'link' ? <Check size={14} className="text-emerald-400" /> : <Link2 size={14} />}
+                Sao chép link mời
+              </button>
+            </div>
+          </div>
+
+          {/* Search & Sort Toolbar (Tier 2: Synchronized with Homework tab) */}
           <div className="bg-white border border-[#e5dac9] rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
             {/* Search */}
             <div className="relative flex-1">
@@ -484,11 +624,11 @@ export default function InstructorClassDetail() {
             </div>
           </div>
 
-          {/* Members Table */}
+          {/* Members Table Card */}
           <div className="bg-white border border-[#e5dac9] rounded-2xl shadow-sm overflow-hidden">
             <div className="px-5 py-3 border-b border-[#e5dac9] bg-[#f7f4eb] flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-[#5c5446]">
-                Danh sách thành viên
+                Danh sách thành viên ({filteredMembers.length})
               </span>
               <span className="text-xs text-[#8a8073]">
                 Hiển thị <span className="font-semibold text-[#191919]">{filteredMembers.length}</span> / {rawMembers.length} sinh viên

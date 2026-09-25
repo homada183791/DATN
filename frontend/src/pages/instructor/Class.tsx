@@ -91,6 +91,11 @@ export default function InstructorClass() {
     setTimeout(() => setCopied(null), 1400);
   };
 
+  const getCleanCode = (code?: string) => {
+    if (!code) return 'CODE';
+    return code.length > 10 ? `JH-${code.slice(0, 6).toUpperCase()}` : code.toUpperCase();
+  };
+
   const inviteLink = (code: string) => `${window.location.origin}/join/${code}`;
 
   const handleCreate = async () => {
@@ -201,24 +206,34 @@ export default function InstructorClass() {
                   <span className="flex items-center gap-1"><Trophy size={14} /> {cls.contestCount}</span>
                 </div>
 
-                {/* invite link */}
-                <div className="flex items-center gap-2 p-2.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-lg mb-4">
-                  <Link2 size={14} className="text-[#8a8073] flex-shrink-0" />
-                  <span className="text-[11.5px] font-mono text-[#5c5446] truncate flex-1">{inviteLink(cls.code)}</span>
-                  <button
-                    onClick={() => copy(inviteLink(cls.code), `link-${cls.id}`)}
-                    className="p-1.5 rounded-md text-[#193a2b] hover:bg-[#e5dac9] transition-colors flex-shrink-0"
-                    title="Sao chép link mời"
-                  >
-                    {copied === `link-${cls.id}` ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
-                  </button>
-                  <button
-                    onClick={() => copy(cls.code, `code-${cls.id}`)}
-                    className="p-1.5 rounded-md text-[#193a2b] hover:bg-[#e5dac9] transition-colors flex-shrink-0"
-                    title="Sao chép mã lớp"
-                  >
-                    {copied === `code-${cls.id}` ? <Check size={14} className="text-emerald-600" /> : <Hash size={14} />}
-                  </button>
+                {/* invite link with standardized rule */}
+                <div className="flex items-center justify-between gap-2 p-2.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl mb-4">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-6 h-6 rounded-md bg-[#193a2b]/10 text-[#193a2b] flex items-center justify-center shrink-0">
+                      <Link2 size={13} />
+                    </div>
+                    <span className="text-[11.5px] font-mono font-medium text-[#191919] truncate">
+                      judgehub.edu.vn/join/<span className="font-bold text-[#193a2b]">{getCleanCode(cls.code)}</span>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={() => copy(inviteLink(cls.code), `link-${cls.id}`)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[#193a2b] bg-[#e5dac9]/60 hover:bg-[#e5dac9] rounded-lg transition-colors"
+                      title="Sao chép link mời đầy đủ"
+                    >
+                      {copied === `link-${cls.id}` ? <Check size={12} className="text-emerald-700" /> : <Copy size={12} />}
+                      <span>{copied === `link-${cls.id}` ? 'Đã chép' : 'Copy link'}</span>
+                    </button>
+                    <button
+                      onClick={() => copy(cls.code, `code-${cls.id}`)}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-[#5c5446] hover:text-[#193a2b] hover:bg-[#e5dac9]/60 rounded-lg transition-colors"
+                      title="Sao chép mã lớp"
+                    >
+                      {copied === `code-${cls.id}` ? <Check size={12} className="text-emerald-700" /> : <Hash size={12} />}
+                      <span>Mã</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* homework preview list (nằm giữa link join và các nút) */}
@@ -384,13 +399,23 @@ export default function InstructorClass() {
               <p className="text-[11.5px] text-[#8a8073] bg-[#f0ebd9] border border-[#e5dac9] rounded-lg px-3 py-2">
                 💡 Mã lớp (VD: INT4821) và link mời sẽ được tạo tự động — bạn chỉ cần chia sẻ cho sinh viên.
               </p>
-              <div className="flex gap-3 pt-1">
-                <button onClick={handleCreate} disabled={isCreatingClass} className="flex-1 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md disabled:opacity-50 flex justify-center items-center gap-2">
-                  {isCreatingClass && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                  Tạo lớp
-                </button>
-                <button onClick={() => setShowCreate(false)} disabled={isCreatingClass} className="px-6 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] font-medium rounded-xl hover:bg-[var(--ws-hover)] disabled:opacity-50">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--ws-border)]">
+                <button
+                  type="button"
+                  onClick={() => setShowCreate(false)}
+                  disabled={isCreatingClass}
+                  className="px-5 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] text-xs font-semibold rounded-xl hover:bg-[var(--ws-hover)] transition-colors disabled:opacity-50"
+                >
                   Huỷ
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCreate}
+                  disabled={isCreatingClass}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
+                >
+                  {isCreatingClass && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  Tạo lớp học
                 </button>
               </div>
             </div>
@@ -505,12 +530,24 @@ export default function InstructorClass() {
               <p className="text-[11.5px] text-[#8a8073] bg-[#f0ebd9] border border-[#e5dac9] rounded-lg px-3 py-2">
                 🔒 Chỉ {membersOf(hwClass.id).length} sinh viên trong lớp này mới nhìn thấy bài tập.
               </p>
-              <div className="flex gap-3 pt-1">
-                <button onClick={saveHomework} disabled={isSavingHw} className="flex-1 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md disabled:opacity-50 flex justify-center items-center gap-2">
-                  {isSavingHw && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                  Giao bài
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--ws-border)]">
+                <button
+                  type="button"
+                  onClick={() => setHwClassId(null)}
+                  disabled={isSavingHw}
+                  className="px-5 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] text-xs font-semibold rounded-xl hover:bg-[var(--ws-hover)] transition-colors disabled:opacity-50"
+                >
+                  Huỷ
                 </button>
-                <button onClick={() => setHwClassId(null)} disabled={isSavingHw} className="px-6 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] font-medium rounded-xl hover:bg-[var(--ws-hover)] disabled:opacity-50">Huỷ</button>
+                <button
+                  type="button"
+                  onClick={saveHomework}
+                  disabled={isSavingHw}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
+                >
+                  {isSavingHw && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  Lưu & Giao bài
+                </button>
               </div>
             </div>
           </div>

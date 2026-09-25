@@ -19,8 +19,6 @@ import {
   User,
   ClipboardList,
   GraduationCap,
-  Moon,
-  Sun,
   Bell,
   Search,
   Palette,
@@ -73,10 +71,19 @@ function Breadcrumbs() {
     contest: 'Kỳ thi',
     submission: 'Nộp bài',
     class: 'Lớp học',
+    classes: 'Lớp học',
     profile: 'Hồ sơ',
     settings: 'Cài đặt',
     students: 'Sinh viên',
     calendar: 'Lịch biểu',
+  };
+
+  const formatSegment = (segment: string) => {
+    if (labels[segment]) return labels[segment];
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment)) {
+      return `#${segment.slice(0, 8)}`;
+    }
+    return segment;
   };
 
   return (
@@ -88,13 +95,13 @@ function Breadcrumbs() {
         <span key={index} className="flex items-center">
           <ChevronRight size={14} className="mx-2 text-[#bfae99]" />
           {index === pathSegments.length - 1 ? (
-            <span className="text-[#191919] font-medium">{labels[segment] || segment}</span>
+            <span className="text-[#191919] font-medium">{formatSegment(segment)}</span>
           ) : (
             <Link
               to={'/' + pathSegments.slice(0, index + 1).join('/')}
               className="hover:text-[#193a2b] transition-colors"
             >
-              {labels[segment] || segment}
+              {formatSegment(segment)}
             </Link>
           )}
         </span>
@@ -105,7 +112,7 @@ function Breadcrumbs() {
 
 export default function Layout({ children, fullBleed = false }: { children: React.ReactNode; fullBleed?: boolean }) {
   const { user, logout, isAuthenticated, isInitializing } = useAuth();
-  const { dark, toggleTheme, theme, setThemeId, themes } = useTheme();
+  const { theme, setThemeId, themes } = useTheme();
   const { data: problems = [] } = useProblemsQuery();
   const { notifications, unreadCount, markRead, markAllRead, removeNotification, loadMore, hasMore, loading } = useNotifications();
   const navigate = useNavigate();
@@ -348,15 +355,6 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
               </div>
             )}
           </div>
-
-          {/* Theme toggle */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-lg text-[#8a8073] hover:text-[#193a2b] hover:bg-[#eadecc]/60 transition-colors"
-            title={dark ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'}
-          >
-            {dark ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
 
           {/* Notifications */}
           <div className="relative">

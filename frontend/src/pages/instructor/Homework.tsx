@@ -320,12 +320,24 @@ export default function InstructorHomework() {
               <p className="text-[11.5px] text-[#8a8073] bg-[#f0ebd9] border border-[#e5dac9] rounded-lg px-3 py-2">
                 🔒 Chỉ sinh viên đã tham gia lớp được chọn mới nhìn thấy bài tập này.
               </p>
-              <div className="flex gap-3 pt-1">
-                <button onClick={save} disabled={isSaving} className="flex-1 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md disabled:opacity-50 flex justify-center items-center gap-2">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--ws-border)]">
+                <button
+                  type="button"
+                  onClick={() => setEditor(null)}
+                  disabled={isSaving}
+                  className="px-5 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] text-xs font-semibold rounded-xl hover:bg-[var(--ws-hover)] transition-colors disabled:opacity-50"
+                >
+                  Huỷ
+                </button>
+                <button
+                  type="button"
+                  onClick={save}
+                  disabled={isSaving}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
+                >
                   {isSaving && <Loader2 size={16} className="animate-spin" />}
                   {editor.mode === 'edit' ? 'Lưu thay đổi' : 'Giao bài'}
                 </button>
-                <button onClick={() => setEditor(null)} disabled={isSaving} className="px-6 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] font-medium rounded-xl hover:bg-[var(--ws-hover)] disabled:opacity-50">Huỷ</button>
               </div>
             </div>
           </div>
