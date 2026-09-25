@@ -127,7 +127,13 @@ export function LoginModal({
           <span>Hoặc tiếp tục với</span>
         </div>
 
-        <button type="button" className={styles.ssoBtn}>
+        <button
+          type="button"
+          className={styles.ssoBtn}
+          onClick={() => {
+            alert('Tính năng đăng nhập bằng Google đang được cập nhật kết nối OAuth.');
+          }}
+        >
           <GoogleIcon />
           Đăng nhập bằng Google
         </button>

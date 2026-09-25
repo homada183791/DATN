@@ -719,7 +719,14 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                       </div>
 
                       <div className="flex items-center gap-2 self-end sm:self-center">
-                        <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[11px] font-semibold text-[var(--ws-text)] hover:bg-[var(--ws-hover)] transition-colors">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveModalEvent(ev);
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[11px] font-semibold text-[var(--ws-text)] hover:bg-[var(--ws-hover)] transition-colors"
+                        >
                           Chi tiết <ExternalLink size={11} />
                         </button>
                       </div>

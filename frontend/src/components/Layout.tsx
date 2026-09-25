@@ -563,7 +563,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
             {children}
           </main>
         ) : (
-          <main className="flex-1 p-6 overflow-y-auto">
+          <main className="flex-1 p-6 overflow-y-scroll [scrollbar-gutter:stable]">
             <Breadcrumbs />
             <div className="animate-fade-in">
               {children}

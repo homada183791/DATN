@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+html, body {
+  scrollbar-gutter: stable;
+}
+
+main {
+  scrollbar-gutter: stable;
+}
+
 /* ================= Design tokens ================= */
 
 .ws-dark {
