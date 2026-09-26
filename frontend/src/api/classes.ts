@@ -88,6 +88,20 @@ export function createClass(data: { name: string; semester?: string; description
   });
 }
 
+export function updateClass(classId: string, data: { name?: string; semester?: string; description?: string }) {
+  return apiFetch<ClassDto>(`/api/v1/classes/${classId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export function addStudentToClass(classId: string, email: string) {
+  return apiFetch<any>(`/api/v1/classes/${classId}/students`, {
+    method: 'POST',
+    body: JSON.stringify({ email: email.trim().toLowerCase() }),
+  });
+}
+
 /** Tham gia lớp bằng mã mời — gọi thẳng API, không phụ thuộc cache */
 export function joinClassByCode(code: string) {
   return apiFetch<{ class_id: string; student_id: string }>('/api/v1/classes/join-by-code', {

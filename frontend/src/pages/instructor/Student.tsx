@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useClass } from '../../context/ClassContext';
+import { useSubmissionsQuery } from '../../api/submissions';
 import {
   Users,
   Search,
@@ -16,20 +17,72 @@ import { formatVNFull } from '../../utils/dateTime';
 
 export default function InstructorStudent() {
   const { myClasses, membersOf } = useClass();
-  const students = myClasses.flatMap((classInfo) => membersOf(classInfo.id).map((member) => ({
-    id: member.username,
-    username: member.username,
-    fullName: member.fullName,
-    email: `${member.username}@unknown.local`,
-    solvedCount: member.solvedCount ?? 0,
-    submissionCount: 0,
-    rating: member.rating ?? 0,
-    lastActive: '',
-    classId: classInfo.id,
-    className: `${classInfo.name} - ${classInfo.code}`,
-  })));
+  const { data: rawSubmissions = [] } = useSubmissionsQuery();
+
+  const normalizeVerdict = (status: string): string => {
+    switch (status) {
+      case 'ACCEPTED':
+        return 'AC';
+      case 'WRONG_ANSWER':
+        return 'WA';
+      case 'TIME_LIMIT_EXCEEDED':
+        return 'TLE';
+      case 'COMPILE_ERROR':
+        return 'CE';
+      case 'RUNTIME_ERROR':
+        return 'RTE';
+      default:
+        return status;
+    }
+  };
+
+  const submissions = useMemo(() => {
+    return rawSubmissions.map((s) => ({
+      id: s.id,
+      userId: s.user_id,
+      username: s.username,
+      problemTitle: s.problem_title,
+      verdict: normalizeVerdict(s.status),
+      language: s.language,
+      executionTime: s.execution_time ?? 0,
+      timestamp: s.created_at,
+    }));
+  }, [rawSubmissions]);
+
+  const students = useMemo(() => {
+    return myClasses.flatMap((classInfo) =>
+      membersOf(classInfo.id).map((member) => {
+        const studentSubs = submissions.filter(
+          (sub) => sub.userId === member.id || sub.username === member.username
+        );
+        const solvedProblemIds = new Set(
+          rawSubmissions
+            .filter(
+              (sub) =>
+                (sub.user_id === member.id || sub.username === member.username) &&
+                sub.status === 'ACCEPTED'
+            )
+            .map((sub) => sub.problem_id)
+        );
+        const latestSub = studentSubs[0];
+
+        return {
+          id: member.id || member.username,
+          username: member.username,
+          fullName: member.fullName || member.email || member.username,
+          email: member.email || `${member.username}@student.edu.vn`,
+          solvedCount: solvedProblemIds.size > 0 ? solvedProblemIds.size : (member.solvedCount ?? 0),
+          submissionCount: studentSubs.length > 0 ? studentSubs.length : (member.submissionCount ?? 0),
+          rating: member.rating ?? 1200,
+          lastActive: latestSub?.timestamp ? formatVNFull(latestSub.timestamp) : 'Chưa có hoạt động',
+          classId: classInfo.id,
+          className: `${classInfo.name} - ${classInfo.code}`,
+        };
+      })
+    );
+  }, [myClasses, membersOf, submissions, rawSubmissions]);
+
   const classes = myClasses;
-  const submissions: Array<{ id: string; userId: string; problemTitle: string; verdict: string; language: string; executionTime: number; timestamp: string }> = [];
   const [searchQuery, setSearchQuery] = useState('');
   const [classFilter, setClassFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'rating' | 'solved' | 'submissions'>('rating');
@@ -51,17 +104,24 @@ export default function InstructorStudent() {
     });
 
   const selectedStudentData = students.find((s) => s.id === selectedStudent);
-  const selectedStudentSubs = submissions.filter((s) => s.userId === selectedStudent);
+  const selectedStudentSubs = submissions.filter(
+    (s) => s.userId === selectedStudent || s.username === selectedStudentData?.username
+  );
 
   const acCount = selectedStudentSubs.filter((s) => s.verdict === 'AC').length;
 
   const verdictColors: Record<string, string> = {
     AC: 'text-emerald-800 bg-emerald-100 border-emerald-300',
+    ACCEPTED: 'text-emerald-800 bg-emerald-100 border-emerald-300',
     WA: 'text-red-800 bg-red-100 border-red-300',
+    WRONG_ANSWER: 'text-red-800 bg-red-100 border-red-300',
     TLE: 'text-yellow-800 bg-yellow-100 border-yellow-300',
+    TIME_LIMIT_EXCEEDED: 'text-yellow-800 bg-yellow-100 border-yellow-300',
     MLE: 'text-yellow-800 bg-yellow-100 border-yellow-300',
     RTE: 'text-orange-800 bg-orange-100 border-orange-300',
+    RUNTIME_ERROR: 'text-orange-800 bg-orange-100 border-orange-300',
     CE: 'text-blue-800 bg-blue-100 border-blue-300',
+    COMPILE_ERROR: 'text-blue-800 bg-blue-100 border-blue-300',
     PE: 'text-pink-800 bg-pink-100 border-pink-300',
   };
 
@@ -102,7 +162,9 @@ export default function InstructorStudent() {
         </div>
         <div className="bg-white border border-[#e5dac9] rounded-xl p-4 text-center shadow-sm">
           <TrendingUp size={20} className="text-[#cc5a37] mx-auto mb-2" />
-          <p className="text-2xl font-bold font-serif text-[#191919]">{Math.round(students.reduce((sum, s) => sum + s.rating, 0) / students.length)}</p>
+          <p className="text-2xl font-bold font-serif text-[#191919]">
+            {students.length > 0 ? Math.round(students.reduce((sum, s) => sum + s.rating, 0) / students.length) : 0}
+          </p>
           <p className="text-xs text-[#8a8073] mt-0.5">Rating TB</p>
         </div>
         <div className="bg-white border border-[#e5dac9] rounded-xl p-4 text-center shadow-sm">

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { useClassDetailQuery, removeClassStudent } from '../../api/classes';
+import { useClassDetailQuery, removeClassStudent, updateClass as updateClassApi, addStudentToClass as addStudentApi } from '../../api/classes';
 import { useClassHomeworksQuery } from '../../api/homeworks';
 import { useHomework, deadlineProgress, HomeworkProblem } from '../../context/HomeworkContext';
 import { formatVN, formatVNFull } from '../../utils/dateTime';
@@ -25,6 +25,8 @@ import {
   BookOpen,
   UserX,
   Copy,
+  Edit3,
+  UserPlus,
 } from 'lucide-react';
 
 function getMSSV(email: string, username?: string | null, id?: string): string {
@@ -72,6 +74,18 @@ export default function InstructorClassDetail() {
   const [confirmDeleteHwId, setConfirmDeleteHwId] = useState<string | null>(null);
   const [confirmKickStudent, setConfirmKickStudent] = useState<{ id: string; name: string } | null>(null);
   const [isKicking, setIsKicking] = useState(false);
+
+  // Edit class state
+  const [showEditClass, setShowEditClass] = useState(false);
+  const [editForm, setEditForm] = useState({ name: '', semester: '', description: '' });
+  const [editError, setEditError] = useState('');
+  const [isUpdatingClass, setIsUpdatingClass] = useState(false);
+
+  // Add student state
+  const [showAddStudent, setShowAddStudent] = useState(false);
+  const [studentEmail, setStudentEmail] = useState('');
+  const [addStudentError, setAddStudentError] = useState('');
+  const [isAddingStudent, setIsAddingStudent] = useState(false);
 
   const hasDocument = typeof document !== 'undefined';
 
@@ -212,6 +226,65 @@ export default function InstructorClassDetail() {
     }
   };
 
+  const openEditModal = () => {
+    if (!classData) return;
+    setEditForm({
+      name: classData.name || '',
+      semester: classData.semester || 'Học kỳ 1 - 2024/2025',
+      description: classData.description || '',
+    });
+    setEditError('');
+    setShowEditClass(true);
+  };
+
+  const handleUpdateClass = async () => {
+    if (!classId) return;
+    if (editForm.name.trim().length < 3) {
+      setEditError('Tên lớp cần ít nhất 3 ký tự.');
+      return;
+    }
+    setIsUpdatingClass(true);
+    setEditError('');
+    try {
+      await updateClassApi(classId, {
+        name: editForm.name.trim(),
+        semester: editForm.semester,
+        description: editForm.description.trim(),
+      });
+      await refetchClass();
+      setShowEditClass(false);
+    } catch (e: any) {
+      setEditError(e.message || 'Có lỗi xảy ra khi cập nhật thông tin lớp.');
+    } finally {
+      setIsUpdatingClass(false);
+    }
+  };
+
+  const handleAddStudent = async () => {
+    if (!classId) return;
+    const email = studentEmail.trim();
+    if (!email) {
+      setAddStudentError('Vui lòng nhập email sinh viên.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setAddStudentError('Định dạng email không hợp lệ.');
+      return;
+    }
+    setIsAddingStudent(true);
+    setAddStudentError('');
+    try {
+      await addStudentApi(classId, email);
+      await refetchClass();
+      setShowAddStudent(false);
+      setStudentEmail('');
+    } catch (e: any) {
+      setAddStudentError(e.message || 'Không thể thêm sinh viên vào lớp. Vui lòng kiểm tra lại email.');
+    } finally {
+      setIsAddingStudent(false);
+    }
+  };
+
   const isLoading = isClassLoading || isHwLoading;
 
   if (isLoading && !classData) {
@@ -273,6 +346,14 @@ export default function InstructorClassDetail() {
           >
             {copied === 'code' ? <Check size={14} className="text-emerald-700" /> : <Hash size={14} />}
             <span className="font-mono">{displayCode}</span>
+          </button>
+          <button
+            onClick={openEditModal}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#f0ebd9] border border-[#e5dac9] text-xs font-semibold text-[#193a2b] rounded-xl hover:bg-[#e5dac9] transition-colors"
+            title="Chỉnh sửa thông tin lớp học"
+          >
+            <Edit3 size={13} />
+            <span>Sửa lớp</span>
           </button>
         </div>
       </div>
@@ -565,6 +646,14 @@ export default function InstructorClassDetail() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <button
+                onClick={() => { setStudentEmail(''); setAddStudentError(''); setShowAddStudent(true); }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
+                title="Thêm sinh viên trực tiếp bằng email"
+              >
+                <UserPlus size={14} />
+                <span>Thêm sinh viên</span>
+              </button>
+              <button
                 onClick={() => copy(classData.invite_code || '', 'code')}
                 className="inline-flex items-center gap-1 px-2.5 py-2 bg-[#f0ebd9] border border-[#e5dac9] text-xs font-semibold text-[#193a2b] rounded-xl hover:bg-[#e5dac9] transition-colors"
                 title="Sao chép mã lớp"
@@ -574,11 +663,11 @@ export default function InstructorClassDetail() {
               </button>
               <button
                 onClick={() => copy(fullInviteUrl, 'link')}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#f0ebd9] text-[#191919] border border-[#e5dac9] text-xs font-semibold rounded-xl hover:bg-[#e5dac9] transition-colors shadow-xs"
                 title="Sao chép link mời sinh viên"
               >
-                {copied === 'link' ? <Check size={14} className="text-emerald-400" /> : <Link2 size={14} />}
-                Sao chép link mời
+                {copied === 'link' ? <Check size={14} className="text-emerald-700" /> : <Link2 size={14} />}
+                Sao chép link
               </button>
             </div>
           </div>
@@ -859,6 +948,126 @@ export default function InstructorClassDetail() {
                 {isKicking && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                 Xác nhận xóa
               </button>
+            </div>
+          </div>
+        </div>
+      ), document.body)}
+
+      {/* ================= MODAL: CHỈNH SỬA LỚP HỌC ================= */}
+      {showEditClass && hasDocument && createPortal((
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-[85] flex items-center justify-center p-4" onClick={() => setShowEditClass(false)}>
+          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-lg shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--ws-border)]">
+              <div>
+                <h3 className="font-bold font-serif text-[16px]">Chỉnh sửa lớp học</h3>
+                <p className="text-xs text-[var(--ws-muted)] mt-0.5">Mã lớp: {classData.invite_code}</p>
+              </div>
+              <button onClick={() => setShowEditClass(false)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={18} /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Tên lớp *</label>
+                <input
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  placeholder="VD: Cấu trúc dữ liệu & Giải thuật"
+                  className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Học kỳ</label>
+                <select
+                  value={editForm.semester}
+                  onChange={(e) => setEditForm({ ...editForm, semester: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                >
+                  <option>Học kỳ 1 - 2024/2025</option>
+                  <option>Học kỳ 2 - 2024/2025</option>
+                  <option>Học kỳ hè - 2024/2025</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Mô tả</label>
+                <textarea
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  rows={3}
+                  placeholder="Giới thiệu ngắn về nội dung môn học…"
+                  className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
+                />
+              </div>
+              {editError && <p className="text-xs text-red-600 font-medium">{editError}</p>}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--ws-border)]">
+                <button
+                  type="button"
+                  onClick={() => setShowEditClass(false)}
+                  disabled={isUpdatingClass}
+                  className="px-5 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] text-xs font-semibold rounded-xl hover:bg-[var(--ws-hover)] transition-colors disabled:opacity-50"
+                >
+                  Huỷ
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUpdateClass}
+                  disabled={isUpdatingClass}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
+                >
+                  {isUpdatingClass && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  Lưu thay đổi
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ), document.body)}
+
+      {/* ================= MODAL: THÊM SINH VIÊN BẰNG EMAIL ================= */}
+      {showAddStudent && hasDocument && createPortal((
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-[85] flex items-center justify-center p-4" onClick={() => setShowAddStudent(false)}>
+          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-md shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--ws-border)]">
+              <div>
+                <h3 className="font-bold font-serif text-[16px]">Thêm sinh viên vào lớp</h3>
+                <p className="text-xs text-[var(--ws-muted)] mt-0.5">{classData.name}</p>
+              </div>
+              <button onClick={() => setShowAddStudent(false)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={18} /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Email sinh viên *</label>
+                <input
+                  type="email"
+                  value={studentEmail}
+                  onChange={(e) => setStudentEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddStudent()}
+                  placeholder="VD: sinhvien@student.edu.vn"
+                  className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                  autoFocus
+                />
+                <p className="text-xs text-[var(--ws-muted)] mt-1.5">
+                  Tài khoản sinh viên đã đăng ký trên hệ thống sẽ được ghi danh ngay vào lớp này.
+                </p>
+              </div>
+              {addStudentError && <p className="text-xs text-red-600 font-medium">{addStudentError}</p>}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--ws-border)]">
+                <button
+                  type="button"
+                  onClick={() => setShowAddStudent(false)}
+                  disabled={isAddingStudent}
+                  className="px-5 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] text-xs font-semibold rounded-xl hover:bg-[var(--ws-hover)] transition-colors disabled:opacity-50"
+                >
+                  Huỷ
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddStudent}
+                  disabled={isAddingStudent}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
+                >
+                  {isAddingStudent && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  Thêm sinh viên
+                </button>
+              </div>
             </div>
           </div>
         </div>
