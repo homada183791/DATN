@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateClassDto } from './dto/create-class.dto';
@@ -121,16 +122,24 @@ export class ClassesService {
       throw new ForbiddenException('Bạn không có quyền thêm sinh viên vào lớp học này.');
     }
 
-    const user = await this.prisma.user.findUnique({
-      where: { id: addStudentDto.student_id },
+    if (!addStudentDto.email && !addStudentDto.student_id) {
+      throw new BadRequestException('Vui lòng cung cấp email hoặc ID của sinh viên');
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: addStudentDto.email
+        ? { email: { equals: addStudentDto.email.trim().toLowerCase(), mode: 'insensitive' } }
+        : { id: addStudentDto.student_id },
     });
-    if (!user) throw new NotFoundException('Không tìm thấy sinh viên');
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy tài khoản sinh viên với thông tin đã cung cấp');
+    }
 
     const existing = await this.prisma.classStudent.findUnique({
       where: {
         class_id_student_id: {
           class_id: classId,
-          student_id: addStudentDto.student_id,
+          student_id: user.id,
         },
       },
     });
@@ -140,7 +149,7 @@ export class ClassesService {
     return this.prisma.classStudent.create({
       data: {
         class_id: classId,
-        student_id: addStudentDto.student_id,
+        student_id: user.id,
       },
     });
   }

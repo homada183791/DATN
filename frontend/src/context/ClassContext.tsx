@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './AuthContext';
-import { createClass as createClassApi, deleteClass as deleteClassApi, removeClassStudent, joinClassByCode, useClassesQuery } from '../api/classes';
+import { createClass as createClassApi, updateClass as updateClassApi, deleteClass as deleteClassApi, removeClassStudent, joinClassByCode, useClassesQuery } from '../api/classes';
 import { apiFetch } from '../api/http';
 
 export interface ClassInfo {
@@ -34,6 +34,7 @@ interface ClassContextType {
   membersOf: (classId: string) => Member[];
   isEnrolled: (classId: string) => boolean;
   createClass: (data: { name: string; semester: string; description: string }) => Promise<ClassInfo>;
+  updateClass: (classId: string, data: { name?: string; semester?: string; description?: string }) => Promise<void>;
   deleteClass: (classId: string) => Promise<void>;
   joinByCode: (code: string) => Promise<{ ok: boolean; message: string; classId?: string }>;
   joinByInviteCode: (code: string) => Promise<{ ok: boolean; message: string; classId?: string }>;
@@ -108,6 +109,12 @@ export function ClassProvider({ children }: { children: ReactNode }) {
     };
   };
 
+  const updateClass: ClassContextType['updateClass'] = async (classId, data) => {
+    await updateClassApi(classId, data);
+    await queryClient.invalidateQueries({ queryKey: ['classes'] });
+    await queryClient.invalidateQueries({ queryKey: ['classes', classId] });
+  };
+
   const deleteClass: ClassContextType['deleteClass'] = async (classId) => {
     await deleteClassApi(classId);
     await queryClient.invalidateQueries({ queryKey: ['classes'] });
@@ -155,7 +162,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
 
   return (
     <ClassContext.Provider
-      value={{ allClasses, myClasses, enrolledClasses, membersOf, isEnrolled, createClass, deleteClass, joinByCode, joinByInviteCode, leaveClass, removeMember }}
+      value={{ allClasses, myClasses, enrolledClasses, membersOf, isEnrolled, createClass, updateClass, deleteClass, joinByCode, joinByInviteCode, leaveClass, removeMember }}
     >
       {children}
     </ClassContext.Provider>

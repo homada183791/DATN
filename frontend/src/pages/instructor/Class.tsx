@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { useClass, Member } from '../../context/ClassContext';
+import { useClass, ClassInfo, Member } from '../../context/ClassContext';
 import { useHomework, deadlineProgress, HomeworkProblem } from '../../context/HomeworkContext';
 import ProblemManager from '../../components/ProblemManager';
 import {
@@ -20,10 +20,11 @@ import {
   Calendar,
   ClipboardList,
   Clock,
+  Edit3,
 } from 'lucide-react';
 
 export default function InstructorClass() {
-  const { myClasses, createClass, deleteClass, membersOf, removeMember } = useClass();
+  const { myClasses, createClass, updateClass, deleteClass, membersOf, removeMember } = useClass();
   const { homeworksOfClass, createHomework, refetch } = useHomework();
 
   useEffect(() => {
@@ -37,6 +38,12 @@ export default function InstructorClass() {
   const [isCreatingClass, setIsCreatingClass] = useState(false);
   const [isSavingHw, setIsSavingHw] = useState(false);
   const [confirmKickId, setConfirmKickId] = useState<string | null>(null);
+
+  // Edit class state
+  const [editingClass, setEditingClass] = useState<ClassInfo | null>(null);
+  const [editForm, setEditForm] = useState({ name: '', semester: 'Học kỳ 2 - 2024/2025', description: '' });
+  const [editError, setEditError] = useState('');
+  const [isUpdatingClass, setIsUpdatingClass] = useState(false);
 
   const [form, setForm] = useState({ name: '', semester: 'Học kỳ 2 - 2024/2025', description: '' });
   const [formError, setFormError] = useState('');
@@ -113,6 +120,38 @@ export default function InstructorClass() {
       setFormError(e.message || 'Có lỗi xảy ra khi tạo lớp.');
     } finally {
       setIsCreatingClass(false);
+    }
+  };
+
+  const openEditClass = (cls: ClassInfo) => {
+    setEditingClass(cls);
+    setEditForm({
+      name: cls.name,
+      semester: cls.semester,
+      description: cls.description || '',
+    });
+    setEditError('');
+  };
+
+  const handleUpdateClass = async () => {
+    if (!editingClass) return;
+    if (editForm.name.trim().length < 3) {
+      setEditError('Tên lớp cần ít nhất 3 ký tự.');
+      return;
+    }
+    setIsUpdatingClass(true);
+    setEditError('');
+    try {
+      await updateClass(editingClass.id, {
+        name: editForm.name.trim(),
+        semester: editForm.semester,
+        description: editForm.description.trim(),
+      });
+      setEditingClass(null);
+    } catch (e: any) {
+      setEditError(e.message || 'Có lỗi xảy ra khi cập nhật thông tin lớp.');
+    } finally {
+      setIsUpdatingClass(false);
     }
   };
 
@@ -323,6 +362,13 @@ export default function InstructorClass() {
                   >
                     <Plus size={13} /> Giao bài
                   </button>
+                  <button
+                    onClick={() => openEditClass(cls)}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-[#f0ebd9] text-[#191919] text-xs font-semibold rounded-lg hover:bg-[#e5dac9] transition-colors"
+                    title="Chỉnh sửa thông tin lớp"
+                  >
+                    <Edit3 size={13} /> Sửa
+                  </button>
                   {confirmDelete === cls.id ? (
                     <div className="flex items-center gap-1.5 ml-auto">
                       <span className="text-[11px] text-red-600 font-medium">Xoá lớp?</span>
@@ -416,6 +462,74 @@ export default function InstructorClass() {
                 >
                   {isCreatingClass && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                   Tạo lớp học
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ), document.body)}
+
+      {/* ===== edit modal ===== */}
+      {editingClass && hasDocument && createPortal((
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-[80] flex items-center justify-center p-4" onClick={() => setEditingClass(null)}>
+          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-lg shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--ws-border)]">
+              <div>
+                <h3 className="font-bold font-serif text-[16px]">Chỉnh sửa lớp học</h3>
+                <p className="text-xs text-[var(--ws-muted)] mt-0.5">Mã lớp: {editingClass.code}</p>
+              </div>
+              <button onClick={() => setEditingClass(null)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={18} /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Tên lớp *</label>
+                <input
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  placeholder="VD: Cấu trúc dữ liệu & Giải thuật"
+                  className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Học kỳ</label>
+                <select
+                  value={editForm.semester}
+                  onChange={(e) => setEditForm({ ...editForm, semester: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                >
+                  <option>Học kỳ 1 - 2024/2025</option>
+                  <option>Học kỳ 2 - 2024/2025</option>
+                  <option>Học kỳ hè - 2024/2025</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Mô tả</label>
+                <textarea
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  rows={3}
+                  placeholder="Giới thiệu ngắn về nội dung môn học…"
+                  className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
+                />
+              </div>
+              {editError && <p className="text-xs text-red-600 font-medium">{editError}</p>}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--ws-border)]">
+                <button
+                  type="button"
+                  onClick={() => setEditingClass(null)}
+                  disabled={isUpdatingClass}
+                  className="px-5 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] text-xs font-semibold rounded-xl hover:bg-[var(--ws-hover)] transition-colors disabled:opacity-50"
+                >
+                  Huỷ
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUpdateClass}
+                  disabled={isUpdatingClass}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
+                >
+                  {isUpdatingClass && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  Lưu thay đổi
                 </button>
               </div>
             </div>
