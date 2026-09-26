@@ -56,7 +56,6 @@ export default function App() {
         <NotificationProvider>
         <ClassProvider>
         <HomeworkProvider>
-        <ContributedProvider>
         <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginRegister />} />
