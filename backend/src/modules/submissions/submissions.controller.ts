@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { SubmissionsService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { RunCustomCodeDto } from './dto/run-custom-code.dto';
@@ -23,6 +23,17 @@ export class SubmissionsController {
   @ApiResponse({ status: 200, description: 'Danh sách bài nộp theo quyền người dùng.' })
   findAll(@Request() req: { user: { userId: string; role: import('@prisma/client').Role } }) {
     return this.submissionsService.findAll(req.user.userId, req.user.role);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Lấy chi tiết một bài nộp theo ID' })
+  @ApiResponse({ status: 200, description: 'Chi tiết bài nộp' })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy bài nộp' })
+  findOne(
+    @Param('id') id: string,
+    @Request() req: { user: { userId: string; role: import('@prisma/client').Role } },
+  ) {
+    return this.submissionsService.findOne(id, req.user.userId, req.user.role);
   }
 
   @Post()
