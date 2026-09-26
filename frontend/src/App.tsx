@@ -7,7 +7,6 @@ import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { ClassProvider } from './context/ClassContext';
 import { HomeworkProvider } from './context/HomeworkContext';
-import { ContributedProvider } from './context/ContributedContext';
 import { NotificationProvider } from './context/NotificationContext';
 import InstructorClass from './pages/instructor/Class';
 import InstructorClassDetail from './pages/instructor/ClassDetail';
@@ -114,7 +113,6 @@ export default function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
         </BrowserRouter>
-        </ContributedProvider>
         </HomeworkProvider>
         </ClassProvider>
         </NotificationProvider>

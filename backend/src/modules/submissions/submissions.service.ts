@@ -64,6 +64,63 @@ export class SubmissionsService {
     }));
   }
 
+  async findOne(id: string, userId: string, userRole: Role) {
+    const submission = await this.prisma.submission.findUnique({
+      where: { id },
+      include: {
+        problem: {
+          select: {
+            id: true,
+            title: true,
+            difficulty: true,
+            time_limit: true,
+            memory_limit: true,
+          },
+        },
+        user: {
+          select: { id: true, email: true, username: true, full_name: true },
+        },
+        test_results: {
+          orderBy: { testcase_index: 'asc' },
+          select: {
+            id: true,
+            testcase_index: true,
+            status: true,
+            execution_time: true,
+            memory_used: true,
+          },
+        },
+      },
+    });
+
+    if (!submission) {
+      throw new NotFoundException('Không tìm thấy bài nộp.');
+    }
+
+    if (userRole !== Role.INSTRUCTOR && submission.user_id !== userId) {
+      throw new ForbiddenException('Bạn không có quyền xem bài nộp này.');
+    }
+
+    return {
+      id: submission.id,
+      problem_id: submission.problem_id,
+      problem_title: submission.problem.title,
+      problem_difficulty: submission.problem.difficulty,
+      user_id: submission.user_id,
+      username: submission.user.username ?? submission.user.email.split('@')[0],
+      email: submission.user.email,
+      language: submission.language,
+      status: submission.status,
+      score: submission.score,
+      execution_time: submission.execution_time,
+      memory_used: submission.memory_used,
+      source_code: submission.source_code,
+      created_at: submission.created_at,
+      updated_at: submission.updated_at,
+      test_results: submission.test_results,
+    };
+  }
+
   async submitCode(userId: string, createSubmissionDto: CreateSubmissionDto) {
     const { problem_id, language, source_code, contest_id }: CreateSubmissionDto =
       createSubmissionDto;
