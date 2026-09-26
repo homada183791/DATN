@@ -187,7 +187,12 @@ export class ContestsService {
         is_disqualified: false,
       },
     });
-    return { success: true, session_id: session.id };
+    return {
+      success: true,
+      session_id: session.id,
+      cheat_warnings: session.cheat_warnings,
+      is_disqualified: session.is_disqualified,
+    };
   }
 
   async reportCheatWarning(contestId: string, studentId: string) {

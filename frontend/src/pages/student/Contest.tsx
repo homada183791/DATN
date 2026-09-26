@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import { Calendar, ChevronRight, Clock, Search, Trophy, Users, X, Lock, Globe, BookOpen, Play, CheckCircle2, BarChart2 } from 'lucide-react';
+import { Calendar, ChevronRight, Clock, Search, Trophy, Users, X, Lock, Globe, BookOpen, Play, CheckCircle2 } from 'lucide-react';
 import { ApiError } from '../../api/http';
 import { useContestsQuery, type ContestDto, fetchContestDetail, joinContest, useLeaderboardQuery } from '../../api/contests';
 import { formatVNFull } from '../../utils/dateTime';
@@ -289,7 +289,7 @@ export default function Contest() {
                                 </span>
                                 {isRunning ? (
                                   <Link
-                                    to={`/student/problem/${cp.problem_id}`}
+                                    to={`/student/contest/${selectedContestData.id}/problem/${cp.problem_id}`}
                                     className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors"
                                     onClick={() => setSelectedContest(null)}
                                   >

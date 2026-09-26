@@ -5,6 +5,7 @@ import {
   createContest, deleteContest, updateContest,
   useContestsQuery, useLeaderboardQuery,
   addProblemToContest, removeProblemFromContest, fetchContestDetail,
+  calculateContestElo, fetchPlagiarismReports, type PlagiarismReportDto,
 } from '../../api/contests';
 import { useClassesQuery } from '../../api/classes';
 import { useProblemsQuery } from '../../api/problems';
@@ -13,7 +14,7 @@ import { notifyGlobalToast } from '../../context/ToastContext';
 import { toDatetimeLocal, datetimeLocalToISO, formatVNFull } from '../../utils/dateTime';
 import {
   Trophy, Users, Plus, Search, X, Calendar, Edit3, Trash2, Eye,
-  Lock, Globe, BookOpen, CheckCircle2,
+  Lock, Globe, BookOpen, CheckCircle2, ShieldAlert, TrendingUp, Loader2,
 } from 'lucide-react';
 
 type ContestForm = {
@@ -55,6 +56,12 @@ export default function InstructorContest() {
   const [loadingContestProblems, setLoadingContestProblems] = useState(false);
   const [problemSearch, setProblemSearch] = useState('');
   const [addingProblemId, setAddingProblemId] = useState<string | null>(null);
+
+  // ── Plagiarism & ELO state ──────────────────────────────────────────────
+  const [showPlagiarismModal, setShowPlagiarismModal] = useState<string | null>(null);
+  const [plagiarismReports, setPlagiarismReports] = useState<PlagiarismReportDto[]>([]);
+  const [loadingPlagiarism, setLoadingPlagiarism] = useState(false);
+  const [calculatingEloContestId, setCalculatingEloContestId] = useState<string | null>(null);
 
   const openCreate = () => {
     setEditingContest(null);
@@ -115,6 +122,34 @@ export default function InstructorContest() {
       notifyGlobalToast('Đã xoá bài khỏi kỳ thi.', 'success');
     } catch (err) {
       notifyGlobalToast(err instanceof ApiError ? err.message : 'Không thể xoá bài.');
+    }
+  };
+
+  const handleCalculateElo = async (contestId: string) => {
+    setCalculatingEloContestId(contestId);
+    try {
+      await calculateContestElo(contestId);
+      notifyGlobalToast('Đã tính toán và cập nhật điểm ELO thành công cho các sinh viên!', 'success');
+      await queryClient.invalidateQueries({ queryKey: ['contests'] });
+      await queryClient.invalidateQueries({ queryKey: ['users', 'top-rated'] });
+    } catch (err: any) {
+      notifyGlobalToast(err instanceof ApiError ? err.message : 'Lỗi khi tính điểm ELO');
+    } finally {
+      setCalculatingEloContestId(null);
+    }
+  };
+
+  const openPlagiarismModal = async (contestId: string) => {
+    setShowPlagiarismModal(contestId);
+    setLoadingPlagiarism(true);
+    try {
+      const reports = await fetchPlagiarismReports(contestId);
+      setPlagiarismReports(reports);
+    } catch (err: any) {
+      notifyGlobalToast(err instanceof ApiError ? err.message : 'Không thể tải báo cáo đạo văn');
+      setPlagiarismReports([]);
+    } finally {
+      setLoadingPlagiarism(false);
     }
   };
 
@@ -351,6 +386,28 @@ export default function InstructorContest() {
                 >
                   <BookOpen size={14} /> Quản lý bài thi
                 </button>
+                <button
+                  onClick={() => openPlagiarismModal(selectedContestData.id)}
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-800 border border-amber-200 text-sm font-medium rounded-xl hover:bg-amber-100 transition-colors shadow-sm"
+                  title="Kiểm tra báo cáo đạo văn"
+                >
+                  <ShieldAlert size={14} /> Kiểm tra đạo văn
+                </button>
+                {selectedContestData.status === 'ended' && (
+                  <button
+                    onClick={() => handleCalculateElo(selectedContestData.id)}
+                    disabled={calculatingEloContestId === selectedContestData.id}
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 border border-indigo-200 text-sm font-medium rounded-xl hover:bg-indigo-100 transition-colors shadow-sm disabled:opacity-60"
+                    title="Tổng kết và tính điểm ELO cho các thí sinh"
+                  >
+                    {calculatingEloContestId === selectedContestData.id ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <TrendingUp size={14} />
+                    )}
+                    Tổng kết & Cập nhật ELO
+                  </button>
+                )}
                 <button onClick={() => { removeContest(selectedContestData.id); }} className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 border border-red-200 text-sm font-medium rounded-xl hover:bg-red-100 transition-colors">
                   <Trash2 size={14} /> Xoá
                 </button>
@@ -614,6 +671,27 @@ export default function InstructorContest() {
                       <BookOpen size={16} />
                     </button>
                     <button
+                      onClick={() => openPlagiarismModal(contest.id)}
+                      className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-amber-600 hover:bg-[#f7f4eb] transition-colors"
+                      title="Báo cáo đạo văn"
+                    >
+                      <ShieldAlert size={16} />
+                    </button>
+                    {contest.status === 'ended' && (
+                      <button
+                        onClick={() => handleCalculateElo(contest.id)}
+                        disabled={calculatingEloContestId === contest.id}
+                        className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-indigo-600 hover:bg-[#f7f4eb] transition-colors disabled:opacity-50"
+                        title="Tổng kết & Cập nhật ELO"
+                      >
+                        {calculatingEloContestId === contest.id ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <TrendingUp size={16} />
+                        )}
+                      </button>
+                    )}
+                    <button
                       onClick={() => removeContest(contest.id)}
                       className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-red-600 hover:bg-[#f7f4eb] transition-colors"
                       title="Xoá"
@@ -627,6 +705,92 @@ export default function InstructorContest() {
           ))}
         </div>
       )}
+
+      {/* ── Plagiarism Report Modal ────────────────────────────────────────── */}
+      {showPlagiarismModal && hasDocument && createPortal((
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-[90] flex items-center justify-center p-4" onClick={() => setShowPlagiarismModal(null)}>
+          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-6 border-b border-[var(--ws-border)]">
+              <div>
+                <h3 className="text-lg font-serif font-bold text-[var(--ws-text)] flex items-center gap-2">
+                  <ShieldAlert size={20} className="text-amber-600" /> Báo cáo đạo văn & Tương đồng mã nguồn
+                </h3>
+                <p className="text-xs text-[var(--ws-muted)] mt-0.5">
+                  Phát hiện các cặp bài nộp có mức độ tương đồng cao trong kỳ thi
+                </p>
+              </div>
+              <button onClick={() => setShowPlagiarismModal(null)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[calc(85vh-90px)]">
+              {loadingPlagiarism ? (
+                <div className="flex flex-col items-center justify-center py-16 gap-3">
+                  <Loader2 size={28} className="animate-spin text-[#193a2b]" />
+                  <p className="text-xs text-[var(--ws-muted)]">Đang tải báo cáo phân tích đạo văn...</p>
+                </div>
+              ) : plagiarismReports.length === 0 ? (
+                <div className="bg-[var(--ws-panel2)] border border-[var(--ws-border)] rounded-2xl p-12 text-center">
+                  <CheckCircle2 size={40} className="text-emerald-600 mx-auto mb-3" />
+                  <p className="font-bold text-[var(--ws-text)]">Không phát hiện nghi vấn đạo văn</p>
+                  <p className="text-xs text-[var(--ws-muted)] mt-1">
+                    Hệ thống chưa ghi nhận cặp bài nộp nào vượt ngưỡng tương đồng đáng ngờ trong kỳ thi này.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold text-[var(--ws-muted)]">
+                      Tìm thấy {plagiarismReports.length} cặp bài nộp có dấu hiệu tương đồng:
+                    </p>
+                  </div>
+                  <div className="bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] overflow-hidden shadow-xs">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-[var(--ws-border)] bg-[var(--ws-hover)] text-xs text-[var(--ws-muted)] uppercase tracking-wider">
+                          <th className="py-3 px-4">Bài tập</th>
+                          <th className="py-3 px-4">Sinh viên 1</th>
+                          <th className="py-3 px-4">Sinh viên 2</th>
+                          <th className="py-3 px-4 text-center">Độ tương đồng</th>
+                          <th className="py-3 px-4 text-right">Thời gian nộp</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[var(--ws-border)]">
+                        {plagiarismReports.map((report) => {
+                          const pct = Math.round(report.similarity_score * 100);
+                          const badgeColor = pct >= 80 ? 'bg-red-100 text-red-800 border-red-200' : pct >= 60 ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-yellow-50 text-yellow-800 border-yellow-200';
+                          return (
+                            <tr key={report.id} className="hover:bg-[var(--ws-hover)] transition-colors">
+                              <td className="py-3 px-4 font-semibold text-[var(--ws-text)]">
+                                {report.problem?.title ?? 'Bài tập'}
+                              </td>
+                              <td className="py-3 px-4 text-[var(--ws-text)]">
+                                {report.submission_1?.user?.email ?? 'Sinh viên 1'}
+                              </td>
+                              <td className="py-3 px-4 text-[var(--ws-text)]">
+                                {report.submission_2?.user?.email ?? 'Sinh viên 2'}
+                              </td>
+                              <td className="py-3 px-4 text-center">
+                                <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold border ${badgeColor}`}>
+                                  {pct}%
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 text-xs text-[var(--ws-muted)] text-right font-mono">
+                                {report.created_at ? formatVNFull(report.created_at) : '—'}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ), document.body)}
     </div>
   );
 }

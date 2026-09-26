@@ -125,10 +125,39 @@ export function removeProblemFromContest(contestId: string, problemId: string) {
 }
 
 export function joinContest(contestId: string) {
-  return apiFetch<{ success: boolean; session_id: string }>(
-    `/api/v1/contests/${contestId}/join`,
-    { method: 'POST' },
-  );
+  return apiFetch<{
+    success: boolean;
+    session_id: string;
+    cheat_warnings?: number;
+    is_disqualified?: boolean;
+  }>(`/api/v1/contests/${contestId}/join`, { method: 'POST' });
+}
+
+export interface PlagiarismReportDto {
+  id: string;
+  contest_id: string;
+  problem_id: string;
+  similarity_score: number;
+  created_at: string;
+  problem?: { title: string };
+  submission_1?: {
+    user?: { email: string };
+    created_at: string;
+  };
+  submission_2?: {
+    user?: { email: string };
+    created_at: string;
+  };
+}
+
+export function calculateContestElo(contestId: string) {
+  return apiFetch<any>(`/api/v1/contests/${contestId}/calculate-elo`, {
+    method: 'POST',
+  });
+}
+
+export function fetchPlagiarismReports(contestId: string) {
+  return apiFetch<PlagiarismReportDto[]>(`/api/v1/contests/${contestId}/plagiarism-reports`);
 }
 
 

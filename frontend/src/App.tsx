@@ -76,6 +76,9 @@ export default function App() {
           <Route path="/student/class/:classId/homework/:homeworkId" element={<ProtectedRoute allowedRole="student"><Layout><HomeworkDetail /></Layout></ProtectedRoute>} />
           <Route path="/student/class/:classId/homework/:homeworkId/problem/:problemId" element={<ProtectedRoute allowedRole="student"><Layout fullBleed><ProblemSolve /></Layout></ProtectedRoute>} />
 
+          {/* Kỳ thi → Làm bài thi (mang theo contestId để kiểm tra thời gian, quyền và chống gian lận) */}
+          <Route path="/student/contest/:contestId/problem/:problemId" element={<ProtectedRoute allowedRole="student"><Layout fullBleed><ProblemSolve /></Layout></ProtectedRoute>} />
+
           {/* Route cũ /student/problem/:id — giữ backward compat */}
           <Route path="/student/problem/:id" element={<ProtectedRoute allowedRole="student"><Layout fullBleed><ProblemSolve /></Layout></ProtectedRoute>} />
           <Route path="/student/problems" element={<ProtectedRoute allowedRole="student"><Layout><ProblemList /></Layout></ProtectedRoute>} />

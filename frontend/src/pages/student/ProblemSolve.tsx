@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import { getDetail, LANG_LABELS, Lang, ProblemDetail } from '../../data/problemDetails';
 import { ApiError, apiFetch } from '../../api/http';
 import { useProblemQuery } from '../../api/problems';
+import { joinContest } from '../../api/contests';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import { type Socket } from 'socket.io-client';
 import { createSocket } from '../../api/socket';
 import {
@@ -95,15 +97,25 @@ interface SubmissionStatusPayload {
 const now = () => new Date().toLocaleTimeString('en-GB', { hour12: false });
 
 export default function ProblemSolve() {
-  // Hỗ trợ cả 2 URL pattern:
+  // Hỗ trợ các URL pattern:
   // - /student/problem/:id  (cũ)
-  // - /student/class/:classId/homework/:homeworkId/problem/:problemId  (mới)
-  const { id, problemId: pid, classId, homeworkId } = useParams<{
+  // - /student/class/:classId/homework/:homeworkId/problem/:problemId  (homework)
+  // - /student/contest/:contestId/problem/:problemId  (kỳ thi trực tiếp)
+  const { id, problemId: pid, classId, homeworkId, contestId: cid } = useParams<{
     id?: string;
     problemId?: string;
     classId?: string;
     homeworkId?: string;
+    contestId?: string;
   }>();
+  const [searchParams] = useSearchParams();
+  const contestId = cid || searchParams.get('contestId') || undefined;
+  const { user } = useAuth();
+
+  const [cheatWarnings, setCheatWarnings] = useState(0);
+  const [isDisqualified, setIsDisqualified] = useState(false);
+  const lastCheatReportTime = useRef(0);
+
   const resolvedId = pid ?? id;
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -196,6 +208,71 @@ export default function ProblemSolve() {
       customRunSocketRef.current = null;
     };
   }, []);
+
+  // ── Kiểm tra trạng thái kỳ thi / phòng thi khi mở bài ───────────────────────
+  useEffect(() => {
+    if (!contestId || user?.role !== 'student') return;
+
+    joinContest(contestId)
+      .then((res) => {
+        if (res.cheat_warnings !== undefined) setCheatWarnings(res.cheat_warnings);
+        if (res.is_disqualified) {
+          setIsDisqualified(true);
+        }
+      })
+      .catch((err) => {
+        console.error('Không thể kiểm tra trạng thái phòng thi:', err);
+      });
+  }, [contestId, user?.role]);
+
+  // ── Anti-cheat monitoring khi đang làm bài trong phòng thi ─────────────────────
+  useEffect(() => {
+    if (!contestId || user?.role !== 'student' || isDisqualified) return;
+
+    const reportCheat = async (reason: string) => {
+      const currentTime = Date.now();
+      if (currentTime - lastCheatReportTime.current < 4000) return;
+      lastCheatReportTime.current = currentTime;
+
+      try {
+        const res = await apiFetch<{
+          success: boolean;
+          cheat_warnings: number;
+          is_disqualified: boolean;
+        }>(`/api/v1/contests/${contestId}/anti-cheat/warning`, {
+          method: 'POST',
+        });
+
+        setCheatWarnings(res.cheat_warnings);
+        if (res.is_disqualified) {
+          setIsDisqualified(true);
+          showToast('BẠN ĐÃ BỊ TRUẤT QUYỀN THI do vi phạm quy chế thi cử quá 3 lần!', 'error');
+        } else {
+          showToast(`⚠️ CẢNH BÁO GIAN LẬN: ${reason}! Lần vi phạm ${res.cheat_warnings}/3. Vi phạm 3 lần sẽ bị truất quyền thi.`, 'error');
+        }
+      } catch (err: any) {
+        console.error('Không thể gửi cảnh báo gian lận:', err);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        reportCheat('Chuyển tab hoặc thu nhỏ trình duyệt');
+      }
+    };
+
+    const handleBlur = () => {
+      reportCheat('Rời khỏi cửa sổ làm bài');
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleBlur);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, [contestId, user?.role, isDisqualified, showToast]);
 
   useEffect(() => {
     if (!cooldownUntil) {
@@ -380,6 +457,10 @@ export default function ProblemSolve() {
   };
 
   const submit = async () => {
+    if (isDisqualified) {
+      showToast('Bạn đã bị truất quyền thi cử do vi phạm quy chế (gian lận quá 3 lần). Không thể nộp bài!', 'error');
+      return;
+    }
     setJudging(true);
     setBottomTab('console');
     setConsoleLines([]);
@@ -396,6 +477,7 @@ export default function ProblemSolve() {
           problem_id: problemId,
           language: lang === 'cpp' ? 'CPP' : lang === 'python' ? 'PYTHON' : 'JAVA',
           source_code: code,
+          contest_id: contestId || undefined,
         }),
       });
       submissionId = response.submission_id;
@@ -627,6 +709,17 @@ export default function ProblemSolve() {
           </span>
           <h1 className="text-[17px] font-bold">{problemTitle}</h1>
           <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-md ${diffChip}`}>{problemDifficulty === 'EASY' ? 'Dễ' : problemDifficulty === 'MEDIUM' ? 'Trung bình' : 'Khó'}</span>
+          {contestId && (
+            <span className={`flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-md border ${
+              isDisqualified
+                ? 'bg-red-100 text-red-800 border-red-300'
+                : cheatWarnings > 0
+                ? 'bg-amber-100 text-amber-800 border-amber-300 animate-pulse'
+                : 'bg-purple-100 text-purple-800 border-purple-200'
+            }`}>
+              🛡️ {isDisqualified ? 'ĐÃ BỊ TRUẤT QUYỀN THI' : cheatWarnings > 0 ? `Cảnh báo vi phạm: ${cheatWarnings}/3` : 'Phòng thi trực tuyến (Giám sát chống gian lận)'}
+            </span>
+          )}
           {solved && (
             <span className="flex items-center gap-1 text-[12px] font-semibold text-[var(--ws-ok)]">
               <CheckCircle2 size={14} /> Đã hoàn thành
