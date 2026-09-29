@@ -144,12 +144,21 @@ export class SubmissionsService {
           class_id: string | null;
         };
       }>;
+      time_limit: number;
+      memory_limit: number;
+      test_cases: Array<{
+        id: string;
+        input: string;
+        expected_output: string;
+        is_hidden: boolean;
+      }>;
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const problem = (await this.prisma.problem.findUnique({
       where: { id: problem_id },
       include: {
+        test_cases: true,
         contests: {
           include: {
             contest: {
@@ -252,10 +261,14 @@ export class SubmissionsService {
 
     // B3: Tạo payload gửi vào Queue
     const payload = {
+      is_custom: false,
       submission_id: submission.id,
       problem_id: problem.id,
       language,
       source_code,
+      time_limit: problem.time_limit,
+      memory_limit: problem.memory_limit,
+      test_cases: problem.test_cases,
     };
 
     // B4: Gọi hàm publishJudgeJob của QueueService
