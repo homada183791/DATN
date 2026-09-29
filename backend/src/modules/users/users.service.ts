@@ -262,6 +262,10 @@ export class UsersService {
       throw new NotFoundException('Không tìm thấy người dùng');
     }
 
+    if (!user.password) {
+      throw new BadRequestException('Mật khẩu hiện tại không chính xác');
+    }
+
     const isPasswordValid = await bcrypt.compare(dto.current_password, user.password);
     if (!isPasswordValid) {
       throw new BadRequestException('Mật khẩu hiện tại không chính xác');
