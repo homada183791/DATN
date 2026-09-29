@@ -175,11 +175,13 @@ export class AuthService implements OnModuleDestroy {
         email: normalizedEmail,
         username: trimmedUsername || null,
         password: hashedPassword,
+        full_name: registerDto.full_name?.trim() || null,
       },
       select: {
         id: true,
         email: true,
         username: true,
+        full_name: true,
         role: true,
         created_at: true,
       },

@@ -37,5 +37,10 @@ export class RegisterDto {
   @IsNotEmpty({ message: 'Mật khẩu không được để trống' })
   @MinLength(6, { message: 'Mật khẩu phải có ít nhất 6 ký tự' })
   password: string;
+
+  @ApiProperty({ description: 'Họ và tên', example: 'Nguyễn Văn A', required: false })
+  @IsOptional()
+  @IsString()
+  full_name?: string;
 }
 
