@@ -4,7 +4,15 @@ import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
 
-const docker = new Docker({ socketPath: process.env.DOCKER_SOCKET || '/var/run/docker.sock' });
+const isWin = process.platform === 'win32';
+const defaultSocket = isWin ? '//./pipe/docker_engine' : '/var/run/docker.sock';
+const docker = new Docker(
+  process.env.DOCKER_SOCKET
+    ? { socketPath: process.env.DOCKER_SOCKET }
+    : isWin
+    ? { socketPath: '//./pipe/docker_engine' }
+    : { socketPath: '/var/run/docker.sock' }
+);
 const SANDBOX_IMAGE = 'judgehub-sandbox';
 
 export interface TestCase {
