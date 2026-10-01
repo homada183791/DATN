@@ -1,5 +1,3 @@
-
-
 services:
   # ==========================================
   # 1. HẠ TẦNG CƠ SỞ (INFRASTRUCTURE)
@@ -39,7 +37,6 @@ services:
       - rabbitmqdata:/var/lib/rabbitmq
     restart: unless-stopped
 
-
   # ==========================================
   # 2. KHỐI ỨNG DỤNG (APPLICATIONS)
   # ==========================================
@@ -50,22 +47,24 @@ services:
       target: builder
     container_name: datn_backend
     ports:
-      - "3001:3001"
+      - "3000:3000"
     volumes:
       - ./backend:/app:delegated
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      # LƯU Ý: Chạy trong Docker network nên trỏ tới host là 'postgres' và port nội bộ 5432
+      - PORT=3000
       - DATABASE_URL=postgresql://root:rootpassword@postgres:5432/online_judge_db?schema=public
       - JUDGE_RUNNER_URL=http://judge-runner:4000
       - REDIS_URL=redis://redis:6379
       - RABBITMQ_URL=amqp://root:rootpassword@rabbitmq:5672
+      - JWT_SECRET=${JWT_SECRET:-super-secret-key-for-dev}
+      - CORS_ORIGIN=http://localhost:5173,http://localhost:5174,http://localhost:3000
       - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
       - SMTP_PORT=${SMTP_PORT:-587}
-      - SMTP_USER=${SMTP_USER:-}
-      - SMTP_PASS=${SMTP_PASS:-}
-      - SMTP_FROM=${SMTP_FROM:-no-reply@example.com}
+      - SMTP_USER=${SMTP_USER:-dhuy2017@gmail.com}
+      - SMTP_PASS=${SMTP_PASS:-yuhc iyow bdhh bamf}
+      - SMTP_FROM=${SMTP_FROM:-dhuy2017@gmail.com}
     depends_on:
       - postgres
       - redis
@@ -76,19 +75,20 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      target: build
     container_name: datn_frontend
     ports:
-      - "3000:3000"
+      - "5173:5173"
     volumes:
       - ./frontend:/app:delegated
       - /app/node_modules
-      - /app/.next
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:3001
+      - NODE_ENV=development
+      - VITE_API_BASE_URL=http://localhost:3000
+      - VITE_SOCKET_URL=http://localhost:3000
     depends_on:
       - backend
-    command: npm run dev
-
+    command: npm run dev -- --host 0.0.0.0
 
   # ==========================================
   # 3. KHỐI CHẤM BÀI (JUDGE SANDBOX)
@@ -107,10 +107,16 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - NODE_ENV=development
+      - PORT=4000
+      - RABBITMQ_URL=amqp://root:rootpassword@rabbitmq:5672
+      - WEBHOOK_URL=http://backend:3000/api/v1/webhook/judge
+      - DOCKER_SOCKET=/var/run/docker.sock
+    depends_on:
+      - rabbitmq
+      - backend
     restart: unless-stopped
 
 volumes:
   pgdata:
   redisdata:
   rabbitmqdata:
-  judge-tmp:
