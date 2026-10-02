@@ -21,7 +21,7 @@ export class SubmissionsService {
     private readonly queueService: QueueService,
   ) {}
 
-  async findAll(userId: string, userRole: Role) {
+  async findAll(userId: string, userRole: Role, problemId?: string) {
     type SubmissionListRow = {
       id: string;
       problem_id: string;
@@ -36,12 +36,19 @@ export class SubmissionsService {
       created_at: Date;
     };
 
+    const where: any = {};
+    if (userRole !== ('INSTRUCTOR' as Role)) {
+      where.user_id = userId;
+    }
+    if (problemId) {
+      where.problem_id = problemId;
+    }
+
     // The Prisma delegate may be unresolved when the generated client is not
     // available to the type-aware linter.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const submissions = (await this.prisma.submission.findMany({
-      where:
-        userRole === ('INSTRUCTOR' as Role) ? undefined : { user_id: userId },
+      where,
       orderBy: { created_at: 'desc' },
       include: {
         problem: { select: { id: true, title: true } },

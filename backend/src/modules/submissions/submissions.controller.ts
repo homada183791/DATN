@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Request, Query } from '@nestjs/common';
 import { SubmissionsService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { RunCustomCodeDto } from './dto/run-custom-code.dto';
@@ -7,6 +7,7 @@ import { Throttle } from '@nestjs/throttler';
 import {
   ApiBearerAuth,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -20,9 +21,13 @@ export class SubmissionsController {
 
   @Get()
   @ApiOperation({ summary: 'Lấy danh sách bài nộp' })
+  @ApiQuery({ name: 'problem_id', required: false, description: 'Lọc bài nộp theo bài toán' })
   @ApiResponse({ status: 200, description: 'Danh sách bài nộp theo quyền người dùng.' })
-  findAll(@Request() req: { user: { userId: string; role: import('@prisma/client').Role } }) {
-    return this.submissionsService.findAll(req.user.userId, req.user.role);
+  findAll(
+    @Request() req: { user: { userId: string; role: import('@prisma/client').Role } },
+    @Query('problem_id') problemId?: string,
+  ) {
+    return this.submissionsService.findAll(req.user.userId, req.user.role, problemId);
   }
 
   @Get(':id')

@@ -24,14 +24,23 @@ export interface SubmissionDto {
   created_at: string;
 }
 
-export function fetchSubmissions() {
-  return apiFetch<SubmissionDto[]>('/api/v1/submissions');
+export function fetchSubmissions(problemId?: string) {
+  const url = problemId ? `/api/v1/submissions?problem_id=${encodeURIComponent(problemId)}` : '/api/v1/submissions';
+  return apiFetch<SubmissionDto[]>(url);
 }
 
 export function useSubmissionsQuery() {
   return useQuery({ 
     queryKey: ['submissions'], 
-    queryFn: fetchSubmissions,
+    queryFn: () => fetchSubmissions(),
     enabled: !!window.localStorage.getItem('accessToken')
+  });
+}
+
+export function useProblemSubmissionsQuery(problemId?: string) {
+  return useQuery({
+    queryKey: ['submissions', 'problem', problemId],
+    queryFn: () => fetchSubmissions(problemId),
+    enabled: !!problemId && !!window.localStorage.getItem('accessToken'),
   });
 }
