@@ -1,6 +1,7 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useClassHomeworksQuery } from '../../api/homeworks';
 import { useClassesQuery } from '../../api/classes';
+import { useSubmissionsQuery } from '../../api/submissions';
 import { useMemo } from 'react';
 import { formatVNFull } from '../../utils/dateTime';
 
@@ -25,6 +26,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Lock,
+  Trophy,
 } from 'lucide-react';
 
 export default function StudentClassDetail() {
@@ -33,11 +35,40 @@ export default function StudentClassDetail() {
 
   const { data: apiClasses = [], isLoading: classLoading } = useClassesQuery();
   const { data: homeworks = [], isLoading: hwLoading } = useClassHomeworksQuery(classId);
+  const { data: submissions = [] } = useSubmissionsQuery();
 
   const classInfo = useMemo(
     () => apiClasses.find((c) => c.id === classId),
     [apiClasses, classId]
   );
+
+  const solvedProblemIds = useMemo(() => {
+    const set = new Set<string>();
+    submissions.forEach((s) => {
+      const status = s.status?.toUpperCase();
+      if (status === 'ACCEPTED' || status === 'AC') {
+        set.add(s.problem_id);
+      }
+    });
+    return set;
+  }, [submissions]);
+
+  const { totalClassTasks, solvedClassTasks, overallProgressPct } = useMemo(() => {
+    let total = 0;
+    let solved = 0;
+    homeworks.forEach((hw) => {
+      if (Array.isArray(hw.tasks)) {
+        hw.tasks.forEach((t: any) => {
+          total += 1;
+          if (t.problem_id && solvedProblemIds.has(t.problem_id)) {
+            solved += 1;
+          }
+        });
+      }
+    });
+    const pct = total > 0 ? Math.round((solved / total) * 100) : 0;
+    return { totalClassTasks: total, solvedClassTasks: solved, overallProgressPct: pct };
+  }, [homeworks, solvedProblemIds]);
 
   const activeCount = homeworks.filter((hw) => {
     const d = deadlineInfo(hw.deadline);
@@ -109,6 +140,42 @@ export default function StudentClassDetail() {
         </div>
       </div>
 
+      {/* Overall Class Progress Banner */}
+      {totalClassTasks > 0 && (
+        <div className="bg-white border border-[#e5dac9] rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-4 mb-2">
+            <div className="flex items-center gap-2">
+              <Trophy size={18} className="text-[#193a2b]" />
+              <span className="font-bold text-sm text-[#191919]">Tiến độ bài tập trong lớp</span>
+            </div>
+            <span
+              className={`text-xs font-bold font-mono px-2.5 py-0.5 rounded-full border ${
+                overallProgressPct === 100
+                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                  : overallProgressPct > 0
+                  ? 'bg-amber-100 text-amber-800 border-amber-300'
+                  : 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]'
+              }`}
+            >
+              {solvedClassTasks}/{totalClassTasks} bài ({overallProgressPct}%)
+            </span>
+          </div>
+          <div className="w-full h-2.5 bg-[#f0ebd9] rounded-full overflow-hidden">
+            <div
+              className={`h-full transition-all duration-500 rounded-full ${
+                overallProgressPct === 100 ? 'bg-emerald-600' : 'bg-gradient-to-r from-emerald-500 to-[#193a2b]'
+              }`}
+              style={{ width: `${overallProgressPct}%` }}
+            />
+          </div>
+          <p className="text-xs text-[#8a8073] mt-2">
+            {overallProgressPct === 100
+              ? '🎉 Tuyệt vời! Bạn đã hoàn thành toàn bộ bài tập được giao trong lớp học này!'
+              : `Bạn đã giải quyết được ${solvedClassTasks} trên tổng số ${totalClassTasks} bài toán được giao.`}
+          </p>
+        </div>
+      )}
+
       {/* Homework list */}
       <div>
         <h2 className="text-lg font-bold font-serif text-[#191919] mb-4">Danh sách bài tập</h2>
@@ -123,8 +190,11 @@ export default function StudentClassDetail() {
           <div className="space-y-3">
             {homeworks.map((hw) => {
               const dl = deadlineInfo(hw.deadline);
-              const taskCount = Array.isArray(hw.tasks) ? hw.tasks.length : 0;
-              const solvable = (hw.tasks as Array<{ problem_id?: string }>).filter((t) => !!t.problem_id).length;
+              const hwTasks = Array.isArray(hw.tasks) ? hw.tasks : [];
+              const taskCount = hwTasks.length;
+              const solvable = (hwTasks as Array<{ problem_id?: string }>).filter((t) => !!t.problem_id).length;
+              const hwSolved = (hwTasks as Array<{ problem_id?: string }>).filter((t) => t.problem_id && solvedProblemIds.has(t.problem_id)).length;
+              const hwPct = taskCount > 0 ? Math.round((hwSolved / taskCount) * 100) : 0;
 
               return (
                 <Link
@@ -142,11 +212,24 @@ export default function StudentClassDetail() {
                           {dl.closed ? <Lock size={10} className="inline mr-1" /> : null}
                           {dl.label}
                         </span>
+                        {taskCount > 0 && (
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold flex-shrink-0 ${
+                              hwPct === 100
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : hwPct > 0
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]'
+                            }`}
+                          >
+                            Hoàn thành {hwSolved}/{taskCount} ({hwPct}%)
+                          </span>
+                        )}
                       </div>
                       {hw.description && (
                         <p className="text-sm text-[#5c5446] line-clamp-2 mb-3">{hw.description}</p>
                       )}
-                      <div className="flex items-center gap-4 text-xs text-[#8a8073]">
+                      <div className="flex items-center gap-4 text-xs text-[#8a8073] flex-wrap">
                         <span className="flex items-center gap-1">
                           <BookOpen size={12} /> {taskCount} bài toán
                         </span>
@@ -163,25 +246,23 @@ export default function StudentClassDetail() {
                     <ChevronRight size={18} className="text-[#bfae99] group-hover:text-[#193a2b] flex-shrink-0 mt-1 transition-colors" />
                   </div>
 
-                  {/* Deadline progress bar */}
-                  {!dl.closed && (() => {
-                    const start = new Date(hw.deadline).getTime() - 14 * 86_400_000;
-                    const end = new Date(hw.deadline).getTime();
-                    const now = Date.now();
-                    const pct = Math.min(100, Math.max(0, Math.round(((now - start) / (end - start)) * 100)));
-                    return (
-                      <div className="mt-3 pt-3 border-t border-[#f0ebd9]">
-                        <div className="w-full h-1.5 bg-[#f0ebd9] rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all ${
-                              pct > 85 ? 'bg-red-500' : pct > 60 ? 'bg-yellow-500' : 'bg-emerald-500'
-                            }`}
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
+                  {/* Task completion progress bar */}
+                  {taskCount > 0 && (
+                    <div className="mt-3 pt-3 border-t border-[#f0ebd9]">
+                      <div className="flex items-center justify-between text-[11px] text-[#8a8073] mb-1">
+                        <span>Tiến độ bài làm</span>
+                        <span className="font-semibold text-[#191919]">{hwSolved}/{taskCount} ({hwPct}%)</span>
                       </div>
-                    );
-                  })()}
+                      <div className="w-full h-1.5 bg-[#f0ebd9] rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-300 ${
+                            hwPct === 100 ? 'bg-emerald-600' : 'bg-[#193a2b]'
+                          }`}
+                          style={{ width: `${hwPct}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </Link>
               );
             })}

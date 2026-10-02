@@ -1,5 +1,7 @@
+import { useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useClassHomeworkQuery } from '../../api/homeworks';
+import { useSubmissionsQuery } from '../../api/submissions';
 import { formatVNFull } from '../../utils/dateTime';
 import {
   ArrowLeft,
@@ -10,6 +12,7 @@ import {
   Lock,
   AlertTriangle,
   Trophy,
+  CheckCircle2,
 } from 'lucide-react';
 
 const diffChip: Record<string, string> = {
@@ -35,6 +38,21 @@ export default function HomeworkDetail() {
   const navigate = useNavigate();
 
   const { data: homework, isLoading, isError } = useClassHomeworkQuery(classId, homeworkId);
+  const { data: submissions = [] } = useSubmissionsQuery();
+
+  const { solvedProblemIds, attemptedProblemIds } = useMemo(() => {
+    const solved = new Set<string>();
+    const attempted = new Set<string>();
+    submissions.forEach((s) => {
+      const status = s.status?.toUpperCase();
+      if (status === 'ACCEPTED' || status === 'AC') {
+        solved.add(s.problem_id);
+      } else {
+        attempted.add(s.problem_id);
+      }
+    });
+    return { solvedProblemIds: solved, attemptedProblemIds: attempted };
+  }, [submissions]);
 
   if (isLoading) {
     return (
@@ -68,6 +86,8 @@ export default function HomeworkDetail() {
   const dl = deadlineInfo(homework.deadline);
   const totalPoints = tasks.reduce((s, t) => s + (t.points ?? 0), 0);
   const solvableCount = tasks.filter((t) => !!t.problem_id).length;
+  const completedCount = tasks.filter((t) => t.problem_id && solvedProblemIds.has(t.problem_id)).length;
+  const progressPct = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0;
 
   return (
     <div className="space-y-6 text-[#191919]">
@@ -110,7 +130,7 @@ export default function HomeworkDetail() {
         </div>
 
         {/* Stats row */}
-        <div className="flex items-center gap-6 text-sm text-[#8a8073] pt-4 border-t border-[#f0ebd9]">
+        <div className="flex items-center gap-6 text-sm text-[#8a8073] pt-4 border-t border-[#f0ebd9] flex-wrap">
           <span className="flex items-center gap-1.5">
             <BookOpen size={14} /> {tasks.length} bài toán
           </span>
@@ -121,6 +141,38 @@ export default function HomeworkDetail() {
             <Clock size={14} /> Hạn: {formatVNFull(homework.deadline)}
           </span>
         </div>
+      </div>
+
+      {/* Progress banner */}
+      <div className="bg-white border border-[#e5dac9] rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-4 mb-2">
+          <div className="flex items-center gap-2">
+            <Trophy size={18} className="text-[#193a2b]" />
+            <span className="font-bold text-sm text-[#191919]">Tiến độ bài tập của bạn</span>
+          </div>
+          <span className={`text-xs font-bold font-mono px-2.5 py-0.5 rounded-full border ${
+            progressPct === 100
+              ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+              : progressPct > 0
+              ? 'bg-amber-100 text-amber-800 border-amber-300'
+              : 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]'
+          }`}>
+            {completedCount}/{tasks.length} bài ({progressPct}%)
+          </span>
+        </div>
+        <div className="w-full h-2.5 bg-[#f0ebd9] rounded-full overflow-hidden">
+          <div
+            className={`h-full transition-all duration-500 rounded-full ${
+              progressPct === 100 ? 'bg-emerald-600' : 'bg-gradient-to-r from-emerald-500 to-[#193a2b]'
+            }`}
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
+        <p className="text-xs text-[#8a8073] mt-2">
+          {completedCount === tasks.length && tasks.length > 0
+            ? '🎉 Xuất sắc! Bạn đã hoàn thành 100% tất cả các bài toán trong bài tập này!'
+            : `Bạn đã giải quyết thành công ${completedCount}/${tasks.length} bài toán. Hãy hoàn thành các bài còn lại trước hạn nộp!`}
+        </p>
       </div>
 
       {/* Problem list */}
@@ -144,6 +196,8 @@ export default function HomeworkDetail() {
             {tasks.map((task, i) => {
               const canSolve = !!task.problem_id;
               const solveUrl = `/student/class/${classId}/homework/${homeworkId}/problem/${task.problem_id}`;
+              const isSolved = !!(task.problem_id && solvedProblemIds.has(task.problem_id));
+              const isAttempted = !!(task.problem_id && attemptedProblemIds.has(task.problem_id));
 
               return (
                 <div
@@ -177,19 +231,36 @@ export default function HomeworkDetail() {
                     {task.points}đ
                   </span>
 
-                  {/* Action */}
-                  {canSolve ? (
-                    <Link
-                      to={solveUrl}
-                      className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors flex-shrink-0 shadow-sm"
-                    >
-                      <Play size={11} fill="white" /> Làm bài
-                    </Link>
-                  ) : (
-                    <span className="flex items-center gap-1 px-3.5 py-1.5 bg-[#f0ebd9] text-[#8a8073] text-xs rounded-xl flex-shrink-0 cursor-not-allowed">
-                      <Lock size={11} /> Chưa có link
-                    </span>
-                  )}
+                  {/* Action & Status */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {canSolve && (
+                      isSolved ? (
+                        <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-lg">
+                          <CheckCircle2 size={12} className="text-emerald-600" /> Đã hoàn thành
+                        </span>
+                      ) : isAttempted ? (
+                        <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-semibold rounded-lg">
+                          <Clock size={12} className="text-amber-600" /> Đang làm dở
+                        </span>
+                      ) : (
+                        <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 bg-[#f0ebd9] text-[#8a8073] text-xs rounded-lg">
+                          Chưa nộp
+                        </span>
+                      )
+                    )}
+                    {canSolve ? (
+                      <Link
+                        to={solveUrl}
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
+                      >
+                        <Play size={11} fill="white" /> Làm bài
+                      </Link>
+                    ) : (
+                      <span className="flex items-center gap-1 px-3.5 py-1.5 bg-[#f0ebd9] text-[#8a8073] text-xs rounded-xl cursor-not-allowed">
+                        <Lock size={11} /> Chưa có link
+                      </span>
+                    )}
+                  </div>
                 </div>
               );
             })}
