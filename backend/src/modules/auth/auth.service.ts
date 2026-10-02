@@ -209,7 +209,7 @@ export class AuthService implements OnModuleDestroy {
           },
     });
 
-    if (!user) {
+    if (!user || !user.password) {
       throw new UnauthorizedException('Email hoặc mật khẩu không chính xác');
     }
 

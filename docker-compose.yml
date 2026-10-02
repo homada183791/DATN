@@ -54,6 +54,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3000
+      # LƯU Ý: Chạy trong Docker network nên trỏ tới host là 'postgres' và port nội bộ 5432
       - DATABASE_URL=postgresql://root:rootpassword@postgres:5432/online_judge_db?schema=public
       - JUDGE_RUNNER_URL=http://judge-runner:4000
       - REDIS_URL=redis://redis:6379
