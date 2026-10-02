@@ -5,7 +5,6 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 
 const isWin = process.platform === 'win32';
-const defaultSocket = isWin ? '//./pipe/docker_engine' : '/var/run/docker.sock';
 const docker = new Docker(
   process.env.DOCKER_SOCKET
     ? { socketPath: process.env.DOCKER_SOCKET }
@@ -88,8 +87,6 @@ export class DockerRunner {
       }
 
       const results: TestResultItem[] = [];
-      let allPassed = true;
-      let somePassed = false;
       let finalStatus = 'ACCEPTED';
 
       for (const tc of test_cases) {
@@ -100,19 +97,14 @@ export class DockerRunner {
         let status = 'ACCEPTED';
         if (result.isTle) {
           status = 'TIME_LIMIT_EXCEEDED';
-          allPassed = false;
         } else if (result.exitCode !== 0) {
           // Could also be MLE if killed by OOM, but we simplify to RE
           status = 'RUNTIME_ERROR';
-          allPassed = false;
         } else {
           const expected = tc.expected_output.trim().replace(/\r\n/g, '\n');
           const actual = result.stdout.trim().replace(/\r\n/g, '\n');
           if (actual !== expected) {
             status = 'WRONG_ANSWER';
-            allPassed = false;
-          } else {
-            somePassed = true;
           }
         }
 
