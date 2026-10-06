@@ -34,6 +34,8 @@ import {
   FlaskConical,
   Loader2,
   MessageCircle,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 /* ---------------- syntax highlighting ---------------- */
@@ -97,6 +99,9 @@ interface SubmissionStatusPayload {
 
 const now = () => new Date().toLocaleTimeString('en-GB', { hour12: false });
 const MIN_BOTTOM_PANEL_HEIGHT = 44;
+const DEFAULT_BOTTOM_PANEL_HEIGHT = 256;
+const COLLAPSED_BOTTOM_PANEL_HEIGHT = 48;
+const BOTTOM_RESIZE_HANDLE_HEIGHT = 6;
 
 export default function ProblemSolve() {
   const { t } = useTranslation();
@@ -173,14 +178,25 @@ export default function ProblemSolve() {
 
   /* judge state */
   const [bottomTab, setBottomTab] = useState<BottomTab>('tests');
-  const [bottomHeight, setBottomHeight] = useState(256);
+  const [bottomHeight, setBottomHeight] = useState(DEFAULT_BOTTOM_PANEL_HEIGHT);
+  const [bottomPanelOpen, setBottomPanelOpen] = useState(true);
+  const codeAreaRef = useRef<HTMLDivElement>(null);
+  const bottomPanelRef = useRef<HTMLDivElement>(null);
   const resizingRef = useRef<{ startY: number; startHeight: number } | null>(null);
   const stopResizeRef = useRef<(() => void) | null>(null);
 
   const startBottomResize = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const handleTop = e.currentTarget.getBoundingClientRect().top;
-    const maxHeight = Math.max(window.innerHeight - handleTop - 8, MIN_BOTTOM_PANEL_HEIGHT);
+    const codeArea = codeAreaRef.current;
+    const bottomPanel = bottomPanelRef.current;
+    if (!codeArea || !bottomPanel) return;
+
+    const codeAreaTop = codeArea.getBoundingClientRect().top;
+    const panelBottom = bottomPanel.getBoundingClientRect().bottom;
+    const maxHeight = Math.max(
+      panelBottom - codeAreaTop - BOTTOM_RESIZE_HANDLE_HEIGHT,
+      MIN_BOTTOM_PANEL_HEIGHT
+    );
 
     resizingRef.current = { startY: e.clientY, startHeight: bottomHeight };
     document.body.style.cursor = 'row-resize';
@@ -999,7 +1015,7 @@ export default function ProblemSolve() {
               </div>
 
               {/* code area */}
-              <div className="relative flex-1 min-h-0 overflow-hidden" style={{ fontSize }}>
+              <div ref={codeAreaRef} className="relative flex-1 min-h-0 overflow-hidden" style={{ fontSize }}>
                 {/* gutter */}
                 <div
                   ref={gutterRef}
@@ -1035,23 +1051,26 @@ export default function ProblemSolve() {
                 />
               </div>
 
-              <div
-                onMouseDown={startBottomResize}
-                className="group h-1.5 shrink-0 cursor-row-resize bg-transparent hover:bg-[var(--ws-accent-soft)] transition-colors relative"
-                role="separator"
-                aria-orientation="horizontal"
-                aria-label={t('problemSolve.dragResizeLabel')}
-              >
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-1 rounded-full bg-[var(--ws-border)] group-hover:bg-[var(--ws-accent)] transition-colors" />
-              </div>
+              {bottomPanelOpen && (
+                <div
+                  onMouseDown={startBottomResize}
+                  className="group h-1.5 shrink-0 cursor-row-resize bg-transparent hover:bg-[var(--ws-accent-soft)] transition-colors relative"
+                  role="separator"
+                  aria-orientation="horizontal"
+                  aria-label={t('problemSolve.dragResizeLabel')}
+                >
+                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-1 rounded-full bg-[var(--ws-border)] group-hover:bg-[var(--ws-accent)] transition-colors" />
+                </div>
+              )}
 
               {/* ============ bottom panel ============ */}
               <div
+                ref={bottomPanelRef}
                 className="border-t border-[var(--ws-border)] bg-[var(--ws-panel)] flex flex-col shrink-0 overflow-hidden"
-                style={{ height: bottomHeight }}
+                style={{ height: bottomPanelOpen ? bottomHeight : COLLAPSED_BOTTOM_PANEL_HEIGHT }}
               >
-                <div className="flex items-center gap-1 px-3 pt-2 border-b border-[var(--ws-border-soft)]">
-                  {([
+                <div className={`flex items-center gap-1 px-3 ${bottomPanelOpen ? 'pt-2 border-b border-[var(--ws-border-soft)]' : 'h-12'}`}>
+                  {bottomPanelOpen && ([
                     ['tests', t('problemSolve.tabSamples'), <FlaskConical size={13} key="i" />],
                     ['console', t('problemSolve.consoleTab'), <Terminal size={13} key="i" />],
                     ['results', t('problemSolve.tabResults'), <CheckCircle2 size={13} key="i" />],
@@ -1075,7 +1094,7 @@ export default function ProblemSolve() {
                     </button>
                   ))}
                   <div className="flex-1" />
-                  <div className="flex items-center gap-2 pb-1.5">
+                  <div className={`flex items-center gap-2 ${bottomPanelOpen ? 'pb-1.5' : ''}`}>
                     <button
                       onClick={runSamples}
                       disabled={running || judging}
@@ -1090,10 +1109,26 @@ export default function ProblemSolve() {
                     >
                       {judging ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />} {cooldownSeconds > 0 ? t('problemSolve.submitCooldown', { seconds: cooldownSeconds }) : t('problemSolve.submitBtn')}
                     </button>
+                    <button
+                      onClick={() => {
+                        if (bottomPanelOpen) {
+                          setBottomPanelOpen(false);
+                        } else {
+                          setBottomHeight(DEFAULT_BOTTOM_PANEL_HEIGHT);
+                          setBottomPanelOpen(true);
+                        }
+                      }}
+                      className="p-1.5 rounded-lg border border-[var(--ws-border)] text-[var(--ws-muted)] hover:text-[var(--ws-accent)] hover:border-[var(--ws-accent)] transition-colors"
+                      title={t(bottomPanelOpen ? 'problemSolve.collapsePanel' : 'problemSolve.expandPanel')}
+                      aria-label={t(bottomPanelOpen ? 'problemSolve.collapsePanel' : 'problemSolve.expandPanel')}
+                      aria-expanded={bottomPanelOpen}
+                    >
+                      {bottomPanelOpen ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                    </button>
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto ws-editor-scroll p-4">
+                {bottomPanelOpen && <div className="flex-1 overflow-y-auto ws-editor-scroll p-4">
                   {judging && (
                     <div className="mb-4">
                       <div className="flex items-center justify-between text-[11.5px] text-[var(--ws-muted)] mb-1.5">
@@ -1213,7 +1248,7 @@ export default function ProblemSolve() {
                       <p className="text-[12px] text-[var(--ws-faint)]">{t('problemSolve.debugHint')}</p>
                     </div>
                   )}
-                </div>
+                </div>}
               </div>
               </section>
             )}
