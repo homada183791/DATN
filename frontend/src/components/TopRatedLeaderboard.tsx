@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Flame, CheckCircle2, Award, Crown } from 'lucide-react';
 import { useTopRatedUsersQuery } from '../api/users';
+import { useTranslation } from 'react-i18next';
 
 function getMSSV(email: string, username?: string | null, id?: string): string {
   const emailMatch = email.match(/^(\d{6,10})/);
@@ -18,24 +19,24 @@ function getRatingBadgeColor(rating: number): string {
   return 'text-[#193a2b] bg-[#f0ebd9] border-[#e5dac9]';
 }
 
-function getRankBadge(rank: number) {
+function getRankBadge(rank: number, t: (key: string) => string) {
   if (rank === 1) {
     return (
-      <div className="w-6 h-6 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center font-bold text-xs shadow-xs" title="Hạng 1 - Vàng">
+      <div className="w-6 h-6 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center font-bold text-xs shadow-xs" title={t('widgets.rankGold')}>
         1
       </div>
     );
   }
   if (rank === 2) {
     return (
-      <div className="w-6 h-6 rounded-full bg-slate-300 text-slate-800 flex items-center justify-center font-bold text-xs shadow-xs" title="Hạng 2 - Bạc">
+      <div className="w-6 h-6 rounded-full bg-slate-300 text-slate-800 flex items-center justify-center font-bold text-xs shadow-xs" title={t('widgets.rankSilver')}>
         2
       </div>
     );
   }
   if (rank === 3) {
     return (
-      <div className="w-6 h-6 rounded-full bg-amber-700 text-amber-100 flex items-center justify-center font-bold text-xs shadow-xs" title="Hạng 3 - Đồng">
+      <div className="w-6 h-6 rounded-full bg-amber-700 text-amber-100 flex items-center justify-center font-bold text-xs shadow-xs" title={t('widgets.rankBronze')}>
         3
       </div>
     );
@@ -53,6 +54,7 @@ interface Props {
 }
 
 export default function TopRatedLeaderboard({ maxItems = 5, showTitle = true }: Props) {
+  const { t } = useTranslation();
   const { data: users = [], isLoading, error } = useTopRatedUsersQuery(10);
   const [showAll, setShowAll] = useState(false);
 
@@ -64,7 +66,7 @@ export default function TopRatedLeaderboard({ maxItems = 5, showTitle = true }: 
         {showTitle && (
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#e5dac9]">
             <Crown size={18} className="text-[#193a2b]" />
-            <h3 className="text-base font-bold text-[#191919]">Bảng xếp hạng toàn trường</h3>
+            <h3 className="text-base font-bold text-[#191919]">{t('widgets.leaderboardTitle')}</h3>
           </div>
         )}
         <div className="space-y-3">
@@ -82,11 +84,11 @@ export default function TopRatedLeaderboard({ maxItems = 5, showTitle = true }: 
         {showTitle && (
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#e5dac9] text-left">
             <Crown size={18} className="text-[#193a2b]" />
-            <h3 className="text-base font-bold text-[#191919]">Bảng xếp hạng toàn trường</h3>
+            <h3 className="text-base font-bold text-[#191919]">{t('widgets.leaderboardTitle')}</h3>
           </div>
         )}
         <Award size={32} className="text-[#bfae99] mx-auto mb-2" />
-        <p className="text-xs text-[#8a8073]">Chưa có dữ liệu xếp hạng sinh viên.</p>
+        <p className="text-xs text-[#8a8073]">{t('widgets.leaderboardEmpty')}</p>
       </div>
     );
   }
@@ -98,8 +100,8 @@ export default function TopRatedLeaderboard({ maxItems = 5, showTitle = true }: 
           <div className="flex items-center gap-2">
             <Crown size={18} className="text-[#193a2b]" />
             <div>
-              <h3 className="text-base font-bold text-[#191919] font-serif">Top Rated toàn trường</h3>
-              <p className="text-[11px] text-[#8a8073]">Bảng vàng sinh viên có thành tích cao nhất</p>
+              <h3 className="text-base font-bold text-[#191919] font-serif">{t('widgets.topRatedTitle')}</h3>
+              <p className="text-[11px] text-[#8a8073]">{t('widgets.topRatedSubtitle')}</p>
             </div>
           </div>
           {users.length > maxItems && (
@@ -107,7 +109,7 @@ export default function TopRatedLeaderboard({ maxItems = 5, showTitle = true }: 
               onClick={() => setShowAll(!showAll)}
               className="text-xs text-[#193a2b] hover:text-[#143022] font-semibold hover:underline"
             >
-              {showAll ? 'Thu gọn' : `Xem top ${users.length}`}
+              {showAll ? t('widgets.collapse') : t('widgets.showTop', { count: users.length })}
             </button>
           )}
         </div>
@@ -129,7 +131,7 @@ export default function TopRatedLeaderboard({ maxItems = 5, showTitle = true }: 
               }`}
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="flex-shrink-0">{getRankBadge(rank)}</div>
+                <div className="flex-shrink-0">{getRankBadge(rank, t)}</div>
 
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#193a2b] to-[#2d5a3f] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs">
                   {initial}

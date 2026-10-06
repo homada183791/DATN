@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { HomeworkProblem } from '../context/HomeworkContext';
 import { useProblemsQuery, createProblem, fetchProblem, type CreateProblemDto } from '../api/problems';
 import ProblemFormModal from './ProblemFormModal';
@@ -28,7 +29,7 @@ const diffChip: Record<string, string> = {
   Medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   Hard: 'bg-red-100 text-red-800 border-red-200',
 };
-const diffLabel: Record<string, string> = { Easy: 'Dễ', Medium: 'Trung bình', Hard: 'Khó' };
+const diffLabel: Record<string, string> = { Easy: 'easy', Medium: 'medium', Hard: 'hard' };
 
 // Map difficulty từ Problem Bank (EASY/MEDIUM/HARD) → HomeworkProblem (Easy/Medium/Hard)
 const diffMap: Record<string, HomeworkProblem['difficulty']> = {
@@ -40,6 +41,7 @@ const diffMap: Record<string, HomeworkProblem['difficulty']> = {
 type ModalType = 'link' | 'compose' | null;
 
 export default function ProblemManager({ problems, onChange }: Props) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [modalType, setModalType] = useState<ModalType>(null);
   const [linkSearch, setLinkSearch] = useState('');
@@ -57,7 +59,7 @@ export default function ProblemManager({ problems, onChange }: Props) {
     const bank = bankProblems.find((p) => p.id === bankId);
     if (!bank) return;
     if (problems.some((p) => p.problem_id === bankId)) {
-      setLinkErr('Bài này đã có trong danh sách.');
+      setLinkErr(t('problemManager.duplicate'));
       return;
     }
     setLinkingId(bankId);
@@ -118,7 +120,7 @@ export default function ProblemManager({ problems, onChange }: Props) {
       onChange([...problems, task]);
       setModalType(null);
     } catch (err: any) {
-      alert(err?.message || 'Có lỗi khi tạo bài toán vào ngân hàng đề.');
+      alert(err?.message || t('problemManager.createFailed'));
     } finally {
       setComposeSaving(false);
     }
@@ -144,8 +146,8 @@ export default function ProblemManager({ problems, onChange }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <label className="text-sm font-medium text-[#5c5446] flex items-center gap-1.5">
-          <ListChecks size={15} /> Bài toán trong bài tập
-          <span className="text-xs text-[#8a8073] font-normal">({problems.length} bài • {totalPoints} điểm)</span>
+          <ListChecks size={15} /> {t('problemManager.problemsTitle')}
+          <span className="text-xs text-[#8a8073] font-normal">{t('problemManager.problemCount', { count: problems.length, points: totalPoints })}</span>
         </label>
         <div className="flex items-center gap-1.5">
           <button
@@ -153,14 +155,14 @@ export default function ProblemManager({ problems, onChange }: Props) {
             onClick={() => { setLinkSearch(''); setLinkErr(''); setModalType('link'); }}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors shadow-sm"
           >
-            <Link2 size={13} /> Từ ngân hàng
+            <Link2 size={13} /> {t('problemManager.fromBank')}
           </button>
           <button
             type="button"
             onClick={() => setModalType('compose')}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#193a2b] text-white rounded-lg hover:bg-[#143022] transition-colors shadow-sm"
           >
-            <Plus size={13} /> Soạn mới
+            <Plus size={13} /> {t('problemManager.createNew')}
           </button>
         </div>
       </div>
@@ -170,7 +172,7 @@ export default function ProblemManager({ problems, onChange }: Props) {
         {problems.length === 0 ? (
           <div className="p-6 text-center">
             <FileText size={30} className="text-[#bfae99] mx-auto mb-2" />
-            <p className="text-xs text-[#8a8073]">Chưa có bài toán nào. Soạn mới hoặc liên kết từ Ngân hàng đề.</p>
+            <p className="text-xs text-[#8a8073]">{t('problemManager.empty')}</p>
           </div>
         ) : (
           problems.map((p, i) => (
@@ -178,17 +180,17 @@ export default function ProblemManager({ problems, onChange }: Props) {
               <span className="text-xs text-[#8a8073] font-mono w-5 flex-shrink-0">{i + 1}.</span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <p className="text-sm font-medium text-[#191919] truncate">{p.title || '(chưa đặt tên)'}</p>
+                  <p className="text-sm font-medium text-[#191919] truncate">{p.title || t('problemManager.untitled')}</p>
                   {p.problem_id && (
                     <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 border border-blue-200 font-bold flex-shrink-0">
                       LINKED
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-[#8a8073] truncate">{p.statement?.slice(0, 60) || 'Chưa có mô tả'}</p>
+                <p className="text-[11px] text-[#8a8073] truncate">{p.statement?.slice(0, 60) || t('problemManager.noDescription')}</p>
               </div>
               <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium flex-shrink-0 ${diffChip[p.difficulty]}`}>
-                {diffLabel[p.difficulty]}
+                {t(`problemForm.${diffLabel[p.difficulty]}`)}
               </span>
               <div className="flex items-center gap-1 flex-shrink-0">
                 <input
@@ -198,15 +200,15 @@ export default function ProblemManager({ problems, onChange }: Props) {
                   value={p.points ?? 100}
                   onChange={(e) => updatePoints(p.id, Number(e.target.value))}
                   className="w-16 px-2 py-1 text-xs font-semibold text-right bg-[#f7f4eb] border border-[#e5dac9] rounded-lg text-[#191919] focus:outline-none focus:bg-white focus:ring-1 focus:ring-[#193a2b]"
-                  title="Chỉnh sửa điểm số cho bài này"
+                  title={t('problemManager.editPoints')}
                 />
-                <span className="text-[11px] text-[#8a8073]">đ</span>
+                <span className="text-[11px] text-[#8a8073]">{t('problemManager.pointsShort')}</span>
               </div>
               <button
                 type="button"
                 onClick={() => remove(p.id)}
                 className="p-1.5 text-[#8a8073] hover:text-red-600 rounded-md transition-colors flex-shrink-0"
-                title="Xoá bài"
+                title={t('problemManager.delete')}
               >
                 <Trash2 size={14} />
               </button>
@@ -216,7 +218,7 @@ export default function ProblemManager({ problems, onChange }: Props) {
       </div>
 
       <p className="text-[11px] text-[#8a8073] mt-1.5">
-        💡 <strong>Soạn mới</strong>: tạo bài toán đầy đủ (đề bài, test cases) vào ngân hàng đề và tự động gán vào bài tập. <strong>Từ ngân hàng</strong>: liên kết bài có sẵn.
+        💡 <strong>{t('problemManager.createNew')}</strong>: {t('problemManager.helper')}
       </p>
 
       {/* ───── Modal: Liên kết từ Ngân hàng ───── */}
@@ -233,10 +235,10 @@ export default function ProblemManager({ problems, onChange }: Props) {
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5dac9] bg-[#f7f4eb] flex-shrink-0">
               <div>
                 <h4 className="text-base font-bold text-[#191919] flex items-center gap-2">
-                  <Link2 size={17} className="text-blue-600" /> Liên kết bài từ Ngân hàng đề
+                  <Link2 size={17} className="text-blue-600" /> {t('problemManager.linkTitle')}
                 </h4>
                 <p className="text-xs text-[#8a8073] mt-0.5">
-                  Chọn các bài toán đã biên soạn sẵn trong thư viện để đưa vào bài tập
+                  {t('problemManager.linkSubtitle')}
                 </p>
               </div>
               <button
@@ -257,7 +259,7 @@ export default function ProblemManager({ problems, onChange }: Props) {
                   autoFocus
                   value={linkSearch}
                   onChange={(e) => { setLinkSearch(e.target.value); setLinkErr(''); }}
-                  placeholder="Tìm theo tiêu đề bài hoặc mã ID..."
+                  placeholder={t('problemManager.search')}
                   className="w-full pl-10 pr-4 py-2.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-sm text-[#191919] placeholder-[#bfae99] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#193a2b]"
                 />
               </div>
@@ -269,7 +271,7 @@ export default function ProblemManager({ problems, onChange }: Props) {
               {bankFiltered.length === 0 ? (
                 <div className="py-12 text-center">
                   <FileText size={36} className="text-[#bfae99] mx-auto mb-2" />
-                  <p className="text-sm text-[#8a8073]">Không tìm thấy bài nào trong ngân hàng đề.</p>
+                  <p className="text-sm text-[#8a8073]">{t('problemManager.notFound')}</p>
                 </div>
               ) : (
                 bankFiltered.map((bp) => {
@@ -292,11 +294,11 @@ export default function ProblemManager({ problems, onChange }: Props) {
                             bp.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
                             'bg-red-100 text-red-800 border-red-200'
                           }`}>
-                            {bp.difficulty === 'EASY' ? 'Dễ' : bp.difficulty === 'MEDIUM' ? 'Trung bình' : 'Khó'}
+                            {t(`problemForm.${bp.difficulty.toLowerCase()}`)}
                           </span>
                         </div>
                         <p className="text-xs text-[#8a8073] line-clamp-1 mb-1.5">
-                          {bp.description || 'Chưa có mô tả chi tiết'}
+                          {bp.description || t('problemManager.detailUnavailable')}
                         </p>
                         <div className="flex items-center gap-3 text-[11px] text-[#8a8073]">
                           <span className="font-mono text-[#5c5446]">{bp.id}</span>
@@ -317,15 +319,15 @@ export default function ProblemManager({ problems, onChange }: Props) {
                       >
                         {isLinking ? (
                           <>
-                            <Loader2 size={13} className="animate-spin" /> Đang thêm...
+                            <Loader2 size={13} className="animate-spin" /> {t('problemManager.adding')}
                           </>
                         ) : alreadyAdded ? (
                           <>
-                            <Check size={13} /> Đã thêm
+                            <Check size={13} /> {t('problemManager.added')}
                           </>
                         ) : (
                           <>
-                            <Plus size={13} /> Thêm bài
+                            <Plus size={13} /> {t('problemManager.add')}
                           </>
                         )}
                       </button>
@@ -338,14 +340,14 @@ export default function ProblemManager({ problems, onChange }: Props) {
             {/* Footer */}
             <div className="px-6 py-3.5 border-t border-[#e5dac9] bg-[#eee8d8] flex justify-between items-center flex-shrink-0">
               <span className="text-xs text-[#8a8073]">
-                Hiển thị {bankFiltered.length} bài toán trong thư viện
+                {t('problemManager.bankCount', { count: bankFiltered.length })}
               </span>
               <button
                 type="button"
                 onClick={() => setModalType(null)}
                 className="px-5 py-2 bg-white border border-[#e5dac9] text-[#5c5446] font-medium text-xs rounded-xl hover:bg-[#f0ebd9] transition-colors"
               >
-                Đóng
+                {t('problemManager.close')}
               </button>
             </div>
           </div>
@@ -361,9 +363,9 @@ export default function ProblemManager({ problems, onChange }: Props) {
         isLoading={composeSaving}
         showPoints
         initialPoints={100}
-        titleText="Soạn bài toán mới cho bài tập"
-        subtitleText="Bài toán sẽ được lưu vào Ngân hàng bài tập và tự động thêm vào bài tập này"
-        submitText="Tạo & Thêm vào bài tập"
+        titleText={t('problemManager.createForHomework')}
+        subtitleText={t('problemManager.createSubtitle')}
+        submitText={t('problemManager.createAndAdd')}
       />
     </div>
   );

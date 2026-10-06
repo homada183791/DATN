@@ -11,17 +11,17 @@ import {
   GraduationCap,
   Search,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
-
-function deadlineInfo(deadline: string) {
+function deadlineInfo(deadline: string, t: (key: string, options?: Record<string, number>) => string) {
   const now = Date.now();
   const end = new Date(deadline).getTime();
   const diff = end - now;
   const days = Math.ceil(diff / 86_400_000);
-  if (diff < 0) return { label: 'Đã đóng', chipClass: 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]', closed: true, daysLeft: -1 };
-  if (days <= 1) return { label: 'Còn < 1 ngày', chipClass: 'bg-red-50 text-red-700 border-red-200', closed: false, daysLeft: days };
-  if (days <= 3) return { label: `Còn ${days} ngày`, chipClass: 'bg-yellow-50 text-yellow-700 border-yellow-200', closed: false, daysLeft: days };
-  return { label: `Còn ${days} ngày`, chipClass: 'bg-emerald-50 text-emerald-700 border-emerald-200', closed: false, daysLeft: days };
+  if (diff < 0) return { label: t('studentContest.closed'), chipClass: 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]', closed: true, daysLeft: -1 };
+  if (days <= 1) return { label: t('studentContest.dueLessThanDay'), chipClass: 'bg-red-50 text-red-700 border-red-200', closed: false, daysLeft: days };
+  if (days <= 3) return { label: t('studentContest.dueDays', { count: days }), chipClass: 'bg-yellow-50 text-yellow-700 border-yellow-200', closed: false, daysLeft: days };
+  return { label: t('studentContest.dueDays', { count: days }), chipClass: 'bg-emerald-50 text-emerald-700 border-emerald-200', closed: false, daysLeft: days };
 }
 
 
@@ -29,6 +29,7 @@ type SortKey = 'deadline_asc' | 'deadline_desc' | 'name_az' | 'name_za';
 type StatusFilter = 'all' | 'open' | 'closed';
 
 export default function HomeworkList() {
+  const { t } = useTranslation();
   const { data: allHomeworks = [], isLoading } = useHomeworksQuery();
   const { enrolledClasses } = useClass();
 
@@ -95,11 +96,11 @@ export default function HomeworkList() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold font-serif text-[#191919]">Bài tập của tôi</h2>
+          <h2 className="text-2xl font-bold font-serif text-[#191919]">{t('studentContest.allHomeworksTitle')}</h2>
           <p className="text-sm text-[#8a8073] mt-1">
-            Tất cả bài tập từ {enrolledClasses.length} lớp bạn tham gia
+            {t('studentContest.homeworksFromClasses', { count: enrolledClasses.length })}
             {openCount > 0 && (
-              <span className="ml-2 text-emerald-700 font-medium">• {openCount} đang mở</span>
+              <span className="ml-2 text-emerald-700 font-medium">• {t('studentContest.homeworksOpen', { count: openCount })}</span>
             )}
           </p>
         </div>
@@ -108,9 +109,9 @@ export default function HomeworkList() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Tổng bài tập', value: allHomeworks.filter((h) => enrolledIds.has(h.class_id)).length, icon: <BookOpen size={18} /> },
-          { label: 'Đang mở', value: openCount, icon: <Clock size={18} /> },
-          { label: 'Lớp học', value: enrolledClasses.length, icon: <GraduationCap size={18} /> },
+          { label: t('studentContest.totalHomeworks'), value: allHomeworks.filter((h) => enrolledIds.has(h.class_id)).length, icon: <BookOpen size={18} /> },
+          { label: t('studentContest.open'), value: openCount, icon: <Clock size={18} /> },
+          { label: t('studentContest.classLabel'), value: enrolledClasses.length, icon: <GraduationCap size={18} /> },
         ].map((s) => (
           <div key={s.label} className="bg-white border border-[#e5dac9] rounded-xl p-4 text-center shadow-sm">
             <div className="text-[#193a2b] flex justify-center mb-2">{s.icon}</div>
@@ -128,7 +129,7 @@ export default function HomeworkList() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm bài tập hoặc lớp..."
+            placeholder={t('studentContest.searchHomework')}
             className="w-full pl-9 pr-4 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-sm text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
           />
         </div>
@@ -140,7 +141,7 @@ export default function HomeworkList() {
             onChange={(e) => setClassFilter(e.target.value)}
             className="px-3 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-sm text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
           >
-            <option value="all">Tất cả lớp</option>
+            <option value="all">{t('calendar.allClasses')}</option>
             {enrolledClasses.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
@@ -157,7 +158,7 @@ export default function HomeworkList() {
                 statusFilter === s ? 'bg-[#193a2b] text-white' : 'text-[#5c5446] hover:bg-[#f0ebd9]'
               }`}
             >
-              {s === 'all' ? 'Tất cả' : s === 'open' ? 'Đang mở' : 'Đã đóng'}
+              {s === 'all' ? t('calendar.all') : s === 'open' ? t('studentContest.open') : t('studentContest.closed')}
             </button>
           ))}
         </div>
@@ -168,10 +169,10 @@ export default function HomeworkList() {
           onChange={(e) => setSort(e.target.value as SortKey)}
           className="px-3 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-sm text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
         >
-          <option value="deadline_asc">Deadline sớm nhất</option>
-          <option value="deadline_desc">Deadline trễ nhất</option>
-          <option value="name_az">Tên A → Z</option>
-          <option value="name_za">Tên Z → A</option>
+          <option value="deadline_asc">{t('studentContest.sortDeadlineAsc')}</option>
+          <option value="deadline_desc">{t('studentContest.sortDeadlineDesc')}</option>
+          <option value="name_az">{t('studentContest.sortNameAsc')}</option>
+          <option value="name_za">{t('studentContest.sortNameDesc')}</option>
         </select>
       </div>
 
@@ -181,19 +182,19 @@ export default function HomeworkList() {
           <BookOpen size={48} className="text-[#bfae99] mx-auto mb-4" />
           <p className="font-semibold text-[#191919]">
             {allHomeworks.filter((h) => enrolledIds.has(h.class_id)).length === 0
-              ? 'Chưa có bài tập nào'
-              : 'Không tìm thấy bài tập phù hợp'}
+              ? t('studentContest.emptyHomework')
+              : t('studentContest.noHomeworkMatches')}
           </p>
           <p className="text-sm text-[#8a8073] mt-1">
             {enrolledClasses.length === 0
-              ? 'Hãy tham gia lớp học để nhận bài tập.'
-              : 'Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.'}
+              ? t('studentContest.joinClassForHomework')
+              : t('studentContest.changeHomeworkFilters')}
           </p>
         </div>
       ) : (
         <div className="space-y-3">
           {filtered.map((hw) => {
-            const dl = deadlineInfo(hw.deadline);
+            const dl = deadlineInfo(hw.deadline, t);
             const tasks = Array.isArray(hw.tasks) ? hw.tasks as Array<{ problem_id?: string; points?: number }> : [];
 
             return (

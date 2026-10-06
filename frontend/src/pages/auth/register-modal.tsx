@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import styles from "./register-modal.module.css";
@@ -46,6 +47,7 @@ export function RegisterModal({
   onClose: () => void;
   onSwitchToLogin: () => void;
 }) {
+  const { t } = useTranslation();
   const { register } = useAuth();
   const { showToast } = useToast();
   const [fullName, setFullName] = useState("");
@@ -75,44 +77,44 @@ export function RegisterModal({
 
     const trimmedUsername = username.trim();
     if (!trimmedUsername) {
-      setError("Vui lòng nhập tên đăng nhập.");
+      setError(t("auth.usernameRequired"));
       return;
     }
 
     if (trimmedUsername.length < 3 || trimmedUsername.length > 30) {
-      setError("Tên đăng nhập phải từ 3 đến 30 ký tự.");
+      setError(t("auth.usernameLength"));
       return;
     }
 
     if (trimmedUsername.includes("@")) {
-      setError("Tên đăng nhập không được chứa ký tự '@'.");
+      setError(t("auth.usernameAt"));
       return;
     }
 
     if (!/^[a-zA-Z0-9_.-]+$/.test(trimmedUsername)) {
-      setError("Tên đăng nhập chỉ được chứa chữ cái, số, gạch dưới, gạch ngang và dấu chấm.");
+      setError(t("auth.usernameCharacters"));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Mật khẩu xác nhận không khớp.");
+      setError(t("auth.passwordMismatch"));
       return;
     }
 
     if (!checks.length || !checks.lower || !checks.upper || !checks.digit) {
-      setError("Mật khẩu chưa đáp ứng đủ điều kiện tối thiểu.");
+      setError(t("auth.passwordInvalid"));
       return;
     }
 
     register(trimmedUsername, email.trim(), password, fullName.trim()).then((result) => {
       if (!result.ok) {
-        const message = result.message ?? "Vui lòng nhập đầy đủ thông tin bắt buộc.";
+        const message = result.message ?? t("auth.fieldsRequired");
         setError(message);
         showToast(message, "error");
         return;
       }
 
-      showToast("Đăng ký thành công. Vui lòng đăng nhập.", "success");
+      showToast(t("auth.registerSuccess"), "success");
       onSwitchToLogin();
     });
   }
@@ -123,26 +125,26 @@ export function RegisterModal({
         className={styles.modal}
         role="dialog"
         aria-modal="true"
-        aria-label="Đăng ký tài khoản"
+        aria-label={t("auth.register")}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           type="button"
           className={styles.closeBtn}
           onClick={onClose}
-          aria-label="Đóng"
+          aria-label={t("auth.close")}
         >
           <CloseIcon />
         </button>
 
-        <h2 className={styles.title}>Đăng ký tài khoản</h2>
+        <h2 className={styles.title}>{t("auth.register")}</h2>
 
         <form onSubmit={handleSubmit}>
           <div className={styles.columns}>
             {/* Cột trái */}
             <div className={styles.column}>
               <label className={styles.field}>
-                <span className={styles.label}>Họ tên (tùy chọn)</span>
+                <span className={styles.label}>{t("auth.fullNameOptional")}</span>
                 <input
                   type="text"
                   name="fullName"
@@ -154,7 +156,7 @@ export function RegisterModal({
 
               <label className={styles.field}>
                 <span className={styles.label}>
-                  Tên đăng nhập <span className={styles.required}>*</span>
+                  {t("auth.username")} <span className={styles.required}>*</span>
                 </span>
                 <input
                   type="text"
@@ -181,7 +183,7 @@ export function RegisterModal({
               </label>
 
               <label className={styles.field}>
-                <span className={styles.label}>MSSV (tùy chọn)</span>
+                <span className={styles.label}>{t("auth.studentIdOptional")}</span>
                 <input
                   type="text"
                   name="studentId"
@@ -195,7 +197,7 @@ export function RegisterModal({
             <div className={styles.column}>
               <div className={styles.field}>
                 <span className={styles.label}>
-                  Mật khẩu <span className={styles.required}>*</span>
+                  {t("auth.password")} <span className={styles.required}>*</span>
                 </span>
                 <div className={styles.passwordFieldWrap}>
                   <input
@@ -211,7 +213,7 @@ export function RegisterModal({
                       type="button"
                       className={styles.iconBtn}
                       onClick={() => setShowPassword((v) => !v)}
-                      aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                      aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
                     >
                       <EyeIcon open={showPassword} />
                     </button>
@@ -220,8 +222,8 @@ export function RegisterModal({
                       type="button"
                       className={styles.iconBtn}
                       onClick={handleGenerate}
-                      aria-label="Tạo mật khẩu mạnh"
-                      title="Tạo mật khẩu mạnh"
+                      aria-label={t("auth.generatePassword")}
+                      title={t("auth.generatePassword")}
                     >
                       <WandIcon />
                     </button>
@@ -230,8 +232,8 @@ export function RegisterModal({
                       type="button"
                       className={styles.iconBtn}
                       onClick={handleCopy}
-                      aria-label="Sao chép mật khẩu"
-                      title="Sao chép mật khẩu"
+                      aria-label={t("auth.copyPassword")}
+                      title={t("auth.copyPassword")}
                     >
                       <CopyIcon />
                     </button>
@@ -239,19 +241,19 @@ export function RegisterModal({
                 </div>
 
                 <div className={styles.checklist}>
-                  <CheckItem active={checks.length}>8–128 ký tự</CheckItem>
-                  <CheckItem active={checks.lower}>Có chữ thường</CheckItem>
-                  <CheckItem active={checks.upper}>Có chữ hoa</CheckItem>
-                  <CheckItem active={checks.digit}>Có chữ số</CheckItem>
+                  <CheckItem active={checks.length}>{t("auth.passwordLength")}</CheckItem>
+                  <CheckItem active={checks.lower}>{t("auth.passwordLower")}</CheckItem>
+                  <CheckItem active={checks.upper}>{t("auth.passwordUpper")}</CheckItem>
+                  <CheckItem active={checks.digit}>{t("auth.passwordDigit")}</CheckItem>
                   <CheckItem active={checks.special}>
-                    Có ký tự đặc biệt (khuyến khích)
+                    {t("auth.passwordSpecial")}
                   </CheckItem>
                 </div>
               </div>
 
               <label className={styles.field}>
                 <span className={styles.label}>
-                  Xác nhận mật khẩu <span className={styles.required}>*</span>
+                  {t("auth.confirmPassword")} <span className={styles.required}>*</span>
                 </span>
                 <div className={styles.passwordFieldWrap}>
                   <input
@@ -267,7 +269,7 @@ export function RegisterModal({
                       type="button"
                       className={styles.iconBtn}
                       onClick={() => setShowConfirm((v) => !v)}
-                      aria-label={showConfirm ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                      aria-label={showConfirm ? t("auth.hidePassword") : t("auth.showPassword")}
                     >
                       <EyeIcon open={showConfirm} />
                     </button>
@@ -281,10 +283,10 @@ export function RegisterModal({
 
           <div className={styles.footer}>
             <button type="button" className={styles.backLink} onClick={onSwitchToLogin}>
-              Quay lại đăng nhập
+              {t("auth.backToLogin")}
             </button>
             <button type="submit" className={styles.submitBtn}>
-              Đăng ký
+              {t("auth.registerName")}
             </button>
           </div>
         </form>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import styles from "./login-modal.module.css";
@@ -14,6 +15,7 @@ export function LoginModal({
   onSwitchToRegister: () => void;
   onSwitchToForgotPassword: () => void;
 }) {
+  const { t } = useTranslation();
   const { login } = useAuth();
   const { showToast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
@@ -27,12 +29,12 @@ export function LoginModal({
 
     login(identifier.trim(), password).then((result) => {
       if (!result.ok) {
-        const message = result.message ?? "Sai tài khoản hoặc mật khẩu.";
+        const message = result.message ?? t("auth.loginFailed");
         setError(message);
         showToast(message, "error");
         return;
       }
-      showToast("Đăng nhập thành công.", "success");
+      showToast(t("auth.loginSuccess"), "success");
     });
   }
 
@@ -42,25 +44,25 @@ export function LoginModal({
         className={styles.modal}
         role="dialog"
         aria-modal="true"
-        aria-label="Đăng nhập"
+        aria-label={t("auth.login")}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           type="button"
           className={styles.closeBtn}
           onClick={onClose}
-          aria-label="Đóng"
+          aria-label={t("auth.close")}
         >
           <CloseIcon />
         </button>
 
-        <h2 className={styles.title}>Đăng nhập</h2>
-        <p className={styles.subtitle}>Hệ thống chấm bài lập trình trực tuyến.</p>
+        <h2 className={styles.title}>{t("auth.login")}</h2>
+        <p className={styles.subtitle}>{t("auth.subtitle")}</p>
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <label className={styles.field}>
             <span className={styles.label}>
-              Email hoặc tên đăng nhập <span className={styles.required}>*</span>
+              {t("auth.usernameOrEmail")} <span className={styles.required}>*</span>
             </span>
             <input
               type="text"
@@ -74,7 +76,7 @@ export function LoginModal({
 
           <label className={styles.field}>
             <span className={styles.label}>
-              Mật khẩu <span className={styles.required}>*</span>
+              {t("auth.password")} <span className={styles.required}>*</span>
             </span>
             <div className={styles.passwordWrap}>
               <input
@@ -89,7 +91,7 @@ export function LoginModal({
                 type="button"
                 className={styles.eyeBtn}
                 onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
               >
                 <EyeIcon open={showPassword} />
               </button>
@@ -99,18 +101,18 @@ export function LoginModal({
           {error ? <p className={styles.errorMessage}>{error}</p> : null}
 
           <button type="submit" className={styles.submitBtn}>
-            Đăng nhập
+            {t("auth.login")}
           </button>
 
           <div className={styles.linkRow}>
             <span className={styles.linkRowText}>
-              Chưa có tài khoản?{" "}
+              {t("auth.noAccount")}{" "}
               <button
                 type="button"
                 className={styles.link}
                 onClick={onSwitchToRegister}
               >
-                Đăng ký
+                {t("auth.registerName")}
               </button>
             </span>
             <button
@@ -118,24 +120,24 @@ export function LoginModal({
               className={styles.link}
               onClick={onSwitchToForgotPassword}
             >
-              Quên mật khẩu?
+              {t("auth.forgotPassword")}
             </button>
           </div>
         </form>
 
         <div className={styles.divider}>
-          <span>Hoặc tiếp tục với</span>
+          <span>{t("auth.orContinue")}</span>
         </div>
 
         <button
           type="button"
           className={styles.ssoBtn}
           onClick={() => {
-            alert('Tính năng đăng nhập bằng Google đang được cập nhật kết nối OAuth.');
+            alert(t("auth.googleComingSoon"));
           }}
         >
           <GoogleIcon />
-          Đăng nhập bằng Google
+          {t("auth.googleLogin")}
         </button>
       </div>
     </div>

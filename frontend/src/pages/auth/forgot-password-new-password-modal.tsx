@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import styles from "./forgot-password-modal.module.css";
@@ -37,6 +38,7 @@ export function ForgotPasswordNewPasswordModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const { t } = useTranslation();
   const { resetPassword } = useAuth();
   const { showToast } = useToast();
 
@@ -53,12 +55,12 @@ export function ForgotPasswordNewPasswordModal({
     setError("");
 
     if (password !== confirmPassword) {
-      setError("Mật khẩu xác nhận không khớp.");
+      setError(t("auth.passwordMismatchConfirm"));
       return;
     }
 
     if (!checks.length || !checks.lower || !checks.upper || !checks.digit) {
-      setError("Mật khẩu chưa đáp ứng đủ điều kiện tối thiểu.");
+      setError(t("auth.passwordInvalid"));
       return;
     }
 
@@ -67,13 +69,13 @@ export function ForgotPasswordNewPasswordModal({
       setSubmitting(false);
 
       if (!result.ok) {
-        const message = result.message ?? "Không thể đặt lại mật khẩu lúc này.";
+        const message = result.message ?? t("auth.resetFailed");
         setError(message);
         showToast(message, "error");
         return;
       }
 
-      showToast("Đổi mật khẩu thành công. Vui lòng đăng nhập lại.", "success");
+      showToast(t("auth.passwordChanged"), "success");
       onSuccess();
     });
   }
@@ -84,20 +86,20 @@ export function ForgotPasswordNewPasswordModal({
         className={styles.modal}
         role="dialog"
         aria-modal="true"
-        aria-label="Đặt lại mật khẩu"
+        aria-label={t("auth.resetPassword")}
         onClick={(e) => e.stopPropagation()}
       >
-        <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Đóng">
+        <button type="button" className={styles.closeBtn} onClick={onClose} aria-label={t("auth.close")}>
           <CloseIcon />
         </button>
 
-        <h2 className={styles.title}>Đặt lại mật khẩu</h2>
-        <p className={styles.subtitle}>Nhập mật khẩu mới cho tài khoản của bạn.</p>
+        <h2 className={styles.title}>{t("auth.resetPassword")}</h2>
+        <p className={styles.subtitle}>{t("auth.resetPasswordHint")}</p>
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <label className={styles.field}>
             <span className={styles.label}>
-              Mật khẩu mới <span className={styles.required}>*</span>
+              {t("auth.newPasswordLabel")} <span className={styles.required}>*</span>
             </span>
             <div className={styles.passwordFieldWrap}>
               <input
@@ -112,23 +114,23 @@ export function ForgotPasswordNewPasswordModal({
                 type="button"
                 className={styles.eyeBtn}
                 onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
               >
                 <EyeIcon open={showPassword} />
               </button>
             </div>
 
             <div className={styles.checklist}>
-              <CheckItem active={checks.length}>6–128 ký tự</CheckItem>
-              <CheckItem active={checks.lower}>Có chữ thường</CheckItem>
-              <CheckItem active={checks.upper}>Có chữ hoa</CheckItem>
-              <CheckItem active={checks.digit}>Có chữ số</CheckItem>
+              <CheckItem active={checks.length}>{t("auth.passwordShort")}</CheckItem>
+              <CheckItem active={checks.lower}>{t("auth.passwordLower")}</CheckItem>
+              <CheckItem active={checks.upper}>{t("auth.passwordUpper")}</CheckItem>
+              <CheckItem active={checks.digit}>{t("auth.passwordDigit")}</CheckItem>
             </div>
           </label>
 
           <label className={styles.field}>
             <span className={styles.label}>
-              Xác nhận mật khẩu <span className={styles.required}>*</span>
+              {t("auth.confirmPassword")} <span className={styles.required}>*</span>
             </span>
             <input
               type={showPassword ? "text" : "password"}
@@ -143,7 +145,7 @@ export function ForgotPasswordNewPasswordModal({
           {error ? <p className={styles.errorMessage}>{error}</p> : null}
 
           <button type="submit" className={styles.submitBtn} disabled={submitting}>
-            {submitting ? "Đang xử lý..." : "Đổi mật khẩu"}
+            {submitting ? t("auth.processing") : t("settings.changePasswordBtn")}
           </button>
         </form>
       </div>

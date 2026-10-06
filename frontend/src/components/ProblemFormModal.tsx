@@ -6,6 +6,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { CreateProblemDto, ProblemDifficulty, ProblemDto } from '../api/problems';
+import { useTranslation } from 'react-i18next';
 
 interface ProblemFormModalProps {
   isOpen: boolean;
@@ -21,9 +22,9 @@ interface ProblemFormModalProps {
 }
 
 const DIFFICULTY_CONFIG = {
-  EASY:   { label: 'Dễ',        color: 'text-emerald-800 bg-emerald-100 border-emerald-300 ring-emerald-200' },
-  MEDIUM: { label: 'Trung bình', color: 'text-yellow-800 bg-yellow-100 border-yellow-300 ring-yellow-200' },
-  HARD:   { label: 'Khó',        color: 'text-red-800 bg-red-100 border-red-300 ring-red-200' },
+  EASY:   { color: 'text-emerald-800 bg-emerald-100 border-emerald-300 ring-emerald-200' },
+  MEDIUM: { color: 'text-yellow-800 bg-yellow-100 border-yellow-300 ring-yellow-200' },
+  HARD:   { color: 'text-red-800 bg-red-100 border-red-300 ring-red-200' },
 } as const;
 
 const TIME_PRESETS = [500, 1000, 2000, 3000];
@@ -42,6 +43,7 @@ export default function ProblemFormModal({
   subtitleText,
   submitText,
 }: ProblemFormModalProps) {
+  const { t } = useTranslation();
   const [title,       setTitle]       = useState('');
   const [description, setDescription] = useState('');
   const [difficulty,  setDifficulty]  = useState<ProblemDifficulty>('EASY');
@@ -86,12 +88,12 @@ export default function ProblemFormModal({
   /* ── Validation ── */
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!title.trim() || title.trim().length < 3) e.title = 'Tiêu đề cần ít nhất 3 ký tự.';
-    if (!description.trim())  e.description = 'Mô tả không được để trống.';
-    if (testCases.length === 0) e.cases = 'Cần ít nhất 1 test case.';
+    if (!title.trim() || title.trim().length < 3) e.title = t('problemForm.titleMin');
+    if (!description.trim())  e.description = t('problemForm.descriptionRequired');
+    if (testCases.length === 0) e.cases = t('problemForm.testRequired');
     testCases.forEach((tc, i) => {
-      if (!tc.input.trim())           e[`tc_input_${i}`] = 'Input không được rỗng.';
-      if (!tc.expected_output.trim()) e[`tc_out_${i}`]   = 'Output không được rỗng.';
+      if (!tc.input.trim())           e[`tc_input_${i}`] = t('problemForm.inputRequired');
+      if (!tc.expected_output.trim()) e[`tc_out_${i}`]   = t('problemForm.outputRequired');
     });
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -144,10 +146,10 @@ export default function ProblemFormModal({
             </div>
             <div>
               <h2 className="font-serif text-lg font-bold text-[#191919] leading-tight">
-                {titleText || (isEdit ? 'Chỉnh sửa bài tập' : 'Tạo bài tập mới')}
+                {titleText || (isEdit ? t('problemForm.editTitle') : t('problemForm.createTitle'))}
               </h2>
               <p className="text-xs text-[#8a8073]">
-                {subtitleText || (isEdit ? `Cập nhật: ${initialData.title}` : 'Ngân hàng bài tập hệ thống')}
+                {subtitleText || (isEdit ? t('problemForm.updatePrefix', { title: initialData.title }) : t('problemForm.systemBank'))}
               </p>
             </div>
           </div>
@@ -162,7 +164,7 @@ export default function ProblemFormModal({
         {/* ── TABS ── */}
         <div className="flex border-b border-[#e5dac9] flex-shrink-0 bg-[#f7f4eb]">
           {([
-            { key: 'desc'  as const, label: 'Thông tin đề bài', icon: AlignLeft,    err: !!(errors.title || errors.description), count: undefined },
+            { key: 'desc'  as const, label: t('problemForm.statementInfo'), icon: AlignLeft,    err: !!(errors.title || errors.description), count: undefined },
             { key: 'cases' as const, label: 'Test Cases',        icon: FlaskConical, err: caseErrCount > 0,                        count: testCases.length },
           ]).map(({ key, label, icon: Icon, err, count }) => (
             <button
@@ -196,12 +198,12 @@ export default function ProblemFormModal({
                 {/* Title */}
                 <div>
                   <label className="block text-sm font-semibold text-[#191919] mb-1.5">
-                    Tiêu đề <span className="text-red-500">*</span>
+                    {t('problemForm.titleLabel')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     value={title}
                     onChange={(e) => { setTitle(e.target.value); setErrors(p => ({ ...p, title: '' })); }}
-                    placeholder="VD: Two Sum, Sắp xếp nổi bọt..."
+                    placeholder={t('problemForm.titlePlaceholder')}
                     className={`${FIELD_BASE} ${errors.title ? FIELD_ERR : FIELD_IDLE}`}
                   />
                   {errors.title && (
@@ -214,7 +216,7 @@ export default function ProblemFormModal({
                 {/* Difficulty & Points */}
                 <div className={showPoints ? 'grid grid-cols-1 sm:grid-cols-3 gap-4' : ''}>
                   <div className={showPoints ? 'sm:col-span-2' : ''}>
-                    <label className="block text-sm font-semibold text-[#191919] mb-2">Độ khó</label>
+                    <label className="block text-sm font-semibold text-[#191919] mb-2">{t('problemForm.difficulty')}</label>
                     <div className="flex gap-2">
                       {(Object.keys(DIFFICULTY_CONFIG) as ProblemDifficulty[]).map((d) => (
                         <button
@@ -227,14 +229,14 @@ export default function ProblemFormModal({
                               : 'border-[#e5dac9] text-[#8a8073] bg-white hover:border-[#d5c9b5] hover:text-[#191919]'
                           }`}
                         >
-                          {DIFFICULTY_CONFIG[d].label}
+                          {t(`problemForm.${d.toLowerCase()}`)}
                         </button>
                       ))}
                     </div>
                   </div>
                   {showPoints && (
                     <div>
-                      <label className="block text-sm font-semibold text-[#191919] mb-2">Điểm số</label>
+                      <label className="block text-sm font-semibold text-[#191919] mb-2">{t('problemForm.points')}</label>
                       <input
                         type="number"
                         min={0}
@@ -253,7 +255,7 @@ export default function ProblemFormModal({
                   {/* Time */}
                   <div>
                     <label className="block text-sm font-semibold text-[#191919] mb-1.5">
-                      <span className="flex items-center gap-1.5"><Clock size={13} className="text-[#8a8073]" />Thời gian (ms)</span>
+                      <span className="flex items-center gap-1.5"><Clock size={13} className="text-[#8a8073]" />{t('problemForm.timeLimit')}</span>
                     </label>
                     <input
                       type="number"
@@ -282,7 +284,7 @@ export default function ProblemFormModal({
                   {/* Memory */}
                   <div>
                     <label className="block text-sm font-semibold text-[#191919] mb-1.5">
-                      <span className="flex items-center gap-1.5"><HardDrive size={13} className="text-[#8a8073]" />Bộ nhớ (MB)</span>
+                      <span className="flex items-center gap-1.5"><HardDrive size={13} className="text-[#8a8073]" />{t('problemForm.memoryLimit')}</span>
                     </label>
                     <input
                       type="number"
@@ -313,9 +315,9 @@ export default function ProblemFormModal({
                 {/* Description */}
                 <div>
                   <label className="block text-sm font-semibold text-[#191919] mb-1.5">
-                    Mô tả chi tiết{' '}
+                    {t('problemForm.description')}{' '}
                     <span className="text-red-500">*</span>
-                    <span className="ml-2 text-xs font-normal text-[#8a8073]">(hỗ trợ Markdown)</span>
+                    <span className="ml-2 text-xs font-normal text-[#8a8073]">{t('problemForm.markdown')}</span>
                   </label>
                   <textarea
                     rows={10}
@@ -324,7 +326,7 @@ export default function ProblemFormModal({
                     className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all font-mono leading-6 resize-y text-[#191919] placeholder-[#bfae99] ${
                       errors.description ? FIELD_ERR : 'border-[#e5dac9] bg-white focus:border-[#193a2b] focus:ring-1 focus:ring-[#193a2b]'
                     }`}
-                    placeholder={`## Mô tả bài toán\nCho một mảng số nguyên nums và target...\n\n## Định dạng đầu vào\nDòng 1: n (số phần tử)\nDòng 2: n số nguyên cách nhau dấu cách\n\n## Định dạng đầu ra\nIn ra chỉ số của hai phần tử...`}
+                    placeholder={t('problemForm.descriptionPlaceholder')}
                   />
                   {errors.description && (
                     <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
@@ -342,7 +344,7 @@ export default function ProblemFormModal({
                   <div>
                     <h3 className="font-semibold text-[#191919]">Test Cases</h3>
                     <p className="text-xs text-[#8a8073] mt-0.5">
-                      Ít nhất 1 test case hiển thị (mẫu). Khuyến khích thêm hidden test case để chấm điểm chính xác.
+                      {t('problemForm.testCaseHint')}
                     </p>
                   </div>
                   <button
@@ -350,7 +352,7 @@ export default function ProblemFormModal({
                     onClick={addTestCase}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#193a2b] text-white text-sm font-medium hover:bg-[#143022] transition-colors shadow-sm"
                   >
-                    <Plus size={15} /> Thêm test case
+                    <Plus size={15} /> {t('problemForm.addTestCase')}
                   </button>
                 </div>
 
@@ -366,8 +368,8 @@ export default function ProblemFormModal({
                     onClick={addTestCase}
                   >
                     <FlaskConical size={40} className="text-[#bfae99] mx-auto mb-3 group-hover:text-[#193a2b] transition-colors" />
-                    <p className="font-medium text-[#5c5446] group-hover:text-[#193a2b]">Chưa có test case nào</p>
-                    <p className="text-sm text-[#8a8073] mt-1">Click để thêm test case đầu tiên</p>
+                    <p className="font-medium text-[#5c5446] group-hover:text-[#193a2b]">{t('problemForm.noTestCases')}</p>
+                    <p className="text-sm text-[#8a8073] mt-1">{t('problemForm.firstTestCase')}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -395,7 +397,7 @@ export default function ProblemFormModal({
                               </div>
                               {tc.is_hidden
                                 ? <span className="text-[11px] font-semibold text-[#193a2b] flex items-center gap-1"><EyeOff size={11} />Hidden</span>
-                                : <span className="text-[11px] text-[#8a8073] flex items-center gap-1"><Eye size={11} />Hiển thị mẫu</span>
+                                : <span className="text-[11px] text-[#8a8073] flex items-center gap-1"><Eye size={11} />{t('problemForm.sample')}</span>
                               }
                             </button>
                           </div>
@@ -424,7 +426,7 @@ export default function ProblemFormModal({
                                   ? 'border-red-300 bg-red-50'
                                   : 'border-[#e5dac9] bg-[#f7f4eb] focus:border-[#193a2b] focus:ring-1 focus:ring-[#193a2b]'
                               }`}
-                              placeholder="Dữ liệu đầu vào&#10;VD: 3 5"
+                              placeholder={t('problemForm.inputPlaceholder')}
                             />
                             {errors[`tc_input_${index}`] && (
                               <p className="mt-1 text-[11px] text-red-600">{errors[`tc_input_${index}`]}</p>
@@ -444,7 +446,7 @@ export default function ProblemFormModal({
                                   ? 'border-red-300 bg-red-50'
                                   : 'border-[#e5dac9] bg-[#f7f4eb] focus:border-[#193a2b] focus:ring-1 focus:ring-[#193a2b]'
                               }`}
-                              placeholder="Kết quả mong đợi&#10;VD: 8"
+                              placeholder={t('problemForm.outputPlaceholder')}
                             />
                             {errors[`tc_out_${index}`] && (
                               <p className="mt-1 text-[11px] text-red-600">{errors[`tc_out_${index}`]}</p>
@@ -475,12 +477,12 @@ export default function ProblemFormModal({
               <span className="flex items-center gap-1"><Clock size={12} />{timeLimit}ms</span>
               <span className="flex items-center gap-1"><HardDrive size={12} />{memoryLimit}MB</span>
               <span className={`px-2 py-0.5 rounded-md border text-[11px] font-bold ${DIFFICULTY_CONFIG[difficulty].color}`}>
-                {DIFFICULTY_CONFIG[difficulty].label}
+                {t(`problemForm.${difficulty.toLowerCase()}`)}
               </span>
               <span className="text-[#5c5446] font-medium">{testCases.length} test case{testCases.length !== 1 ? 's' : ''}</span>
               {showPoints && (
                 <span className="px-2 py-0.5 rounded-md bg-[#193a2b]/10 text-[#193a2b] border border-[#193a2b]/20 text-[11px] font-bold">
-                  {points} điểm
+                  {t('problemForm.pointsUnit', { count: points })}
                 </span>
               )}
             </div>
@@ -492,7 +494,7 @@ export default function ProblemFormModal({
                 disabled={isLoading}
                 className="px-5 py-2 rounded-xl text-sm font-medium text-[#5c5446] border border-[#e5dac9] bg-white hover:bg-[#f0ebd9] transition-colors disabled:opacity-50"
               >
-                Huỷ
+                {t('problemForm.cancel')}
               </button>
               <button
                 type="submit"
@@ -500,7 +502,7 @@ export default function ProblemFormModal({
                 className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[#193a2b] text-white text-sm font-semibold hover:bg-[#143022] disabled:opacity-50 transition-colors shadow-sm"
               >
                 {isLoading && <Loader2 size={15} className="animate-spin" />}
-                {isLoading ? 'Đang lưu...' : (submitText || (isEdit ? 'Lưu thay đổi' : 'Tạo bài tập'))}
+                {isLoading ? t('problemForm.saving') : (submitText || (isEdit ? t('problemForm.saveChanges') : t('problemForm.create')))}
               </button>
             </div>
           </div>

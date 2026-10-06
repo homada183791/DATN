@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { useClass } from '../../context/ClassContext';
 import { useHomework, deadlineProgress } from '../../context/HomeworkContext';
 import { formatVNFull } from '../../utils/dateTime';
+import { useTranslation } from 'react-i18next';
 import {
   ClipboardList,
   Search,
@@ -26,6 +27,7 @@ const diffColors: Record<string, string> = {
 };
 
 export default function StudentHomework() {
+  const { t } = useTranslation();
   const { enrolledClasses } = useClass();
   const { allHomeworks, problemsOf } = useHomework();
   const [searchParams] = useSearchParams();
@@ -57,24 +59,27 @@ export default function StudentHomework() {
 
   const activeCount   = myHomeworks.filter((h) => h.status === 'active').length;
   const closedCount   = myHomeworks.filter((h) => h.status === 'closed').length;
+  const deadlineLabel = (p: ReturnType<typeof deadlineProgress>) => p.overdue
+    ? t('deadline.expired')
+    : p.daysLeft <= 0 ? t('deadline.today')
+    : p.daysLeft === 1 ? t('deadline.oneDay')
+    : t('deadline.days', { count: p.daysLeft });
 
   return (
     <div className="space-y-6 text-[#191919]">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
-          <h2 className="text-3xl font-bold font-serif text-[#191919]">Bài tập về nhà</h2>
+          <h2 className="text-3xl font-bold font-serif text-[#191919]">{t('studentHomework.homeworkTitle')}</h2>
           <p className="text-sm text-[#8a8073] mt-1">
-            {myHomeworks.length} bài tập •{' '}
-            <span className="text-emerald-700 font-medium">{activeCount} đang mở</span>
-            {closedCount > 0 && <> • <span className="text-[#cc5a37] font-medium">{closedCount} đã đóng</span></>}
+            {t('studentHomework.homeworkSummary', { total: myHomeworks.length, open: activeCount, closed: closedCount })}
           </p>
         </div>
         <Link
           to="/student/class"
           className="flex items-center gap-2 text-sm text-[#8a8073] hover:text-[#193a2b] transition-colors"
         >
-          <GraduationCap size={15} /> Quản lý lớp học
+          <GraduationCap size={15} /> {t('studentHomework.manageClasses')}
         </Link>
       </div>
 
@@ -86,7 +91,7 @@ export default function StudentHomework() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm bài tập, tên lớp..."
+            placeholder={t('studentHomework.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-sm text-[#191919] outline-none placeholder:text-[#bfae99] focus:ring-2 focus:ring-[#193a2b]"
           />
           {search && (
@@ -100,12 +105,12 @@ export default function StudentHomework() {
           {/* Status filter */}
           <div className="flex items-center gap-1.5">
             <Filter size={13} className="text-[#8a8073]" />
-            <span className="text-xs font-semibold text-[#8a8073] uppercase tracking-wider">Trạng thái:</span>
+            <span className="text-xs font-semibold text-[#8a8073] uppercase tracking-wider">{t('studentClass.status')}:</span>
             <div className="flex gap-1.5">
               {([
-                { value: 'all',    label: 'Tất cả' },
-                { value: 'active', label: 'Đang mở' },
-                { value: 'closed', label: 'Đã đóng' },
+                { value: 'all',    label: t('calendar.all') },
+                { value: 'active', label: t('studentContest.open') },
+                { value: 'closed', label: t('studentContest.closed') },
               ] as const).map(({ value, label }) => (
                 <button
                   key={value}
@@ -130,7 +135,7 @@ export default function StudentHomework() {
               <div className="h-5 w-px bg-[#e5dac9] hidden sm:block" />
               <div className="flex items-center gap-1.5">
                 <GraduationCap size={13} className="text-[#8a8073]" />
-                <span className="text-xs font-semibold text-[#8a8073] uppercase tracking-wider">Lớp:</span>
+                <span className="text-xs font-semibold text-[#8a8073] uppercase tracking-wider">{t('studentContest.classLabel')}:</span>
                 <div className="flex gap-1.5 flex-wrap">
                   <button
                     onClick={() => setClassFilter('all')}
@@ -138,7 +143,7 @@ export default function StudentHomework() {
                       classFilter === 'all' ? 'bg-[#193a2b] text-white' : 'bg-[#f0ebd9] text-[#5c5446] hover:bg-[#e5dac9]'
                     }`}
                   >
-                    Tất cả
+                    {t('calendar.all')}
                   </button>
                   {enrolledClasses.map((cls) => (
                     <button
@@ -163,16 +168,16 @@ export default function StudentHomework() {
         <div className="bg-white border border-[#e5dac9] rounded-2xl p-14 text-center shadow-sm">
           <ClipboardList size={48} className="text-[#bfae99] mx-auto mb-4" />
           <p className="font-semibold text-[#191919]">
-            {myHomeworks.length === 0 ? 'Bạn chưa có bài tập về nhà nào' : 'Không tìm thấy bài tập'}
+            {myHomeworks.length === 0 ? t('studentHomework.emptyNoClassTitle') : t('studentHomework.emptyFiltered')}
           </p>
           <p className="text-sm text-[#8a8073] mt-1">
             {myHomeworks.length === 0
-              ? 'Tham gia lớp học để nhận bài tập từ giảng viên.'
-              : search ? `Không có kết quả cho "${search}"` : 'Thử thay đổi bộ lọc.'}
+              ? t('studentHomework.emptyNoClassSubtitle')
+              : t('studentContest.changeHomeworkFilters')}
           </p>
           {myHomeworks.length === 0 && (
             <Link to="/student/class" className="inline-flex items-center gap-2 mt-5 px-5 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md">
-              <GraduationCap size={16} /> Vào Lớp học
+              <GraduationCap size={16} /> {t('studentClass.joinThisClass')}
             </Link>
           )}
         </div>
@@ -196,22 +201,22 @@ export default function StudentHomework() {
                       {/* Status badge */}
                       {hw.status === 'active' ? (
                         <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-semibold">
-                          <CheckCircle2 size={10} /> Đang mở
+                          <CheckCircle2 size={10} /> {t('studentContest.open')}
                         </span>
                       ) : (
                         <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-red-100 text-red-800 border border-red-200 font-semibold">
-                          <AlertTriangle size={10} /> Đã đóng
+                          <AlertTriangle size={10} /> {t('studentContest.closed')}
                         </span>
                       )}
                       {hasLinkable && (
                         <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 border border-blue-200 rounded font-bold">
-                          CÓ THỂ NỘP
+                          {t('studentHomework.canSubmit')}
                         </span>
                       )}
                     </div>
                     <div className="flex flex-wrap items-center gap-4 text-xs text-[#8a8073]">
                       <span className="flex items-center gap-1"><GraduationCap size={12} />{hw.className}</span>
-                      <span className="flex items-center gap-1"><BookOpen size={12} />{hw.problemCount} bài</span>
+                      <span className="flex items-center gap-1"><BookOpen size={12} />{t('studentContest.problemCount', { count: hw.problemCount })}</span>
                       <span className={`flex items-center gap-1 font-medium ${p.overdue ? 'text-[#cc5a37]' : p.daysLeft <= 3 ? 'text-yellow-700' : 'text-[#5c5446]'}`}>
                         <Clock size={12} />{formatVNFull(hw.deadline)}
                       </span>
@@ -221,7 +226,7 @@ export default function StudentHomework() {
                   {/* Right: deadline label + arrow */}
                   <div className="flex items-center gap-3 flex-shrink-0">
                     <span className={`text-sm font-semibold ${p.overdue ? 'text-[#cc5a37]' : p.daysLeft <= 3 ? 'text-yellow-700' : 'text-emerald-700'}`}>
-                      {p.label}
+                      {deadlineLabel(p)}
                     </span>
                     <ChevronRight size={18} className="text-[#d8cfbe] group-hover:text-[#193a2b] transition-colors" />
                   </div>
@@ -269,11 +274,11 @@ export default function StudentHomework() {
                   <div className="p-4 bg-white rounded-xl border border-[#e5dac9]">
                     <div className="flex items-center justify-between text-xs mb-2">
                       <span className="flex items-center gap-1.5 text-[#8a8073]">
-                        <Calendar size={13} /> Hạn nộp:
+                        <Calendar size={13} /> {t('studentContest.deadlineLabel')}:
                         <span className="font-semibold text-[#5c5446]">{formatVNFull(selectedHw.deadline)}</span>
                       </span>
                       <span className={`font-bold ${p.overdue ? 'text-[#cc5a37]' : p.daysLeft <= 3 ? 'text-yellow-700' : 'text-emerald-700'}`}>
-                        {p.label}
+                        {deadlineLabel(p)}
                       </span>
                     </div>
                     <div className="w-full h-2 bg-[#f0ebd9] rounded-full overflow-hidden">
@@ -294,10 +299,10 @@ export default function StudentHomework() {
               {/* Problem list */}
               <div>
                 <h4 className="text-sm font-bold font-serif text-[#191919] mb-3">
-                  Danh sách bài toán ({hwProblems.length})
+                  {t('studentHomework.problemListTitle')} ({hwProblems.length})
                 </h4>
                 {hwProblems.length === 0 ? (
-                  <p className="text-sm text-[#8a8073] text-center py-6">Bài tập chưa có bài toán nào.</p>
+                  <p className="text-sm text-[#8a8073] text-center py-6">{t('studentHomework.emptyProblems')}</p>
                 ) : (
                   <div className="space-y-2">
                     {hwProblems.map((p, i) => {
@@ -318,12 +323,12 @@ export default function StudentHomework() {
                               <span className="text-sm font-medium text-[#191919] truncate">{p.title}</span>
                               {hasLink && (
                                 <span className="text-[9px] px-1.5 py-0.5 bg-blue-100 text-blue-700 border border-blue-200 rounded font-bold flex-shrink-0">
-                                  CÓ THỂ NỘP
+                                  {t('studentHomework.canSubmit')}
                                 </span>
                               )}
                             </button>
                             <div className="flex items-center gap-2 flex-shrink-0">
-                              <span className="text-xs text-[#8a8073]">{p.points}đ</span>
+                              <span className="text-xs text-[#8a8073]">{t('studentHomework.pointsUnit', { count: p.points })}</span>
                               <button
                                 onClick={() => setExpandedProblem(open ? null : p.id)}
                                 className="p-1.5 bg-[#f0ebd9] rounded-lg text-[#5c5446] hover:bg-[#e5dac9] transition-colors"
@@ -336,10 +341,10 @@ export default function StudentHomework() {
                                   className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-lg hover:bg-[#143022] transition-colors"
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  <Play size={12} /> Làm bài
+                                  <Play size={12} /> {t('studentContest.solveTask')}
                                 </Link>
                               ) : (
-                                <span className="p-1.5 bg-[#f0ebd9] rounded-lg text-[#bfae99] cursor-not-allowed" title="Chỉ xem đề, chưa có bài toán để nộp code">
+                                <span className="p-1.5 bg-[#f0ebd9] rounded-lg text-[#bfae99] cursor-not-allowed" title={t('studentHomework.noProblemLinkTitle')}>
                                   <Play size={14} />
                                 </span>
                               )}
@@ -353,11 +358,11 @@ export default function StudentHomework() {
                               {(p.sampleInput || p.sampleOutput) && (
                                 <div className="grid grid-cols-2 gap-3 mt-3">
                                   <div className="rounded-lg border border-[#e5dac9] overflow-hidden">
-                                    <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#8a8073] bg-[#f0ebd9]">Input mẫu</p>
+                                    <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#8a8073] bg-[#f0ebd9]">{t('studentHomework.sampleInput')}</p>
                                     <pre className="px-3 py-2 text-[12.5px] font-mono whitespace-pre-wrap text-[#191919]">{p.sampleInput || '—'}</pre>
                                   </div>
                                   <div className="rounded-lg border border-[#e5dac9] overflow-hidden">
-                                    <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#8a8073] bg-[#f0ebd9]">Output mẫu</p>
+                                    <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#8a8073] bg-[#f0ebd9]">{t('studentHomework.sampleOutput')}</p>
                                     <pre className="px-3 py-2 text-[12.5px] font-mono whitespace-pre-wrap text-[#191919]">{p.sampleOutput || '—'}</pre>
                                   </div>
                                 </div>
@@ -369,7 +374,7 @@ export default function StudentHomework() {
                                     className="inline-flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-sm font-medium rounded-xl hover:bg-[#143022] shadow-sm"
                                     onClick={(e) => e.stopPropagation()}
                                   >
-                                    <Play size={14} /> Làm bài ngay
+                                    <Play size={14} /> {t('studentHomework.nowSolving')}
                                   </Link>
                                 </div>
                               )}

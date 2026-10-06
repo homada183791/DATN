@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface HeatmapDay {
   date: string;  // YYYY-MM-DD
@@ -10,11 +11,11 @@ interface ActivityHeatmapProps {
 }
 
 const LEVELS = [
-  { min: 0, max: 0, bg: 'bg-[#ebedf0]', title: '0 bài nộp' },
-  { min: 1, max: 2, bg: 'bg-emerald-200', title: '1–2 bài nộp' },
-  { min: 3, max: 5, bg: 'bg-emerald-400', title: '3–5 bài nộp' },
-  { min: 6, max: 9, bg: 'bg-emerald-600', title: '6–9 bài nộp' },
-  { min: 10, max: Infinity, bg: 'bg-emerald-800', title: '10+ bài nộp' },
+  { min: 0, max: 0, bg: 'bg-[#ebedf0]', titleKey: 'activityHeatmap.zero' },
+  { min: 1, max: 2, bg: 'bg-emerald-200', titleKey: 'activityHeatmap.oneToTwo' },
+  { min: 3, max: 5, bg: 'bg-emerald-400', titleKey: 'activityHeatmap.threeToFive' },
+  { min: 6, max: 9, bg: 'bg-emerald-600', titleKey: 'activityHeatmap.sixToNine' },
+  { min: 10, max: Infinity, bg: 'bg-emerald-800', titleKey: 'activityHeatmap.tenPlus' },
 ];
 
 function getLevel(count: number) {
@@ -25,6 +26,7 @@ const MONTH_NAMES = ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th
 const DAY_LABELS = ['CN', 'T2', '', 'T4', '', 'T6', ''];
 
 export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
+  const { t } = useTranslation();
   const { weeks, monthLabels } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -91,7 +93,7 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold text-[#191919] font-serif flex items-center gap-2">
           <span className="w-5 h-5 rounded bg-emerald-600 inline-block" />
-          Hoạt động nộp bài ({totalContributions} lần trong năm qua)
+          {t('activityHeatmap.title', { count: totalContributions })}
         </h3>
       </div>
 
@@ -130,7 +132,7 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
                       <div
                         key={day.date}
                         className={`w-[13px] h-[13px] rounded-[2px] ${day.isFuture ? 'bg-transparent' : level.bg} ${day.isToday ? 'ring-2 ring-[#193a2b]' : ''} transition-all`}
-                        title={day.isFuture ? '' : `${day.date}: ${day.count} lần nộp`}
+                        title={day.isFuture ? '' : t('activityHeatmap.day', { date: day.date, count: day.count })}
                       />
                     );
                   })}
@@ -143,11 +145,11 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
 
       {/* Legend */}
       <div className="flex items-center justify-end gap-2 mt-3">
-        <span className="text-[10px] text-[#8a8073]">Ít hơn</span>
+        <span className="text-[10px] text-[#8a8073]">{t('activityHeatmap.less')}</span>
         {LEVELS.map((l, i) => (
-          <div key={i} className={`w-[13px] h-[13px] rounded-[2px] ${l.bg}`} title={l.title} />
+          <div key={i} className={`w-[13px] h-[13px] rounded-[2px] ${l.bg}`} title={t(l.titleKey)} />
         ))}
-        <span className="text-[10px] text-[#8a8073]">Nhiều hơn</span>
+        <span className="text-[10px] text-[#8a8073]">{t('activityHeatmap.more')}</span>
       </div>
     </div>
   );

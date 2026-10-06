@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import styles from "./forgot-password-modal.module.css";
@@ -17,6 +18,7 @@ export function ForgotPasswordModal({
   onSwitchToLogin: () => void;
   onCodeSent: (email: string) => void;
 }) {
+  const { t } = useTranslation();
   const { forgotPassword } = useAuth();
   const { showToast } = useToast();
   const [email, setEmail] = useState("");
@@ -36,13 +38,13 @@ export function ForgotPasswordModal({
       setSubmitting(false);
 
       if (!result.ok) {
-        const message = result.message ?? "Không thể gửi mã xác nhận lúc này.";
+        const message = result.message ?? t("auth.sendCodeFailed");
         setError(message);
         showToast(message, "error");
         return;
       }
 
-      showToast("Mã xác nhận đã được gửi tới email của bạn.", "success");
+      showToast(t("auth.codeSent"), "success");
       onCodeSent(email.trim());
     });
   }
@@ -53,23 +55,20 @@ export function ForgotPasswordModal({
         className={styles.modal}
         role="dialog"
         aria-modal="true"
-        aria-label="Quên mật khẩu"
+        aria-label={t("auth.emailRequiredTitle")}
         onClick={(e) => e.stopPropagation()}
       >
-        <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Đóng">
+        <button type="button" className={styles.closeBtn} onClick={onClose} aria-label={t("auth.close")}>
           <CloseIcon />
         </button>
 
-        <h2 className={styles.title}>Quên mật khẩu</h2>
-        <p className={styles.subtitle}>
-          Nhập email đã đăng ký. Chúng tôi sẽ gửi mã xác nhận gồm 6 chữ số
-          (có hiệu lực trong 10 phút).
-        </p>
+        <h2 className={styles.title}>{t("auth.emailRequiredTitle")}</h2>
+        <p className={styles.subtitle}>{t("auth.emailRequiredHint")}</p>
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <label className={styles.field}>
             <span className={styles.label}>
-              Email <span className={styles.required}>*</span>
+              {t("auth.email")} <span className={styles.required}>*</span>
             </span>
             <input
               type="email"
@@ -84,12 +83,12 @@ export function ForgotPasswordModal({
           {error ? <p className={styles.errorMessage}>{error}</p> : null}
 
           <button type="submit" className={styles.submitBtn} disabled={submitting}>
-            {submitting ? "Đang gửi..." : "Gửi mã xác nhận"}
+            {submitting ? t("auth.sending") : t("auth.sendCode")}
           </button>
         </form>
 
         <button type="button" className={styles.backLink} onClick={onSwitchToLogin}>
-          Quay lại đăng nhập
+          {t("auth.backToLogin")}
         </button>
       </div>
     </div>

@@ -13,6 +13,7 @@ import {
 import { CalendarEvent } from './EventDetailModal';
 import EventDetailModal from './EventDetailModal';
 import { getVNParts, formatVN } from '../../utils/dateTime';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   events: CalendarEvent[];
@@ -33,6 +34,7 @@ const DAYS_OF_WEEK = [
 ];
 
 export default function CalendarView({ events, userRole = 'student', classes = [] }: Props) {
+  const { t } = useTranslation();
   // Current active date context (UTC+7)
   const todayVN = useMemo(() => {
     const p = getVNParts(new Date())!;
@@ -271,21 +273,21 @@ export default function CalendarView({ events, userRole = 'student', classes = [
               onClick={goToToday}
               className="px-2.5 py-1 rounded-lg border border-[var(--ws-border)] text-[11.5px] font-semibold text-[var(--ws-text)] hover:bg-[var(--ws-hover)] transition-colors"
             >
-              Hôm nay
+              {t('calendar.today')}
             </button>
 
             <div className="flex items-center gap-0.5">
               <button
                 onClick={goToPrev}
                 className="w-7 h-7 rounded-lg flex items-center justify-center border border-[var(--ws-border)] text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:bg-[var(--ws-hover)] transition-colors"
-                title="Trước"
+                title={t('calendar.previous')}
               >
                 <ChevronLeft size={14} />
               </button>
               <button
                 onClick={goToNext}
                 className="w-7 h-7 rounded-lg flex items-center justify-center border border-[var(--ws-border)] text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:bg-[var(--ws-hover)] transition-colors"
-                title="Tiếp theo"
+                title={t('calendar.next')}
               >
                 <ChevronRight size={14} />
               </button>
@@ -297,7 +299,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                 type="button"
                 onClick={() => setShowMonthPicker((v) => !v)}
                 className="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-[var(--ws-hover)] transition-colors group cursor-pointer"
-                title="Chọn tháng / năm"
+                title={t('calendar.chooseMonthYear')}
               >
                 <h2 className="text-base font-bold font-serif text-[var(--ws-text)] tracking-tight">
                   {monthNamesEn[currentMonth - 1]} {currentYear}
@@ -314,7 +316,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
               {showMonthPicker && (
                 <div className="absolute top-full left-0 mt-1.5 w-64 p-3 bg-[var(--ws-panel)] border border-[var(--ws-border)] rounded-xl shadow-xl z-50">
                   <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--ws-border)]">
-                    <span className="text-xs font-bold text-[var(--ws-text)]">Năm {currentYear}</span>
+                    <span className="text-xs font-bold text-[var(--ws-text)]">{t('calendar.year', { year: currentYear })}</span>
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => setCurrentYear((y) => y - 1)}
@@ -370,7 +372,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                     : 'text-[var(--ws-muted)] hover:text-[var(--ws-text)]'
                 }`}
               >
-                Tất cả
+                {t('calendar.all')}
               </button>
               <button
                 onClick={() => setTypeFilter('homework')}
@@ -385,7 +387,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                     : 'text-[var(--ws-muted)] hover:text-[var(--ws-text)]'
                 }`}
               >
-                <BookOpen size={11} /> Bài tập
+                <BookOpen size={11} /> {t('calendar.homework')}
               </button>
               <button
                 onClick={() => setTypeFilter('contest')}
@@ -400,7 +402,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                     : 'text-[var(--ws-muted)] hover:text-[var(--ws-text)]'
                 }`}
               >
-                <Trophy size={11} /> Kỳ thi
+                <Trophy size={11} /> {t('calendar.contests')}
               </button>
             </div>
 
@@ -411,7 +413,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                 onChange={(e) => setClassFilter(e.target.value)}
                 className="px-2 py-1 rounded-lg bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[11px] font-semibold text-[var(--ws-text)] outline-hidden focus:border-[var(--ws-accent)]"
               >
-                <option value="all">Tất cả lớp học</option>
+                <option value="all">{t('calendar.allClasses')}</option>
                 {classes.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -430,7 +432,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                     : 'text-[var(--ws-muted)] hover:text-[var(--ws-text)]'
                 }`}
               >
-                Tháng
+                {t('calendar.month')}
               </button>
               <button
                 onClick={() => setViewMode('week')}
@@ -440,7 +442,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                     : 'text-[var(--ws-muted)] hover:text-[var(--ws-text)]'
                 }`}
               >
-                Tuần
+                {t('calendar.week')}
               </button>
               <button
                 onClick={() => setViewMode('agenda')}
@@ -450,7 +452,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                     : 'text-[var(--ws-muted)] hover:text-[var(--ws-text)]'
                 }`}
               >
-                Lịch trình
+                {t('calendar.schedule')}
               </button>
             </div>
 
@@ -458,7 +460,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
             <button
               onClick={downloadICS}
               className="p-1.5 rounded-lg border border-[var(--ws-border)] text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:bg-[var(--ws-hover)] transition-colors"
-              title="Xuất file iCalendar (.ics)"
+              title={t('calendar.exportCalendar')}
             >
               <Download size={14} />
             </button>
@@ -563,7 +565,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                           }}
                           className="text-[9px] font-semibold text-[var(--ws-accent)] hover:underline pl-0.5 leading-none block mt-0.5"
                         >
-                          +{dayEvents.length - 2} sự kiện
+                          {t('calendar.moreEvents', { count: dayEvents.length - 2 })}
                         </button>
                       )}
                     </div>
@@ -654,14 +656,14 @@ export default function CalendarView({ events, userRole = 'student', classes = [
             <div className="mb-2.5 pb-2 border-b border-[var(--ws-border)] flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold font-serif text-[var(--ws-text)]">
-                  Lịch trình sự kiện sắp diễn ra
+                  {t('calendar.upcomingSchedule')}
                 </h3>
                 <p className="text-[11px] text-[var(--ws-muted)] mt-0.5">
-                  Tổng hợp bài tập cần nộp và các kỳ thi theo thứ tự thời gian
+                  {t('calendar.scheduleSubtitle')}
                 </p>
               </div>
               <span className="text-[11px] font-semibold text-[var(--ws-muted)] bg-[var(--ws-panel2)] px-2 py-0.5 rounded-md border border-[var(--ws-border)]">
-                {filteredEvents.length} sự kiện
+                {t('calendar.eventCount', { count: filteredEvents.length })}
               </span>
             </div>
 
@@ -669,7 +671,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
               <div className="py-8 text-center border border-dashed border-[var(--ws-border)] rounded-lg">
                 <CalendarIcon size={24} className="text-[var(--ws-faint)] mx-auto mb-1.5" />
                 <p className="text-xs text-[var(--ws-muted)]">
-                  Không tìm thấy sự kiện hoặc hạn chót nào phù hợp với bộ lọc.
+                  {t('calendar.noEvents')}
                 </p>
               </div>
             ) : (
@@ -703,7 +705,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                               }}
                               className="text-[9.5px] font-bold uppercase px-1.5 py-0.2 rounded border"
                             >
-                              {isContest ? 'Kỳ thi' : 'Bài tập'}
+                              {isContest ? t('calendar.eventContestLabel') : t('calendar.eventHomeworkLabel')}
                             </span>
                             <span className="text-[11px] text-[var(--ws-muted)] font-mono">
                               {formatVN(ev.startDateTime)}
@@ -727,7 +729,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                           }}
                           className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[11px] font-semibold text-[var(--ws-text)] hover:bg-[var(--ws-hover)] transition-colors"
                         >
-                          Chi tiết <ExternalLink size={11} />
+                          {t('calendar.details')} <ExternalLink size={11} />
                         </button>
                       </div>
                     </div>
@@ -751,7 +753,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                 onClick={downloadICS}
                 className="hover:underline font-semibold text-[var(--ws-accent)]"
               >
-                Xuất lịch (.ics)
+                {t('calendar.export')}
               </button>
             </div>
           </div>
@@ -763,14 +765,14 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                   style={{ backgroundColor: 'var(--ws-hw-dot)' }}
                   className="w-1.5 h-1.5 rounded-full"
                 />{' '}
-                Bài tập
+                {t('calendar.homework')}
               </span>
               <span className="flex items-center gap-1">
                 <span
                   style={{ backgroundColor: 'var(--ws-contest-dot)' }}
                   className="w-1.5 h-1.5 rounded-full"
                 />{' '}
-                Kỳ thi
+                {t('calendar.contests')}
               </span>
             </div>
 
@@ -779,7 +781,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-[11px] font-semibold text-[var(--ws-text)] hover:text-[var(--ws-accent)] transition-colors border border-[var(--ws-border)] bg-[var(--ws-panel)] px-2 py-0.5 rounded-md shadow-2xs"
-              title="Mở Google Calendar"
+              title={t('calendar.openGoogleCalendar')}
             >
               <span className="text-blue-500 font-bold">G</span>
               <span className="text-red-500 font-bold">o</span>

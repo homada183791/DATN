@@ -3,16 +3,17 @@ import { useClassHomeworksQuery } from '../../api/homeworks';
 import { useClassesQuery } from '../../api/classes';
 import { useMemo } from 'react';
 import { formatVNFull } from '../../utils/dateTime';
+import { useTranslation } from 'react-i18next';
 
-function deadlineInfo(deadline: string) {
+function deadlineInfo(deadline: string, t: (key: string, options?: Record<string, number>) => string) {
   const now = Date.now();
   const end = new Date(deadline).getTime();
   const diff = end - now;
   const days = Math.ceil(diff / 86_400_000);
-  if (diff < 0) return { label: 'Đã đóng', color: 'text-[#8a8073]', chipClass: 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]', closed: true };
-  if (days <= 1) return { label: 'Còn < 1 ngày', color: 'text-red-600', chipClass: 'bg-red-50 text-red-700 border-red-200', closed: false };
-  if (days <= 3) return { label: `Còn ${days} ngày`, color: 'text-yellow-700', chipClass: 'bg-yellow-50 text-yellow-800 border-yellow-200', closed: false };
-  return { label: `Còn ${days} ngày`, color: 'text-emerald-700', chipClass: 'bg-emerald-50 text-emerald-800 border-emerald-200', closed: false };
+  if (diff < 0) return { label: t('deadline.closed'), color: 'text-[#8a8073]', chipClass: 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]', closed: true };
+  if (days <= 1) return { label: t('deadline.lessThanDay'), color: 'text-red-600', chipClass: 'bg-red-50 text-red-700 border-red-200', closed: false };
+  if (days <= 3) return { label: t('deadline.days', { count: days }), color: 'text-yellow-700', chipClass: 'bg-yellow-50 text-yellow-800 border-yellow-200', closed: false };
+  return { label: t('deadline.days', { count: days }), color: 'text-emerald-700', chipClass: 'bg-emerald-50 text-emerald-800 border-emerald-200', closed: false };
 }
 
 import {
@@ -28,6 +29,7 @@ import {
 } from 'lucide-react';
 
 export default function StudentClassDetail() {
+  const { t } = useTranslation();
   const { classId } = useParams<{ classId: string }>();
   const navigate = useNavigate();
 
@@ -40,7 +42,7 @@ export default function StudentClassDetail() {
   );
 
   const activeCount = homeworks.filter((hw) => {
-    const d = deadlineInfo(hw.deadline);
+    const d = deadlineInfo(hw.deadline, t);
     return !d.closed;
   }).length;
 
@@ -58,9 +60,9 @@ export default function StudentClassDetail() {
     return (
       <div className="text-center py-20">
         <GraduationCap size={48} className="text-[#bfae99] mx-auto mb-4" />
-        <p className="font-semibold text-[#191919]">Không tìm thấy lớp học</p>
+        <p className="font-semibold text-[#191919]">{t('studentContest.notFoundClass')}</p>
         <button onClick={() => navigate('/student/class')} className="mt-4 text-sm text-[#193a2b] hover:underline">
-          ← Quay lại Lớp học
+          {t('studentContest.backToClasses')}
         </button>
       </div>
     );
@@ -71,7 +73,7 @@ export default function StudentClassDetail() {
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-[#8a8073]">
         <button onClick={() => navigate('/student/class')} className="hover:text-[#193a2b] transition-colors flex items-center gap-1">
-          <ArrowLeft size={14} /> Lớp học
+          <ArrowLeft size={14} /> {t('studentContest.classLabel')}
         </button>
         <ChevronRight size={14} />
         <span className="text-[#191919] font-medium truncate">{classInfo.name}</span>
@@ -91,38 +93,38 @@ export default function StudentClassDetail() {
             )}
           </div>
           <div className="text-right flex-shrink-0">
-            <p className="text-xs opacity-60 mb-1">Mã lớp</p>
+            <p className="text-xs opacity-60 mb-1">{t('studentClass.classCode')}</p>
             <p className="text-lg font-mono font-bold tracking-widest">{classInfo.invite_code}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-6 mt-5 pt-4 border-t border-white/20 text-sm">
           <span className="flex items-center gap-1.5 opacity-80">
-            <Users size={14} /> {classInfo.students?.length ?? 0} sinh viên
+            <Users size={14} /> {t('studentClass.studentCount', { count: classInfo.students?.length ?? 0 })}
           </span>
           <span className="flex items-center gap-1.5 opacity-80">
-            <BookOpen size={14} /> {homeworks.length} bài tập
+            <BookOpen size={14} /> {t('studentClass.homeworkCount', { count: homeworks.length })}
           </span>
           <span className="flex items-center gap-1.5 opacity-80">
-            <CheckCircle2 size={14} /> {activeCount} đang mở
+            <CheckCircle2 size={14} /> {t('studentClass.activeCount', { count: activeCount })}
           </span>
         </div>
       </div>
 
       {/* Homework list */}
       <div>
-        <h2 className="text-lg font-bold font-serif text-[#191919] mb-4">Danh sách bài tập</h2>
+        <h2 className="text-lg font-bold font-serif text-[#191919] mb-4">{t('studentClass.homeworkList')}</h2>
 
         {homeworks.length === 0 ? (
           <div className="bg-white border border-[#e5dac9] rounded-2xl p-14 text-center shadow-sm">
             <BookOpen size={48} className="text-[#bfae99] mx-auto mb-4" />
-            <p className="font-semibold text-[#191919]">Chưa có bài tập nào</p>
-            <p className="text-sm text-[#8a8073] mt-1">Giảng viên chưa giao bài tập cho lớp này.</p>
+            <p className="font-semibold text-[#191919]">{t('studentClass.emptyHomework')}</p>
+            <p className="text-sm text-[#8a8073] mt-1">{t('studentClass.teacherNoHomework')}</p>
           </div>
         ) : (
           <div className="space-y-3">
             {homeworks.map((hw) => {
-              const dl = deadlineInfo(hw.deadline);
+              const dl = deadlineInfo(hw.deadline, t);
               const taskCount = Array.isArray(hw.tasks) ? hw.tasks.length : 0;
               const solvable = (hw.tasks as Array<{ problem_id?: string }>).filter((t) => !!t.problem_id).length;
 
@@ -148,11 +150,11 @@ export default function StudentClassDetail() {
                       )}
                       <div className="flex items-center gap-4 text-xs text-[#8a8073]">
                         <span className="flex items-center gap-1">
-                          <BookOpen size={12} /> {taskCount} bài toán
+                          <BookOpen size={12} /> {t('studentClass.problemCount', { count: taskCount })}
                         </span>
                         {solvable < taskCount && (
                           <span className="flex items-center gap-1 text-yellow-700">
-                            <AlertTriangle size={12} /> {solvable}/{taskCount} có thể làm
+                            <AlertTriangle size={12} /> {t('studentClass.solvableCount', { solvable, total: taskCount })}
                           </span>
                         )}
                         <span className="flex items-center gap-1">

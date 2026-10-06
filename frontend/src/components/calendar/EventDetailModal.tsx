@@ -1,5 +1,6 @@
 import { X, Calendar, Clock, BookOpen, Trophy, ExternalLink, GraduationCap } from 'lucide-react';
 import { formatVNFull } from '../../utils/dateTime';
+import { useTranslation } from 'react-i18next';
 
 export interface CalendarEvent {
   id: string;
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export default function EventDetailModal({ event, onClose, userRole = 'student' }: Props) {
+  const { t } = useTranslation();
   if (!event) return null;
 
   const isContest = event.type === 'contest';
@@ -31,7 +33,7 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
   const getGoogleCalendarUrl = () => {
     const title = encodeURIComponent(event.title);
     const details = encodeURIComponent(
-      `${event.description || ''}\n\nLớp: ${event.className || 'Toàn trường'}\nXem chi tiết tại JudgeHub: ${window.location.origin}${event.link}`
+      `${event.description || ''}\n\n${t('calendar.classLabel')}: ${event.className || t('calendar.allSchoolEvents')}\n${t('calendar.details')}: ${window.location.origin}${event.link}`
     );
     const location = encodeURIComponent('JudgeHub Online Judge');
 
@@ -71,7 +73,7 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
                 }}
                 className="inline-block text-[11px] font-bold px-2 py-0.5 rounded-md border"
               >
-                {isContest ? 'Kỳ thi' : 'Bài tập về nhà'}
+                {isContest ? t('calendar.eventContest') : t('calendar.eventHomework')}
               </span>
               <h3 className="text-lg font-bold font-serif text-[var(--ws-text)] mt-1">
                 {event.title}
@@ -93,7 +95,7 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
             <div className="flex items-center gap-2.5 text-[var(--ws-muted)]">
               <GraduationCap size={16} className="text-[var(--ws-accent)] flex-shrink-0" />
               <span>
-                Lớp học: <strong className="text-[var(--ws-text)]">{event.className}</strong>
+                {t('calendar.classLabel')}: <strong className="text-[var(--ws-text)]">{event.className}</strong>
               </span>
             </div>
           )}
@@ -103,7 +105,7 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
             <div className="flex items-center gap-2.5 text-[var(--ws-muted)]">
               <Calendar size={15} className="text-[var(--ws-accent)] flex-shrink-0" />
               <span>
-                {isContest ? 'Thời gian bắt đầu:' : 'Hạn chót nộp bài:'}{' '}
+                {isContest ? t('calendar.startTime') : t('calendar.deadline')}{' '}
                 <strong className="text-[var(--ws-text)]">
                   {formatVNFull(event.startDateTime)} (UTC+7)
                 </strong>
@@ -113,7 +115,7 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
               <div className="flex items-center gap-2.5 text-[var(--ws-muted)]">
                 <Clock size={15} className="text-[var(--ws-accent)] flex-shrink-0" />
                 <span>
-                  Thời gian kết thúc:{' '}
+                  {t('calendar.endTime')}{' '}
                   <strong className="text-[var(--ws-text)]">
                     {formatVNFull(event.endDateTime)} (UTC+7)
                   </strong>
@@ -126,14 +128,14 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
           {event.description ? (
             <div>
               <p className="text-xs font-semibold text-[var(--ws-muted)] uppercase tracking-wider mb-1">
-                Mô tả
+                {t('calendar.description')}
               </p>
               <p className="text-xs leading-relaxed text-[var(--ws-text)] bg-[var(--ws-panel2)]/60 p-3 rounded-xl border border-[var(--ws-border)]">
                 {event.description}
               </p>
             </div>
           ) : (
-            <p className="text-xs text-[var(--ws-muted)] italic">Chưa có mô tả bổ sung cho mục này.</p>
+            <p className="text-xs text-[var(--ws-muted)] italic">{t('calendar.noDescription')}</p>
           )}
         </div>
 
@@ -145,7 +147,7 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--ws-border)] text-xs font-semibold text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:bg-[var(--ws-hover)] transition-colors"
           >
-            <ExternalLink size={13} /> Thêm vào Google Calendar
+            <ExternalLink size={13} /> {t('calendar.addGoogleCalendar')}
           </a>
 
           <a
@@ -154,11 +156,11 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
           >
             {isContest
               ? userRole === 'instructor'
-                ? 'Quản lý kỳ thi'
-                : 'Vào kỳ thi'
+                ? t('calendar.manageContest')
+                : t('calendar.enterContest')
               : userRole === 'instructor'
-              ? 'Chi tiết bài tập'
-              : 'Làm bài tập'}
+              ? t('calendar.homeworkDetails')
+              : t('calendar.doHomework')}
           </a>
         </div>
       </div>

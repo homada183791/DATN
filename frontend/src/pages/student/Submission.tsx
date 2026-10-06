@@ -96,21 +96,21 @@ export default function Submission() {
     RTE: 'Runtime Error',
     CE: 'Compilation Error',
     PE: 'Presentation Error',
-    PENDING: 'Đang chờ chấm',
-    IN_QUEUE: 'Trong hàng đợi',
+    PENDING: t('submission.pending'),
+    IN_QUEUE: t('submission.inQueue'),
   };
 
   const languages = [...new Set(allSubmissions.map((s) => s.language))];
 
   if (isLoading) {
-    return <div className="p-10 text-center text-sm text-[#8a8073]">Đang tải lịch sử bài nộp...</div>;
+    return <div className="p-10 text-center text-sm text-[#8a8073]">{t('submission.loading')}</div>;
   }
 
   if (error instanceof ApiError) {
     return (
       <div className="rounded-2xl border border-[#e5dac9] bg-white p-10 text-center shadow-sm">
         <AlertTriangle size={40} className="text-[#bfae99] mx-auto mb-3" />
-        <h2 className="text-xl font-bold text-[#191919]">Không thể tải lịch sử bài nộp</h2>
+        <h2 className="text-xl font-bold text-[#191919]">{t('submission.loadError')}</h2>
         <p className="mt-2 text-sm text-[#8a8073]">{error.message}</p>
       </div>
     );
@@ -180,7 +180,7 @@ export default function Submission() {
 
       {/* Submission Detail Modal */}
       {selectedSubmission && selectedSub && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-[90] flex items-center justify-center p-4" onClick={() => setSelectedSubmission(null)}>
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setSelectedSubmission(null)}>
           <div className="bg-[#f7f4eb] border border-[#e5dac9] rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-[#e5dac9]">
               <div className="flex items-center gap-3">
@@ -209,15 +209,15 @@ export default function Submission() {
                   <p className="text-sm text-[#191919] font-semibold">{selectedSub.language}</p>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-[#e5dac9] text-center shadow-sm">
-                  <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">Thời gian</p>
+                  <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">{t('submission.colTime')}</p>
                   <p className="text-sm text-[#191919] font-semibold">{selectedSub.executionTime !== null && selectedSub.executionTime !== undefined ? `${selectedSub.executionTime}ms` : '—'}</p>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-[#e5dac9] text-center shadow-sm">
-                  <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">Bộ nhớ</p>
+                  <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">{t('submission.colMemory')}</p>
                   <p className="text-sm text-[#191919] font-semibold">{selectedSub.memory !== null && selectedSub.memory !== undefined ? `${selectedSub.memory}MB` : '—'}</p>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-[#e5dac9] text-center shadow-sm">
-                  <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">Thời điểm</p>
+                  <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">{t('submission.colSubmittedAt')}</p>
                    <p className="text-sm text-[#191919] font-semibold">{formatVNFull(selectedSub.timestamp)}</p>
                 </div>
               </div>
@@ -245,10 +245,10 @@ export default function Submission() {
               {(selectedSub.verdict === 'PENDING' || selectedSub.verdict === 'IN_QUEUE') && (
                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-bold text-amber-800 font-serif">Đang chờ chấm bài</span>
+                    <span className="text-sm font-bold text-amber-800 font-serif">{t('submission.queueTitle')}</span>
                   </div>
                   <p className="text-xs text-amber-700 leading-relaxed">
-                    Bài nộp đang nằm trong hàng đợi của hệ thống chấm bài. Vui lòng chờ ít phút hoặc tải lại trang.
+                    {t('submission.queueMessage')}
                   </p>
                 </div>
               )}

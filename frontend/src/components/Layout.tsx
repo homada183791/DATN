@@ -244,7 +244,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
             {sidebarOpen && (
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-[#191919] truncate">{user?.fullName || user?.username}</p>
-                <p className="text-xs text-[#8a8073] truncate">{user?.role === 'instructor' ? 'Giảng viên' : 'Sinh viên'}</p>
+                <p className="text-xs text-[#8a8073] truncate">{user?.role === 'instructor' ? t('personal.roleInstructor') : t('personal.roleStudent')}</p>
               </div>
             )}
           </Link>
@@ -273,7 +273,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
               <span className="font-semibold text-[#191919]">JudgeHub</span>
               <ChevronRight size={14} className="mx-1.5 text-[#bfae99]" />
               <span className="text-[#5c5446]">
-                {user?.role === 'instructor' ? 'Giảng viên' : 'Sinh viên'}
+                {user?.role === 'instructor' ? t('personal.roleInstructor') : t('personal.roleStudent')}
               </span>
             </nav>
           )}
@@ -418,17 +418,17 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                     <Bell size={14} className="text-[#8a8073]" />
                     <p className="text-[10.5px] font-bold uppercase tracking-widest text-[#8a8073]">{t('topbar.notifications')}</p>
                     {unreadCount > 0 && (
-                      <span className="px-1.5 py-0.5 rounded-full bg-[#cc5a37]/10 text-[#cc5a37] text-[10px] font-bold">{unreadCount} mới</span>
+                      <span className="px-1.5 py-0.5 rounded-full bg-[#cc5a37]/10 text-[#cc5a37] text-[10px] font-bold">{t('topbar.unreadCount', { count: unreadCount })}</span>
                     )}
                   </div>
                   {unreadCount > 0 && (
                     <button
                       onClick={markAllRead}
                       className="flex items-center gap-1 text-[11px] text-[#193a2b] hover:text-[#0d6b55] font-medium transition-colors"
-                      title="Đánh dấu tất cả đã đọc"
+                      title={t('topbar.markAllRead')}
                     >
                       <CheckCheck size={13} />
-                      Đọc tất cả
+                      {t('topbar.readAll')}
                     </button>
                   )}
                 </div>
@@ -438,7 +438,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                   {notifications.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-10 text-[#8a8073]">
                       <Bell size={28} className="mb-2 opacity-30" />
-                      <p className="text-[13px]">Chưa có thông báo nào</p>
+                      <p className="text-[13px]">{t('topbar.notificationsEmpty')}</p>
                     </div>
                   ) : (
                     notifications.map((n) => {
@@ -452,10 +452,10 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
 
                       const timeAgo = (() => {
                         const diff = Date.now() - new Date(n.created_at).getTime();
-                        if (diff < 60_000) return 'Vừa xong';
-                        if (diff < 3_600_000) return `${Math.floor(diff / 60_000)} phút trước`;
-                        if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)} giờ trước`;
-                        return `${Math.floor(diff / 86_400_000)} ngày trước`;
+                        if (diff < 60_000) return t('topbar.justNow');
+                        if (diff < 3_600_000) return t('topbar.minutesAgo', { count: Math.floor(diff / 60_000) });
+                        if (diff < 86_400_000) return t('topbar.hoursAgo', { count: Math.floor(diff / 3_600_000) });
+                        return t('topbar.daysAgo', { count: Math.floor(diff / 86_400_000) });
                       })();
 
                       return (
@@ -483,7 +483,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                           <button
                             onClick={(e) => { e.stopPropagation(); removeNotification(n.id); }}
                             className="shrink-0 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-100 text-[#8a8073] hover:text-red-500 transition-all"
-                            title="Xoá thông báo"
+                            title={t('topbar.deleteNotification')}
                           >
                             <Trash2 size={12} />
                           </button>
@@ -500,7 +500,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                         disabled={loading}
                         className="text-[12px] text-[#193a2b] font-medium hover:underline disabled:opacity-50"
                       >
-                        {loading ? 'Đang tải...' : 'Xem thêm'}
+                        {loading ? t('topbar.loading') : t('topbar.loadMore')}
                       </button>
                     </div>
                   )}

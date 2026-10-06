@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type ClipboardEvent, type FocusEvent, type FormEvent, type KeyboardEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import styles from "./forgot-password-modal.module.css";
@@ -21,6 +22,7 @@ export function ForgotPasswordCodeModal({
   onSwitchToLogin: () => void;
   onVerified: (code: string, token?: string) => void;
 }) {
+  const { t } = useTranslation();
   const { forgotPassword, verifyResetCode } = useAuth();
   const { showToast } = useToast();
 
@@ -99,12 +101,12 @@ export function ForgotPasswordCodeModal({
     forgotPassword(email).then((result) => {
       setSubmitting(false);
       if (!result.ok) {
-        const message = result.message ?? "Không thể gửi lại mã lúc này.";
+        const message = result.message ?? t("auth.resendCodeFailed");
         setError(message);
         showToast(message, "error");
         return;
       }
-      showToast("Đã gửi lại mã xác nhận.", "success");
+      showToast(t("auth.codeResent"), "success");
     });
   }
 
@@ -113,7 +115,7 @@ export function ForgotPasswordCodeModal({
     setError("");
 
     if (codeValue.length !== 6) {
-      setError("Vui lòng nhập đủ 6 chữ số.");
+      setError(t("auth.codeRequired"));
       return;
     }
 
@@ -122,7 +124,7 @@ export function ForgotPasswordCodeModal({
       setSubmitting(false);
 
       if (!result.ok) {
-        const message = result.message ?? "Mã xác nhận không đúng hoặc đã hết hạn.";
+        const message = result.message ?? t("auth.codeInvalid");
         setError(message);
         showToast(message, "error");
         return;
@@ -138,17 +140,15 @@ export function ForgotPasswordCodeModal({
         className={styles.modal}
         role="dialog"
         aria-modal="true"
-        aria-label="Nhập mã xác nhận"
+        aria-label={t("auth.codeTitle")}
         onClick={(e) => e.stopPropagation()}
       >
-        <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Đóng">
+        <button type="button" className={styles.closeBtn} onClick={onClose} aria-label={t("auth.close")}>
           <CloseIcon />
         </button>
 
-        <h2 className={styles.title}>Nhập mã xác nhận</h2>
-        <p className={styles.subtitle}>
-          Nhập mã xác nhận gồm 6 chữ số vừa được gửi tới <b>{email}</b>.
-        </p>
+        <h2 className={styles.title}>{t("auth.codeTitle")}</h2>
+        <p className={styles.subtitle}>{t("auth.codeHint", { email })}</p>
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.codeInputs}>
@@ -175,20 +175,20 @@ export function ForgotPasswordCodeModal({
           {error ? <p className={styles.errorMessage}>{error}</p> : null}
 
           <button type="submit" className={styles.submitBtn} disabled={submitting}>
-            {submitting ? "Đang xác nhận..." : "Xác nhận mã"}
+            {submitting ? t("auth.verifying") : t("auth.confirmCode")}
           </button>
 
           <button type="button" className={styles.backLink} onClick={handleResend} disabled={submitting}>
-            Gửi lại mã
+            {t("auth.sendCode")}
           </button>
         </form>
 
         <div className={styles.footerLinks}>
           <button type="button" className={styles.backLink} onClick={onBack}>
-            ← Đổi email khác
+            {t("auth.changeEmail")}
           </button>
           <button type="button" className={styles.backLink} onClick={onSwitchToLogin}>
-            Quay lại đăng nhập
+            {t("auth.backToLogin")}
           </button>
         </div>
       </div>

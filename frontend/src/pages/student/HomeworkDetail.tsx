@@ -1,6 +1,7 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useClassHomeworkQuery } from '../../api/homeworks';
 import { formatVNFull } from '../../utils/dateTime';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
   BookOpen,
@@ -17,20 +18,21 @@ const diffChip: Record<string, string> = {
   Medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   Hard: 'bg-red-100 text-red-800 border-red-200',
 };
-const diffLabel: Record<string, string> = { Easy: 'Dễ', Medium: 'Trung bình', Hard: 'Khó' };
+const diffLabel: Record<string, string> = { Easy: 'easy', Medium: 'medium', Hard: 'hard' };
 
-function deadlineInfo(deadline: string) {
+function deadlineInfo(deadline: string, t: (key: string, options?: Record<string, number>) => string) {
   const now = Date.now();
   const end = new Date(deadline).getTime();
   const diff = end - now;
   const days = Math.ceil(diff / 86_400_000);
-  if (diff < 0) return { label: 'Đã đóng', chipClass: 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]', closed: true };
-  if (days <= 1) return { label: 'Còn < 1 ngày', chipClass: 'bg-red-50 text-red-700 border-red-200', closed: false };
-  if (days <= 3) return { label: `Còn ${days} ngày`, chipClass: 'bg-yellow-50 text-yellow-800 border-yellow-200', closed: false };
-  return { label: `Còn ${days} ngày`, chipClass: 'bg-emerald-50 text-emerald-800 border-emerald-200', closed: false };
+  if (diff < 0) return { label: t('deadline.closed'), chipClass: 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]', closed: true };
+  if (days <= 1) return { label: t('deadline.lessThanDay'), chipClass: 'bg-red-50 text-red-700 border-red-200', closed: false };
+  if (days <= 3) return { label: t('deadline.days', { count: days }), chipClass: 'bg-yellow-50 text-yellow-800 border-yellow-200', closed: false };
+  return { label: t('deadline.days', { count: days }), chipClass: 'bg-emerald-50 text-emerald-800 border-emerald-200', closed: false };
 }
 
 export default function HomeworkDetail() {
+  const { t } = useTranslation();
   const { classId, homeworkId } = useParams<{ classId: string; homeworkId: string }>();
   const navigate = useNavigate();
 
@@ -48,9 +50,9 @@ export default function HomeworkDetail() {
     return (
       <div className="text-center py-20">
         <AlertTriangle size={48} className="text-[#bfae99] mx-auto mb-4" />
-        <p className="font-semibold text-[#191919]">Không tìm thấy bài tập</p>
+        <p className="font-semibold text-[#191919]">{t('studentContest.homeworkNotFound')}</p>
         <button onClick={() => navigate(`/student/class/${classId}`)} className="mt-4 text-sm text-[#193a2b] hover:underline">
-          ← Quay lại lớp học
+          {t('studentContest.backToClass')}
         </button>
       </div>
     );
@@ -65,7 +67,7 @@ export default function HomeworkDetail() {
     problem_id?: string;
   }> : [];
 
-  const dl = deadlineInfo(homework.deadline);
+  const dl = deadlineInfo(homework.deadline, t);
   const totalPoints = tasks.reduce((s, t) => s + (t.points ?? 0), 0);
   const solvableCount = tasks.filter((t) => !!t.problem_id).length;
 
@@ -74,11 +76,11 @@ export default function HomeworkDetail() {
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-[#8a8073] flex-wrap">
         <button onClick={() => navigate('/student/class')} className="hover:text-[#193a2b] transition-colors">
-          Lớp học
+          {t('studentContest.classLabel')}
         </button>
         <ChevronRight size={14} />
         <button onClick={() => navigate(`/student/class/${classId}`)} className="hover:text-[#193a2b] transition-colors truncate max-w-[120px]">
-          {homework.class?.name ?? 'Lớp học'}
+          {homework.class?.name ?? t('studentContest.classLabel')}
         </button>
         <ChevronRight size={14} />
         <span className="text-[#191919] font-medium truncate max-w-[200px]">{homework.title}</span>
@@ -105,20 +107,20 @@ export default function HomeworkDetail() {
             onClick={() => navigate(`/student/class/${classId}`)}
             className="flex items-center gap-1.5 text-sm text-[#8a8073] hover:text-[#193a2b] transition-colors flex-shrink-0"
           >
-            <ArrowLeft size={14} /> Quay lại
+            <ArrowLeft size={14} /> {t('studentContest.back')}
           </button>
         </div>
 
         {/* Stats row */}
         <div className="flex items-center gap-6 text-sm text-[#8a8073] pt-4 border-t border-[#f0ebd9]">
           <span className="flex items-center gap-1.5">
-            <BookOpen size={14} /> {tasks.length} bài toán
+            <BookOpen size={14} /> {t('studentContest.problemCount', { count: tasks.length })}
           </span>
           <span className="flex items-center gap-1.5">
             <Trophy size={14} /> {totalPoints} điểm
           </span>
           <span className="flex items-center gap-1.5">
-            <Clock size={14} /> Hạn: {formatVNFull(homework.deadline)}
+            <Clock size={14} /> {t('studentContest.deadlineLabel')}: {formatVNFull(homework.deadline)}
           </span>
         </div>
       </div>
@@ -126,10 +128,10 @@ export default function HomeworkDetail() {
       {/* Problem list */}
       <div>
         <h2 className="text-base font-bold text-[#191919] mb-3">
-          Danh sách bài toán
+          {t('studentContest.classHomework')}
           {solvableCount < tasks.length && (
             <span className="ml-2 text-xs font-normal text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full">
-              {tasks.length - solvableCount} bài chưa có link
+              {t('studentContest.notLinkedCount', { count: tasks.length - solvableCount })}
             </span>
           )}
         </h2>
@@ -137,7 +139,7 @@ export default function HomeworkDetail() {
         {tasks.length === 0 ? (
           <div className="bg-white border border-[#e5dac9] rounded-2xl p-14 text-center shadow-sm">
             <BookOpen size={48} className="text-[#bfae99] mx-auto mb-4" />
-            <p className="font-semibold text-[#191919]">Chưa có bài toán nào</p>
+            <p className="font-semibold text-[#191919]">{t('studentContest.emptyProblems')}</p>
           </div>
         ) : (
           <div className="bg-white border border-[#e5dac9] rounded-2xl overflow-hidden shadow-sm divide-y divide-[#f0ebd9]">
@@ -169,7 +171,7 @@ export default function HomeworkDetail() {
 
                   {/* Difficulty */}
                   <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold flex-shrink-0 ${diffChip[task.difficulty] ?? diffChip.Easy}`}>
-                    {diffLabel[task.difficulty] ?? 'Dễ'}
+                    {t(`problemForm.${diffLabel[task.difficulty] ?? 'easy'}`)}
                   </span>
 
                   {/* Points */}
@@ -183,11 +185,11 @@ export default function HomeworkDetail() {
                       to={solveUrl}
                       className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors flex-shrink-0 shadow-sm"
                     >
-                      <Play size={11} fill="white" /> Làm bài
+                      <Play size={11} fill="white" /> {t('studentContest.solveTask')}
                     </Link>
                   ) : (
                     <span className="flex items-center gap-1 px-3.5 py-1.5 bg-[#f0ebd9] text-[#8a8073] text-xs rounded-xl flex-shrink-0 cursor-not-allowed">
-                      <Lock size={11} /> Chưa có link
+                      <Lock size={11} /> {t('studentContest.noLink')}
                     </span>
                   )}
                 </div>

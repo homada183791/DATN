@@ -7,12 +7,14 @@ import { useClass } from '../../context/ClassContext';
 import CalendarView from '../../components/calendar/CalendarView';
 import { CalendarEvent } from '../../components/calendar/EventDetailModal';
 import { getVNParts } from '../../utils/dateTime';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   userRole?: 'student' | 'instructor';
 }
 
 export default function CalendarPage({ userRole = 'student' }: Props) {
+  const { t } = useTranslation();
   const { data: contests = [], isLoading: contestsLoading } = useContestsQuery();
   const { data: rawHomeworks = [], isLoading: hwLoading } = useHomeworksQuery();
   const { myClasses, enrolledClasses } = useClass();
@@ -42,7 +44,7 @@ export default function CalendarPage({ userRole = 'student' }: Props) {
         timeStr: p.timeString,
         startDateTime: c.startTime,
         endDateTime: c.endTime,
-        className: c.className || (c.classId ? 'Lớp học riêng' : 'Toàn trường'),
+        className: c.className || (c.classId ? t('calendar.privateClass') : t('calendar.allSchool')),
         classId: c.classId,
         status: c.status,
         description: c.description,
@@ -56,7 +58,7 @@ export default function CalendarPage({ userRole = 'student' }: Props) {
       const p = getVNParts(hw.deadline);
       if (!p) continue;
 
-      const clsName = hw.class?.name || 'Lớp học';
+      const clsName = hw.class?.name || t('calendar.classPrivate');
 
       list.push({
         id: `hw-${hw.id}`,
@@ -77,7 +79,7 @@ export default function CalendarPage({ userRole = 'student' }: Props) {
     }
 
     return list;
-  }, [contests, rawHomeworks, userRole]);
+  }, [contests, rawHomeworks, userRole, t]);
 
   const isLoading = contestsLoading || hwLoading;
 
@@ -91,9 +93,9 @@ export default function CalendarPage({ userRole = 'student' }: Props) {
           </div>
           <div>
             <h1 className="text-sm md:text-base font-bold font-serif text-[var(--ws-text)] leading-tight flex items-center gap-2">
-              Lịch biểu học thuật
+              {t('calendar.pageTitle')}
               <span className="text-[11px] font-normal text-[var(--ws-muted)] hidden md:inline">
-                • Đồng bộ hạn chót bài tập & lịch thi (UTC+7)
+                • {t('calendar.pageSubtitle')}
               </span>
             </h1>
           </div>
@@ -105,7 +107,7 @@ export default function CalendarPage({ userRole = 'student' }: Props) {
               to="/instructor/classes"
               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--ws-accent)] text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-2xs"
             >
-              <Plus size={13} /> Giao bài tập
+              <Plus size={13} /> {t('calendar.assignHomework')}
             </Link>
           </div>
         )}
@@ -115,7 +117,7 @@ export default function CalendarPage({ userRole = 'student' }: Props) {
       {isLoading ? (
         <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] rounded-xl p-12 text-center shadow-2xs">
           <Loader2 size={28} className="animate-spin text-[var(--ws-accent)] mx-auto mb-2" />
-          <p className="text-xs text-[var(--ws-muted)]">Đang đồng bộ dữ liệu lịch biểu...</p>
+          <p className="text-xs text-[var(--ws-muted)]">{t('calendar.syncing')}</p>
         </div>
       ) : (
         <CalendarView
