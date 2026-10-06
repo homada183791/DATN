@@ -1,16 +1,19 @@
 import {
   BadRequestException,
   ConflictException,
+  InternalServerErrorException,
   Injectable,
   Logger,
   NotFoundException,
   OnModuleDestroy,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
+import { OAuth2Client, type TokenInfo } from 'google-auth-library';
 import { Redis } from 'ioredis';
 import * as nodemailer from 'nodemailer';
 import { RegisterDto } from './dto/register.dto';
@@ -28,6 +31,7 @@ interface ResetCodeRecord {
 @Injectable()
 export class AuthService implements OnModuleDestroy {
   private readonly redisClient: Redis;
+  private readonly googleClient = new OAuth2Client();
   private readonly logger = new Logger(AuthService.name);
   private readonly resetTtlSeconds = 5 * 60;
 
@@ -222,6 +226,81 @@ export class AuthService implements OnModuleDestroy {
 
     const username = user.username ?? user.email.split('@')[0];
     const payload = { sub: user.id, email: user.email, role: user.role, username };
+
+    return {
+      success: true,
+      data: {
+        access_token: await this.jwtService.signAsync(payload),
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          username,
+        },
+      },
+    };
+  }
+
+  async googleLogin(accessToken: string) {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      throw new InternalServerErrorException(
+        'Đăng nhập Google chưa được cấu hình trên máy chủ.',
+      );
+    }
+
+    let googlePayload: TokenInfo;
+    try {
+      googlePayload = await this.googleClient.getTokenInfo(accessToken);
+    } catch (error) {
+      if (error instanceof Error && error.name === 'GaxiosError') {
+        this.logger.error(
+          `[Auth] Google token verification request failed: ${error.message}`,
+        );
+        throw new ServiceUnavailableException(
+          'Không thể xác minh tài khoản Google lúc này.',
+        );
+      }
+      throw new UnauthorizedException(
+        'Mã truy cập Google không hợp lệ hoặc đã hết hạn.',
+      );
+    }
+
+    if (
+      !googlePayload ||
+      googlePayload.aud !== clientId ||
+      googlePayload.expiry_date <= Date.now() ||
+      !googlePayload.email ||
+      !googlePayload.email_verified ||
+      !googlePayload.user_id
+    ) {
+      throw new UnauthorizedException(
+        'Tài khoản Google cần xác minh email để đăng nhập.',
+      );
+    }
+
+    const email = this.normalizeEmail(googlePayload.email);
+    const user = await this.prisma.user.upsert({
+      where: { email },
+      update: {},
+      create: {
+        email,
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        role: true,
+      },
+    });
+
+    const username = user.username ?? user.email.split('@')[0];
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      username,
+    };
 
     return {
       success: true,

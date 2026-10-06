@@ -1,10 +1,61 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import styles from "./login-modal.module.css";
+
+type GoogleTokenResponse = {
+  access_token?: string;
+  error?: string;
+  error_description?: string;
+};
+type GoogleTokenClient = {
+  requestAccessToken: (options?: { prompt?: string }) => void;
+};
+type GoogleOAuth2Api = {
+  initTokenClient: (options: {
+    client_id: string;
+    scope: string;
+    callback: (response: GoogleTokenResponse) => void;
+  }) => GoogleTokenClient;
+};
+
+declare global {
+  interface Window {
+    google?: { accounts: { oauth2: GoogleOAuth2Api } };
+  }
+}
+
+let googleScriptPromise: Promise<void> | undefined;
+
+function loadGoogleIdentityServices() {
+  if (window.google?.accounts.oauth2) return Promise.resolve();
+  if (googleScriptPromise) return googleScriptPromise;
+
+  googleScriptPromise = new Promise<void>((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      if (window.google?.accounts.oauth2) {
+        resolve();
+      } else {
+        googleScriptPromise = undefined;
+        reject(new Error("Google OAuth services did not initialize."));
+      }
+    };
+    script.onerror = () => {
+      googleScriptPromise = undefined;
+      reject(new Error("Failed to load Google Identity Services."));
+    };
+    document.head.appendChild(script);
+  });
+
+  return googleScriptPromise;
+}
 
 export function LoginModal({
   onClose,
@@ -16,12 +67,78 @@ export function LoginModal({
   onSwitchToForgotPassword: () => void;
 }) {
   const { t } = useTranslation();
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const { showToast } = useToast();
+  const googleTokenClientRef = useRef<GoogleTokenClient | null>(null);
+  const googleHandlersRef = useRef({ loginWithGoogle, showToast, t });
+  googleHandlersRef.current = { loginWithGoogle, showToast, t };
   const [showPassword, setShowPassword] = useState(false);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) return;
+
+    let active = true;
+    loadGoogleIdentityServices()
+      .then(() => {
+        if (!active || !window.google?.accounts.oauth2) return;
+        googleTokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: "openid email profile",
+          callback: async ({ access_token: accessToken, error, error_description }) => {
+            if (!active) return;
+            if (error || !accessToken) {
+              googleHandlersRef.current.showToast(
+                error_description ?? "Đăng nhập Google đã bị hủy hoặc thất bại.",
+                "error",
+              );
+              return;
+            }
+
+            const handlers = googleHandlersRef.current;
+            const result = await handlers.loginWithGoogle(accessToken);
+            if (!active) return;
+            if (!result.ok) {
+              handlers.showToast(
+                result.message ?? "Không thể đăng nhập bằng Google.",
+                "error",
+              );
+              return;
+            }
+            handlers.showToast(handlers.t("auth.loginSuccess"), "success");
+          },
+        });
+      })
+      .catch(() => {
+        if (active) {
+          googleHandlersRef.current.showToast(
+            "Không thể tải dịch vụ đăng nhập Google.",
+            "error",
+          );
+        }
+      });
+
+    return () => {
+      active = false;
+      googleTokenClientRef.current = null;
+    };
+  }, []);
+
+  function handleGoogleLogin() {
+    if (!import.meta.env.VITE_GOOGLE_CLIENT_ID) {
+      showToast("Thiếu cấu hình VITE_GOOGLE_CLIENT_ID ở frontend.", "error");
+      return;
+    }
+    if (!googleTokenClientRef.current || !window.google?.accounts.oauth2) {
+      showToast("Dịch vụ đăng nhập Google chưa sẵn sàng. Vui lòng thử lại.", "error");
+      return;
+    }
+
+    googleTokenClientRef.current.requestAccessToken({ prompt: "select_account" });
+  }
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -132,9 +249,7 @@ export function LoginModal({
         <button
           type="button"
           className={styles.ssoBtn}
-          onClick={() => {
-            alert(t("auth.googleComingSoon"));
-          }}
+          onClick={handleGoogleLogin}
         >
           <GoogleIcon />
           {t("auth.googleLogin")}

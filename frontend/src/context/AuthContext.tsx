@@ -21,6 +21,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   login: (identifier: string, password: string) => Promise<{ ok: boolean; message?: string }>;
+  loginWithGoogle: (accessToken: string) => Promise<{ ok: boolean; message?: string }>;
   register: (username: string, email: string, password: string, fullName: string) => Promise<{ ok: boolean; message?: string }>;
   updateUser: (updatedData: Partial<User>) => void;
   refreshProfile: () => Promise<void>;
@@ -176,6 +177,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginWithGoogle = async (accessToken: string) => {
+    try {
+      const response = await apiFetch<AuthResponse>('/api/v1/auth/google', {
+        method: 'POST',
+        body: JSON.stringify({ accessToken }),
+      });
+      window.localStorage.setItem(ACCESS_TOKEN_KEY, response.access_token);
+      try {
+        const fullProfile = await hydrateProfile(response.access_token);
+        setUser(fullProfile);
+      } catch {
+        setUser(normalizeUser(response.user.email, normalizeRole(response.user.role), response.user.username, response.user.id));
+      }
+      return { ok: true };
+    } catch (error) {
+      if (error instanceof ApiError) {
+        return { ok: false, message: error.message };
+      }
+      return { ok: false, message: 'Không thể đăng nhập bằng Google lúc này.' };
+    }
+  };
+
   const register = async (username: string, email: string, password: string, _fullName: string) => {
     try {
       const trimmedUsername = username.trim();
@@ -254,6 +277,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         login,
+        loginWithGoogle,
         register,
         updateUser,
         refreshProfile,
