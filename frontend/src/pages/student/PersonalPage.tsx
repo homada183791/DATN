@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/http';
 import ActivityHeatmap from '../../components/ActivityHeatmap';
 import {
@@ -38,6 +39,7 @@ interface UserStatsData {
 }
 
 export default function PersonalPage() {
+  const { t } = useTranslation();
   const { user, refreshProfile } = useAuth();
   const [stats, setStats] = useState<UserStatsData | null>(null);
   const [heatmap, setHeatmap] = useState<Array<{ date: string; count: number }>>([]);
@@ -114,7 +116,7 @@ export default function PersonalPage() {
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                   isInstructor ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
                 }`}>
-                  {isInstructor ? 'Giảng viên' : 'Sinh viên'}
+                  {isInstructor ? t('personal.roleInstructor') : t('personal.roleStudent')}
                 </span>
               </div>
 
@@ -127,7 +129,7 @@ export default function PersonalPage() {
                   </span>
                 )}
                 <span className="flex items-center gap-1.5">
-                  <Calendar size={15} className="text-[#8a8073]" /> Tham gia {user?.joinDate}
+                  <Calendar size={15} className="text-[#8a8073]" /> {t('personal.joined', { date: user?.joinDate })}
                 </span>
               </div>
             </div>
@@ -137,7 +139,7 @@ export default function PersonalPage() {
               <span className="text-xl font-bold text-yellow-600 font-serif">
                 {user?.rating ?? 1200}
               </span>
-              <span className="text-xs text-yellow-700/70 font-medium">Rating ELO</span>
+              <span className="text-xs text-yellow-700/70 font-medium">{t('personal.ratingElo')}</span>
             </div>
           </div>
 
@@ -152,7 +154,7 @@ export default function PersonalPage() {
       {isLoading ? (
         <div className="flex items-center justify-center p-12 bg-white border border-[#e5dac9] rounded-xl shadow-sm">
           <Loader2 className="animate-spin text-[#193a2b]" size={28} />
-          <span className="ml-3 text-sm text-[#5c5446]">Đang tải thống kê thực tế...</span>
+          <span className="ml-3 text-sm text-[#5c5446]">{t('personal.loading')}</span>
         </div>
       ) : (
         <>
@@ -160,23 +162,23 @@ export default function PersonalPage() {
           {isInstructor && stats?.instructor_stats && (
             <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
               <h3 className="text-lg font-bold text-[#191919] font-serif mb-4 flex items-center gap-2">
-                <GraduationCap size={20} className="text-[#193a2b]" /> Hoạt động giảng dạy
+                <GraduationCap size={20} className="text-[#193a2b]" /> {t('personal.teachingActivity')}
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="p-4 bg-[#f7f4eb]/60 rounded-xl border border-[#e5dac9] text-center">
                   <BookOpen size={22} className="text-[#193a2b] mx-auto mb-1.5" />
                   <p className="text-2xl font-bold font-serif text-[#191919]">{stats.instructor_stats.classes_count}</p>
-                  <p className="text-xs text-[#8a8073]">Lớp học đang phụ trách</p>
+                  <p className="text-xs text-[#8a8073]">{t('personal.classesManaged')}</p>
                 </div>
                 <div className="p-4 bg-[#f7f4eb]/60 rounded-xl border border-[#e5dac9] text-center">
                   <Users size={22} className="text-blue-600 mx-auto mb-1.5" />
                   <p className="text-2xl font-bold font-serif text-[#191919]">{stats.instructor_stats.total_students_count}</p>
-                  <p className="text-xs text-[#8a8073]">Sinh viên theo học</p>
+                  <p className="text-xs text-[#8a8073]">{t('personal.studentsEnrolled')}</p>
                 </div>
                 <div className="p-4 bg-[#f7f4eb]/60 rounded-xl border border-[#e5dac9] text-center">
                   <Trophy size={22} className="text-yellow-600 mx-auto mb-1.5" />
                   <p className="text-2xl font-bold font-serif text-[#191919]">{stats.instructor_stats.contests_count}</p>
-                  <p className="text-xs text-[#8a8073]">Kỳ thi đã tổ chức</p>
+                  <p className="text-xs text-[#8a8073]">{t('personal.contestsHosted')}</p>
                 </div>
               </div>
             </div>
@@ -187,22 +189,22 @@ export default function PersonalPage() {
             <div className="bg-white border border-[#e5dac9] rounded-xl p-5 text-center shadow-sm">
               <CheckCircle2 size={24} className="text-[#193a2b] mx-auto mb-2" />
               <p className="text-2xl font-bold font-serif text-[#191919]">{stats?.solved_count || 0}</p>
-              <p className="text-xs text-[#8a8073] mt-0.5">Bài đã giải</p>
+              <p className="text-xs text-[#8a8073] mt-0.5">{t('personal.solvedCount')}</p>
             </div>
             <div className="bg-white border border-[#e5dac9] rounded-xl p-5 text-center shadow-sm">
               <Send size={24} className="text-blue-600 mx-auto mb-2" />
               <p className="text-2xl font-bold font-serif text-[#191919]">{stats?.total_submissions || 0}</p>
-              <p className="text-xs text-[#8a8073] mt-0.5">Lượt nộp bài</p>
+              <p className="text-xs text-[#8a8073] mt-0.5">{t('personal.totalSubmissions')}</p>
             </div>
             <div className="bg-white border border-[#e5dac9] rounded-xl p-5 text-center shadow-sm">
               <Award size={24} className="text-yellow-600 mx-auto mb-2" />
               <p className="text-2xl font-bold font-serif text-[#191919]">{user?.rating ?? 1200}</p>
-              <p className="text-xs text-[#8a8073] mt-0.5">Rating ELO</p>
+              <p className="text-xs text-[#8a8073] mt-0.5">{t('personal.ratingElo')}</p>
             </div>
             <div className="bg-white border border-[#e5dac9] rounded-xl p-5 text-center shadow-sm">
               <TrendingUp size={24} className="text-purple-600 mx-auto mb-2" />
               <p className="text-2xl font-bold font-serif text-[#191919]">{stats?.ac_rate || 0}%</p>
-              <p className="text-xs text-[#8a8073] mt-0.5">Tỷ lệ nộp AC</p>
+              <p className="text-xs text-[#8a8073] mt-0.5">{t('personal.acceptanceRate')}</p>
             </div>
           </div>
 
@@ -213,13 +215,13 @@ export default function PersonalPage() {
             {/* Verdict Distribution (Thực tế) */}
             <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
               <h3 className="text-lg font-bold text-[#191919] font-serif mb-4 flex items-center gap-2">
-                <BarChart3 size={20} className="text-purple-600" /> Phân bố kết quả nộp bài
+                <BarChart3 size={20} className="text-purple-600" /> {t('personal.verdictDistributionTitle')}
               </h3>
 
               {totalSubs === 0 ? (
                 <div className="text-center py-8 text-[#8a8073] text-sm">
                   <HelpCircle size={28} className="mx-auto mb-2 opacity-50" />
-                  Chưa có bài nộp nào được ghi nhận.
+                  {t('personal.noSubmissionsRecorded')}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -254,16 +256,16 @@ export default function PersonalPage() {
             {/* Solved Problems List (Thực tế) */}
             <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
               <h3 className="text-lg font-bold text-[#191919] font-serif mb-4 flex items-center justify-between">
-                <span>Bài tập đã giải</span>
+                <span>{t('personal.solvedProblems')}</span>
                 <span className="text-xs px-2 py-0.5 bg-[#193a2b]/10 text-[#193a2b] font-semibold rounded-full">
-                  {stats?.solved_problems.length || 0} bài
+                  {t('personal.solvedCountLabel', { count: stats?.solved_problems.length || 0 })}
                 </span>
               </h3>
 
               {!stats?.solved_problems || stats.solved_problems.length === 0 ? (
                 <div className="text-center py-8 text-[#8a8073] text-sm">
                   <HelpCircle size={28} className="mx-auto mb-2 opacity-50" />
-                  Bạn chưa vượt qua bài tập nào. Hãy nộp bài để tích luỹ thành tích!
+                  {t('personal.noSolvedYet')}
                 </div>
               ) : (
                 <div className="flex flex-wrap gap-2 max-h-56 overflow-y-auto pr-1">

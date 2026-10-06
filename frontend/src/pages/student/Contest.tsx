@@ -2,16 +2,11 @@ import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Calendar, ChevronRight, Clock, Search, Trophy, Users, X, Lock, Globe, BookOpen, Play, CheckCircle2 } from 'lucide-react';
 import { ApiError } from '../../api/http';
 import { useContestsQuery, type ContestDto, fetchContestDetail, joinContest, useLeaderboardQuery } from '../../api/contests';
 import { formatVNFull } from '../../utils/dateTime';
-
-const statusLabels: Record<NonNullable<ContestDto['status']>, string> = {
-  upcoming: 'Sắp diễn ra',
-  running: 'Đang diễn ra',
-  ended: 'Đã kết thúc',
-};
 
 const statusColors: Record<NonNullable<ContestDto['status']>, string> = {
   upcoming: 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -25,12 +20,8 @@ const typeColors: Record<NonNullable<ContestDto['type']>, string> = {
   Homework: 'bg-emerald-100 text-emerald-800',
 };
 
-const visibilityLabels: Record<NonNullable<ContestDto['visibility']>, string> = {
-  public: 'Công khai',
-  private: 'Riêng tư',
-};
-
 export default function Contest() {
+  const { t } = useTranslation();
   const { data, isLoading, error } = useContestsQuery();
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'running' | 'ended'>('all');
@@ -41,6 +32,23 @@ export default function Contest() {
   const [registeredContestIds, setRegisteredContestIds] = useState<string[]>([]);
 
   const contests = data ?? [];
+  const statusLabels: Record<NonNullable<ContestDto['status']>, string> = {
+    upcoming: t('instructorContest.statusUpcoming'),
+    running: t('instructorContest.statusRunning'),
+    ended: t('instructorContest.statusEnded'),
+  };
+  const visibilityLabels: Record<NonNullable<ContestDto['visibility']>, string> = {
+    public: t('studentContest.visibilityPublic'),
+    private: t('studentContest.visibilityPrivate'),
+  };
+  const difficultyLabels: Record<string, string> = {
+    EASY: t('instructorHomework.difficultyEasyFull'),
+    Easy: t('instructorHomework.difficultyEasyFull'),
+    MEDIUM: t('instructorHomework.difficultyMediumFull'),
+    Medium: t('instructorHomework.difficultyMediumFull'),
+    HARD: t('instructorHomework.difficultyHard'),
+    Hard: t('instructorHomework.difficultyHard'),
+  };
 
   const filteredContests = useMemo(() => {
     const search = searchQuery.trim().toLowerCase();
@@ -89,7 +97,7 @@ export default function Contest() {
   if (isLoading) {
     return (
       <div className="space-y-4 text-[#191919]">
-        <h2 className="text-2xl font-bold font-serif text-[#191919]">Kỳ thi</h2>
+        <h2 className="text-2xl font-bold font-serif text-[#191919]">{t('nav.contest')}</h2>
         <div className="space-y-3">
           {Array.from({ length: 5 }, (_, index) => (
             <div key={index} className="rounded-2xl border border-[#e5dac9] bg-white px-5 py-4 shadow-sm">
@@ -106,7 +114,7 @@ export default function Contest() {
     return (
       <div className="rounded-2xl border border-[#e5dac9] bg-white p-10 text-center shadow-sm">
         <Trophy size={48} className="text-[#bfae99] mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-[#191919]">Không thể tải danh sách kỳ thi</h2>
+        <h2 className="text-xl font-bold text-[#191919]">{t('studentContest.loadError')}</h2>
         <p className="mt-2 text-sm text-[#8a8073]">{error.message}</p>
       </div>
     );
@@ -116,10 +124,10 @@ export default function Contest() {
     <div className="space-y-6 text-[#191919]">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold font-serif text-[#191919]">Kỳ thi</h2>
+          <h2 className="text-2xl font-bold font-serif text-[#191919]">{t('nav.contest')}</h2>
         </div>
         <div className="text-sm text-emerald-700 font-medium">
-          {contests.filter((contest) => contest.status === 'running').length} kỳ thi đang diễn ra
+          {t('studentContest.runningCount', { count: contests.filter((contest) => contest.status === 'running').length })}
         </div>
       </div>
 
@@ -130,7 +138,7 @@ export default function Contest() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm kiếm kỳ thi..."
+            placeholder={t('instructorContest.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
           />
         </div>
@@ -143,7 +151,7 @@ export default function Contest() {
                 filter === level ? 'bg-[#193a2b] text-white shadow-sm' : 'bg-white text-[#5c5446] hover:text-[#191919] border border-[#e5dac9]'
               }`}
             >
-              {level === 'all' ? 'Tất cả' : statusLabels[level]}
+              {level === 'all' ? t('instructorContest.filterAll') : statusLabels[level]}
             </button>
           ))}
         </div>
@@ -167,7 +175,7 @@ export default function Contest() {
                     : 'border-transparent text-[#8a8073] hover:text-[#191919]'
                 }`}
               >
-                <BookOpen size={14} /> Thông tin & Bài thi
+                <BookOpen size={14} /> {t('studentContest.infoTab')}
               </button>
               <button
                 type="button"
@@ -178,7 +186,7 @@ export default function Contest() {
                     : 'border-transparent text-[#8a8073] hover:text-[#191919]'
                 }`}
               >
-                <Trophy size={14} /> Bảng xếp hạng
+                <Trophy size={14} /> {t('studentContest.leaderboardTab')}
               </button>
             </div>
 
@@ -191,40 +199,40 @@ export default function Contest() {
                     </span>
                     {selectedContestData.visibility === 'private' ? (
                       <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border font-medium bg-purple-50 text-purple-700 border-purple-200">
-                        <Lock size={10} /> Riêng tư (lớp học)
+                        <Lock size={10} /> {t('studentContest.visibilityPrivateClass')}
                       </span>
                     ) : (
                       <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border font-medium bg-sky-50 text-sky-700 border-sky-200">
-                        <Globe size={10} /> Công khai
+                        <Globe size={10} /> {t('studentContest.visibilityPublic')}
                       </span>
                     )}
                   </div>
                   <p className="text-sm text-[#5c5446] mb-6 leading-relaxed">
-                    {selectedContestData.description ?? 'Chưa có mô tả chi tiết cho kỳ thi này.'}
+                    {selectedContestData.description ?? t('studentContest.descriptionFallback')}
                   </p>
 
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="p-4 bg-white rounded-xl border border-[#e5dac9]">
                       <div className="flex items-center gap-2 text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">
-                        <Calendar size={14} /> Bắt đầu
+                        <Calendar size={14} /> {t('instructorContest.fieldStart')}
                       </div>
                       <p className="text-sm text-[#191919] font-semibold">{formatVNFull(selectedContestData.startTime)}</p>
                     </div>
                     <div className="p-4 bg-white rounded-xl border border-[#e5dac9]">
                       <div className="flex items-center gap-2 text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">
-                        <Clock size={14} /> Kết thúc
+                        <Clock size={14} /> {t('instructorContest.fieldEnd')}
                       </div>
                       <p className="text-sm text-[#191919] font-semibold">{formatVNFull(selectedContestData.endTime)}</p>
                     </div>
                     <div className="p-4 bg-white rounded-xl border border-[#e5dac9]">
                       <div className="flex items-center gap-2 text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">
-                        <Users size={14} /> Người tham gia
+                        <Users size={14} /> {t('instructorContest.fieldParticipants')}
                       </div>
                       <p className="text-sm text-[#191919] font-semibold">{selectedContestData.participantCount ?? 0}</p>
                     </div>
                     <div className="p-4 bg-white rounded-xl border border-[#e5dac9]">
                       <div className="flex items-center gap-2 text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">
-                        <Trophy size={14} /> Số lượng bài
+                        <Trophy size={14} /> {t('studentContest.problemCountLabel')}
                       </div>
                       <p className="text-sm text-[#191919] font-semibold">{selectedContestData.problemCount ?? 0}</p>
                     </div>
@@ -234,28 +242,28 @@ export default function Contest() {
                   {selectedContestData.status === 'ended' ? (
                     <div className="mb-6 border border-[#e5dac9] rounded-xl bg-[#f7f4eb] p-3.5 flex items-center gap-2.5 text-xs text-[#5c5446]">
                       <Clock size={16} className="text-[#8a8073] shrink-0" />
-                      <span>Kỳ thi đã kết thúc. Bạn có thể xem đề và làm bài luyện tập tự do bên dưới.</span>
+                      <span>{t('studentContest.endedHint')}</span>
                     </div>
                   ) : !isRegistered(selectedContestData.id) ? (
                     <div className="mb-6 border border-[#e5dac9] rounded-xl bg-[#f7f4eb] p-4">
-                      <h4 className="text-sm font-bold font-serif text-[#191919] mb-1.5">Đăng ký để tham gia kỳ thi</h4>
+                      <h4 className="text-sm font-bold font-serif text-[#191919] mb-1.5">{t('studentContest.registerTitle')}</h4>
                       <p className="text-xs text-[#8a8073] mb-3">
                         {selectedContestData.visibility === 'private'
                           ? 'Bạn đã được giảng viên thêm vào lớp, kỳ thi này dành riêng cho lớp bạn.'
-                          : 'Kỳ thi công khai, đăng ký chỉ mất một lần.'}
+                          : t('studentContest.publicHint')}
                       </p>
                       <button
                         type="button"
                         onClick={() => registerForContest(selectedContestData)}
                         className="w-full py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] transition-all shadow-md"
                       >
-                        {selectedContestData.status === 'running' ? 'Tham gia kỳ thi' : 'Đăng ký kỳ thi'}
+                        {selectedContestData.status === 'running' ? t('studentContest.joinContestBtn') : t('studentContest.registerContestBtn')}
                       </button>
                     </div>
                   ) : selectedContestData.status === 'upcoming' ? (
                     <div className="mb-6 p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold rounded-xl flex items-center justify-center gap-2">
                       <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-                      <span>Bạn đã đăng ký tham gia kỳ thi này. Đề thi sẽ tự động mở khi đến thời gian bắt đầu.</span>
+                      <span>{t('studentContest.registeredHint')}</span>
                     </div>
                   ) : null}
 
@@ -263,7 +271,7 @@ export default function Contest() {
                   {(isRegistered(selectedContestData.id) || selectedContestData.status === 'ended') && (
                     <div className="mb-2">
                       <h4 className="text-sm font-bold font-serif text-[#191919] mb-3 flex items-center gap-2">
-                        <BookOpen size={15} /> Danh sách bài thi
+                        <BookOpen size={15} /> {t('studentContest.problemsInContest')}
                       </h4>
                       {loadingProblems ? (
                         <div className="flex items-center justify-center h-16">
@@ -271,13 +279,12 @@ export default function Contest() {
                         </div>
                       ) : contestProblems.length === 0 ? (
                         <div className="bg-[#f7f4eb] border border-[#e5dac9] rounded-xl p-6 text-center text-sm text-[#8a8073]">
-                          Giảng viên chưa thêm bài nào vào kỳ thi này
+                          {t('studentContest.emptyState')}
                         </div>
                       ) : (
                         <div className="space-y-2">
                           {contestProblems.map((cp, i) => {
                             const diffColor: Record<string, string> = { EASY: 'bg-emerald-100 text-emerald-700', MEDIUM: 'bg-yellow-100 text-yellow-700', HARD: 'bg-red-100 text-red-700', Easy: 'bg-emerald-100 text-emerald-700', Medium: 'bg-yellow-100 text-yellow-700', Hard: 'bg-red-100 text-red-700' };
-                            const diffLabel: Record<string, string> = { EASY: 'Dễ', MEDIUM: 'Trung bình', HARD: 'Khó', Easy: 'Dễ', Medium: 'Trung bình', Hard: 'Khó' };
                             const isRunning = selectedContestData.status === 'running';
                             const isEnded = selectedContestData.status === 'ended';
                             return (
@@ -285,7 +292,7 @@ export default function Contest() {
                                 <span className="text-sm font-mono text-[#8a8073] w-5 text-center">{String.fromCharCode(65 + i)}</span>
                                 <p className="flex-1 text-sm font-semibold text-[#191919] truncate">{cp.problem.title}</p>
                                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${diffColor[cp.problem.difficulty] ?? 'bg-gray-100 text-gray-600'}`}>
-                                  {diffLabel[cp.problem.difficulty] ?? cp.problem.difficulty}
+                                  {difficultyLabels[cp.problem.difficulty] ?? cp.problem.difficulty}
                                 </span>
                                 {isRunning ? (
                                   <Link
@@ -293,7 +300,7 @@ export default function Contest() {
                                     className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors"
                                     onClick={() => setSelectedContest(null)}
                                   >
-                                    <Play size={11} fill="white" /> Làm bài
+                                    <Play size={11} fill="white" /> {t('studentHomework.goSolve')}
                                   </Link>
                                 ) : isEnded ? (
                                   <Link
@@ -301,11 +308,11 @@ export default function Contest() {
                                     className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors"
                                     onClick={() => setSelectedContest(null)}
                                   >
-                                    <Play size={11} fill="white" /> Luyện tập
+                                    <Play size={11} fill="white" /> {t('studentDashboard.practiceBtn')}
                                   </Link>
                                 ) : (
                                   <span className="flex-shrink-0 text-xs text-[#8a8073] px-3 py-1.5 bg-[#f0ebd9] rounded-xl">
-                                    Chưa bắt đầu
+                                    {t('instructorContest.statusUpcoming')}
                                   </span>
                                 )}
                               </div>
@@ -321,10 +328,10 @@ export default function Contest() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between pb-2 border-b border-[#e5dac9]">
                     <h4 className="text-sm font-bold font-serif text-[#191919] flex items-center gap-2">
-                      <Trophy size={16} className="text-amber-600" /> Bảng xếp hạng trực tiếp
+                      <Trophy size={16} className="text-amber-600" /> {t('studentContest.leaderboardTab')}
                     </h4>
                     <span className="text-xs text-[#8a8073]">
-                      Tổng số: {leaderboard.length} thí sinh
+                      {leaderboard.length} {t('studentContest.peopleCount', { count: leaderboard.length })}
                     </span>
                   </div>
 
@@ -335,8 +342,8 @@ export default function Contest() {
                   ) : leaderboard.length === 0 ? (
                     <div className="p-8 text-center bg-[#f7f4eb] border border-[#e5dac9] rounded-xl">
                       <Trophy size={36} className="text-[#bfae99] mx-auto mb-2" />
-                      <p className="text-sm font-semibold text-[#191919]">Chưa có bài nộp nào được ghi nhận</p>
-                      <p className="text-xs text-[#8a8073] mt-1">Kết quả sẽ tự động cập nhật ngay khi có thí sinh giải thành công.</p>
+                      <p className="text-sm font-semibold text-[#191919]">{t('studentContest.emptyLeaderboard')}</p>
+                      <p className="text-xs text-[#8a8073] mt-1">{t('studentContest.leaderboardUpdateHint')}</p>
                     </div>
                   ) : (
                     <div className="overflow-x-auto border border-[#e5dac9] rounded-xl bg-white">
@@ -344,9 +351,9 @@ export default function Contest() {
                         <thead>
                           <tr className="border-b border-[#e5dac9] bg-[#f7f4eb] text-[#5c5446]">
                             <th className="py-2.5 px-3 font-bold w-12 text-center">#</th>
-                            <th className="py-2.5 px-3 font-bold">Thí sinh</th>
-                            <th className="py-2.5 px-3 font-bold text-center">Đã giải</th>
-                            <th className="py-2.5 px-3 font-bold text-right">Penalty</th>
+                            <th className="py-2.5 px-3 font-bold">{t('studentContest.leaderboardColStudent')}</th>
+                            <th className="py-2.5 px-3 font-bold text-center">{t('studentContest.leaderboardColSolved')}</th>
+                            <th className="py-2.5 px-3 font-bold text-right">{t('studentContest.leaderboardColPenalty')}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-[#e5dac9]/60">
@@ -381,7 +388,7 @@ export default function Contest() {
         {filteredContests.length === 0 ? (
           <div className="bg-white border border-[#e5dac9] rounded-xl p-12 text-center shadow-sm">
             <Trophy size={48} className="text-[#bfae99] mx-auto mb-4" />
-            <p className="text-[#8a8073]">Không tìm thấy kỳ thi nào</p>
+            <p className="text-[#8a8073]">{t('studentContest.emptyState')}</p>
           </div>
         ) : (
           filteredContests.map((contest) => (

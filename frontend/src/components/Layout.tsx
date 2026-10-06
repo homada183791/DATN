@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useProblemsQuery } from '../api/problems';
@@ -22,6 +23,7 @@ import {
   Bell,
   Search,
   Palette,
+  Languages,
   Check,
   ChevronDown,
   Calendar,
@@ -38,44 +40,26 @@ interface SidebarItem {
   path: string;
 }
 
-const studentItems: SidebarItem[] = [
-  { label: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/student/dashboard'  },
-  { label: 'Bài tập',   icon: <BookOpen size={20} />,        path: '/student/homeworks'  },
-  { label: 'Lớp học',   icon: <GraduationCap size={20} />,   path: '/student/class'      },
-  { label: 'Kỳ thi',    icon: <Trophy size={20} />,          path: '/student/contest'    },
-  { label: 'Lịch biểu', icon: <Calendar size={20} />,        path: '/student/calendar'   },
-  { label: 'Nộp bài',   icon: <Send size={20} />,            path: '/student/submission' },
-];
-
-const instructorItems: SidebarItem[] = [
-  { label: 'Dashboard',          icon: <LayoutDashboard size={20} />, path: '/instructor/dashboard' },
-  { label: 'Lớp học',            icon: <GraduationCap size={20} />,   path: '/instructor/classes'   },
-  { label: 'Bài tập',            icon: <ClipboardList size={20} />,   path: '/instructor/homework'  },
-  { label: 'Kỳ thi',             icon: <Trophy size={20} />,          path: '/instructor/contest'   },
-  { label: 'Lịch biểu',          icon: <Calendar size={20} />,        path: '/instructor/calendar'  },
-  { label: 'Sinh viên',          icon: <Users size={20} />,           path: '/instructor/students'  },
-  { label: 'Ngân hàng bài toán', icon: <BookOpen size={20} />,        path: '/instructor/problems'  },
-];
-
 function Breadcrumbs() {
   const location = useLocation();
+  const { t } = useTranslation();
   const pathSegments = location.pathname.split('/').filter(Boolean);
 
   const labels: Record<string, string> = {
-    student: 'Sinh viên',
-    instructor: 'Giảng viên',
-    dashboard: 'Dashboard',
-    problems: 'Bài tập',
-    problem: 'Làm bài',
-    homework: 'Bài tập về nhà',
-    contest: 'Kỳ thi',
-    submission: 'Nộp bài',
-    class: 'Lớp học',
-    classes: 'Lớp học',
-    profile: 'Hồ sơ',
-    settings: 'Cài đặt',
-    students: 'Sinh viên',
-    calendar: 'Lịch biểu',
+    student: t('breadcrumb.student'),
+    instructor: t('breadcrumb.instructor'),
+    dashboard: t('breadcrumb.dashboard'),
+    problems: t('breadcrumb.problems'),
+    problem: t('breadcrumb.problem'),
+    homework: t('breadcrumb.homework'),
+    contest: t('breadcrumb.contest'),
+    submission: t('breadcrumb.submission'),
+    class: t('breadcrumb.class'),
+    classes: t('breadcrumb.class'),
+    profile: t('breadcrumb.profile'),
+    settings: t('breadcrumb.settings'),
+    students: t('breadcrumb.students'),
+    calendar: t('breadcrumb.calendar'),
   };
 
   const formatSegment = (segment: string) => {
@@ -111,6 +95,7 @@ function Breadcrumbs() {
 }
 
 export default function Layout({ children, fullBleed = false }: { children: React.ReactNode; fullBleed?: boolean }) {
+  const { t, i18n } = useTranslation();
   const { user, logout, isAuthenticated, isInitializing } = useAuth();
   const { theme, setThemeId, themes } = useTheme();
   const { data: problems = [] } = useProblemsQuery();
@@ -122,6 +107,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
   const [searchOpen, setSearchOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
@@ -134,7 +120,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
         searchRef.current?.focus();
         setSearchOpen(true);
       }
-      if (e.key === 'Escape') { setSearchOpen(false); setBellOpen(false); setPaletteOpen(false); setAvatarOpen(false); }
+      if (e.key === 'Escape') { setSearchOpen(false); setBellOpen(false); setPaletteOpen(false); setLangOpen(false); setAvatarOpen(false); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -152,7 +138,24 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
     return <Navigate to="/login" replace />;
   }
 
-  const items = user?.role === 'instructor' ? instructorItems : studentItems;
+  const items: SidebarItem[] = user?.role === 'instructor'
+    ? [
+        { label: t('nav.dashboard'), icon: <LayoutDashboard size={20} />, path: '/instructor/dashboard' },
+        { label: t('nav.class'), icon: <GraduationCap size={20} />, path: '/instructor/classes' },
+        { label: t('nav.homework'), icon: <ClipboardList size={20} />, path: '/instructor/homework' },
+        { label: t('nav.contest'), icon: <Trophy size={20} />, path: '/instructor/contest' },
+        { label: t('nav.calendar'), icon: <Calendar size={20} />, path: '/instructor/calendar' },
+        { label: t('nav.students'), icon: <Users size={20} />, path: '/instructor/students' },
+        { label: t('nav.problemBank'), icon: <BookOpen size={20} />, path: '/instructor/problems' },
+      ]
+    : [
+        { label: t('nav.dashboard'), icon: <LayoutDashboard size={20} />, path: '/student/dashboard' },
+        { label: t('nav.homework'), icon: <BookOpen size={20} />, path: '/student/homeworks' },
+        { label: t('nav.class'), icon: <GraduationCap size={20} />, path: '/student/class' },
+        { label: t('nav.contest'), icon: <Trophy size={20} />, path: '/student/contest' },
+        { label: t('nav.calendar'), icon: <Calendar size={20} />, path: '/student/calendar' },
+        { label: t('nav.submission'), icon: <Send size={20} />, path: '/student/submission' },
+      ];
   const filteredProblems = problems.filter(
     (p) => p.title.toLowerCase().includes(query.toLowerCase()) || p.id.toLowerCase().includes(query.toLowerCase())
   );
@@ -168,10 +171,10 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
       )}
 
       {/* Click-away layer for topbar dropdowns */}
-      {(bellOpen || paletteOpen || avatarOpen || searchOpen) && (
+      {(bellOpen || paletteOpen || langOpen || avatarOpen || searchOpen) && (
         <div
           className="fixed inset-0 z-40"
-          onClick={() => { setBellOpen(false); setPaletteOpen(false); setAvatarOpen(false); setSearchOpen(false); }}
+          onClick={() => { setBellOpen(false); setPaletteOpen(false); setLangOpen(false); setAvatarOpen(false); setSearchOpen(false); }}
         />
       )}
 
@@ -286,13 +289,13 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
               onChange={(e) => { setQuery(e.target.value); setSearchOpen(true); }}
               onFocus={() => setSearchOpen(true)}
               onBlur={() => setTimeout(() => setSearchOpen(false), 150)}
-              placeholder="Tìm bài tập, người dùng…"
+              placeholder={t('topbar.searchPlaceholder')}
               className="w-48 lg:w-72 pl-9 pr-10 py-2 bg-[#f0ebd9] border border-[#e5dac9] rounded-lg text-[13px] text-[#191919] placeholder-[#bfae99] focus:outline-none focus:border-[#193a2b]"
             />
             <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0.5 rounded border border-[#e5dac9] text-[#8a8073] font-mono">⌘K</kbd>
             {searchOpen && query && (
               <div className="absolute top-full mt-2 right-0 w-80 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl overflow-hidden z-60 animate-slide-up">
-                <p className="px-4 py-2 text-[10.5px] font-bold uppercase tracking-widest text-[#8a8073] border-b border-[#e5dac9]">Kết quả</p>
+                <p className="px-4 py-2 text-[10.5px] font-bold uppercase tracking-widest text-[#8a8073] border-b border-[#e5dac9]">{t('topbar.searchResults')}</p>
                 {filteredProblems.slice(0, 6).map((p) => (
                   <Link
                     key={p.id}
@@ -304,7 +307,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                   </Link>
                 ))}
                 {filteredProblems.length === 0 && (
-                  <p className="px-4 py-3 text-[13px] text-[#8a8073]">Không tìm thấy bài nào.</p>
+                  <p className="px-4 py-3 text-[13px] text-[#8a8073]">{t('topbar.searchEmpty')}</p>
                 )}
               </div>
             )}
@@ -317,14 +320,14 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
               className={`p-2 rounded-lg transition-colors ${
                 paletteOpen ? 'text-[#193a2b] bg-[#eadecc]/60' : 'text-[#8a8073] hover:text-[#193a2b] hover:bg-[#eadecc]/60'
               }`}
-              title="Bảng màu"
+              title={t('topbar.palette')}
             >
               <Palette size={18} />
             </button>
             {paletteOpen && (
               <div className="absolute right-0 top-full mt-2 w-72 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden">
                 <p className="px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-widest text-[#8a8073] border-b border-[#e5dac9]">
-                  Bảng màu giao diện
+                  {t('topbar.paletteTitle')}
                 </p>
                 <div className="p-2 max-h-80 overflow-y-auto">
                   {themes.map((t) => (
@@ -356,12 +359,48 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
             )}
           </div>
 
+          {/* Language switcher */}
+          <div className="relative">
+            <button
+              onClick={() => setLangOpen(!langOpen)}
+              className={`p-2 rounded-lg transition-colors ${
+                langOpen ? 'text-[#193a2b] bg-[#eadecc]/60' : 'text-[#8a8073] hover:text-[#193a2b] hover:bg-[#eadecc]/60'
+              }`}
+              title={t('topbar.language')}
+              aria-label={t('topbar.language')}
+            >
+              <Languages size={18} />
+            </button>
+            {langOpen && (
+              <div className="absolute right-0 top-full mt-2 w-44 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl z-[60] animate-slide-up overflow-hidden p-1.5">
+                {(['vi', 'en'] as const).map((language) => (
+                  <button
+                    key={language}
+                    onClick={() => {
+                      void i18n.changeLanguage(language);
+                      setLangOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-[13px] transition-colors ${
+                      i18n.resolvedLanguage === language ? 'bg-[var(--ws-accent-soft)] text-[#193a2b] font-semibold' : 'text-[#191919] hover:bg-[var(--ws-hover)]'
+                    }`}
+                  >
+                    <span className="w-6 h-4 flex items-center justify-center rounded-[3px] border border-[#e5dac9] text-[8px] font-bold bg-white text-[#8a8073]">
+                      {language.toUpperCase()}
+                    </span>
+                    {t(language === 'vi' ? 'topbar.langVi' : 'topbar.langEn')}
+                    {i18n.resolvedLanguage === language && <Check size={13} className="ml-auto text-[#193a2b]" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Notifications */}
           <div className="relative">
             <button
               onClick={() => setBellOpen(!bellOpen)}
               className="relative p-2 rounded-lg text-[#8a8073] hover:text-[#191919] hover:bg-[#eadecc]/60 transition-colors"
-              title="Thông báo"
+              title={t('topbar.notifications')}
             >
               <Bell size={18} />
               {unreadCount > 0 && (
@@ -377,7 +416,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                 <div className="flex items-center justify-between px-4 py-3 border-b border-[#e5dac9]">
                   <div className="flex items-center gap-2">
                     <Bell size={14} className="text-[#8a8073]" />
-                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-[#8a8073]">Thông báo</p>
+                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-[#8a8073]">{t('topbar.notifications')}</p>
                     {unreadCount > 0 && (
                       <span className="px-1.5 py-0.5 rounded-full bg-[#cc5a37]/10 text-[#cc5a37] text-[10px] font-bold">{unreadCount} mới</span>
                     )}
@@ -532,14 +571,14 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                     onClick={() => setAvatarOpen(false)}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-[#5c5446] hover:bg-(--ws-hover) transition-colors"
                   >
-                    <User size={17} className="text-[#8a8073]" /> Hồ sơ của tôi
+                    <User size={17} className="text-[#8a8073]" /> {t('userMenu.myProfile')}
                   </Link>
                   <Link
                     to={user?.role === 'instructor' ? '/instructor/settings' : '/student/settings'}
                     onClick={() => setAvatarOpen(false)}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-[#5c5446] hover:bg-(--ws-hover) transition-colors"
                   >
-                    <Settings size={17} className="text-[#8a8073]" /> Cài đặt
+                    <Settings size={17} className="text-[#8a8073]" /> {t('userMenu.settings')}
                   </Link>
                 </div>
 
@@ -549,7 +588,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                     onClick={() => { setAvatarOpen(false); logout(); }}
                     className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-[#cc5a37] hover:bg-[#cc5a37]/10 transition-colors"
                   >
-                    <LogOut size={17} /> Đăng xuất
+                    <LogOut size={17} /> {t('userMenu.logout')}
                   </button>
                 </div>
               </div>

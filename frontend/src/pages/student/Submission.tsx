@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { ApiError } from '../../api/http';
 import { useSubmissionsQuery } from '../../api/submissions';
@@ -40,6 +41,7 @@ const verdictByStatus: Record<string, string> = {
 };
 
 export default function Submission() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { data, isLoading, error } = useSubmissionsQuery();
@@ -117,8 +119,8 @@ export default function Submission() {
   return (
     <div className="space-y-6 text-[#191919]">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold font-serif text-[#191919]">Bài nộp</h2>
-        <span className="text-sm text-[#8a8073]">{filteredSubmissions.length} kết quả</span>
+        <h2 className="text-2xl font-bold font-serif text-[#191919]">{t('nav.submission')}</h2>
+        <span className="text-sm text-[#8a8073]">{t('submission.resultCount', { count: filteredSubmissions.length })}</span>
       </div>
 
       {/* Search & Filters */}
@@ -129,7 +131,7 @@ export default function Submission() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm kiếm theo tên bài hoặc người dùng..."
+            placeholder={t('submission.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
           />
         </div>
@@ -139,20 +141,20 @@ export default function Submission() {
             showFilters ? 'bg-[#193a2b]/10 border-[#193a2b]/30 text-[#193a2b]' : 'bg-white border-[#e5dac9] text-[#5c5446] hover:text-[#191919]'
           }`}
         >
-          <Filter size={16} /> Bộ lọc <ChevronDown size={14} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+          <Filter size={16} /> {t('instructorStudent.filterButton')} <ChevronDown size={14} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
         </button>
       </div>
 
       {showFilters && (
         <div className="flex flex-wrap gap-4 p-4 bg-white border border-[#e5dac9] rounded-xl shadow-sm">
           <div>
-            <label className="block text-xs text-[#8a8073] mb-1.5 font-semibold uppercase tracking-wider">Kết quả</label>
+            <label className="block text-xs text-[#8a8073] mb-1.5 font-semibold uppercase tracking-wider">{t('submission.colVerdict')}</label>
             <select
               value={verdictFilter}
               onChange={(e) => setVerdictFilter(e.target.value)}
               className="px-3 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-lg text-sm text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
             >
-              <option value="all">Tất cả</option>
+              <option value="all">{t('instructorContest.filterAll')}</option>
               <option value="AC">Accepted</option>
               <option value="WA">Wrong Answer</option>
               <option value="TLE">Time Limit</option>
@@ -161,13 +163,13 @@ export default function Submission() {
             </select>
           </div>
           <div>
-            <label className="block text-xs text-[#8a8073] mb-1.5 font-semibold uppercase tracking-wider">Ngôn ngữ</label>
+            <label className="block text-xs text-[#8a8073] mb-1.5 font-semibold uppercase tracking-wider">{t('submission.colLanguage')}</label>
             <select
               value={languageFilter}
               onChange={(e) => setLanguageFilter(e.target.value)}
               className="px-3 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-lg text-sm text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
             >
-              <option value="all">Tất cả</option>
+              <option value="all">{t('instructorContest.filterAll')}</option>
               {languages.map((lang) => (
                 <option key={lang} value={lang}>{lang}</option>
               ))}
@@ -193,7 +195,7 @@ export default function Submission() {
                   className="flex items-center gap-1.5 rounded-lg border border-[#193a2b]/20 bg-[#193a2b]/10 px-3 py-2 text-sm font-medium text-[#193a2b] hover:bg-[#193a2b]/20"
                 >
                   <ExternalLink size={15} />
-                  Đi đến bài tập
+                  {t('submission.goToProblem')}
                 </button>
                 <button onClick={() => setSelectedSubmission(null)} className="text-[#8a8073] hover:text-[#191919]">
                   <X size={20} />
@@ -203,7 +205,7 @@ export default function Submission() {
             <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
                 <div className="p-3 bg-white rounded-xl border border-[#e5dac9] text-center shadow-sm">
-                  <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">Ngôn ngữ</p>
+                  <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">{t('submission.colLanguage')}</p>
                   <p className="text-sm text-[#191919] font-semibold">{selectedSub.language}</p>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-[#e5dac9] text-center shadow-sm">
@@ -221,7 +223,7 @@ export default function Submission() {
               </div>
 
               <div className="mb-4">
-                <h4 className="text-sm font-bold text-[#191919] font-serif mb-2">Mã nguồn</h4>
+                <h4 className="text-sm font-bold text-[#191919] font-serif mb-2">{t('submission.sourceCode')}</h4>
                 <div className="bg-[#242424] border border-[#333333] rounded-xl p-4 overflow-x-auto shadow-inner">
                   <pre className="text-sm text-emerald-400 font-mono whitespace-pre">{selectedSub.code}</pre>
                 </div>
@@ -234,9 +236,9 @@ export default function Submission() {
                     <span className="text-sm font-bold text-red-700 font-serif">{verdictFullNames[selectedSub.verdict] || selectedSub.verdict}</span>
                   </div>
                   <p className="text-xs text-red-600 leading-relaxed">
-                    {selectedSub.verdict === 'WA' && 'Kết quả không chính xác trên một số bộ test dữ liệu. Vui lòng kiểm tra lại tính đúng đắn của thuật toán.'}
-                    {selectedSub.verdict === 'TLE' && 'Chương trình chạy vượt quá giới hạn thời gian cho phép. Cần tối ưu thuật toán có độ phức tạp thời gian tốt hơn.'}
-                    {selectedSub.verdict === 'RTE' && 'Chương trình phát sinh lỗi trong quá trình thực thi. Ví dụ: truy cập mảng ngoài biên, chia cho 0.'}
+                    {selectedSub.verdict === 'WA' && t('submission.explainWA')}
+                    {selectedSub.verdict === 'TLE' && t('submission.explainTLE')}
+                    {selectedSub.verdict === 'RTE' && t('submission.explainRTE')}
                   </p>
                 </div>
               )}
@@ -262,15 +264,15 @@ export default function Submission() {
             <thead>
               <tr className="border-b border-[#e5dac9] bg-[#f0ebd9]/50">
                 <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">ID</th>
-                <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">Bài toán</th>
+                <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">{t('submission.colProblem')}</th>
                 {user?.role === 'instructor' && (
-                  <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">Người nộp</th>
+                  <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">{t('submission.colSubmitter')}</th>
                 )}
-                <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">Kết quả</th>
-                <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">Ngôn ngữ</th>
-                <th className="text-right text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">Thời gian</th>
-                <th className="text-right text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">Bộ nhớ</th>
-                <th className="text-right text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">Thời điểm</th>
+                <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">{t('submission.colVerdict')}</th>
+                <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">{t('submission.colLanguage')}</th>
+                <th className="text-right text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">{t('submission.colTime')}</th>
+                <th className="text-right text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">{t('submission.colMemory')}</th>
+                <th className="text-right text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">{t('submission.colSubmittedAt')}</th>
               </tr>
             </thead>
             <tbody>
@@ -302,7 +304,7 @@ export default function Submission() {
         {filteredSubmissions.length === 0 && (
           <div className="p-12 text-center">
             <Send size={48} className="text-[#bfae99] mx-auto mb-4" />
-            <p className="text-[#8a8073]">Không tìm thấy bài nộp nào</p>
+            <p className="text-[#8a8073]">{t('submission.emptyState')}</p>
           </div>
         )}
       </div>

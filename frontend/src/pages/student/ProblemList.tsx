@@ -1,17 +1,12 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { BookOpen, ChevronRight, Search, Plus, Edit, Trash2, ArrowUpDown } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '../../api/http';
 import { useProblemsQuery, createProblem, updateProblem, deleteProblem, type ProblemDto, type CreateProblemDto } from '../../api/problems';
 import { useAuth } from '../../context/AuthContext';
 import ProblemFormModal from '../../components/ProblemFormModal';
-
-const difficultyLabels: Record<ProblemDto['difficulty'], string> = {
-  EASY: 'Dễ',
-  MEDIUM: 'Trung bình',
-  HARD: 'Khó',
-};
 
 const difficultyStyles: Record<ProblemDto['difficulty'], string> = {
   EASY: 'text-emerald-800 bg-emerald-100 border-emerald-200',
@@ -32,6 +27,7 @@ const sortOptions: { value: SortKey; label: string }[] = [
 ];
 
 export default function ProblemList() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const isInstructor = user?.role === 'instructor';
   const queryClient = useQueryClient();
@@ -43,6 +39,18 @@ export default function ProblemList() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProblem, setEditingProblem] = useState<ProblemDto | null>(null);
+  const difficultyLabels: Record<ProblemDto['difficulty'], string> = {
+    EASY: t('instructorHomework.difficultyEasyFull'),
+    MEDIUM: t('instructorHomework.difficultyMediumFull'),
+    HARD: t('instructorHomework.difficultyHard'),
+  };
+  const sortLabels: Record<SortKey, string> = {
+    default: t('problemList.sortDefault'),
+    title_asc: t('problemList.sortTitleAsc'),
+    title_desc: t('problemList.sortTitleDesc'),
+    diff_asc: t('problemList.sortDifficultyAsc'),
+    diff_desc: t('problemList.sortDifficultyDesc'),
+  };
 
   const createMutation = useMutation({
     mutationFn: createProblem,
@@ -51,7 +59,7 @@ export default function ProblemList() {
       setIsModalOpen(false);
     },
     onError: (err) => {
-      alert(err instanceof ApiError ? err.message : 'Lỗi khi tạo bài tập');
+      alert(err instanceof ApiError ? err.message : t('problemList.createError'));
     }
   });
 
@@ -62,7 +70,7 @@ export default function ProblemList() {
       setIsModalOpen(false);
     },
     onError: (err) => {
-      alert(err instanceof ApiError ? err.message : 'Lỗi khi cập nhật bài tập');
+      alert(err instanceof ApiError ? err.message : t('problemList.updateError'));
     }
   });
 
@@ -72,7 +80,7 @@ export default function ProblemList() {
       queryClient.invalidateQueries({ queryKey: ['problems'] });
     },
     onError: (err) => {
-      alert(err instanceof ApiError ? err.message : 'Lỗi khi xóa bài tập');
+      alert(err instanceof ApiError ? err.message : t('problemList.deleteError'));
     }
   });
 
@@ -110,7 +118,7 @@ export default function ProblemList() {
 
   const handleDeleteProblem = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
-    if (window.confirm('Bạn có chắc chắn muốn xóa bài tập này?')) {
+    if (window.confirm(t('problemList.deleteConfirm'))) {
       deleteMutation.mutate(id);
     }
   };
@@ -127,8 +135,8 @@ export default function ProblemList() {
     return (
       <div className="space-y-6 text-[#191919]">
         <div>
-          <h2 className="text-3xl font-bold font-serif text-[#191919]">Ngân hàng bài toán</h2>
-          <p className="text-sm text-[#8a8073] mt-1">Đang tải danh sách bài toán...</p>
+          <h2 className="text-3xl font-bold font-serif text-[#191919]">{t('problemList.titleInstructor')}</h2>
+          <p className="text-sm text-[#8a8073] mt-1">{t('problemList.loading')}</p>
         </div>
         <div className="space-y-3">
           {Array.from({ length: 6 }, (_, index) => (
@@ -146,7 +154,7 @@ export default function ProblemList() {
     return (
       <div className="rounded-2xl border border-[#e5dac9] bg-white p-10 text-center shadow-sm">
         <BookOpen size={44} className="text-[#bfae99] mx-auto mb-3" />
-        <h2 className="text-xl font-bold text-[#191919]">Không thể tải danh sách bài tập</h2>
+        <h2 className="text-xl font-bold text-[#191919]">{t('problemList.loadError')}</h2>
         <p className="mt-2 text-sm text-[#8a8073]">{error.message}</p>
       </div>
     );
@@ -160,11 +168,10 @@ export default function ProblemList() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-3xl font-bold font-serif text-[#191919]">
-            {isInstructor ? 'Ngân hàng bài toán' : 'Bài toán'}
+            {isInstructor ? t('problemList.titleInstructor') : t('problemList.titleStudent')}
           </h2>
           <p className="text-sm text-[#8a8073] mt-1">
-            Hiển thị <span className="font-semibold text-[#191919]">{filteredProblems.length}</span>
-            {' '}/ {totalCount} bài tập
+            {t('problemList.shownCount', { visible: filteredProblems.length, total: totalCount })}
           </p>
         </div>
         {isInstructor && (
@@ -172,7 +179,7 @@ export default function ProblemList() {
             onClick={handleOpenCreateModal}
             className="flex items-center gap-2 rounded-xl bg-[#193a2b] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#122b1f] transition-colors"
           >
-            <Plus size={16} /> Tạo bài tập mới
+            <Plus size={16} /> {t('problemList.createBtn')}
           </button>
         )}
       </div>
@@ -185,7 +192,7 @@ export default function ProblemList() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Tìm theo tên, mã hoặc mô tả..."
+            placeholder={t('problemList.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-sm text-[#191919] outline-none placeholder:text-[#bfae99] focus:ring-2 focus:ring-[#193a2b] focus:border-[#193a2b]"
           />
         </div>
@@ -193,7 +200,7 @@ export default function ProblemList() {
         <div className="flex flex-wrap items-center gap-3">
           {/* Difficulty filter */}
           <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold text-[#8a8073] uppercase tracking-wider">Độ khó:</span>
+            <span className="text-xs font-semibold text-[#8a8073] uppercase tracking-wider">{t('problemList.difficultyFilter')}</span>
             <div className="flex gap-1.5">
               {(['all', 'EASY', 'MEDIUM', 'HARD'] as const).map((level) => (
                 <button
@@ -208,7 +215,7 @@ export default function ProblemList() {
                       : 'bg-[#f0ebd9] text-[#5c5446] hover:bg-[#e5dac9]'
                   }`}
                 >
-                  {level === 'all' ? 'Tất cả' : difficultyLabels[level]}
+                  {level === 'all' ? t('problemList.all') : difficultyLabels[level]}
                 </button>
               ))}
             </div>
@@ -219,7 +226,7 @@ export default function ProblemList() {
           {/* Sort */}
           <div className="flex items-center gap-1.5">
             <ArrowUpDown size={13} className="text-[#8a8073]" />
-            <span className="text-xs font-semibold text-[#8a8073] uppercase tracking-wider">Sắp xếp:</span>
+            <span className="text-xs font-semibold text-[#8a8073] uppercase tracking-wider">{t('problemList.sortLabel')}</span>
             <div className="flex gap-1.5">
               {sortOptions.map((opt) => (
                 <button
@@ -231,7 +238,7 @@ export default function ProblemList() {
                       : 'bg-[#f0ebd9] text-[#5c5446] hover:bg-[#e5dac9]'
                   }`}
                 >
-                  {opt.label}
+                  {sortLabels[opt.value]}
                 </button>
               ))}
             </div>
@@ -259,11 +266,11 @@ export default function ProblemList() {
             <div className="flex items-center gap-4 text-sm text-[#8a8073] flex-shrink-0">
               <div className="flex flex-col items-end gap-0.5">
                 <span className="text-xs font-semibold text-[#5c5446]">{problem.time_limit} ms</span>
-                <span className="text-[10px] text-[#bfae99]">Thời gian</span>
+                <span className="text-[10px] text-[#bfae99]">{t('problemList.timeLabel')}</span>
               </div>
               <div className="flex flex-col items-end gap-0.5">
                 <span className="text-xs font-semibold text-[#5c5446]">{problem.memory_limit} MB</span>
-                <span className="text-[10px] text-[#bfae99]">Bộ nhớ</span>
+                <span className="text-[10px] text-[#bfae99]">{t('problemList.memoryLabel')}</span>
               </div>
               <span className="hidden sm:inline text-[11px] font-bold tracking-wider text-[#8a8073] bg-[#f0ebd9] border border-[#e5dac9] rounded-md px-2 py-1">
                 {problem.id.slice(0, 8)}…
@@ -273,7 +280,7 @@ export default function ProblemList() {
                   <button
                     onClick={(e) => handleOpenEditModal(e, problem)}
                     className="p-1 text-[#8a8073] hover:text-[#193a2b] transition-colors"
-                    title="Sửa bài tập"
+                    title={t('problemList.editTitle')}
                   >
                     <Edit size={16} />
                   </button>
@@ -281,7 +288,7 @@ export default function ProblemList() {
                     onClick={(e) => handleDeleteProblem(e, problem.id)}
                     className="p-1 text-[#8a8073] hover:text-red-500 transition-colors disabled:opacity-50"
                     disabled={deleteMutation.isPending}
-                    title="Xóa bài tập"
+                    title={t('problemList.deleteTitle')}
                   >
                     <Trash2 size={16} />
                   </button>
@@ -295,9 +302,9 @@ export default function ProblemList() {
         {filteredProblems.length === 0 && (
           <div className="rounded-2xl border border-[#e5dac9] bg-white p-12 text-center shadow-sm">
             <BookOpen size={44} className="text-[#bfae99] mx-auto mb-4" />
-            <p className="font-semibold text-[#191919]">Không tìm thấy bài nào</p>
+            <p className="font-semibold text-[#191919]">{t('problemList.noProblemsTitle')}</p>
             <p className="text-sm text-[#8a8073] mt-1">
-              {query ? `Không có kết quả cho "${query}"` : 'Thử thay đổi bộ lọc.'}
+              {query ? t('problemList.searchNoResults', { query }) : t('problemList.noProblemsSubtitle')}
             </p>
           </div>
         )}

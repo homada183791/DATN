@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Calendar, CheckCircle2, Loader2, Send, Target, Trophy } from 'lucide-react';
 import { ApiError } from '../../api/http';
@@ -20,6 +21,7 @@ const verdictColors: Record<string, string> = {
 };
 
 export default function StudentDashboard() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { data: contests, isLoading: contestsLoading, error: contestsError } = useContestsQuery();
   const activeContest = useMemo(
@@ -79,10 +81,10 @@ export default function StudentDashboard() {
       <div className="bg-white border border-[#e5dac9] rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-[#191919] font-serif">
-            Xin chào, {user?.fullName || user?.email}! 👋
+            {t('studentDashboard.welcome', { name: user?.fullName || user?.email })}
           </h2>
           <p className="text-sm text-[#5c5446] mt-1">
-            Theo dõi tiến độ học tập, bài tập, kỳ thi và thứ hạng lập trình của bạn.
+            {t('studentDashboard.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -90,7 +92,7 @@ export default function StudentDashboard() {
             to="/student/problems"
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#193a2b] text-white text-sm font-semibold hover:bg-[#143022] transition-colors shadow-xs"
           >
-            Luyện tập bài toán
+            {t('studentDashboard.practiceBtn')}
             <ArrowRight size={15} />
           </Link>
         </div>
@@ -107,11 +109,11 @@ export default function StudentDashboard() {
               <CheckCircle2 size={20} className="text-[#193a2b]" />
             </div>
             <span className="text-xs font-semibold text-[#8a8073] bg-[#f0ebd9] px-2 py-0.5 rounded-md">
-              Mục tiêu
+              {t('studentDashboard.goal')}
             </span>
           </div>
           <p className="text-2xl font-bold font-serif text-[#191919]">{solvedCount}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Bài đã giải (AC)</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('studentDashboard.solvedCount')}</p>
         </div>
 
         <div className="bg-white border border-[#e5dac9] rounded-xl p-5 shadow-xs hover:border-[#193a2b]/30 transition-all">
@@ -120,11 +122,11 @@ export default function StudentDashboard() {
               <Send size={20} className="text-emerald-700" />
             </div>
             <span className="text-xs font-semibold text-[#8a8073] bg-[#f0ebd9] px-2 py-0.5 rounded-md">
-              Submissions
+              {t('studentDashboard.submissions')}
             </span>
           </div>
           <p className="text-2xl font-bold font-serif text-[#191919]">{submissionCount}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Tổng lượt nộp bài</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('studentDashboard.totalSubmissions')}</p>
         </div>
 
         <div className="bg-white border border-[#e5dac9] rounded-xl p-5 shadow-xs hover:border-[#193a2b]/30 transition-all">
@@ -134,12 +136,12 @@ export default function StudentDashboard() {
             </div>
             {runningContests.length > 0 && (
               <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> {t('studentDashboard.live')}
               </span>
             )}
           </div>
           <p className="text-2xl font-bold font-serif text-[#191919]">{runningContests.length}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Kỳ thi đang diễn ra</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('studentDashboard.runningContestCount')}</p>
         </div>
 
         <div className="bg-white border border-[#e5dac9] rounded-xl p-5 shadow-xs hover:border-[#193a2b]/30 transition-all">
@@ -152,7 +154,7 @@ export default function StudentDashboard() {
             </span>
           </div>
           <p className="text-2xl font-bold font-serif text-[#191919]">{successRate}%</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Tỷ lệ nộp chính xác</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('studentDashboard.accuracyRate')}</p>
         </div>
       </div>
 
@@ -164,11 +166,11 @@ export default function StudentDashboard() {
           <div className="bg-white border border-[#e5dac9] rounded-2xl p-6 shadow-xs">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-bold text-[#191919] font-serif">Kỳ thi đang & sắp diễn ra</h3>
-                <p className="text-xs text-[#8a8073]">Các kỳ thi trực tuyến trên hệ thống JudgeHub</p>
+                <h3 className="text-base font-bold text-[#191919] font-serif">{t('studentDashboard.upcomingContests')}</h3>
+                <p className="text-xs text-[#8a8073]">{t('studentDashboard.contestSectionSubtitle')}</p>
               </div>
               <Link to="/student/contest" className="text-xs text-[#193a2b] hover:text-[#2d5a3f] font-semibold flex items-center gap-1">
-                Xem tất cả <ArrowRight size={13} />
+                {t('instructorDashboard.viewAll')} <ArrowRight size={13} />
               </Link>
             </div>
 

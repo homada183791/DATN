@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   createContest, deleteContest, updateContest,
@@ -36,6 +37,7 @@ const emptyContestForm: ContestForm = {
 };
 
 export default function InstructorContest() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'running' | 'ended'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -218,9 +220,9 @@ export default function InstructorContest() {
   };
 
   const statusLabels: Record<string, string> = {
-    upcoming: 'Sắp diễn ra',
-    running: 'Đang diễn ra',
-    ended: 'Đã kết thúc',
+    upcoming: t('instructorContest.statusUpcoming'),
+    running: t('instructorContest.statusRunning'),
+    ended: t('instructorContest.statusEnded'),
   };
 
   // Leaderboard is now always an array from BE
@@ -236,12 +238,12 @@ export default function InstructorContest() {
   return (
     <div className="space-y-6 text-[#191919]">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold font-serif text-[#191919]">Quản lý kỳ thi</h2>
+        <h2 className="text-2xl font-bold font-serif text-[#191919]">{t('instructorContest.pageTitle')}</h2>
         <button
           onClick={openCreate}
           className="flex items-center gap-2 px-4 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] transition-all shadow-md"
         >
-          <Plus size={18} /> Tạo kỳ thi mới
+          <Plus size={18} /> {t('instructorContest.createNew')}
         </button>
       </div>
 
@@ -249,15 +251,15 @@ export default function InstructorContest() {
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white border border-[#e5dac9] rounded-xl p-4 text-center shadow-sm">
           <p className="text-2xl font-bold font-serif text-yellow-600">{contests.filter((c) => c.status === 'upcoming').length}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Sắp diễn ra</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorContest.statUpcoming')}</p>
         </div>
         <div className="bg-white border border-[#e5dac9] rounded-xl p-4 text-center shadow-sm">
           <p className="text-2xl font-bold font-serif text-emerald-700">{contests.filter((c) => c.status === 'running').length}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Đang chạy</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorContest.statRunning')}</p>
         </div>
         <div className="bg-white border border-[#e5dac9] rounded-xl p-4 text-center shadow-sm">
           <p className="text-2xl font-bold font-serif text-[#8a8073]">{contests.filter((c) => c.status === 'ended').length}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">Đã kết thúc</p>
+          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorContest.statEnded')}</p>
         </div>
       </div>
 
@@ -269,7 +271,7 @@ export default function InstructorContest() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm kiếm kỳ thi..."
+            placeholder={t('instructorContest.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
           />
         </div>
@@ -284,7 +286,7 @@ export default function InstructorContest() {
                   : 'bg-white text-[#5c5446] hover:text-[#191919] border border-[#e5dac9]'
               }`}
             >
-              {f === 'all' ? 'Tất cả' : statusLabels[f]}
+              {f === 'all' ? t('instructorContest.filterAll') : statusLabels[f]}
             </button>
           ))}
         </div>
@@ -326,11 +328,11 @@ export default function InstructorContest() {
                   <p className="text-sm text-[var(--ws-text)] font-semibold mt-1">{formatVNFull(selectedContestData.endTime)}</p>
                 </div>
                 <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] shadow-xs">
-                  <p className="text-xs text-[var(--ws-muted)] font-semibold uppercase tracking-wider">Người tham gia</p>
+                  <p className="text-xs text-[var(--ws-muted)] font-semibold uppercase tracking-wider">{t('instructorContest.fieldParticipants')}</p>
                   <p className="text-sm text-[var(--ws-text)] font-semibold mt-1">{selectedContestData.participantCount}</p>
                 </div>
                 <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] shadow-xs">
-                  <p className="text-xs text-[var(--ws-muted)] font-semibold uppercase tracking-wider">Số bài</p>
+                  <p className="text-xs text-[var(--ws-muted)] font-semibold uppercase tracking-wider">{t('instructorContest.fieldProblemCount')}</p>
                   <p className="text-sm text-[var(--ws-text)] font-semibold mt-1">{selectedContestData.problemCount}</p>
                 </div>
               </div>
@@ -342,8 +344,8 @@ export default function InstructorContest() {
                   <thead>
                     <tr className="border-b border-[var(--ws-border)] bg-[var(--ws-hover)]">
                       <th className="text-left text-xs font-semibold text-[var(--ws-muted)] py-2.5 px-3 uppercase tracking-wider">#</th>
-                      <th className="text-left text-xs font-semibold text-[var(--ws-muted)] py-2.5 px-3 uppercase tracking-wider">Người dùng</th>
-                      <th className="text-right text-xs font-semibold text-[var(--ws-muted)] py-2.5 px-3 uppercase tracking-wider">Đã giải</th>
+                      <th className="text-left text-xs font-semibold text-[var(--ws-muted)] py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colUser')}</th>
+                      <th className="text-right text-xs font-semibold text-[var(--ws-muted)] py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colSolved')}</th>
                       <th className="text-right text-xs font-semibold text-[var(--ws-muted)] py-2.5 px-3 uppercase tracking-wider">Penalty</th>
                     </tr>
                   </thead>
@@ -595,7 +597,7 @@ export default function InstructorContest() {
                   onClick={() => setShowCreateModal(false)}
                   className="px-6 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] font-medium rounded-xl hover:bg-[var(--ws-hover)] transition-colors"
                 >
-                  Huỷ
+                  {t('common.cancel')}
                 </button>
               </div>
             </div>

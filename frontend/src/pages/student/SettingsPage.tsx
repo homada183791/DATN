@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { apiFetch, ApiError } from '../../api/http';
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 
 export default function SettingsPage() {
+  const { i18n, t } = useTranslation();
   const { user, updateUser } = useAuth();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState('profile');
@@ -45,7 +47,6 @@ export default function SettingsPage() {
   });
 
   const [preferences, setPreferences] = useState({
-    language: 'vi',
     editorTheme: 'vs-dark',
     fontSize: '14',
     tabSize: '4',
@@ -114,7 +115,7 @@ export default function SettingsPage() {
         avatar: updated.avatar_url || profileForm.avatarUrl,
       });
 
-      triggerSavedFeedback('Cập nhật hồ sơ thành công!');
+      triggerSavedFeedback(t('settings.savedSuccess'));
     } catch (err: any) {
       const msg = err instanceof ApiError ? err.message : 'Không thể lưu hồ sơ';
       showToast(msg, 'error');
@@ -163,7 +164,7 @@ export default function SettingsPage() {
         confirmPassword: '',
       });
 
-      triggerSavedFeedback('Đổi mật khẩu thành công!');
+      triggerSavedFeedback(t('settings.savedSuccess'));
     } catch (err: any) {
       const msg = err instanceof ApiError ? err.message : 'Đổi mật khẩu thất bại';
       setPasswordError(msg);
@@ -185,7 +186,7 @@ export default function SettingsPage() {
       });
 
       updateUser({ notificationSettings: notifications });
-      triggerSavedFeedback('Đã lưu cài đặt thông báo!');
+      triggerSavedFeedback(t('settings.savedSuccess'));
     } catch (err: any) {
       const msg = err instanceof ApiError ? err.message : 'Lỗi khi lưu thông báo';
       showToast(msg, 'error');
@@ -207,7 +208,7 @@ export default function SettingsPage() {
 
       window.localStorage.setItem('user_preferences', JSON.stringify(preferences));
       updateUser({ preferences });
-      triggerSavedFeedback('Đã lưu tuỳ chỉnh giao diện!');
+      triggerSavedFeedback(t('settings.savedSuccess'));
     } catch (err: any) {
       const msg = err instanceof ApiError ? err.message : 'Lỗi khi lưu tuỳ chỉnh';
       showToast(msg, 'error');
@@ -217,19 +218,21 @@ export default function SettingsPage() {
   };
 
   const tabs = [
-    { id: 'profile', label: 'Hồ sơ', icon: <UserIcon size={18} /> },
-    { id: 'password', label: 'Mật khẩu', icon: <Lock size={18} /> },
-    { id: 'notifications', label: 'Thông báo', icon: <Bell size={18} /> },
-    { id: 'preferences', label: 'Tuỳ chỉnh', icon: <Palette size={18} /> },
+    { id: 'profile', label: t('settings.tabProfile'), icon: <UserIcon size={18} /> },
+    { id: 'password', label: t('settings.tabPassword'), icon: <Lock size={18} /> },
+    { id: 'notifications', label: t('settings.tabNotifications'), icon: <Bell size={18} /> },
+    { id: 'preferences', label: t('settings.tabPreferences'), icon: <Palette size={18} /> },
   ];
 
   return (
     <div className="space-y-6 text-[#191919]">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold font-serif text-[#191919]">Cài đặt</h2>
+          <h2 className="text-2xl font-bold font-serif text-[#191919]">{t('breadcrumb.settings')}</h2>
           <p className="text-xs text-[#8a8073] mt-1">
-            Quản lý thông tin tài khoản và tuỳ chỉnh cá nhân ({user?.role === 'instructor' ? 'Giảng viên' : 'Sinh viên'})
+            {t('settings.pageSubtitle', {
+              role: user?.role === 'instructor' ? t('settings.accountTypeInstructor') : t('settings.accountTypeStudent'),
+            })}
           </p>
         </div>
 
@@ -243,7 +246,7 @@ export default function SettingsPage() {
       {isLoading ? (
         <div className="flex items-center justify-center p-12 bg-white border border-[#e5dac9] rounded-xl shadow-sm">
           <Loader2 className="animate-spin text-[#193a2b]" size={28} />
-          <span className="ml-3 text-sm text-[#5c5446]">Đang tải thông tin...</span>
+          <span className="ml-3 text-sm text-[#5c5446]">{t('settings.loading')}</span>
         </div>
       ) : (
         <div className="flex flex-col lg:flex-row gap-6">
@@ -274,7 +277,7 @@ export default function SettingsPage() {
             {/* Tab 1: Hồ sơ */}
             {activeTab === 'profile' && (
               <div className="bg-white border border-[#e5dac9] rounded-xl p-6 space-y-6 shadow-sm">
-                <h3 className="text-lg font-bold font-serif text-[#191919]">Thông tin hồ sơ</h3>
+                <h3 className="text-lg font-bold font-serif text-[#191919]">{t('settings.profileInfoTitle')}</h3>
 
                 {/* Avatar Preview */}
                 <div className="flex items-center gap-4">
@@ -298,7 +301,7 @@ export default function SettingsPage() {
                     </p>
                     <p className="text-sm text-[#8a8073]">@{user?.username}</p>
                     <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#193a2b]/10 text-[#193a2b]">
-                      {user?.role === 'instructor' ? 'Giảng viên' : 'Sinh viên'}
+                      {user?.role === 'instructor' ? t('settings.accountTypeInstructor') : t('settings.accountTypeStudent')}
                     </span>
                   </div>
                 </div>
@@ -306,19 +309,19 @@ export default function SettingsPage() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-[#5c5446] mb-1.5">
-                      Họ và tên <span className="text-[#cc5a37]">*</span>
+                      {t('settings.fullNameLabel')} <span className="text-[#cc5a37]">*</span>
                     </label>
                     <input
                       type="text"
                       value={profileForm.fullName}
                       onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })}
                       className="w-full px-4 py-2.5 bg-[#f7f4eb]/50 border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
-                      placeholder="Nhập họ và tên đầy đủ"
+                      placeholder={t('settings.fullNameLabel')}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[#5c5446] mb-1.5">
-                      Email (không thể thay đổi)
+                      {t('settings.emailImmutable')}
                     </label>
                     <input
                       type="email"
@@ -331,40 +334,40 @@ export default function SettingsPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-[#5c5446] mb-1.5">
-                    URL ảnh đại diện (Avatar)
+                    {t('settings.avatarUrlLabel')}
                   </label>
                   <input
                     type="url"
                     value={profileForm.avatarUrl}
                     onChange={(e) => setProfileForm({ ...profileForm, avatarUrl: e.target.value })}
                     className="w-full px-4 py-2.5 bg-[#f7f4eb]/50 border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
-                    placeholder="https://example.com/avatar.jpg"
+                    placeholder={t('settings.avatarPlaceholder')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-[#5c5446] mb-1.5">
-                    Trường / Cơ quan / Tổ chức
+                    {t('settings.institutionLabel')}
                   </label>
                   <input
                     type="text"
                     value={profileForm.institution}
                     onChange={(e) => setProfileForm({ ...profileForm, institution: e.target.value })}
                     className="w-full px-4 py-2.5 bg-[#f7f4eb]/50 border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
-                    placeholder="Ví dụ: Đại học Bách Khoa Hà Nội"
+                    placeholder={t('settings.institutionPlaceholder')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-[#5c5446] mb-1.5">
-                    Tiểu sử / Giới thiệu
+                    {t('settings.bioLabel')}
                   </label>
                   <textarea
                     value={profileForm.bio}
                     onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
                     rows={3}
                     className="w-full px-4 py-2.5 bg-[#f7f4eb]/50 border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
-                    placeholder="Giới thiệu ngắn về bạn..."
+                    placeholder={t('settings.bioPlaceholder')}
                   />
                 </div>
 
@@ -374,7 +377,7 @@ export default function SettingsPage() {
                   className="flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] transition-colors shadow-md disabled:opacity-50 cursor-pointer"
                 >
                   {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                  Lưu thay đổi
+                  {t('settings.saveChangesBtn')}
                 </button>
               </div>
             )}
@@ -382,7 +385,7 @@ export default function SettingsPage() {
             {/* Tab 2: Mật khẩu */}
             {activeTab === 'password' && (
               <div className="bg-white border border-[#e5dac9] rounded-xl p-6 space-y-6 shadow-sm">
-                <h3 className="text-lg font-bold font-serif text-[#191919]">Đổi mật khẩu</h3>
+                <h3 className="text-lg font-bold font-serif text-[#191919]">{t('settings.changePasswordTitle')}</h3>
 
                 {passwordError && (
                   <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">
@@ -393,38 +396,38 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-[#5c5446] mb-1.5">
-                      Mật khẩu hiện tại <span className="text-[#cc5a37]">*</span>
+                      {t('settings.currentPasswordLabel')} <span className="text-[#cc5a37]">*</span>
                     </label>
                     <input
                       type="password"
                       value={passwordForm.currentPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
                       className="w-full px-4 py-2.5 bg-[#f7f4eb]/50 border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
-                      placeholder="Nhập mật khẩu hiện tại"
+                      placeholder={t('settings.currentPasswordPlaceholder')}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[#5c5446] mb-1.5">
-                      Mật khẩu mới (ít nhất 6 ký tự) <span className="text-[#cc5a37]">*</span>
+                      {t('settings.passwordMinLengthHint')} <span className="text-[#cc5a37]">*</span>
                     </label>
                     <input
                       type="password"
                       value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                       className="w-full px-4 py-2.5 bg-[#f7f4eb]/50 border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
-                      placeholder="Nhập mật khẩu mới"
+                      placeholder={t('settings.newPasswordPlaceholder')}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[#5c5446] mb-1.5">
-                      Xác nhận mật khẩu mới <span className="text-[#cc5a37]">*</span>
+                      {t('settings.confirmPasswordLabel')} <span className="text-[#cc5a37]">*</span>
                     </label>
                     <input
                       type="password"
                       value={passwordForm.confirmPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
                       className="w-full px-4 py-2.5 bg-[#f7f4eb]/50 border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
-                      placeholder="Nhập lại mật khẩu mới"
+                      placeholder={t('settings.confirmPasswordPlaceholder')}
                     />
                   </div>
                 </div>
@@ -433,9 +436,9 @@ export default function SettingsPage() {
                   <div className="flex items-start gap-2">
                     <Shield size={18} className="text-yellow-600 mt-0.5" />
                     <div>
-                      <p className="text-sm text-yellow-700 font-bold font-serif">Lưu ý bảo mật</p>
+                      <p className="text-sm text-yellow-700 font-bold font-serif">{t('settings.securityNoteTitle')}</p>
                       <p className="text-xs text-[#8a8073] mt-1 leading-relaxed">
-                        Mật khẩu được mã hoá an toàn theo tiêu chuẩn một chiều. Mật khẩu nên có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và chữ số.
+                        {t('settings.securityNoteDesc')}
                       </p>
                     </div>
                   </div>
@@ -447,7 +450,7 @@ export default function SettingsPage() {
                   className="flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] transition-colors shadow-md disabled:opacity-50 cursor-pointer"
                 >
                   {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Lock size={16} />}
-                  Đổi mật khẩu
+                  {t('settings.changePasswordBtn')}
                 </button>
               </div>
             )}
@@ -455,14 +458,14 @@ export default function SettingsPage() {
             {/* Tab 3: Thông báo */}
             {activeTab === 'notifications' && (
               <div className="bg-white border border-[#e5dac9] rounded-xl p-6 space-y-6 shadow-sm">
-                <h3 className="text-lg font-bold font-serif text-[#191919]">Cài đặt thông báo</h3>
+                <h3 className="text-lg font-bold font-serif text-[#191919]">{t('settings.notificationSettingsTitle')}</h3>
                 <div className="space-y-4">
                   {[
-                    { key: 'contestReminder', label: 'Nhắc nhở kỳ thi', desc: 'Nhận thông báo khi kỳ thi sắp diễn ra' },
-                    { key: 'homeworkDeadline', label: 'Hạn nộp bài tập', desc: 'Nhận thông báo khi bài tập lớp sắp đến hạn' },
-                    { key: 'submissionResult', label: 'Kết quả chấm bài', desc: 'Nhận thông báo thời gian thực khi bài làm đã chấm xong' },
-                    { key: 'systemAnnouncement', label: 'Thông báo hệ thống', desc: 'Nhận tin tức và cập nhật nền tảng mới nhất' },
-                    { key: 'emailNotification', label: 'Gửi qua Email', desc: 'Đồng bộ các thông báo quan trọng gửi vào hòm thư' },
+                    { key: 'contestReminder', label: t('settings.notifContestLabel'), desc: t('settings.notifContestDesc') },
+                    { key: 'homeworkDeadline', label: t('settings.notifHomeworkLabel'), desc: t('settings.notifHomeworkDesc') },
+                    { key: 'submissionResult', label: t('settings.notifSubmissionLabel'), desc: t('settings.notifSubmissionDesc') },
+                    { key: 'systemAnnouncement', label: t('settings.notifSystemLabel'), desc: t('settings.notifSystemDesc') },
+                    { key: 'emailNotification', label: t('settings.notifEmailLabel'), desc: t('settings.notifEmailDesc') },
                   ].map((item) => (
                     <div key={item.key} className="flex items-center justify-between p-4 bg-[#f7f4eb]/50 rounded-xl border border-[#e5dac9]">
                       <div>
@@ -497,7 +500,7 @@ export default function SettingsPage() {
                   className="flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] transition-colors shadow-md disabled:opacity-50 cursor-pointer"
                 >
                   {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                  Lưu cài đặt thông báo
+                  {t('settings.saveNotificationsBtn')}
                 </button>
               </div>
             )}
@@ -505,55 +508,55 @@ export default function SettingsPage() {
             {/* Tab 4: Tuỳ chỉnh */}
             {activeTab === 'preferences' && (
               <div className="bg-white border border-[#e5dac9] rounded-xl p-6 space-y-6 shadow-sm">
-                <h3 className="text-lg font-bold font-serif text-[#191919]">Tuỳ chỉnh giao diện & Trình soạn thảo</h3>
+                <h3 className="text-lg font-bold font-serif text-[#191919]">{t('settings.tabPreferences')}</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-[#5c5446] mb-1.5">Ngôn ngữ giao diện</label>
+                    <label className="block text-sm font-medium text-[#5c5446] mb-1.5">{t('settings.interfaceLanguageLabel')}</label>
                     <select
-                      value={preferences.language}
-                      onChange={(e) => setPreferences({ ...preferences, language: e.target.value })}
+                      value={i18n.resolvedLanguage ?? i18n.language}
+                      onChange={(e) => void i18n.changeLanguage(e.target.value)}
                       className="w-full px-4 py-2.5 bg-[#f7f4eb]/50 border border-[#e5dac9] rounded-xl text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                     >
-                      <option value="vi">Tiếng Việt (Mặc định)</option>
-                      <option value="en">English</option>
+                      <option value="vi">{t('topbar.langVi')}</option>
+                      <option value="en">{t('topbar.langEn')}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#5c5446] mb-1.5">Giao diện (Theme) trình biên dịch</label>
+                    <label className="block text-sm font-medium text-[#5c5446] mb-1.5">{t('settings.editorThemeLabel')}</label>
                     <select
                       value={preferences.editorTheme}
                       onChange={(e) => setPreferences({ ...preferences, editorTheme: e.target.value })}
                       className="w-full px-4 py-2.5 bg-[#f7f4eb]/50 border border-[#e5dac9] rounded-xl text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                     >
-                      <option value="vs-dark">VS Dark (Tối mặc định)</option>
-                      <option value="light">Light (Sáng)</option>
+                      <option value="vs-dark">{t('settings.themeDarkDefault')}</option>
+                      <option value="light">{t('settings.themeLight')}</option>
                       <option value="monokai">Monokai</option>
                       <option value="github-dark">GitHub Dark</option>
                     </select>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[#5c5446] mb-1.5">Cỡ chữ Code</label>
+                      <label className="block text-sm font-medium text-[#5c5446] mb-1.5">{t('settings.fontSizeCodeLabel')}</label>
                       <select
                         value={preferences.fontSize}
                         onChange={(e) => setPreferences({ ...preferences, fontSize: e.target.value })}
                         className="w-full px-4 py-2.5 bg-[#f7f4eb]/50 border border-[#e5dac9] rounded-xl text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                       >
                         <option value="12">12px</option>
-                        <option value="14">14px (Chuẩn)</option>
+                        <option value="14">{t('settings.standardOption', { value: '14px' })}</option>
                         <option value="16">16px</option>
                         <option value="18">18px</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#5c5446] mb-1.5">Khoảng cách Tab</label>
+                      <label className="block text-sm font-medium text-[#5c5446] mb-1.5">{t('settings.tabSpacingLabel')}</label>
                       <select
                         value={preferences.tabSize}
                         onChange={(e) => setPreferences({ ...preferences, tabSize: e.target.value })}
                         className="w-full px-4 py-2.5 bg-[#f7f4eb]/50 border border-[#e5dac9] rounded-xl text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                       >
-                        <option value="2">2 spaces</option>
-                        <option value="4">4 spaces (Chuẩn)</option>
+                        <option value="2">{t('settings.spacesOption', { count: 2 })}</option>
+                        <option value="4">{t('settings.standardOption', { value: t('settings.spacesOption', { count: 4 }) })}</option>
                       </select>
                     </div>
                   </div>
@@ -564,7 +567,7 @@ export default function SettingsPage() {
                   className="flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] transition-colors shadow-md disabled:opacity-50 cursor-pointer"
                 >
                   {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                  Lưu tuỳ chỉnh
+                  {t('settings.savePreferencesBtn')}
                 </button>
               </div>
             )}
