@@ -1,7 +1,14 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { useClassDetailQuery, removeClassStudent, updateClass as updateClassApi, addStudentToClass as addStudentApi } from '../../api/classes';
+import {
+  useClassDetailQuery,
+  removeClassStudent,
+  updateClass as updateClassApi,
+  addStudentToClass as addStudentApi,
+  useClassGradebookQuery,
+  type ClassGradebookDto,
+} from '../../api/classes';
 import { useClassHomeworksQuery } from '../../api/homeworks';
 import { useHomework, deadlineProgress, HomeworkProblem } from '../../context/HomeworkContext';
 import { formatVN, formatVNFull } from '../../utils/dateTime';
@@ -27,7 +34,47 @@ import {
   Copy,
   Edit3,
   UserPlus,
+  Download,
+  RotateCcw,
 } from 'lucide-react';
+
+function exportGradebookCsv(gradebook: ClassGradebookDto) {
+  const headers = ['Email / ID', 'Họ và tên', 'Tên đăng nhập', 'Đã hoàn thành', 'Tỷ lệ AC (%)', 'Điểm tổng kết'];
+  const taskCols: string[] = [];
+  gradebook.homework_columns.forEach((hw) => {
+    hw.tasks.forEach((t) => {
+      taskCols.push(`${hw.homework_title} - ${t.title}`);
+    });
+  });
+  const allHeaders = [...headers, ...taskCols];
+
+  const rows = gradebook.students.map((st) => {
+    const base = [
+      `"${st.email}"`,
+      `"${st.full_name || ''}"`,
+      `"${st.username || ''}"`,
+      `"${st.summary.completed_tasks}/${st.summary.total_tasks}"`,
+      `"${st.summary.completion_rate}%"`,
+      `"${st.summary.final_score}"`,
+    ];
+    const taskScores = st.grades.map((g) => {
+      if (g.status === 'NOT_SUBMITTED') return '"Chưa nộp"';
+      if (g.instructor_score != null) return `"${g.instructor_score} (AC)"`;
+      return `"${g.status === 'ACCEPTED' ? 'AC (100)' : g.status}"`;
+    });
+    return [...base, ...taskScores].join(',');
+  });
+
+  const csvContent = '\\uFEFF' + [allHeaders.map((h) => `"${h}"`).join(','), ...rows].join('\\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `So_diem_${gradebook.class_name.replace(/\\s+/g, '_')}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
 
 function getMSSV(email: string, username?: string | null, id?: string): string {
   // Ưu tiên trích xuất chuỗi số sinh viên từ email (vd: 20120123@student...)
@@ -53,7 +100,8 @@ export default function InstructorClassDetail() {
   const { data: apiHomeworks = [], isLoading: isHwLoading, refetch: refetchHw } = useClassHomeworksQuery(classId);
   const { createHomework, deleteHomework } = useHomework();
 
-  const [activeTab, setActiveTab] = useState<'homework' | 'members'>('homework');
+  const [activeTab, setActiveTab] = useState<'homework' | 'members' | 'gradebook'>('homework');
+  const { data: gradebookData, isLoading: isGradebookLoading, refetch: refetchGradebook } = useClassGradebookQuery(classId);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState<'stt' | 'name_asc' | 'name_desc' | 'mssv_asc' | 'mssv_desc' | 'rating_desc' | 'subs_desc'>('stt');
   const [copied, setCopied] = useState<string | null>(null);
@@ -421,6 +469,23 @@ export default function InstructorClassDetail() {
           <span className="px-2 py-0.5 text-xs rounded-full bg-[#f0ebd9] text-[#193a2b] font-mono">
             {rawMembers.length}
           </span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('gradebook')}
+          className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all ${
+            activeTab === 'gradebook'
+              ? 'border-[#193a2b] text-[#193a2b]'
+              : 'border-transparent text-[#8a8073] hover:text-[#191919]'
+          }`}
+        >
+          <GraduationCap size={17} />
+          Sổ điểm (Gradebook)
+          {gradebookData && (
+            <span className="px-2 py-0.5 text-xs rounded-full bg-[#f0ebd9] text-[#193a2b] font-mono">
+              {gradebookData.students.length}
+            </span>
+          )}
         </button>
       </div>
 
@@ -805,6 +870,154 @@ export default function InstructorClassDetail() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ================= TAB 3: SỔ ĐIỂM (GRADEBOOK) ================= */}
+      {activeTab === 'gradebook' && (
+        <div className="space-y-4 animate-fade-in">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-800 flex items-center justify-center shadow-2xs shrink-0">
+                <GraduationCap size={20} />
+              </div>
+              <div>
+                <h2 className="text-base font-bold font-serif text-[#191919]">Sổ điểm tổng hợp lớp học</h2>
+                <p className="text-xs text-[#8a8073]">Theo dõi ma trận tiến độ nộp bài, điểm số tự động và điểm giảng viên chấm cho từng bài tập.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => refetchGradebook()}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-[#e5dac9] text-xs font-semibold rounded-xl text-[#5c5446] hover:text-[#191919] hover:bg-[#f7f4eb] transition-all shadow-2xs"
+                title="Tải lại dữ liệu sổ điểm"
+              >
+                <RotateCcw size={13} className={isGradebookLoading ? 'animate-spin' : ''} />
+                Làm mới
+              </button>
+              {gradebookData && gradebookData.students.length > 0 && (
+                <button
+                  onClick={() => exportGradebookCsv(gradebookData)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
+                  title="Xuất bảng điểm ra file CSV (tương thích Excel tiếng Việt)"
+                >
+                  <Download size={14} />
+                  Xuất Excel / CSV
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Gradebook Matrix Table */}
+          {isGradebookLoading ? (
+            <div className="p-16 text-center text-sm text-[#8a8073]">Đang tổng hợp dữ liệu sổ điểm...</div>
+          ) : !gradebookData || gradebookData.students.length === 0 ? (
+            <div className="p-12 text-center bg-white border border-[#e5dac9] rounded-2xl">
+              <GraduationCap size={40} className="text-[#bfae99] mx-auto mb-3" />
+              <p className="text-sm font-semibold text-[#191919]">Chưa có dữ liệu sổ điểm</p>
+              <p className="text-xs text-[#8a8073] mt-1">Lớp học chưa có sinh viên hoặc chưa được giao bài tập nào.</p>
+            </div>
+          ) : (
+            <div className="bg-white border border-[#e5dac9] rounded-2xl overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-[#f0ebd9]/60 border-b border-[#e5dac9]">
+                      <th className="py-3 px-4 font-bold text-[#5c5446] uppercase tracking-wider sticky left-0 bg-[#f0ebd9] z-10 min-w-[200px]">
+                        Sinh viên
+                      </th>
+                      <th className="py-3 px-3 font-bold text-[#5c5446] uppercase tracking-wider text-center min-w-[100px]">
+                        Tiến độ AC
+                      </th>
+                      <th className="py-3 px-3 font-bold text-[#5c5446] uppercase tracking-wider text-center min-w-[90px]">
+                        Điểm TB (10)
+                      </th>
+                      {gradebookData.homework_columns.map((hw) =>
+                        hw.tasks.map((t) => (
+                          <th
+                            key={`${hw.homework_id}_${t.task_id}`}
+                            className="py-3 px-3 font-semibold text-[#5c5446] text-center border-l border-[#e5dac9]/60 min-w-[130px]"
+                            title={`${hw.homework_title} - ${t.title}`}
+                          >
+                            <span className="block font-bold text-[#191919] truncate max-w-[120px]">{t.title}</span>
+                            <span className="text-[10px] text-[#8a8073] block truncate max-w-[120px]">
+                              {hw.homework_title}
+                            </span>
+                          </th>
+                        ))
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#e5dac9]/60">
+                    {gradebookData.students.map((st) => (
+                      <tr key={st.id} className="hover:bg-[#f7f4eb]/60 transition-colors">
+                        <td className="py-3 px-4 sticky left-0 bg-white hover:bg-[#f7f4eb]/60 z-10 border-r border-[#e5dac9]/40">
+                          <p className="font-bold text-[#191919]">{st.full_name || st.username || 'Sinh viên'}</p>
+                          <p className="text-[11px] text-[#8a8073] font-mono">{st.email}</p>
+                        </td>
+                        <td className="py-3 px-3 text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="font-bold text-[#193a2b]">
+                              {st.summary.completed_tasks}/{st.summary.total_tasks}
+                            </span>
+                            <div className="w-16 h-1.5 bg-[#e5dac9] rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-emerald-600 rounded-full"
+                                style={{ width: `${st.summary.completion_rate}%` }}
+                              />
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3 text-center">
+                          <span
+                            className={`inline-block px-2.5 py-1 rounded-lg font-bold ${
+                              st.summary.final_score >= 8
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                : st.summary.final_score >= 5
+                                ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                : 'bg-red-100 text-red-800 border border-red-300'
+                            }`}
+                          >
+                            {st.summary.final_score.toFixed(1)}
+                          </span>
+                        </td>
+                        {st.grades.map((g, gIdx) => {
+                          const isAc = g.status === 'ACCEPTED';
+                          const isNotSub = g.status === 'NOT_SUBMITTED';
+                          return (
+                            <td
+                              key={gIdx}
+                              className="py-3 px-2 text-center border-l border-[#e5dac9]/40"
+                            >
+                              {isNotSub ? (
+                                <span className="text-[#bfae99]">—</span>
+                              ) : isAc ? (
+                                <div className="inline-flex flex-col items-center">
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                    {g.instructor_score != null ? `⭐ ${g.instructor_score}/10` : 'AC (100)'}
+                                  </span>
+                                  {g.instructor_feedback && (
+                                    <span className="text-[9px] text-[#8a8073] italic truncate max-w-[110px]" title={g.instructor_feedback}>
+                                      "{g.instructor_feedback}"
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-800 border border-red-300">
+                                  {g.status}
+                                </span>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

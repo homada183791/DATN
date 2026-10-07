@@ -127,3 +127,63 @@ export function useClassesQuery() {
     refetchOnWindowFocus: true,
   });
 }
+
+export interface ClassGradeItem {
+  homework_id: string;
+  homework_title: string;
+  task_id: string;
+  problem_id?: string;
+  task_title: string;
+  points: number;
+  status: string;
+  score: number;
+  instructor_score?: number | null;
+  instructor_feedback?: string | null;
+  submission_id?: string | null;
+  submitted_at?: string | null;
+}
+
+export interface ClassGradebookStudent {
+  id: string;
+  email: string;
+  username?: string | null;
+  full_name?: string | null;
+  summary: {
+    total_tasks: number;
+    completed_tasks: number;
+    completion_rate: number;
+    final_score: number;
+  };
+  grades: ClassGradeItem[];
+}
+
+export interface ClassGradebookDto {
+  class_id: string;
+  class_name: string;
+  total_students: number;
+  total_homeworks: number;
+  homework_columns: Array<{
+    homework_id: string;
+    homework_title: string;
+    deadline: string;
+    tasks: Array<{
+      task_id: string;
+      problem_id?: string;
+      title: string;
+      points: number;
+    }>;
+  }>;
+  students: ClassGradebookStudent[];
+}
+
+export function fetchClassGradebook(classId: string) {
+  return apiFetch<ClassGradebookDto>(`/api/v1/classes/${classId}/gradebook`);
+}
+
+export function useClassGradebookQuery(classId?: string) {
+  return useQuery({
+    queryKey: ['class_gradebook', classId],
+    queryFn: () => fetchClassGradebook(classId!),
+    enabled: !!classId && !!window.localStorage.getItem('accessToken'),
+  });
+}

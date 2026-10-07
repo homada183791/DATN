@@ -1032,6 +1032,19 @@ export default function ProblemSolve() {
                                     </span>
                                   </div>
 
+                                  {sub.instructor_score != null && (
+                                    <div className="flex flex-col gap-1 text-xs bg-amber-50 border border-amber-200 text-amber-900 p-2.5 rounded-lg">
+                                      <div className="flex items-center gap-1.5 font-bold">
+                                        <span>⭐ Giảng viên chấm: {sub.instructor_score}/10</span>
+                                      </div>
+                                      {sub.instructor_feedback && (
+                                        <p className="text-[11px] text-amber-800 italic bg-white/70 p-1.5 rounded border border-amber-100">
+                                          "{sub.instructor_feedback}"
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
+
                                   <div className="flex items-center gap-2 pt-2 border-t border-[var(--ws-border)] flex-wrap">
                                     <button
                                       onClick={() => setInspectedSubmission(isInspecting ? null : sub)}
