@@ -7,8 +7,11 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { QueueService } from '../queue/queue.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { EventsGateway } from '../../events/events.gateway';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { RunCustomCodeDto } from './dto/run-custom-code.dto';
+import { GradeSubmissionDto } from './dto/grade-submission.dto';
 import { Role, SubmissionStatus } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 
@@ -19,6 +22,8 @@ export class SubmissionsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly queueService: QueueService,
+    private readonly notificationsService: NotificationsService,
+    private readonly eventsGateway: EventsGateway,
   ) {}
 
   async findAll(userId: string, userRole: Role, problemId?: string) {
@@ -30,6 +35,11 @@ export class SubmissionsService {
       user: { id: string; email: string; username?: string | null };
       language: string;
       status: SubmissionStatus;
+      score: number;
+      instructor_score: number | null;
+      instructor_feedback: string | null;
+      graded_by: string | null;
+      graded_at: Date | null;
       execution_time: number | null;
       memory_used: number | null;
       source_code: string;
@@ -64,6 +74,11 @@ export class SubmissionsService {
       username: submission.user.username ?? submission.user.email.split('@')[0],
       language: submission.language,
       status: submission.status as SubmissionStatus,
+      score: submission.score,
+      instructor_score: submission.instructor_score,
+      instructor_feedback: submission.instructor_feedback,
+      graded_by: submission.graded_by,
+      graded_at: submission.graded_at,
       execution_time: submission.execution_time,
       memory_used: submission.memory_used,
       source_code: submission.source_code,
@@ -82,6 +97,14 @@ export class SubmissionsService {
             difficulty: true,
             time_limit: true,
             memory_limit: true,
+            test_cases: {
+              select: {
+                id: true,
+                input: true,
+                expected_output: true,
+                is_hidden: true,
+              },
+            },
           },
         },
         user: {
@@ -95,6 +118,7 @@ export class SubmissionsService {
             status: true,
             execution_time: true,
             memory_used: true,
+            actual_output: true,
           },
         },
       },
@@ -108,6 +132,27 @@ export class SubmissionsService {
       throw new ForbiddenException('Bạn không có quyền xem bài nộp này.');
     }
 
+    const isInstructor = userRole === Role.INSTRUCTOR;
+    const testCases = submission.problem.test_cases || [];
+
+    const enrichedTestResults = submission.test_results.map((tr) => {
+      const tc = testCases[tr.testcase_index] ?? testCases[0];
+      const isHidden = tc?.is_hidden ?? false;
+      const canView = isInstructor || !isHidden;
+
+      return {
+        id: tr.id,
+        testcase_index: tr.testcase_index,
+        status: tr.status,
+        execution_time: tr.execution_time,
+        memory_used: tr.memory_used,
+        is_hidden: isHidden,
+        input: canView ? tc?.input : undefined,
+        expected_output: canView ? tc?.expected_output : undefined,
+        actual_output: canView ? tr.actual_output : undefined,
+      };
+    });
+
     return {
       id: submission.id,
       problem_id: submission.problem_id,
@@ -119,12 +164,16 @@ export class SubmissionsService {
       language: submission.language,
       status: submission.status,
       score: submission.score,
+      instructor_score: submission.instructor_score,
+      instructor_feedback: submission.instructor_feedback,
+      graded_by: submission.graded_by,
+      graded_at: submission.graded_at,
       execution_time: submission.execution_time,
       memory_used: submission.memory_used,
       source_code: submission.source_code,
       created_at: submission.created_at,
       updated_at: submission.updated_at,
-      test_results: submission.test_results,
+      test_results: enrichedTestResults,
     };
   }
 
@@ -326,5 +375,129 @@ export class SubmissionsService {
       );
       throw error;
     }
+  }
+
+  async gradeSubmission(id: string, instructorId: string, dto: GradeSubmissionDto) {
+    const submission = await this.prisma.submission.findUnique({
+      where: { id },
+      include: {
+        problem: { select: { id: true, title: true } },
+      },
+    });
+
+    if (!submission) {
+      throw new NotFoundException('Không tìm thấy bài nộp.');
+    }
+
+    const updated = await this.prisma.submission.update({
+      where: { id },
+      data: {
+        instructor_score: dto.instructor_score,
+        instructor_feedback: dto.instructor_feedback?.trim() || null,
+        graded_by: instructorId,
+        graded_at: new Date(),
+      },
+    });
+
+    // Tạo thông báo cho sinh viên
+    await this.notificationsService.createNotification({
+      userId: submission.user_id,
+      type: 'submission_graded',
+      title: `📝 Bài nộp đã được chấm: ${submission.problem.title}`,
+      body: `Giảng viên đã chấm ${dto.instructor_score} điểm cho bài nộp của bạn.${dto.instructor_feedback ? ` Nhận xét: "${dto.instructor_feedback}"` : ''}`,
+      link: `/student/problem/${submission.problem_id}`,
+    });
+
+    // Bắn realtime websocket tới sinh viên
+    this.eventsGateway.server?.to(`user_${submission.user_id}`).emit('submission_graded', {
+      submission_id: id,
+      problem_id: submission.problem_id,
+      instructor_score: updated.instructor_score,
+      instructor_feedback: updated.instructor_feedback,
+      graded_at: updated.graded_at,
+    });
+
+    return updated;
+  }
+
+  async rejudgeSubmission(id: string, _instructorId: string) {
+    const submission = await this.prisma.submission.findUnique({
+      where: { id },
+      include: {
+        problem: {
+          include: { test_cases: true },
+        },
+      },
+    });
+
+    if (!submission) {
+      throw new NotFoundException('Không tìm thấy bài nộp.');
+    }
+
+    // Reset kết quả bài nộp về PENDING
+    const updated = await this.prisma.submission.update({
+      where: { id },
+      data: {
+        status: SubmissionStatus.PENDING,
+        score: 0,
+        execution_time: null,
+        memory_used: null,
+      },
+    });
+
+    // Xóa kết quả testcase cũ
+    await this.prisma.submissionTestResult.deleteMany({
+      where: { submission_id: id },
+    });
+
+    // Đẩy job chấm lại vào RabbitMQ
+    this.queueService.publishJudgeJob({
+      is_custom: false,
+      submission_id: submission.id,
+      problem_id: submission.problem_id,
+      source_code: submission.source_code,
+      language: submission.language,
+      time_limit: submission.problem.time_limit,
+      memory_limit: submission.problem.memory_limit,
+      test_cases: submission.problem.test_cases,
+    });
+
+    // Phát socket update
+    this.eventsGateway.emitSubmissionUpdate(id, {
+      submission_id: id,
+      status: 'PENDING',
+    });
+
+    return {
+      success: true,
+      message: 'Bài nộp đã được đưa vào hàng đợi để chấm lại.',
+      submission: updated,
+    };
+  }
+
+  async rejudgeProblem(problemId: string, instructorId: string) {
+    const problem = await this.prisma.problem.findUnique({
+      where: { id: problemId },
+      include: {
+        test_cases: true,
+        submissions: { select: { id: true } },
+      },
+    });
+
+    if (!problem) {
+      throw new NotFoundException('Không tìm thấy bài toán.');
+    }
+
+    let rejudgeCount = 0;
+    for (const sub of problem.submissions) {
+      await this.rejudgeSubmission(sub.id, instructorId);
+      rejudgeCount++;
+    }
+
+    return {
+      success: true,
+      message: `Đã đưa ${rejudgeCount} bài nộp của bài toán vào hàng đợi chấm lại.`,
+      count: rejudgeCount,
+    };
   }
 }

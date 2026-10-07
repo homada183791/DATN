@@ -266,6 +266,7 @@ model UserActivityLog {
 // Enum for notification types
 enum NotificationType {
   submission_judged
+  submission_graded
   homework_assigned
   contest_starting_soon
   contest_started

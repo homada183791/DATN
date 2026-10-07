@@ -39,6 +39,7 @@ export interface TestResultItem {
   status: string;
   execution_time: number;
   memory_used: number;
+  actual_output?: string;
 }
 
 export class DockerRunner {
@@ -113,6 +114,7 @@ export class DockerRunner {
           status,
           execution_time: result.executionTime,
           memory_used: result.memoryUsed,
+          actual_output: result.stdout.slice(0, 1000),
         });
 
         if (status !== 'ACCEPTED' && finalStatus === 'ACCEPTED') {

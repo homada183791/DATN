@@ -39,6 +39,7 @@ type SubmissionTransactionClient = {
         status: string;
         execution_time: number | null;
         memory_used: number | null;
+        actual_output?: string | null;
       }>;
     }): Promise<{ count: number }>;
   };
@@ -163,6 +164,7 @@ export class WebhookService {
               status: t.status as string,
               execution_time: t.execution_time ?? null,
               memory_used: t.memory_used ?? null,
+              actual_output: t.actual_output ?? null,
             })),
           });
         }
