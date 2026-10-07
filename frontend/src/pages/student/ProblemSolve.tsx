@@ -3,9 +3,12 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
+import { useQueryClient } from '@tanstack/react-query';
 import { getDetail, LANG_LABELS, Lang, ProblemDetail } from '../../data/problemDetails';
 import { ApiError, apiFetch } from '../../api/http';
 import { useProblemQuery } from '../../api/problems';
+import { useProblemSubmissionsQuery, type SubmissionDto } from '../../api/submissions';
+import { formatVNFull } from '../../utils/dateTime';
 import { joinContest } from '../../api/contests';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
@@ -24,6 +27,7 @@ import {
   RotateCcw,
   Upload,
   ClipboardPaste,
+  RefreshCw,
   X,
   CheckCircle2,
   XCircle,
@@ -160,6 +164,28 @@ export default function ProblemSolve() {
   }, [apiProblem?.test_cases, detail.samples]);
 
   /* ui state */
+  const queryClient = useQueryClient();
+  const [leftTab, setLeftTab] = useState<'statement' | 'submissions'>('statement');
+  const [inspectedSubmission, setInspectedSubmission] = useState<SubmissionDto | null>(null);
+  const {
+    data: problemSubmissions = [],
+    isLoading: isLoadingSubmissions,
+    isFetching: isFetchingSubmissions,
+  } = useProblemSubmissionsQuery(problemId);
+
+  const restoreCodeFromSubmission = (sub: SubmissionDto) => {
+    setCode(sub.source_code);
+    const subLang = sub.language?.toLowerCase();
+    if (subLang === 'python' || subLang === 'py') {
+      setLang('python');
+    } else if (subLang === 'java') {
+      setLang('java');
+    } else {
+      setLang('cpp');
+    }
+    showToast(`Đã nạp lại mã nguồn lần nộp #${sub.id.slice(0, 8)} vào Editor!`, 'success');
+  };
+
   const [layout, setLayout] = useState<LayoutMode>('split');
   const [mobilePane, setMobilePane] = useState<'statement' | 'editor'>('statement');
   const [showSolution, setShowSolution] = useState(false);
@@ -605,6 +631,9 @@ export default function ProblemSolve() {
 
       if (!verdict) return;
 
+      queryClient.invalidateQueries({ queryKey: ['submissions', 'problem', problemId] });
+      queryClient.invalidateQueries({ queryKey: ['submissions'] });
+
       window.clearTimeout(watchdogTimer);
       setFinalVerdict(verdict);
       setBottomTab('results');
@@ -839,102 +868,295 @@ export default function ProblemSolve() {
         {/* ============ SPLIT BODY ============ */}
         <div className="flex-1 flex min-h-0">
           <div className="flex-1 flex min-h-0 min-w-0">
-            {/* ---- statement pane ---- */}
+            {/* ---- statement / submissions pane ---- */}
             {(layout !== 'editor') && (
               <section
-                className={`overflow-y-auto ws-editor-scroll bg-[var(--ws-bg)] ${
+                className={`flex flex-col min-h-0 bg-[var(--ws-bg)] ${
                   layout === 'split'
-                    ? `${mobilePane === 'statement' ? 'block' : 'hidden'} md:block md:w-1/2 border-r border-[var(--ws-border)]`
-                    : 'w-full'
+                    ? `${mobilePane === 'statement' ? 'flex' : 'hidden'} md:flex md:w-1/2 border-r border-[var(--ws-border)]`
+                    : 'w-full flex'
                 }`}
               >
-              <div className="px-7 py-6 max-w-3xl">
-                {/* limits */}
-                <div className="grid grid-cols-3 gap-6 pb-5 border-b border-[var(--ws-border)]">
-                  <div>
-                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">{t('problemSolve.timeLimit')}</p>
-                    <p className="text-[15px] font-bold font-mono">{problemTimeLimit}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">{t('problemSolve.memoryLimit')}</p>
-                    <p className="text-[15px] font-bold font-mono">{problemMemoryLimit}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">{t('problemSolve.maxScore')}</p>
-                    <p className="text-[15px] font-bold font-mono">{detail.points}</p>
-                  </div>
+                {/* Left Pane Navigation Tabs */}
+                <div className="flex items-center gap-1 px-4 border-b border-[var(--ws-border)] bg-[var(--ws-panel)] flex-shrink-0">
+                  <button
+                    onClick={() => setLeftTab('statement')}
+                    className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all ${
+                      leftTab === 'statement'
+                        ? 'border-[var(--ws-accent)] text-[var(--ws-accent)]'
+                        : 'border-transparent text-[var(--ws-muted)] hover:text-[var(--ws-text)]'
+                    }`}
+                  >
+                    <FileText size={14} />
+                    {t('problemSolve.statement', 'Đề bài')}
+                  </button>
+                  <button
+                    onClick={() => setLeftTab('submissions')}
+                    className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all ${
+                      leftTab === 'submissions'
+                        ? 'border-[var(--ws-accent)] text-[var(--ws-accent)]'
+                        : 'border-transparent text-[var(--ws-muted)] hover:text-[var(--ws-text)]'
+                    }`}
+                  >
+                    <Clock size={14} />
+                    {t('problemSolve.submissionHistory', 'Lịch sử nộp')}
+                    {problemSubmissions.length > 0 && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--ws-accent-soft)] text-[var(--ws-accent)] font-bold">
+                        {problemSubmissions.length}
+                      </span>
+                    )}
+                  </button>
                 </div>
 
-                <button
-                  onClick={downloadStatement}
-                  className="mt-5 flex items-center gap-1.5 text-[13px] font-medium text-[var(--ws-accent)] hover:underline"
-                >
-                  <Download size={14} /> {t('problemSolve.downloadOriginal')}
-                </button>
-
-                <h2 className="mt-6 mb-5 text-[26px] font-extrabold leading-tight">{problemTitle}</h2>
-
-                {problemDescription && (
-                  <div className="mb-7 rounded-xl border border-[var(--ws-border)] bg-[var(--ws-panel)] p-5">
-                    <ReactMarkdown>{problemDescription}</ReactMarkdown>
-                  </div>
-                )}
-
-                {detail.sections.map((sec, i) => (
-                  <div key={i} className="mb-7">
-                    {sec.heading && <h3 className="text-[19px] font-bold mb-3">{sec.heading}</h3>}
-                    {sec.paragraphs?.map((p, j) => (
-                      <p key={j} className="text-[14.5px] leading-7 text-[var(--ws-text)]/90 mb-2">{p}</p>
-                    ))}
-                    {sec.bullets && (
-                      <ul className="space-y-2 ml-1">
-                        {sec.bullets.map((b, j) => (
-                          <li key={j} className="flex gap-2.5 text-[14.5px] leading-7">
-                            <span className="mt-[11px] w-1.5 h-1.5 rounded-full bg-[var(--ws-accent)] flex-shrink-0" />
-                            <span>{b}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    {sec.table && (
-                      <div className="overflow-hidden rounded-lg border border-[var(--ws-border)]">
-                        <table className="w-full text-[13.5px]">
-                          <thead>
-                            <tr className="bg-[var(--ws-panel2)]">
-                              {sec.table.head.map((h, j) => (
-                                <th key={j} className="text-left px-4 py-2.5 font-bold">{h}</th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {sec.table.rows.map((r, j) => (
-                              <tr key={j} className="border-t border-[var(--ws-border)]">
-                                <td className="px-4 py-2.5 font-semibold italic">{r[0]}</td>
-                                <td className="px-4 py-2.5 font-mono text-[13px]">{r[1]}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                {/* Left Pane Body */}
+                <div className="flex-1 overflow-y-auto ws-editor-scroll">
+                  {leftTab === 'statement' ? (
+                    <div className="px-7 py-6 max-w-3xl">
+                      {/* limits */}
+                      <div className="grid grid-cols-3 gap-6 pb-5 border-b border-[var(--ws-border)]">
+                        <div>
+                          <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">{t('problemSolve.timeLimit')}</p>
+                          <p className="text-[15px] font-bold font-mono">{problemTimeLimit}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">{t('problemSolve.memoryLimit')}</p>
+                          <p className="text-[15px] font-bold font-mono">{problemMemoryLimit}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">{t('problemSolve.maxScore')}</p>
+                          <p className="text-[15px] font-bold font-mono">{detail.points}</p>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                ))}
 
-                {/* samples in statement */}
-                <h3 className="text-[19px] font-bold mb-3">{t('problemSolve.examplesTitle')}</h3>
-                {detail.samples.map((s, i) => (
-                  <div key={i} className="mb-4 grid grid-cols-2 gap-3">
-                    <div className="rounded-lg border border-[var(--ws-border)] bg-[var(--ws-panel)] overflow-hidden">
-                      <p className="px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] bg-[var(--ws-panel2)]">Input</p>
-                      <pre className="px-3 py-2.5 text-[13px] font-mono whitespace-pre-wrap">{s.input}</pre>
+                      <button
+                        onClick={downloadStatement}
+                        className="mt-5 flex items-center gap-1.5 text-[13px] font-medium text-[var(--ws-accent)] hover:underline"
+                      >
+                        <Download size={14} /> {t('problemSolve.downloadOriginal')}
+                      </button>
+
+                      <h2 className="mt-6 mb-5 text-[26px] font-extrabold leading-tight">{problemTitle}</h2>
+
+                      {problemDescription && (
+                        <div className="mb-7 rounded-xl border border-[var(--ws-border)] bg-[var(--ws-panel)] p-5">
+                          <ReactMarkdown>{problemDescription}</ReactMarkdown>
+                        </div>
+                      )}
+
+                      {detail.sections.map((sec, i) => (
+                        <div key={i} className="mb-7">
+                          {sec.heading && <h3 className="text-[19px] font-bold mb-3">{sec.heading}</h3>}
+                          {sec.paragraphs?.map((p, j) => (
+                            <p key={j} className="text-[14.5px] leading-7 text-[var(--ws-text)]/90 mb-2">{p}</p>
+                          ))}
+                          {sec.bullets && (
+                            <ul className="space-y-2 ml-1">
+                              {sec.bullets.map((b, j) => (
+                                <li key={j} className="flex gap-2.5 text-[14.5px] leading-7">
+                                  <span className="mt-[11px] w-1.5 h-1.5 rounded-full bg-[var(--ws-accent)] flex-shrink-0" />
+                                  <span>{b}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                          {sec.table && (
+                            <div className="overflow-hidden rounded-lg border border-[var(--ws-border)]">
+                              <table className="w-full text-[13.5px]">
+                                <thead>
+                                  <tr className="bg-[var(--ws-panel2)]">
+                                    {sec.table.head.map((h, j) => (
+                                      <th key={j} className="text-left px-4 py-2.5 font-bold">{h}</th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {sec.table.rows.map((r, j) => (
+                                    <tr key={j} className="border-t border-[var(--ws-border)]">
+                                      <td className="px-4 py-2.5 font-semibold italic">{r[0]}</td>
+                                      <td className="px-4 py-2.5 font-mono text-[13px]">{r[1]}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+
+                      {/* samples in statement */}
+                      <h3 className="text-[19px] font-bold mb-3">{t('problemSolve.examplesTitle')}</h3>
+                      {detail.samples.map((s, i) => (
+                        <div key={i} className="mb-4 grid grid-cols-2 gap-3">
+                          <div className="rounded-lg border border-[var(--ws-border)] bg-[var(--ws-panel)] overflow-hidden">
+                            <p className="px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] bg-[var(--ws-panel2)]">Input</p>
+                            <pre className="px-3 py-2.5 text-[13px] font-mono whitespace-pre-wrap">{s.input}</pre>
+                          </div>
+                          <div className="rounded-lg border border-[var(--ws-border)] bg-[var(--ws-panel)] overflow-hidden">
+                            <p className="px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] bg-[var(--ws-panel2)]">Output</p>
+                            <pre className="px-3 py-2.5 text-[13px] font-mono whitespace-pre-wrap">{s.output}</pre>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="rounded-lg border border-[var(--ws-border)] bg-[var(--ws-panel)] overflow-hidden">
-                      <p className="px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] bg-[var(--ws-panel2)]">Output</p>
-                      <pre className="px-3 py-2.5 text-[13px] font-mono whitespace-pre-wrap">{s.output}</pre>
+                  ) : (
+                    /* ---- submissions tab content ---- */
+                    <div className="p-6 max-w-3xl">
+                      <div className="flex items-center justify-between mb-5">
+                        <div>
+                          <h2 className="text-lg font-bold text-[var(--ws-text)]">Lịch sử nộp bài</h2>
+                          <p className="text-xs text-[var(--ws-muted)] mt-0.5">
+                            Danh sách các lần nộp mã nguồn của bạn cho bài toán này
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => queryClient.invalidateQueries({ queryKey: ['submissions', 'problem', problemId] })}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--ws-border)] text-xs text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:border-[var(--ws-accent)] transition-colors"
+                          title="Làm mới danh sách"
+                        >
+                          <RefreshCw size={13} className={isFetchingSubmissions ? 'animate-spin' : ''} />
+                          Làm mới
+                        </button>
+                      </div>
+
+                      {isLoadingSubmissions ? (
+                        <div className="flex flex-col items-center justify-center py-16 text-[var(--ws-muted)]">
+                          <Loader2 size={28} className="animate-spin mb-3 text-[var(--ws-accent)]" />
+                          <p className="text-sm">Đang tải lịch sử bài nộp...</p>
+                        </div>
+                      ) : problemSubmissions.length === 0 ? (
+                        <div className="rounded-2xl border border-[var(--ws-border)] bg-[var(--ws-panel)] p-12 text-center">
+                          <Clock size={36} className="text-[var(--ws-muted)] mx-auto mb-3 opacity-60" />
+                          <h3 className="font-semibold text-base mb-1">Chưa có bài nộp nào</h3>
+                          <p className="text-xs text-[var(--ws-muted)] max-w-xs mx-auto">
+                            Bạn chưa nộp bài giải cho bài toán này. Hãy viết code ở khung bên phải và bấm "Nộp bài".
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {problemSubmissions.map((sub) => {
+                            const isInspecting = inspectedSubmission?.id === sub.id;
+                            const statusUpper = sub.status?.toUpperCase();
+                            const isAc = statusUpper === 'ACCEPTED' || statusUpper === 'AC';
+                            const isWa = statusUpper === 'WRONG_ANSWER' || statusUpper === 'WA';
+                            const isTle = statusUpper === 'TIME_LIMIT_EXCEEDED' || statusUpper === 'TLE';
+                            const isCe = statusUpper === 'COMPILE_ERROR' || statusUpper === 'CE';
+
+                            const badgeClass = isAc
+                              ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                              : isWa
+                              ? 'bg-rose-100 text-rose-800 border-rose-300'
+                              : isTle
+                              ? 'bg-amber-100 text-amber-800 border-amber-300'
+                              : isCe
+                              ? 'bg-blue-100 text-blue-800 border-blue-300'
+                              : 'bg-orange-100 text-orange-800 border-orange-300';
+
+                            const badgeIcon = isAc ? (
+                              <CheckCircle2 size={13} className="text-emerald-700" />
+                            ) : isWa ? (
+                              <XCircle size={13} className="text-rose-700" />
+                            ) : (
+                              <Clock size={13} className="text-amber-700" />
+                            );
+
+                            return (
+                              <div
+                                key={sub.id}
+                                className={`rounded-xl border transition-all ${
+                                  isInspecting
+                                    ? 'border-[var(--ws-accent)] bg-[var(--ws-panel)] shadow-sm'
+                                    : 'border-[var(--ws-border)] bg-[var(--ws-panel)] hover:border-[var(--ws-accent)]/50'
+                                }`}
+                              >
+                                <div className="p-4 flex flex-col gap-3">
+                                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                                    <div className="flex items-center gap-2">
+                                      <span
+                                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border ${badgeClass}`}
+                                      >
+                                        {badgeIcon}
+                                        {sub.status}
+                                      </span>
+                                      <span className="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-[var(--ws-panel2)] text-[var(--ws-muted)] font-semibold">
+                                        {sub.language}
+                                      </span>
+                                    </div>
+                                    <span className="text-xs text-[var(--ws-muted)] flex items-center gap-1">
+                                      <Clock size={12} />
+                                      {formatVNFull(sub.created_at)}
+                                    </span>
+                                  </div>
+
+                                  <div className="flex items-center gap-4 text-xs text-[var(--ws-muted)]">
+                                    <span>
+                                      ⏱️ Thời gian: <strong className="text-[var(--ws-text)]">{sub.execution_time != null ? `${sub.execution_time} ms` : '—'}</strong>
+                                    </span>
+                                    <span>
+                                      💾 Bộ nhớ: <strong className="text-[var(--ws-text)]">{sub.memory_used != null ? `${(sub.memory_used / 1024).toFixed(1)} MB` : '—'}</strong>
+                                    </span>
+                                  </div>
+
+                                  {sub.instructor_score != null && (
+                                    <div className="flex flex-col gap-1 text-xs bg-amber-50 border border-amber-200 text-amber-900 p-2.5 rounded-lg">
+                                      <div className="flex items-center gap-1.5 font-bold">
+                                        <span>⭐ Giảng viên chấm: {sub.instructor_score}/10</span>
+                                      </div>
+                                      {sub.instructor_feedback && (
+                                        <p className="text-[11px] text-amber-800 italic bg-white/70 p-1.5 rounded border border-amber-100">
+                                          "{sub.instructor_feedback}"
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  <div className="flex items-center gap-2 pt-2 border-t border-[var(--ws-border)] flex-wrap">
+                                    <button
+                                      onClick={() => setInspectedSubmission(isInspecting ? null : sub)}
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--ws-border)] text-xs font-medium text-[var(--ws-text)] hover:border-[var(--ws-accent)] transition-colors"
+                                    >
+                                      <Code size={13} />
+                                      {isInspecting ? 'Đóng code' : 'Xem code'}
+                                    </button>
+                                    <button
+                                      onClick={() => restoreCodeFromSubmission(sub)}
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--ws-accent)] text-white text-xs font-semibold hover:opacity-90 transition-opacity"
+                                      title="Nạp lại đoạn code này vào khung soạn thảo để sửa và nộp lại"
+                                    >
+                                      <ClipboardPaste size={13} />
+                                      Nạp vào Editor
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        navigator.clipboard?.writeText(sub.source_code);
+                                        showToast('Đã sao chép mã nguồn vào clipboard!', 'success');
+                                      }}
+                                      className="p-1.5 rounded-lg border border-[var(--ws-border)] text-[var(--ws-muted)] hover:text-[var(--ws-text)] transition-colors ml-auto"
+                                      title="Sao chép mã nguồn"
+                                    >
+                                      <Copy size={13} />
+                                    </button>
+                                  </div>
+
+                                  {isInspecting && (
+                                    <div className="mt-2 rounded-lg bg-[var(--ws-panel2)] p-3 border border-[var(--ws-border)] overflow-hidden">
+                                      <div className="flex items-center justify-between text-[11px] text-[var(--ws-muted)] mb-2 pb-1.5 border-b border-[var(--ws-border)]">
+                                        <span>Mã nguồn lần nộp #{sub.id.slice(0, 8)} ({sub.language})</span>
+                                        <span>{sub.source_code.split('\n').length} dòng</span>
+                                      </div>
+                                      <pre className="text-xs font-mono text-[var(--ws-text)] overflow-x-auto whitespace-pre p-1">
+                                        {sub.source_code}
+                                      </pre>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
-              </div>
+                  )}
+                </div>
               </section>
             )}
 

@@ -86,9 +86,6 @@ Role backend `STUDENT`/`INSTRUCTOR` được hydrate thành role frontend `stude
 - Sau khi submit, FE nhận `submission_status_changed` qua Socket.io.
 - Event `leaderboard_updated` làm mới cache React Query của leaderboard.
 
-## Dữ liệu legacy
-
-`src/data/legacyData.ts` vẫn được giữ cho các màn hình chưa có endpoint backend tương ứng, chẳng hạn Class, Homework và một số trang Instructor/Profile. Không xóa file này cho tới khi các màn hình đó được chuyển sang API thật.
 
 ## Kiểm tra và reset localStorage
 

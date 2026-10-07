@@ -105,11 +105,15 @@ model Submission {
   language       Language
   source_code    String           @db.Text
   status         SubmissionStatus @default(PENDING)
-  score          Float            @default(0)
-  execution_time Int? // ms
-  memory_used    Int? // MB
-  created_at     DateTime         @default(now())
-  updated_at     DateTime         @updatedAt
+  score               Float            @default(0)
+  instructor_score    Float?
+  instructor_feedback String?          @db.Text
+  graded_by           String?
+  graded_at           DateTime?
+  execution_time      Int? // ms
+  memory_used         Int? // MB
+  created_at          DateTime         @default(now())
+  updated_at          DateTime         @updatedAt
 
   user                    User                   @relation(fields: [user_id], references: [id], onDelete: Cascade)
   problem                 Problem                @relation(fields: [problem_id], references: [id], onDelete: Cascade)
@@ -127,6 +131,7 @@ model SubmissionTestResult {
   status         SubmissionStatus
   execution_time Int? // ms
   memory_used    Int? // MB
+  actual_output  String?          @db.Text
   created_at     DateTime         @default(now())
 
   submission Submission @relation(fields: [submission_id], references: [id], onDelete: Cascade)
@@ -261,6 +266,7 @@ model UserActivityLog {
 // Enum for notification types
 enum NotificationType {
   submission_judged
+  submission_graded
   homework_assigned
   contest_starting_soon
   contest_started

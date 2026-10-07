@@ -38,6 +38,11 @@ export class TestResultItemDto {
   @IsInt({ message: 'Bộ nhớ sử dụng phải là số nguyên (MB)' })
   @IsOptional()
   memory_used?: number;
+
+  @ApiPropertyOptional({ description: 'Output thực tế xuất ra từ chương trình (stdout)', example: '8' })
+  @IsString()
+  @IsOptional()
+  actual_output?: string;
 }
 
 export class JudgeResultDto {

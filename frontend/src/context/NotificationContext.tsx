@@ -17,7 +17,49 @@ import {
   deleteNotification,
 } from '../api/notifications';
 import { useAuth } from './AuthContext';
+import { notifyGlobalToast } from './ToastContext';
 import type { Socket } from 'socket.io-client';
+
+function playNotificationSound(type: 'success' | 'alert' | 'default' = 'default') {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    const now = ctx.currentTime;
+    if (type === 'success') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.setValueAtTime(783.99, now + 0.12);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc.start(now);
+      osc.stop(now + 0.35);
+    } else if (type === 'alert') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(415.3, now);
+      osc.frequency.setValueAtTime(349.23, now + 0.15);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+      osc.start(now);
+      osc.stop(now + 0.4);
+    } else {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, now);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      osc.start(now);
+      osc.stop(now + 0.25);
+    }
+  } catch {
+    // AudioContext blocked before interaction; fail silently
+  }
+}
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -164,6 +206,33 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       setTotal((prev) => prev + 1);
       // Invalidate cache so other components stay in sync
       qc.invalidateQueries({ queryKey: ['notifications'] });
+      qc.invalidateQueries({ queryKey: ['submissions'] });
+
+      // Trigger toast popup banner & sound
+      const titleLower = (notification.title || '').toLowerCase();
+      const bodyLower = (notification.body || '').toLowerCase();
+      const text = `${titleLower} ${bodyLower}`;
+
+      const isSuccess =
+        text.includes('accepted') ||
+        text.includes('chấp nhận') ||
+        text.includes('100/100') ||
+        text.includes('hoàn thành');
+      const isError =
+        text.includes('wrong answer') ||
+        text.includes('time limit') ||
+        text.includes('compile error') ||
+        text.includes('runtime error') ||
+        text.includes('sai') ||
+        text.includes('lỗi');
+
+      playNotificationSound(isSuccess ? 'success' : isError ? 'alert' : 'default');
+
+      const toastMessage = notification.body
+        ? `${notification.title}\n${notification.body}`
+        : notification.title;
+
+      notifyGlobalToast(toastMessage, isSuccess ? 'success' : isError ? 'error' : 'info', 4500);
     });
 
     return () => {

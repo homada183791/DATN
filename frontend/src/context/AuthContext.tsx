@@ -176,7 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (username: string, email: string, password: string, _fullName: string) => {
+  const register = async (username: string, email: string, password: string, fullName: string) => {
     try {
       const trimmedUsername = username.trim();
       await apiFetch('/api/v1/auth/register', {
@@ -185,6 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: email.trim(),
           username: trimmedUsername || undefined,
           password,
+          full_name: fullName.trim() || undefined,
         }),
       });
       return { ok: true };

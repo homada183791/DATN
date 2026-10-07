@@ -19,6 +19,8 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { VerifyResetCodeDto } from './dto/verify-reset-code.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 
+import { ConfigService } from '@nestjs/config';
+
 interface ResetCodeRecord {
   code: string;
   token: string;
@@ -34,8 +36,9 @@ export class AuthService implements OnModuleDestroy {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {
-    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    const redisUrl = this.configService.get<string>('REDIS_URL') || process.env.REDIS_URL || 'redis://localhost:6379';
     this.redisClient = new Redis(redisUrl);
   }
 
@@ -99,10 +102,11 @@ export class AuthService implements OnModuleDestroy {
   }
 
   private async sendResetEmail(email: string, code: string, token: string, expiresAt: Date) {
-    const smtpHost = process.env.SMTP_HOST;
-    const smtpPort = Number(process.env.SMTP_PORT || 587);
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPass = process.env.SMTP_PASS;
+    const smtpHost = this.configService.get<string>('SMTP_HOST') || process.env.SMTP_HOST;
+    const smtpPort = Number(this.configService.get<string>('SMTP_PORT') || process.env.SMTP_PORT || 587);
+    const smtpUser = this.configService.get<string>('SMTP_USER') || process.env.SMTP_USER;
+    const smtpPass = this.configService.get<string>('SMTP_PASS') || process.env.SMTP_PASS;
+    const smtpFrom = this.configService.get<string>('SMTP_FROM') || process.env.SMTP_FROM || smtpUser;
 
     if (!smtpHost || !smtpUser || !smtpPass) {
       this.logger.warn(
@@ -122,18 +126,44 @@ export class AuthService implements OnModuleDestroy {
         },
       });
 
+      const expiresFormatted = expiresAt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+
       await transporter.sendMail({
-        from: process.env.SMTP_FROM || smtpUser,
+        from: `"JudgeHub Support" <${smtpFrom}>`,
         to: email,
-        subject: 'Mã xác nhận đặt lại mật khẩu',
-        text: `Mã xác nhận của bạn là ${code}. Mã sẽ hết hạn vào ${expiresAt.toISOString()}.`,
-        html: `<p>Mã xác nhận của bạn là <strong>${code}</strong>.</p><p>Mã sẽ hết hạn vào ${expiresAt.toISOString()}.</p>`,
+        subject: `[JudgeHub] Mã xác nhận đặt lại mật khẩu: ${code}`,
+        text: `Chào bạn,\n\nMã xác nhận đặt lại mật khẩu của bạn là: ${code}\nMã có hiệu lực trong 5 phút (hết hạn lúc ${expiresFormatted}).\n\nNếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này để bảo vệ tài khoản.\n\nTrân trọng,\nĐội ngũ JudgeHub`,
+        html: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 540px; margin: 0 auto; padding: 32px 24px; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; color: #1f2937;">
+            <div style="text-align: center; margin-bottom: 24px;">
+              <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: #193a2b; letter-spacing: -0.5px;">JudgeHub</h1>
+              <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280; font-weight: 500;">Hệ thống Luyện tập & Đánh giá Lập trình</p>
+            </div>
+            <div style="background: #f9fafb; border-radius: 12px; padding: 24px; text-align: center; border: 1px dashed #d1d5db; margin-bottom: 24px;">
+              <p style="margin: 0 0 8px 0; font-size: 14px; color: #4b5563; font-weight: 500;">Mã xác nhận đặt lại mật khẩu của bạn là:</p>
+              <div style="font-size: 36px; font-weight: 800; letter-spacing: 6px; color: #193a2b; font-family: monospace; padding: 8px 0;">
+                ${code}
+              </div>
+              <p style="margin: 8px 0 0 0; font-size: 12px; color: #dc2626; font-weight: 600;">⏱️ Mã có hiệu lực trong 5 phút (hết hạn lúc ${expiresFormatted})</p>
+            </div>
+            <p style="font-size: 14px; line-height: 22px; color: #4b5563; margin: 0 0 16px 0;">
+              Bạn nhận được email này vì đã có yêu cầu đặt lại mật khẩu cho tài khoản liên kết với địa chỉ <strong>${email}</strong>.
+            </p>
+            <p style="font-size: 13px; line-height: 20px; color: #6b7280; margin: 0; padding-top: 16px; border-top: 1px solid #f3f4f6;">
+              🔒 Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email. Mật khẩu hiện tại của bạn vẫn được an toàn.
+            </p>
+          </div>
+        `,
       });
+
+      this.logger.log(`[Auth] Reset password email sent successfully to ${email}`);
     } catch (error) {
-      this.logger.warn(
-        `[Auth] SMTP send failed for ${email}; dev fallback payload created: code=${code} expiresAt=${expiresAt.toISOString()}`,
+      this.logger.error(
+        `[Auth] SMTP send failed for ${email}: ${error instanceof Error ? error.message : String(error)}`,
       );
-      this.logger.warn(error instanceof Error ? error.message : String(error));
+      this.logger.warn(
+        `[Auth] Dev fallback for ${email}: code=${code} expiresAt=${expiresAt.toISOString()}`,
+      );
     }
   }
 
@@ -175,11 +205,13 @@ export class AuthService implements OnModuleDestroy {
         email: normalizedEmail,
         username: trimmedUsername || null,
         password: hashedPassword,
+        full_name: registerDto.full_name?.trim() || null,
       },
       select: {
         id: true,
         email: true,
         username: true,
+        full_name: true,
         role: true,
         created_at: true,
       },

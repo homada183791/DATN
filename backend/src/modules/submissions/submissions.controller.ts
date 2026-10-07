@@ -1,28 +1,37 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, UseGuards, Request, Query } from '@nestjs/common';
 import { SubmissionsService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { RunCustomCodeDto } from './dto/run-custom-code.dto';
+import { GradeSubmissionDto } from './dto/grade-submission.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Throttle } from '@nestjs/throttler';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { Role } from '@prisma/client';
 import {
   ApiBearerAuth,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 
 @ApiTags('Submissions')
 @Controller('submissions')
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 @ApiBearerAuth()
 export class SubmissionsController {
   constructor(private readonly submissionsService: SubmissionsService) {}
 
   @Get()
   @ApiOperation({ summary: 'Lấy danh sách bài nộp' })
+  @ApiQuery({ name: 'problem_id', required: false, description: 'Lọc bài nộp theo bài toán' })
   @ApiResponse({ status: 200, description: 'Danh sách bài nộp theo quyền người dùng.' })
-  findAll(@Request() req: { user: { userId: string; role: import('@prisma/client').Role } }) {
-    return this.submissionsService.findAll(req.user.userId, req.user.role);
+  findAll(
+    @Request() req: { user: { userId: string; role: Role } },
+    @Query('problem_id') problemId?: string,
+  ) {
+    return this.submissionsService.findAll(req.user.userId, req.user.role, problemId);
   }
 
   @Get(':id')
@@ -31,7 +40,7 @@ export class SubmissionsController {
   @ApiResponse({ status: 404, description: 'Không tìm thấy bài nộp' })
   findOne(
     @Param('id') id: string,
-    @Request() req: { user: { userId: string; role: import('@prisma/client').Role } },
+    @Request() req: { user: { userId: string; role: Role } },
   ) {
     return this.submissionsService.findOne(id, req.user.userId, req.user.role);
   }
@@ -74,5 +83,39 @@ export class SubmissionsController {
   ) {
     const userId = req.user.userId;
     return this.submissionsService.runCustomCode(userId, runCustomCodeDto);
+  }
+
+  @Patch(':id/grade')
+  @Roles(Role.INSTRUCTOR)
+  @ApiOperation({ summary: 'Giảng viên chấm điểm thủ công và viết nhận xét bài nộp' })
+  @ApiResponse({ status: 200, description: 'Chấm điểm và nhận xét thành công' })
+  grade(
+    @Param('id') id: string,
+    @Request() req: { user: { userId: string } },
+    @Body() dto: GradeSubmissionDto,
+  ) {
+    return this.submissionsService.gradeSubmission(id, req.user.userId, dto);
+  }
+
+  @Post(':id/rejudge')
+  @Roles(Role.INSTRUCTOR)
+  @ApiOperation({ summary: 'Giảng viên yêu cầu chấm lại một bài nộp cụ thể' })
+  @ApiResponse({ status: 200, description: 'Đã đưa bài nộp vào hàng đợi để chấm lại' })
+  rejudge(
+    @Param('id') id: string,
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.submissionsService.rejudgeSubmission(id, req.user.userId);
+  }
+
+  @Post('problem/:problemId/rejudge')
+  @Roles(Role.INSTRUCTOR)
+  @ApiOperation({ summary: 'Giảng viên yêu cầu chấm lại toàn bộ bài nộp của một bài toán' })
+  @ApiResponse({ status: 200, description: 'Đã đưa tất cả bài nộp của bài toán vào hàng đợi để chấm lại' })
+  rejudgeProblem(
+    @Param('problemId') problemId: string,
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.submissionsService.rejudgeProblem(problemId, req.user.userId);
   }
 }
