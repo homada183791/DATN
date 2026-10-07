@@ -362,7 +362,7 @@ export default function InstructorClassDetail() {
       <div className="bg-white border border-[#e5dac9] rounded-2xl p-6 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-[#193a2b] to-[#2d5a3f] rounded-2xl flex items-center justify-center text-white shadow-md flex-shrink-0">
+            <div className="w-14 h-14 bg-linear-to-br from-[#193a2b] to-[#2d5a3f] rounded-2xl flex items-center justify-center text-white shadow-md shrink-0">
               <GraduationCap size={28} />
             </div>
             <div>
@@ -589,7 +589,7 @@ export default function InstructorClassDetail() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={() => setViewHw(hw)}
                         className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#f0ebd9] text-[#191919] text-xs font-semibold rounded-xl hover:bg-[#e5dac9] transition-colors"
@@ -694,7 +694,7 @@ export default function InstructorClassDetail() {
             </div>
 
             {/* Sort */}
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               <ArrowUpDown size={15} className="text-[#8a8073]" />
               <span className="text-xs font-semibold text-[#8a8073] uppercase tracking-wider">Sắp xếp:</span>
               <select
@@ -764,7 +764,7 @@ export default function InstructorClassDetail() {
                         </td>
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#193a2b] to-[#2d5a3f] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-sm">
+                            <div className="w-8 h-8 rounded-full bg-linear-to-br from-[#193a2b] to-[#2d5a3f] text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">
                               {m.displayName.charAt(0).toUpperCase()}
                             </div>
                             <div>
@@ -810,7 +810,7 @@ export default function InstructorClassDetail() {
 
       {/* ================= MODAL: GIAO BÀI TẬP MỚI ================= */}
       {showCreateHw && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-[90] flex items-center justify-center p-4" onClick={() => setShowCreateHw(false)}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setShowCreateHw(false)}>
           <div className="bg-white border border-[#e5dac9] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5dac9]">
               <div>
@@ -883,7 +883,7 @@ export default function InstructorClassDetail() {
 
       {/* ================= MODAL: XEM CHI TIẾT BÀI TẬP ================= */}
       {viewHw && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-[90] flex items-center justify-center p-4" onClick={() => setViewHw(null)}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setViewHw(null)}>
           <div className="bg-white border border-[#e5dac9] rounded-2xl w-full max-w-lg shadow-2xl p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-[#e5dac9] pb-3">
               <h3 className="font-bold font-serif text-base text-[#191919]">{viewHw.title}</h3>
@@ -921,7 +921,7 @@ export default function InstructorClassDetail() {
 
       {/* ================= MODAL: CONFIRM KICK SINH VIÊN ================= */}
       {confirmKickStudent && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-[90] flex items-center justify-center p-4" onClick={() => setConfirmKickStudent(null)}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setConfirmKickStudent(null)}>
           <div className="bg-white border border-[#e5dac9] rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center space-y-4" onClick={(e) => e.stopPropagation()}>
             <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
               <UserX size={24} />
@@ -955,31 +955,31 @@ export default function InstructorClassDetail() {
 
       {/* ================= MODAL: CHỈNH SỬA LỚP HỌC ================= */}
       {showEditClass && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-[85] flex items-center justify-center p-4" onClick={() => setShowEditClass(false)}>
-          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-lg shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--ws-border)]">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-85 flex items-center justify-center p-4" onClick={() => setShowEditClass(false)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-lg shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
               <div>
                 <h3 className="font-bold font-serif text-[16px]">Chỉnh sửa lớp học</h3>
-                <p className="text-xs text-[var(--ws-muted)] mt-0.5">Mã lớp: {classData.invite_code}</p>
+                <p className="text-xs text-(--ws-muted) mt-0.5">Mã lớp: {classData.invite_code}</p>
               </div>
-              <button onClick={() => setShowEditClass(false)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={18} /></button>
+              <button onClick={() => setShowEditClass(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Tên lớp *</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">Tên lớp *</label>
                 <input
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                   placeholder="VD: Cấu trúc dữ liệu & Giải thuật"
-                  className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Học kỳ</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">Học kỳ</label>
                 <select
                   value={editForm.semester}
                   onChange={(e) => setEditForm({ ...editForm, semester: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                 >
                   <option>Học kỳ 1 - 2024/2025</option>
                   <option>Học kỳ 2 - 2024/2025</option>
@@ -987,22 +987,22 @@ export default function InstructorClassDetail() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Mô tả</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">Mô tả</label>
                 <textarea
                   value={editForm.description}
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                   rows={3}
                   placeholder="Giới thiệu ngắn về nội dung môn học…"
-                  className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
                 />
               </div>
               {editError && <p className="text-xs text-red-600 font-medium">{editError}</p>}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--ws-border)]">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-(--ws-border)">
                 <button
                   type="button"
                   onClick={() => setShowEditClass(false)}
                   disabled={isUpdatingClass}
-                  className="px-5 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] text-xs font-semibold rounded-xl hover:bg-[var(--ws-hover)] transition-colors disabled:opacity-50"
+                  className="px-5 py-2.5 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors disabled:opacity-50"
                 >
                   Huỷ
                 </button>
@@ -1023,38 +1023,38 @@ export default function InstructorClassDetail() {
 
       {/* ================= MODAL: THÊM SINH VIÊN BẰNG EMAIL ================= */}
       {showAddStudent && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-[85] flex items-center justify-center p-4" onClick={() => setShowAddStudent(false)}>
-          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-md shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--ws-border)]">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-85 flex items-center justify-center p-4" onClick={() => setShowAddStudent(false)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-md shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
               <div>
                 <h3 className="font-bold font-serif text-[16px]">Thêm sinh viên vào lớp</h3>
-                <p className="text-xs text-[var(--ws-muted)] mt-0.5">{classData.name}</p>
+                <p className="text-xs text-(--ws-muted) mt-0.5">{classData.name}</p>
               </div>
-              <button onClick={() => setShowAddStudent(false)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={18} /></button>
+              <button onClick={() => setShowAddStudent(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Email sinh viên *</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">Email sinh viên *</label>
                 <input
                   type="email"
                   value={studentEmail}
                   onChange={(e) => setStudentEmail(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddStudent()}
                   placeholder="VD: sinhvien@student.edu.vn"
-                  className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                   autoFocus
                 />
-                <p className="text-xs text-[var(--ws-muted)] mt-1.5">
+                <p className="text-xs text-(--ws-muted) mt-1.5">
                   Tài khoản sinh viên đã đăng ký trên hệ thống sẽ được ghi danh ngay vào lớp này.
                 </p>
               </div>
               {addStudentError && <p className="text-xs text-red-600 font-medium">{addStudentError}</p>}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--ws-border)]">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-(--ws-border)">
                 <button
                   type="button"
                   onClick={() => setShowAddStudent(false)}
                   disabled={isAddingStudent}
-                  className="px-5 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] text-xs font-semibold rounded-xl hover:bg-[var(--ws-hover)] transition-colors disabled:opacity-50"
+                  className="px-5 py-2.5 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors disabled:opacity-50"
                 >
                   Huỷ
                 </button>

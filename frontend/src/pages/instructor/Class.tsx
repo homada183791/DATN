@@ -218,7 +218,7 @@ export default function InstructorClass() {
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-[#193a2b] to-[#2d5a3f] rounded-xl flex items-center justify-center shadow-md">
+                    <div className="w-12 h-12 bg-linear-to-br from-[#193a2b] to-[#2d5a3f] rounded-xl flex items-center justify-center shadow-md">
                       <GraduationCap size={24} className="text-white" />
                     </div>
                     <div>
@@ -405,28 +405,28 @@ export default function InstructorClass() {
 
       {/* ===== create modal ===== */}
       {showCreate && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-[80] flex items-center justify-center p-4" onClick={() => setShowCreate(false)}>
-          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-lg shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--ws-border)]">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-80 flex items-center justify-center p-4" onClick={() => setShowCreate(false)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-lg shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
               <h3 className="font-bold font-serif text-[16px]">{t('instructorClass.modalCreateTitle')}</h3>
-              <button onClick={() => setShowCreate(false)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={18} /></button>
+              <button onClick={() => setShowCreate(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">{t('instructorClass.fieldClassName')}</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldClassName')}</label>
                 <input
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   placeholder={t('instructorClass.fieldClassNamePlaceholder')}
-                  className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">{t('instructorClass.fieldSemester')}</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldSemester')}</label>
                 <select
                   value={form.semester}
                   onChange={(e) => setForm({ ...form, semester: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                 >
                   <option>Học kỳ 1 - 2024/2025</option>
                   <option>Học kỳ 2 - 2024/2025</option>
@@ -434,25 +434,25 @@ export default function InstructorClass() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">{t('instructorClass.fieldDescription')}</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldDescription')}</label>
                 <textarea
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   rows={3}
                   placeholder={t('instructorClass.fieldDescriptionPlaceholder')}
-                  className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
                 />
               </div>
               {formError && <p className="text-xs text-red-600 font-medium">{formError}</p>}
               <p className="text-[11.5px] text-[#8a8073] bg-[#f0ebd9] border border-[#e5dac9] rounded-lg px-3 py-2">
                 💡 {t('instructorClass.createHint')}
               </p>
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--ws-border)]">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-(--ws-border)">
                 <button
                   type="button"
                   onClick={() => setShowCreate(false)}
                   disabled={isCreatingClass}
-                  className="px-5 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] text-xs font-semibold rounded-xl hover:bg-[var(--ws-hover)] transition-colors disabled:opacity-50"
+                  className="px-5 py-2.5 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors disabled:opacity-50"
                 >
                   Huỷ
                 </button>
@@ -473,31 +473,31 @@ export default function InstructorClass() {
 
       {/* ===== edit modal ===== */}
       {editingClass && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-[80] flex items-center justify-center p-4" onClick={() => setEditingClass(null)}>
-          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-lg shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--ws-border)]">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-80 flex items-center justify-center p-4" onClick={() => setEditingClass(null)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-lg shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
               <div>
                 <h3 className="font-bold font-serif text-[16px]">Chỉnh sửa lớp học</h3>
-                <p className="text-xs text-[var(--ws-muted)] mt-0.5">Mã lớp: {editingClass.code}</p>
+                <p className="text-xs text-(--ws-muted) mt-0.5">Mã lớp: {editingClass.code}</p>
               </div>
-              <button onClick={() => setEditingClass(null)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={18} /></button>
+              <button onClick={() => setEditingClass(null)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Tên lớp *</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">Tên lớp *</label>
                 <input
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                   placeholder="VD: Cấu trúc dữ liệu & Giải thuật"
-                  className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Học kỳ</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">Học kỳ</label>
                 <select
                   value={editForm.semester}
                   onChange={(e) => setEditForm({ ...editForm, semester: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                 >
                   <option>Học kỳ 1 - 2024/2025</option>
                   <option>Học kỳ 2 - 2024/2025</option>
@@ -505,22 +505,22 @@ export default function InstructorClass() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Mô tả</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">Mô tả</label>
                 <textarea
                   value={editForm.description}
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                   rows={3}
                   placeholder="Giới thiệu ngắn về nội dung môn học…"
-                  className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
                 />
               </div>
               {editError && <p className="text-xs text-red-600 font-medium">{editError}</p>}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--ws-border)]">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-(--ws-border)">
                 <button
                   type="button"
                   onClick={() => setEditingClass(null)}
                   disabled={isUpdatingClass}
-                  className="px-5 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] text-xs font-semibold rounded-xl hover:bg-[var(--ws-hover)] transition-colors disabled:opacity-50"
+                  className="px-5 py-2.5 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors disabled:opacity-50"
                 >
                   Huỷ
                 </button>
@@ -541,39 +541,39 @@ export default function InstructorClass() {
 
       {/* ===== roster modal ===== */}
       {rosterClass && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-[80] flex items-center justify-center p-4" onClick={() => setRosterId(null)}>
-          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--ws-border)]">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-80 flex items-center justify-center p-4" onClick={() => setRosterId(null)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
               <div>
                 <h3 className="font-bold font-serif text-[16px]">{t('instructorClass.rosterTitle', { name: rosterClass.name })}</h3>
-                <p className="text-xs text-[var(--ws-muted)] mt-0.5">{t('instructorClass.rosterSubtitle', { count: roster.length, code: rosterClass.code })}</p>
+                <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorClass.rosterSubtitle', { count: roster.length, code: rosterClass.code })}</p>
               </div>
-              <button onClick={() => { setRosterId(null); setConfirmKickId(null); }} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={18} /></button>
+              <button onClick={() => { setRosterId(null); setConfirmKickId(null); }} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
             <div className="overflow-y-auto max-h-[calc(80vh-70px)]">
               {roster.length === 0 ? (
-                <p className="p-10 text-center text-sm text-[var(--ws-muted)]">{t('instructorClass.rosterEmpty')}</p>
+                <p className="p-10 text-center text-sm text-(--ws-muted)">{t('instructorClass.rosterEmpty')}</p>
               ) : (
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-[var(--ws-border)] bg-[var(--ws-hover)]">
-                      <th className="text-left text-xs font-semibold text-[var(--ws-muted)] py-3 px-5 uppercase tracking-wider">{t('instructorClass.colStudent')}</th>
-                      <th className="text-right text-xs font-semibold text-[var(--ws-muted)] py-3 px-4 uppercase tracking-wider">{t('instructorClass.colSolved')}</th>
-                      <th className="text-right text-xs font-semibold text-[var(--ws-muted)] py-3 px-4 uppercase tracking-wider">Rating</th>
-                      <th className="text-right text-xs font-semibold text-[var(--ws-muted)] py-3 px-5 uppercase tracking-wider"></th>
+                    <tr className="border-b border-(--ws-border) bg-(--ws-hover)">
+                      <th className="text-left text-xs font-semibold text-(--ws-muted) py-3 px-5 uppercase tracking-wider">{t('instructorClass.colStudent')}</th>
+                      <th className="text-right text-xs font-semibold text-(--ws-muted) py-3 px-4 uppercase tracking-wider">{t('instructorClass.colSolved')}</th>
+                      <th className="text-right text-xs font-semibold text-(--ws-muted) py-3 px-4 uppercase tracking-wider">Rating</th>
+                      <th className="text-right text-xs font-semibold text-(--ws-muted) py-3 px-5 uppercase tracking-wider"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {roster.map((m) => (
-                      <tr key={m.username} className="border-b border-[var(--ws-border)] hover:bg-[var(--ws-hover)] transition-colors">
+                      <tr key={m.username} className="border-b border-(--ws-border) hover:bg-(--ws-hover) transition-colors">
                         <td className="py-3 px-5">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-[#193a2b] to-[#2d5a3f] rounded-full flex items-center justify-center text-white text-xs font-bold">
+                            <div className="w-8 h-8 bg-linear-to-br from-[#193a2b] to-[#2d5a3f] rounded-full flex items-center justify-center text-white text-xs font-bold">
                               {m.fullName.charAt(0)}
                             </div>
                             <div>
-                              <p className="text-sm font-semibold text-[var(--ws-text)]">{m.fullName}</p>
-                              <p className="text-xs text-[var(--ws-muted)]">@{m.username}</p>
+                              <p className="text-sm font-semibold text-(--ws-text)">{m.fullName}</p>
+                              <p className="text-xs text-(--ws-muted)">@{m.username}</p>
                             </div>
                           </div>
                         </td>
@@ -614,29 +614,29 @@ export default function InstructorClass() {
 
       {/* ===== create homework modal ===== */}
       {hwClass && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-[85] flex items-center justify-center p-4" onClick={() => setHwClassId(null)}>
-          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--ws-border)] sticky top-0 bg-[var(--ws-panel)] z-10">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-85 flex items-center justify-center p-4" onClick={() => setHwClassId(null)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border) sticky top-0 bg-(--ws-panel) z-10">
               <div>
                 <h3 className="font-bold font-serif text-[16px]">{t('instructorClass.assignHomework')}</h3>
-                <p className="text-xs text-[var(--ws-muted)] mt-0.5 flex items-center gap-1">
+                <p className="text-xs text-(--ws-muted) mt-0.5 flex items-center gap-1">
                   <GraduationCap size={12} /> {hwClass.name} ({hwClass.code}) • {t('instructorClass.memberCountSuffix', { count: membersOf(hwClass.id).length })}
                 </p>
               </div>
-              <button onClick={() => setHwClassId(null)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={18} /></button>
+              <button onClick={() => setHwClassId(null)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">{t('instructorClass.fieldTitle')}</label>
-                <input value={hwForm.title} onChange={(e) => setHwForm({ ...hwForm, title: e.target.value })} placeholder={t('instructorClass.fieldTitlePlaceholder')} className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldTitle')}</label>
+                <input value={hwForm.title} onChange={(e) => setHwForm({ ...hwForm, title: e.target.value })} placeholder={t('instructorClass.fieldTitlePlaceholder')} className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">{t('instructorClass.fieldDeadline')}</label>
-                <input type="datetime-local" value={hwForm.deadline} onChange={(e) => setHwForm({ ...hwForm, deadline: e.target.value })} className="w-full px-3 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldDeadline')}</label>
+                <input type="datetime-local" value={hwForm.deadline} onChange={(e) => setHwForm({ ...hwForm, deadline: e.target.value })} className="w-full px-3 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">{t('instructorClass.fieldDescription')}</label>
-                <textarea value={hwForm.description} onChange={(e) => setHwForm({ ...hwForm, description: e.target.value })} rows={2} placeholder={t('instructorClass.fieldHwDescriptionPlaceholder')} className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none" />
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldDescription')}</label>
+                <textarea value={hwForm.description} onChange={(e) => setHwForm({ ...hwForm, description: e.target.value })} rows={2} placeholder={t('instructorClass.fieldHwDescriptionPlaceholder')} className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none" />
               </div>
 
               {/* Problem manager */}
@@ -646,12 +646,12 @@ export default function InstructorClass() {
               <p className="text-[11.5px] text-[#8a8073] bg-[#f0ebd9] border border-[#e5dac9] rounded-lg px-3 py-2">
                 🔒 {t('instructorClass.hwVisibilityHint', { count: membersOf(hwClass.id).length })}
               </p>
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--ws-border)]">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-(--ws-border)">
                 <button
                   type="button"
                   onClick={() => setHwClassId(null)}
                   disabled={isSavingHw}
-                  className="px-5 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] text-xs font-semibold rounded-xl hover:bg-[var(--ws-hover)] transition-colors disabled:opacity-50"
+                  className="px-5 py-2.5 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors disabled:opacity-50"
                 >
                   Huỷ
                 </button>

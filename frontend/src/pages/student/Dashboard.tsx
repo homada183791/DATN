@@ -181,7 +181,7 @@ export default function StudentDashboard() {
                   to={`/student/contest/${contest.id}`}
                   className="w-full flex items-center gap-4 p-3.5 bg-[#f7f4eb] rounded-xl border border-[#e5dac9] hover:border-[#193a2b]/40 hover:bg-[#f0ebd9]/50 transition-all text-left group"
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
                     contest.status === 'running' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
                   }`}>
                     <Trophy size={18} />
@@ -197,7 +197,7 @@ export default function StudentDashboard() {
                       )}
                     </p>
                   </div>
-                  <span className={`text-xs px-2.5 py-1 rounded-md font-semibold flex-shrink-0 ${
+                  <span className={`text-xs px-2.5 py-1 rounded-md font-semibold shrink-0 ${
                     contest.status === 'running'
                       ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                       : 'bg-amber-100 text-amber-800 border border-amber-300'
@@ -258,7 +258,7 @@ export default function StudentDashboard() {
                         </p>
                       </div>
                     </div>
-                    <div className="text-right text-xs text-[#8a8073] flex-shrink-0 pl-3">
+                    <div className="text-right text-xs text-[#8a8073] shrink-0 pl-3">
                       <p className="font-mono">{sub.executionTime !== null && sub.executionTime !== undefined ? `${sub.executionTime}ms` : '—'}</p>
                       <p className="font-mono">{sub.memory !== null && sub.memory !== undefined ? `${sub.memory}MB` : '—'}</p>
                     </div>
@@ -291,7 +291,7 @@ export default function StudentDashboard() {
                 {leaderboardRows.slice(0, 4).map((entry) => (
                   <div key={`${entry.rank}-${entry.username}`} className="flex items-center justify-between p-2 rounded-lg bg-[#f7f4eb] border border-[#e5dac9]">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="w-5 h-5 rounded-full bg-[#f0ebd9] text-[#191919] text-[11px] font-bold flex items-center justify-center flex-shrink-0">
+                      <span className="w-5 h-5 rounded-full bg-[#f0ebd9] text-[#191919] text-[11px] font-bold flex items-center justify-center shrink-0">
                         {entry.rank}
                       </span>
                       <div className="min-w-0">
@@ -299,7 +299,7 @@ export default function StudentDashboard() {
                         <p className="text-[10px] text-[#8a8073]">@{entry.username}</p>
                       </div>
                     </div>
-                    <div className="text-right flex-shrink-0">
+                    <div className="text-right shrink-0">
                       <p className="text-xs font-bold text-emerald-700">{entry.solvedCount} AC</p>
                       <p className="text-[10px] text-[#8a8073]">{entry.rating} pts</p>
                     </div>

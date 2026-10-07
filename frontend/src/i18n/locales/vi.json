@@ -13,7 +13,8 @@
     "homework": "Giao bài tập",
     "students": "Sinh viên",
     "problemBank": "Ngân hàng bài tập",
-    "calendar": "Lịch biểu"
+    "calendar": "Lịch biểu",
+    "myHomework": "Bài tập"
   },
   "breadcrumb": {
     "student": "Sinh viên",
@@ -307,8 +308,6 @@
     "homeworkTitle": "Bài tập về nhà",
     "homeworkSummary": "{{total}} bài tập • {{open}} đang mở • {{closed}} đã đóng",
     "manageClasses": "Quản lý lớp học",
-    "sampleInput": "Input mẫu",
-    "sampleOutput": "Output mẫu",
     "emptyProblems": "Bài tập chưa có bài toán nào."
   },
   "studentClass": {

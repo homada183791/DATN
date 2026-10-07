@@ -51,7 +51,6 @@ function Breadcrumbs() {
     dashboard: t('breadcrumb.dashboard'),
     problems: t('breadcrumb.problems'),
     problem: t('breadcrumb.problem'),
-    homework: t('breadcrumb.homework'),
     contest: t('breadcrumb.contest'),
     submission: t('breadcrumb.submission'),
     class: t('breadcrumb.class'),
@@ -63,6 +62,13 @@ function Breadcrumbs() {
   };
 
   const formatSegment = (segment: string) => {
+    // "homework"/"homeworks" dùng chung 1 từ trong URL cho cả 2 vai trò,
+    // nhưng ý nghĩa khác nhau: giảng viên "giao bài tập", sinh viên "xem
+    // bài tập của mình" — nên không thể gộp vào từ điển `labels` phía trên
+    // (nó không biết đoạn URL đang thuộc nhánh /instructor hay /student).
+    if (segment === 'homework' || segment === 'homeworks') {
+      return pathSegments[0] === 'instructor' ? t('nav.homework') : t('nav.myHomework');
+    }
     if (labels[segment]) return labels[segment];
     if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment)) {
       return `#${segment.slice(0, 8)}`;
@@ -150,7 +156,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
       ]
     : [
         { label: t('nav.dashboard'), icon: <LayoutDashboard size={20} />, path: '/student/dashboard' },
-        { label: t('nav.homework'), icon: <BookOpen size={20} />, path: '/student/homeworks' },
+        { label: t('nav.myHomework'), icon: <BookOpen size={20} />, path: '/student/homeworks' },
         { label: t('nav.class'), icon: <GraduationCap size={20} />, path: '/student/class' },
         { label: t('nav.contest'), icon: <Trophy size={20} />, path: '/student/contest' },
         { label: t('nav.calendar'), icon: <Calendar size={20} />, path: '/student/calendar' },

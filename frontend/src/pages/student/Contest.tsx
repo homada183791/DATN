@@ -291,13 +291,13 @@ export default function Contest() {
                               <div key={cp.problem_id} className="flex items-center gap-3 px-4 py-3 bg-white border border-[#e5dac9] rounded-xl hover:bg-[#f7f4eb] transition-colors">
                                 <span className="text-sm font-mono text-[#8a8073] w-5 text-center">{String.fromCharCode(65 + i)}</span>
                                 <p className="flex-1 text-sm font-semibold text-[#191919] truncate">{cp.problem.title}</p>
-                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${diffColor[cp.problem.difficulty] ?? 'bg-gray-100 text-gray-600'}`}>
+                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold shrink-0 ${diffColor[cp.problem.difficulty] ?? 'bg-gray-100 text-gray-600'}`}>
                                   {difficultyLabels[cp.problem.difficulty] ?? cp.problem.difficulty}
                                 </span>
                                 {isRunning ? (
                                   <Link
                                     to={`/student/contest/${selectedContestData.id}/problem/${cp.problem_id}`}
-                                    className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors"
+                                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors"
                                     onClick={() => setSelectedContest(null)}
                                   >
                                     <Play size={11} fill="white" /> {t('studentHomework.goSolve')}
@@ -305,13 +305,13 @@ export default function Contest() {
                                 ) : isEnded ? (
                                   <Link
                                     to={`/student/problem/${cp.problem_id}`}
-                                    className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors"
+                                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors"
                                     onClick={() => setSelectedContest(null)}
                                   >
                                     <Play size={11} fill="white" /> {t('studentDashboard.practiceBtn')}
                                   </Link>
                                 ) : (
-                                  <span className="flex-shrink-0 text-xs text-[#8a8073] px-3 py-1.5 bg-[#f0ebd9] rounded-xl">
+                                  <span className="shrink-0 text-xs text-[#8a8073] px-3 py-1.5 bg-[#f0ebd9] rounded-xl">
                                     {t('instructorContest.statusUpcoming')}
                                   </span>
                                 )}

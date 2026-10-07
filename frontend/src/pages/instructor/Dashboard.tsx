@@ -176,7 +176,7 @@ export default function InstructorDashboard() {
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 bg-[#193a2b] text-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-xs">
+                      <div className="w-9 h-9 bg-[#193a2b] text-white rounded-lg flex items-center justify-center shrink-0 shadow-xs">
                         <GraduationCap size={18} />
                       </div>
                       <div className="min-w-0">
@@ -188,7 +188,7 @@ export default function InstructorDashboard() {
                         </p>
                       </div>
                     </div>
-                    <span className="text-[11px] font-semibold text-[#5c5446] bg-[#f0ebd9] px-2 py-0.5 rounded-full border border-[#e5dac9] flex-shrink-0">
+                    <span className="text-[11px] font-semibold text-[#5c5446] bg-[#f0ebd9] px-2 py-0.5 rounded-full border border-[#e5dac9] shrink-0">
                       {cls.studentCount} SV
                     </span>
                   </div>
@@ -237,7 +237,7 @@ export default function InstructorDashboard() {
                       </p>
                     </div>
                   </div>
-                  <div className="text-right text-xs text-[#8a8073] flex-shrink-0 pl-3">
+                  <div className="text-right text-xs text-[#8a8073] shrink-0 pl-3">
                     <p className="font-mono">{sub.executionTime !== null && sub.executionTime !== undefined ? `${sub.executionTime}ms` : '—'}</p>
                     <p className="mt-0.5">{formatVNFull(sub.timestamp)}</p>
                   </div>
@@ -278,7 +278,7 @@ export default function InstructorDashboard() {
                       <p className="text-xs font-semibold text-[#191919] truncate">{hw.title}</p>
                       <p className="text-[11px] text-[#8a8073] mt-0.5">{hw.className}</p>
                     </div>
-                    <span className="text-[10px] font-semibold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300 flex-shrink-0 flex items-center gap-1">
+                    <span className="text-[10px] font-semibold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300 shrink-0 flex items-center gap-1">
                       <Clock size={10} /> {hw.deadline}
                     </span>
                   </div>

@@ -51,16 +51,16 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-      <div className="w-full max-w-lg bg-[var(--ws-panel)] border border-[var(--ws-border)] rounded-2xl shadow-xl overflow-hidden text-[var(--ws-text)]">
+      <div className="w-full max-w-lg bg-(--ws-panel) border border-(--ws-border) rounded-2xl shadow-xl overflow-hidden text-(--ws-text)">
         {/* Header */}
-        <div className="flex items-start justify-between p-5 border-b border-[var(--ws-border)]">
+        <div className="flex items-start justify-between p-5 border-b border-(--ws-border)">
           <div className="flex items-center gap-3">
             <div
               style={{
                 backgroundColor: isContest ? 'var(--ws-contest-bg)' : 'var(--ws-hw-bg)',
                 color: isContest ? 'var(--ws-contest-text)' : 'var(--ws-hw-text)',
               }}
-              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
             >
               {isContest ? <Trophy size={20} /> : <BookOpen size={20} />}
             </div>
@@ -75,14 +75,14 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
               >
                 {isContest ? t('calendar.eventContest') : t('calendar.eventHomework')}
               </span>
-              <h3 className="text-lg font-bold font-serif text-[var(--ws-text)] mt-1">
+              <h3 className="text-lg font-bold font-serif text-(--ws-text) mt-1">
                 {event.title}
               </h3>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:bg-[var(--ws-hover)] transition-colors"
+            className="p-1.5 rounded-lg text-(--ws-muted) hover:text-(--ws-text) hover:bg-(--ws-hover) transition-colors"
           >
             <X size={18} />
           </button>
@@ -92,31 +92,31 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
         <div className="p-5 space-y-4 text-sm">
           {/* Lớp học */}
           {event.className && (
-            <div className="flex items-center gap-2.5 text-[var(--ws-muted)]">
-              <GraduationCap size={16} className="text-[var(--ws-accent)] flex-shrink-0" />
+            <div className="flex items-center gap-2.5 text-(--ws-muted)">
+              <GraduationCap size={16} className="text-(--ws-accent) shrink-0" />
               <span>
-                {t('calendar.classLabel')}: <strong className="text-[var(--ws-text)]">{event.className}</strong>
+                {t('calendar.classLabel')}: <strong className="text-(--ws-text)">{event.className}</strong>
               </span>
             </div>
           )}
 
           {/* Thời gian */}
-          <div className="p-3.5 rounded-xl bg-[var(--ws-panel2)] border border-[var(--ws-border)] space-y-2">
-            <div className="flex items-center gap-2.5 text-[var(--ws-muted)]">
-              <Calendar size={15} className="text-[var(--ws-accent)] flex-shrink-0" />
+          <div className="p-3.5 rounded-xl bg-(--ws-panel2) border border-(--ws-border) space-y-2">
+            <div className="flex items-center gap-2.5 text-(--ws-muted)">
+              <Calendar size={15} className="text-(--ws-accent) shrink-0" />
               <span>
                 {isContest ? t('calendar.startTime') : t('calendar.deadline')}{' '}
-                <strong className="text-[var(--ws-text)]">
+                <strong className="text-(--ws-text)">
                   {formatVNFull(event.startDateTime)} (UTC+7)
                 </strong>
               </span>
             </div>
             {isContest && event.endDateTime && (
-              <div className="flex items-center gap-2.5 text-[var(--ws-muted)]">
-                <Clock size={15} className="text-[var(--ws-accent)] flex-shrink-0" />
+              <div className="flex items-center gap-2.5 text-(--ws-muted)">
+                <Clock size={15} className="text-(--ws-accent) shrink-0" />
                 <span>
                   {t('calendar.endTime')}{' '}
-                  <strong className="text-[var(--ws-text)]">
+                  <strong className="text-(--ws-text)">
                     {formatVNFull(event.endDateTime)} (UTC+7)
                   </strong>
                 </span>
@@ -127,32 +127,32 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
           {/* Mô tả */}
           {event.description ? (
             <div>
-              <p className="text-xs font-semibold text-[var(--ws-muted)] uppercase tracking-wider mb-1">
+              <p className="text-xs font-semibold text-(--ws-muted) uppercase tracking-wider mb-1">
                 {t('calendar.description')}
               </p>
-              <p className="text-xs leading-relaxed text-[var(--ws-text)] bg-[var(--ws-panel2)]/60 p-3 rounded-xl border border-[var(--ws-border)]">
+              <p className="text-xs leading-relaxed text-(--ws-text) bg-(--ws-panel2)/60 p-3 rounded-xl border border-(--ws-border)">
                 {event.description}
               </p>
             </div>
           ) : (
-            <p className="text-xs text-[var(--ws-muted)] italic">{t('calendar.noDescription')}</p>
+            <p className="text-xs text-(--ws-muted) italic">{t('calendar.noDescription')}</p>
           )}
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between p-4 bg-[var(--ws-panel2)] border-t border-[var(--ws-border)]">
+        <div className="flex items-center justify-between p-4 bg-(--ws-panel2) border-t border-(--ws-border)">
           <a
             href={getGoogleCalendarUrl()}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--ws-border)] text-xs font-semibold text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:bg-[var(--ws-hover)] transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-(--ws-border) text-xs font-semibold text-(--ws-muted) hover:text-(--ws-text) hover:bg-(--ws-hover) transition-colors"
           >
             <ExternalLink size={13} /> {t('calendar.addGoogleCalendar')}
           </a>
 
           <a
             href={event.link}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--ws-accent)] text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-xs"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--ws-accent) text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-xs"
           >
             {isContest
               ? userRole === 'instructor'

@@ -230,42 +230,42 @@ export default function InstructorStudent() {
 
       {/* Student Detail Modal */}
       {selectedStudent && selectedStudentData && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-[80] flex items-center justify-center p-4" onClick={() => setSelectedStudent(null)}>
-          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-6 border-b border-[var(--ws-border)]">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-80 flex items-center justify-center p-4" onClick={() => setSelectedStudent(null)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-6 border-b border-(--ws-border)">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#193a2b] to-[#2d5a3f] rounded-full flex items-center justify-center text-white text-lg font-bold font-serif">
+                <div className="w-12 h-12 bg-linear-to-br from-[#193a2b] to-[#2d5a3f] rounded-full flex items-center justify-center text-white text-lg font-bold font-serif">
                   {selectedStudentData.fullName.charAt(0)}
                 </div>
                 <div>
-                  <h3 className="text-lg font-serif font-bold text-[var(--ws-text)]">{selectedStudentData.fullName}</h3>
-                  <p className="text-sm text-[var(--ws-muted)]">@{selectedStudentData.username} • {selectedStudentData.className}</p>
+                  <h3 className="text-lg font-serif font-bold text-(--ws-text)">{selectedStudentData.fullName}</h3>
+                  <p className="text-sm text-(--ws-muted)">@{selectedStudentData.username} • {selectedStudentData.className}</p>
                 </div>
               </div>
-              <button onClick={() => setSelectedStudent(null)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]">
+              <button onClick={() => setSelectedStudent(null)} className="text-(--ws-muted) hover:text-(--ws-text)">
                 <X size={20} />
               </button>
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
               {/* Student Stats */}
               <div className="grid grid-cols-4 gap-4 mb-6">
-                <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] text-center shadow-xs">
-                  <p className="text-lg font-serif font-bold text-[var(--ws-text)]">{selectedStudentData.solvedCount}</p>
-                  <p className="text-xs text-[var(--ws-muted)] mt-0.5">{t('instructorContest.colSolved')}</p>
+                <div className="p-3 bg-(--ws-panel2) rounded-xl border border-(--ws-border) text-center shadow-xs">
+                  <p className="text-lg font-serif font-bold text-(--ws-text)">{selectedStudentData.solvedCount}</p>
+                  <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorContest.colSolved')}</p>
                 </div>
-                <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] text-center shadow-xs">
-                  <p className="text-lg font-serif font-bold text-[var(--ws-text)]">{selectedStudentData.submissionCount}</p>
-                  <p className="text-xs text-[var(--ws-muted)] mt-0.5">{t('instructorStudent.sortSubmissions')}</p>
+                <div className="p-3 bg-(--ws-panel2) rounded-xl border border-(--ws-border) text-center shadow-xs">
+                  <p className="text-lg font-serif font-bold text-(--ws-text)">{selectedStudentData.submissionCount}</p>
+                  <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorStudent.sortSubmissions')}</p>
                 </div>
-                <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] text-center shadow-xs">
+                <div className="p-3 bg-(--ws-panel2) rounded-xl border border-(--ws-border) text-center shadow-xs">
                   <p className={`text-lg font-serif font-bold ${getRatingColor(selectedStudentData.rating)}`}>{selectedStudentData.rating}</p>
-                  <p className="text-xs text-[var(--ws-muted)] mt-0.5">Rating</p>
+                  <p className="text-xs text-(--ws-muted) mt-0.5">Rating</p>
                 </div>
-                <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] text-center shadow-xs">
+                <div className="p-3 bg-(--ws-panel2) rounded-xl border border-(--ws-border) text-center shadow-xs">
                   <p className="text-lg font-serif font-bold text-emerald-700">
                     {selectedStudentSubs.length ? Math.round((acCount / selectedStudentSubs.length) * 100) : 0}%
                   </p>
-                  <p className="text-xs text-[var(--ws-muted)] mt-0.5">{t('instructorDashboard.acRate')}</p>
+                  <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorDashboard.acRate')}</p>
                 </div>
               </div>
 
@@ -277,30 +277,30 @@ export default function InstructorStudent() {
               </div>
 
               {/* Contact */}
-              <div className="mb-6 p-4 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] shadow-xs leading-relaxed">
-                <p className="text-sm text-[var(--ws-muted)] font-medium">Email: <span className="text-[var(--ws-text)]">{selectedStudentData.email}</span></p>
-                <p className="text-sm text-[var(--ws-muted)] font-medium mt-1.5">{t('instructorStudent.lastActive')}: <span className="text-[var(--ws-text)]">{selectedStudentData.lastActive}</span></p>
+              <div className="mb-6 p-4 bg-(--ws-panel2) rounded-xl border border-(--ws-border) shadow-xs leading-relaxed">
+                <p className="text-sm text-(--ws-muted) font-medium">Email: <span className="text-(--ws-text)">{selectedStudentData.email}</span></p>
+                <p className="text-sm text-(--ws-muted) font-medium mt-1.5">{t('instructorStudent.lastActive')}: <span className="text-(--ws-text)">{selectedStudentData.lastActive}</span></p>
               </div>
 
               {/* Recent Submissions */}
-              <h4 className="text-sm font-bold font-serif text-[var(--ws-text)] mb-3">{t('instructorDashboard.recentSubmissions')}</h4>
+              <h4 className="text-sm font-bold font-serif text-(--ws-text) mb-3">{t('instructorDashboard.recentSubmissions')}</h4>
               <div className="space-y-2">
                 {selectedStudentSubs.map((sub) => (
-                  <div key={sub.id} className="flex items-center justify-between p-3 bg-[var(--ws-panel2)] rounded-lg border border-[var(--ws-border)]">
+                  <div key={sub.id} className="flex items-center justify-between p-3 bg-(--ws-panel2) rounded-lg border border-(--ws-border)">
                     <div className="flex items-center gap-3">
                       <span className={`text-xs px-2 py-1 rounded-md font-bold border ${verdictColors[sub.verdict]}`}>
                         {sub.verdict}
                       </span>
                       <div>
-                        <p className="text-sm text-[var(--ws-text)] font-semibold">{sub.problemTitle}</p>
-                        <p className="text-xs text-[var(--ws-muted)] mt-0.5">{sub.language} • {sub.executionTime}ms</p>
+                        <p className="text-sm text-(--ws-text) font-semibold">{sub.problemTitle}</p>
+                        <p className="text-xs text-(--ws-muted) mt-0.5">{sub.language} • {sub.executionTime}ms</p>
                       </div>
                     </div>
-                    <span className="text-xs text-[var(--ws-muted)]">{formatVNFull(sub.timestamp)}</span>
+                    <span className="text-xs text-(--ws-muted)">{formatVNFull(sub.timestamp)}</span>
                   </div>
                 ))}
                 {selectedStudentSubs.length === 0 && (
-                  <p className="text-sm text-[var(--ws-muted)] text-center py-4">{t('instructorStudent.noSubmissions')}</p>
+                  <p className="text-sm text-(--ws-muted) text-center py-4">{t('instructorStudent.noSubmissions')}</p>
                 )}
               </div>
             </div>
@@ -331,7 +331,7 @@ export default function InstructorStudent() {
                     <td className="py-3 px-4 text-sm text-[#8a8073]">{index + 1}</td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gradient-to-br from-[#193a2b] to-[#2d5a3f] rounded-full flex items-center justify-center text-white text-xs font-bold">
+                        <div className="w-8 h-8 bg-linear-to-br from-[#193a2b] to-[#2d5a3f] rounded-full flex items-center justify-center text-white text-xs font-bold">
                           {student.fullName.charAt(0)}
                         </div>
                         <div>

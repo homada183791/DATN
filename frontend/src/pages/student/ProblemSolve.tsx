@@ -710,12 +710,12 @@ export default function ProblemSolve() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center h-full bg-[var(--ws-bg)] text-[var(--ws-text)]">
+      <div className="flex-1 flex items-center justify-center h-full bg-(--ws-bg) text-(--ws-text)">
         <div className="w-full max-w-3xl px-6">
-          <div className="h-5 w-44 rounded bg-[var(--ws-panel2)] animate-pulse mb-4" />
+          <div className="h-5 w-44 rounded bg-(--ws-panel2) animate-pulse mb-4" />
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="h-[28rem] rounded-2xl border border-[var(--ws-border)] bg-[var(--ws-panel)] animate-pulse" />
-            <div className="h-[28rem] rounded-2xl border border-[var(--ws-border)] bg-[var(--ws-panel)] animate-pulse" />
+            <div className="h-112 rounded-2xl border border-(--ws-border) bg-(--ws-panel) animate-pulse" />
+            <div className="h-112 rounded-2xl border border-(--ws-border) bg-(--ws-panel) animate-pulse" />
           </div>
         </div>
       </div>
@@ -724,11 +724,11 @@ export default function ProblemSolve() {
 
   if (error instanceof ApiError && error.status === 404) {
     return (
-      <div className="flex-1 flex items-center justify-center h-full bg-[var(--ws-bg)] text-[var(--ws-text)] px-6">
-        <div className="max-w-lg w-full rounded-3xl border border-[var(--ws-border)] bg-[var(--ws-panel)] p-8 text-center shadow-sm">
-          <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-[var(--ws-faint)]">404</p>
+      <div className="flex-1 flex items-center justify-center h-full bg-(--ws-bg) text-(--ws-text) px-6">
+        <div className="max-w-lg w-full rounded-3xl border border-(--ws-border) bg-(--ws-panel) p-8 text-center shadow-sm">
+          <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-(--ws-faint)">404</p>
           <h1 className="mt-3 text-2xl font-bold">Không tìm thấy bài tập</h1>
-          <p className="mt-3 text-sm text-[var(--ws-muted)]">Mã bài này không tồn tại hoặc đã bị xóa.</p>
+          <p className="mt-3 text-sm text-(--ws-muted)">Mã bài này không tồn tại hoặc đã bị xóa.</p>
         </div>
       </div>
     );
@@ -736,25 +736,25 @@ export default function ProblemSolve() {
 
   if (error) {
     return (
-      <div className="flex-1 flex items-center justify-center h-full bg-[var(--ws-bg)] text-[var(--ws-text)] px-6">
-        <div className="max-w-lg w-full rounded-3xl border border-[var(--ws-border)] bg-[var(--ws-panel)] p-8 text-center shadow-sm">
-          <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-[var(--ws-faint)]">Lỗi tải dữ liệu</p>
+      <div className="flex-1 flex items-center justify-center h-full bg-(--ws-bg) text-(--ws-text) px-6">
+        <div className="max-w-lg w-full rounded-3xl border border-(--ws-border) bg-(--ws-panel) p-8 text-center shadow-sm">
+          <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-(--ws-faint)">Lỗi tải dữ liệu</p>
           <h1 className="mt-3 text-2xl font-bold">Không thể tải đề bài</h1>
-          <p className="mt-3 text-sm text-[var(--ws-muted)]">Vui lòng thử lại sau.</p>
+          <p className="mt-3 text-sm text-(--ws-muted)">Vui lòng thử lại sau.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 h-full text-[var(--ws-text)]">
+    <div className="flex-1 flex flex-col min-h-0 h-full text-(--ws-text)">
       {/* problem header */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--ws-border)] bg-[var(--ws-panel)] flex-wrap">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-(--ws-border) bg-(--ws-panel) flex-wrap">
           {/* Back button */}
           {classId && homeworkId ? (
             <button
               onClick={() => navigate(`/student/class/${classId}/homework/${homeworkId}`)}
-              className="flex items-center gap-1 text-[12px] text-[var(--ws-muted)] hover:text-[var(--ws-text)] transition-colors mr-1"
+              className="flex items-center gap-1 text-[12px] text-(--ws-muted) hover:text-(--ws-text) transition-colors mr-1"
               title="Quay lại bài tập"
             >
               ← {t('problemSolve.backToProblems')}
@@ -762,13 +762,13 @@ export default function ProblemSolve() {
           ) : (
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center gap-1 text-[12px] text-[var(--ws-muted)] hover:text-[var(--ws-text)] transition-colors mr-1"
+              className="flex items-center gap-1 text-[12px] text-(--ws-muted) hover:text-(--ws-text) transition-colors mr-1"
               title="Quay lại danh sách"
             >
               ← Quay lại
             </button>
           )}
-          <span className="text-[11px] font-bold tracking-wider px-2.5 py-1 rounded-md bg-[var(--ws-accent-soft)] text-[var(--ws-accent)]">
+          <span className="text-[11px] font-bold tracking-wider px-2.5 py-1 rounded-md bg-(--ws-accent-soft) text-(--ws-accent)">
             {detail.code}
           </span>
           <h1 className="text-[17px] font-bold">{problemTitle}</h1>
@@ -785,30 +785,30 @@ export default function ProblemSolve() {
             </span>
           )}
           {solved && (
-            <span className="flex items-center gap-1 text-[12px] font-semibold text-[var(--ws-ok)]">
+            <span className="flex items-center gap-1 text-[12px] font-semibold text-(--ws-ok)">
               <CheckCircle2 size={14} /> {t('studentHomework.completed')}
             </span>
           )}
           <div className="flex-1" />
           <button
             onClick={() => setShowGuide(true)}
-            className="p-2 rounded-lg border border-[var(--ws-border)] text-[var(--ws-muted)] hover:text-[var(--ws-accent)] hover:border-[var(--ws-accent)] transition-colors"
+            className="p-2 rounded-lg border border-(--ws-border) text-(--ws-muted) hover:text-(--ws-accent) hover:border-(--ws-accent) transition-colors"
             title={t("problemSolve.usageGuide")}
           >
             <HelpCircle size={15} />
           </button>
           <button
             onClick={() => setShowSolution(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--ws-border)] text-[12.5px] font-medium text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:border-[var(--ws-accent)] transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] font-medium text-(--ws-muted) hover:text-(--ws-text) hover:border-(--ws-accent) transition-colors"
           >
             <Eye size={14} /> {t('problemSolve.viewSolution')}
           </button>
-          <div className="flex items-center rounded-lg border border-[var(--ws-border)] overflow-hidden">
+          <div className="flex items-center rounded-lg border border-(--ws-border) overflow-hidden">
             {([['split', <Columns size={14} key="c" />], ['statement', <FileText size={14} key="f" />], ['editor', <Code size={14} key="e" />]] as [LayoutMode, React.ReactNode][]).map(([mode, icon]) => (
               <button
                 key={mode}
                 onClick={() => setLayout(mode)}
-                className={`px-2.5 py-2 transition-colors ${layout === mode ? 'bg-[var(--ws-accent-soft)] text-[var(--ws-accent)]' : 'text-[var(--ws-muted)] hover:text-[var(--ws-text)]'}`}
+                className={`px-2.5 py-2 transition-colors ${layout === mode ? 'bg-(--ws-accent-soft) text-(--ws-accent)' : 'text-(--ws-muted) hover:text-(--ws-text)'}`}
                 title={mode === 'split' ? t('problemSolve.modeSplit') : mode === 'statement' ? t('problemSolve.modeStatementOnly') : t('problemSolve.modeEditorOnly')}
               >
                 {icon}
@@ -817,19 +817,19 @@ export default function ProblemSolve() {
           </div>
           <button
             onClick={() => setShowAssistant((v) => !v)}
-            className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[12.5px] font-medium transition-colors ${showAssistant ? 'border-[var(--ws-accent)] text-[var(--ws-accent)] bg-[var(--ws-accent-soft)]' : 'border-[var(--ws-border)] text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:border-[var(--ws-accent)]'}`}
+            className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[12.5px] font-medium transition-colors ${showAssistant ? 'border-(--ws-accent) text-(--ws-accent) bg-(--ws-accent-soft)' : 'border-(--ws-border) text-(--ws-muted) hover:text-(--ws-text) hover:border-(--ws-accent)'}`}
           >
             <MessageCircle size={14} /> {showAssistant ? t('problemSolve.hideAssistant') : t('problemSolve.openAssistant')}
           </button>
         </div>
 
         {/* mobile pane switch */}
-        <div className="md:hidden flex border-b border-[var(--ws-border)] bg-[var(--ws-panel)]">
+        <div className="md:hidden flex border-b border-(--ws-border) bg-(--ws-panel)">
           {(['statement', 'editor'] as const).map((p) => (
             <button
               key={p}
               onClick={() => setMobilePane(p)}
-              className={`flex-1 py-2.5 text-[13px] font-semibold ${mobilePane === p ? 'text-[var(--ws-accent)] border-b-2 border-[var(--ws-accent)]' : 'text-[var(--ws-muted)]'}`}
+              className={`flex-1 py-2.5 text-[13px] font-semibold ${mobilePane === p ? 'text-(--ws-accent) border-b-2 border-(--ws-accent)' : 'text-(--ws-muted)'}`}
             >
               {p === 'statement' ? t('problemSolve.statementTab') : 'Code'}
             </button>
@@ -842,32 +842,32 @@ export default function ProblemSolve() {
             {/* ---- statement pane ---- */}
             {(layout !== 'editor') && (
               <section
-                className={`overflow-y-auto ws-editor-scroll bg-[var(--ws-bg)] ${
+                className={`overflow-y-auto ws-editor-scroll bg-(--ws-bg) ${
                   layout === 'split'
-                    ? `${mobilePane === 'statement' ? 'block' : 'hidden'} md:block md:w-1/2 border-r border-[var(--ws-border)]`
+                    ? `${mobilePane === 'statement' ? 'block' : 'hidden'} md:block md:w-1/2 border-r border-(--ws-border)`
                     : 'w-full'
                 }`}
               >
               <div className="px-7 py-6 max-w-3xl">
                 {/* limits */}
-                <div className="grid grid-cols-3 gap-6 pb-5 border-b border-[var(--ws-border)]">
+                <div className="grid grid-cols-3 gap-6 pb-5 border-b border-(--ws-border)">
                   <div>
-                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">{t('problemSolve.timeLimit')}</p>
+                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-(--ws-faint) mb-1.5">{t('problemSolve.timeLimit')}</p>
                     <p className="text-[15px] font-bold font-mono">{problemTimeLimit}</p>
                   </div>
                   <div>
-                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">{t('problemSolve.memoryLimit')}</p>
+                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-(--ws-faint) mb-1.5">{t('problemSolve.memoryLimit')}</p>
                     <p className="text-[15px] font-bold font-mono">{problemMemoryLimit}</p>
                   </div>
                   <div>
-                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">{t('problemSolve.maxScore')}</p>
+                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-(--ws-faint) mb-1.5">{t('problemSolve.maxScore')}</p>
                     <p className="text-[15px] font-bold font-mono">{detail.points}</p>
                   </div>
                 </div>
 
                 <button
                   onClick={downloadStatement}
-                  className="mt-5 flex items-center gap-1.5 text-[13px] font-medium text-[var(--ws-accent)] hover:underline"
+                  className="mt-5 flex items-center gap-1.5 text-[13px] font-medium text-(--ws-accent) hover:underline"
                 >
                   <Download size={14} /> {t('problemSolve.downloadOriginal')}
                 </button>
@@ -875,7 +875,7 @@ export default function ProblemSolve() {
                 <h2 className="mt-6 mb-5 text-[26px] font-extrabold leading-tight">{problemTitle}</h2>
 
                 {problemDescription && (
-                  <div className="mb-7 rounded-xl border border-[var(--ws-border)] bg-[var(--ws-panel)] p-5">
+                  <div className="mb-7 rounded-xl border border-(--ws-border) bg-(--ws-panel) p-5">
                     <ReactMarkdown>{problemDescription}</ReactMarkdown>
                   </div>
                 )}
@@ -884,23 +884,23 @@ export default function ProblemSolve() {
                   <div key={i} className="mb-7">
                     {sec.heading && <h3 className="text-[19px] font-bold mb-3">{sec.heading}</h3>}
                     {sec.paragraphs?.map((p, j) => (
-                      <p key={j} className="text-[14.5px] leading-7 text-[var(--ws-text)]/90 mb-2">{p}</p>
+                      <p key={j} className="text-[14.5px] leading-7 text-(--ws-text)/90 mb-2">{p}</p>
                     ))}
                     {sec.bullets && (
                       <ul className="space-y-2 ml-1">
                         {sec.bullets.map((b, j) => (
                           <li key={j} className="flex gap-2.5 text-[14.5px] leading-7">
-                            <span className="mt-[11px] w-1.5 h-1.5 rounded-full bg-[var(--ws-accent)] flex-shrink-0" />
+                            <span className="mt-[11px] w-1.5 h-1.5 rounded-full bg-(--ws-accent) shrink-0" />
                             <span>{b}</span>
                           </li>
                         ))}
                       </ul>
                     )}
                     {sec.table && (
-                      <div className="overflow-hidden rounded-lg border border-[var(--ws-border)]">
+                      <div className="overflow-hidden rounded-lg border border-(--ws-border)">
                         <table className="w-full text-[13.5px]">
                           <thead>
-                            <tr className="bg-[var(--ws-panel2)]">
+                            <tr className="bg-(--ws-panel2)">
                               {sec.table.head.map((h, j) => (
                                 <th key={j} className="text-left px-4 py-2.5 font-bold">{h}</th>
                               ))}
@@ -908,7 +908,7 @@ export default function ProblemSolve() {
                           </thead>
                           <tbody>
                             {sec.table.rows.map((r, j) => (
-                              <tr key={j} className="border-t border-[var(--ws-border)]">
+                              <tr key={j} className="border-t border-(--ws-border)">
                                 <td className="px-4 py-2.5 font-semibold italic">{r[0]}</td>
                                 <td className="px-4 py-2.5 font-mono text-[13px]">{r[1]}</td>
                               </tr>
@@ -924,12 +924,12 @@ export default function ProblemSolve() {
                 <h3 className="text-[19px] font-bold mb-3">{t('problemSolve.examplesTitle')}</h3>
                 {detail.samples.map((s, i) => (
                   <div key={i} className="mb-4 grid grid-cols-2 gap-3">
-                    <div className="rounded-lg border border-[var(--ws-border)] bg-[var(--ws-panel)] overflow-hidden">
-                      <p className="px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] bg-[var(--ws-panel2)]">Input</p>
+                    <div className="rounded-lg border border-(--ws-border) bg-(--ws-panel) overflow-hidden">
+                      <p className="px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-widest text-(--ws-faint) bg-(--ws-panel2)">Input</p>
                       <pre className="px-3 py-2.5 text-[13px] font-mono whitespace-pre-wrap">{s.input}</pre>
                     </div>
-                    <div className="rounded-lg border border-[var(--ws-border)] bg-[var(--ws-panel)] overflow-hidden">
-                      <p className="px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] bg-[var(--ws-panel2)]">Output</p>
+                    <div className="rounded-lg border border-(--ws-border) bg-(--ws-panel) overflow-hidden">
+                      <p className="px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-widest text-(--ws-faint) bg-(--ws-panel2)">Output</p>
                       <pre className="px-3 py-2.5 text-[13px] font-mono whitespace-pre-wrap">{s.output}</pre>
                     </div>
                   </div>
@@ -941,17 +941,17 @@ export default function ProblemSolve() {
             {/* ---- editor pane ---- */}
             {(layout !== 'statement') && (
               <section
-                className={`min-w-0 bg-[var(--ws-editor)] ${
+                className={`min-w-0 bg-(--ws-editor) ${
                   layout === 'split'
                     ? `${mobilePane === 'editor' ? 'flex' : 'hidden'} md:flex md:w-1/2 flex-col`
                     : 'flex w-full flex-col'
                 }`}
               >
               {/* editor toolbar */}
-              <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--ws-border)] flex-wrap">
-                <div className="flex items-center rounded-lg border border-[var(--ws-border)] overflow-hidden text-[12.5px] font-semibold">
-                  <button className="px-3 py-1.5 bg-[var(--ws-accent-soft)] text-[var(--ws-accent)]">{t('problemSolve.writeCode')}</button>
-                  <label className="px-3 py-1.5 text-[var(--ws-muted)] hover:text-[var(--ws-text)] cursor-pointer">
+              <div className="flex items-center gap-2 px-3 py-2 border-b border-(--ws-border) flex-wrap">
+                <div className="flex items-center rounded-lg border border-(--ws-border) overflow-hidden text-[12.5px] font-semibold">
+                  <button className="px-3 py-1.5 bg-(--ws-accent-soft) text-(--ws-accent)">{t('problemSolve.writeCode')}</button>
+                  <label className="px-3 py-1.5 text-(--ws-muted) hover:text-(--ws-text) cursor-pointer">
                     {t('problemSolve.uploadFile')}
                     <input type="file" accept=".cpp,.py,.java,.txt" className="hidden" onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0])} />
                   </label>
@@ -959,56 +959,56 @@ export default function ProblemSolve() {
                 <select
                   value={lang}
                   onChange={(e) => setLang(e.target.value as Lang)}
-                  className="px-2.5 py-1.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] rounded-lg text-[12.5px] font-medium focus:outline-none focus:border-[var(--ws-accent)]"
+                  className="px-2.5 py-1.5 bg-(--ws-panel2) border border-(--ws-border) rounded-lg text-[12.5px] font-medium focus:outline-none focus:border-(--ws-accent)"
                 >
                   {(Object.keys(LANG_LABELS) as Lang[]).map((l) => (
                     <option key={l} value={l}>{LANG_LABELS[l]}</option>
                   ))}
                 </select>
-                <label className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[var(--ws-border)] text-[12.5px] text-[var(--ws-muted)] cursor-pointer hover:text-[var(--ws-text)]">
-                  <input type="checkbox" checked={wrap} onChange={(e) => setWrap(e.target.checked)} className="accent-[var(--ws-accent)]" />
+                <label className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] text-(--ws-muted) cursor-pointer hover:text-(--ws-text)">
+                  <input type="checkbox" checked={wrap} onChange={(e) => setWrap(e.target.checked)} className="accent-(--ws-accent)" />
                   {t('problemSolve.wordWrap')}
                 </label>
                 <button
                   onClick={() => onCodeChange(detail.templates[lang])}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[var(--ws-border)] text-[12.5px] text-[var(--ws-muted)] hover:text-[var(--ws-text)] transition-colors"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] text-(--ws-muted) hover:text-(--ws-text) transition-colors"
                 >
                   <RotateCcw size={13} /> {t('problemSolve.resetCode')}
                 </button>
                 <select
                   value={fontSize}
                   onChange={(e) => setFontSize(+e.target.value)}
-                  className="px-2 py-1.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] rounded-lg text-[12.5px] focus:outline-none"
+                  className="px-2 py-1.5 bg-(--ws-panel2) border border-(--ws-border) rounded-lg text-[12.5px] focus:outline-none"
                 >
                   {[12, 13, 14, 16, 18].map((s) => <option key={s} value={s}>{s}px</option>)}
                 </select>
 
                 <div className="flex-1" />
-                <button onClick={pasteIntoEditor} className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] font-semibold text-[var(--ws-accent)] hover:bg-[var(--ws-accent-soft)] transition-colors">
+                <button onClick={pasteIntoEditor} className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] font-semibold text-(--ws-accent) hover:bg-(--ws-accent-soft) transition-colors">
                   <ClipboardPaste size={13} /> {t('problemSolve.pasteIn')}
                 </button>
-                <label className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] font-semibold text-[var(--ws-accent)] hover:bg-[var(--ws-accent-soft)] transition-colors cursor-pointer">
+                <label className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] font-semibold text-(--ws-accent) hover:bg-(--ws-accent-soft) transition-colors cursor-pointer">
                   <Upload size={13} /> {t('problemSolve.uploadBtn')}
                   <input type="file" accept=".cpp,.py,.java,.txt" className="hidden" onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0])} />
                 </label>
-                <span className={`text-[11.5px] ${saveState === 'saved' ? 'text-[var(--ws-faint)]' : 'text-[var(--ws-warn)]'}`}>
+                <span className={`text-[11.5px] ${saveState === 'saved' ? 'text-(--ws-faint)' : 'text-(--ws-warn)'}`}>
                   {saveState === 'saved' ? t('problemSolve.saved') : saveState === 'saving' ? t('problemSolve.saving') : t('problemSolve.unsaved')}
                 </span>
               </div>
 
               {/* intellisense row */}
-              <div className="flex items-center justify-between px-3 py-1.5 border-b border-[var(--ws-border-soft)]">
-                <label className="flex items-center gap-2 text-[12.5px] text-[var(--ws-muted)] cursor-pointer select-none">
+              <div className="flex items-center justify-between px-3 py-1.5 border-b border-(--ws-border-soft)">
+                <label className="flex items-center gap-2 text-[12.5px] text-(--ws-muted) cursor-pointer select-none">
                   IntelliSense
                   <button
                     onClick={() => setIntelli(!intelli)}
-                    className={`relative w-9 h-5 rounded-full transition-colors ${intelli ? 'bg-[var(--ws-accent)]' : 'bg-[var(--ws-border)]'}`}
+                    className={`relative w-9 h-5 rounded-full transition-colors ${intelli ? 'bg-(--ws-accent)' : 'bg-(--ws-border)'}`}
                   >
                     <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all ${intelli ? 'left-[18px]' : 'left-0.5'}`} />
                   </button>
                 </label>
                 {intelli && (
-                  <span className="text-[11px] text-[var(--ws-faint)] hidden sm:block">
+                  <span className="text-[11px] text-(--ws-faint) hidden sm:block">
                     {t('problemSolve.lineCount', { count: lineCount })} • {t('problemSolve.charCount', { count: code.length })} • {LANG_LABELS[lang]}
                   </span>
                 )}
@@ -1019,7 +1019,7 @@ export default function ProblemSolve() {
                 {/* gutter */}
                 <div
                   ref={gutterRef}
-                  className="absolute left-0 top-0 bottom-0 w-12 overflow-hidden py-3 text-right pr-3 select-none font-mono leading-6 text-[var(--ws-gutter)]"
+                  className="absolute left-0 top-0 bottom-0 w-12 overflow-hidden py-3 text-right pr-3 select-none font-mono leading-6 text-(--ws-gutter)"
                   aria-hidden
                 >
                   {Array.from({ length: lineCount }, (_, i) => (
@@ -1030,8 +1030,8 @@ export default function ProblemSolve() {
                 <pre
                   ref={preRef}
                   aria-hidden
-                  className={`absolute inset-0 left-12 m-0 py-3 pr-4 font-mono leading-6 pointer-events-none overflow-hidden text-[var(--ws-text)] ${
-                    wrap ? 'whitespace-pre-wrap break-words' : 'whitespace-pre'
+                  className={`absolute inset-0 left-12 m-0 py-3 pr-4 font-mono leading-6 pointer-events-none overflow-hidden text-(--ws-text) ${
+                    wrap ? 'whitespace-pre-wrap wrap-break-word' : 'whitespace-pre'
                   }`}
                   dangerouslySetInnerHTML={{ __html: highlighted + '\n' }}
                 />
@@ -1045,8 +1045,8 @@ export default function ProblemSolve() {
                   spellCheck={false}
                   autoCapitalize="off"
                   autoCorrect="off"
-                  className={`ws-editor-scroll absolute inset-0 left-12 w-[calc(100%-3rem)] h-full py-3 pr-4 bg-transparent font-mono leading-6 resize-none outline-none text-transparent caret-[var(--ws-accent)] selection:bg-[var(--ws-accent-soft)] ${
-                    wrap ? 'whitespace-pre-wrap break-words' : 'whitespace-pre overflow-auto'
+                  className={`ws-editor-scroll absolute inset-0 left-12 w-[calc(100%-3rem)] h-full py-3 pr-4 bg-transparent font-mono leading-6 resize-none outline-none text-transparent caret-(--ws-accent) selection:bg-(--ws-accent-soft) ${
+                    wrap ? 'whitespace-pre-wrap wrap-break-word' : 'whitespace-pre overflow-auto'
                   }`}
                 />
               </div>
@@ -1054,22 +1054,22 @@ export default function ProblemSolve() {
               {bottomPanelOpen && (
                 <div
                   onMouseDown={startBottomResize}
-                  className="group h-1.5 shrink-0 cursor-row-resize bg-transparent hover:bg-[var(--ws-accent-soft)] transition-colors relative"
+                  className="group h-1.5 shrink-0 cursor-row-resize bg-transparent hover:bg-(--ws-accent-soft) transition-colors relative"
                   role="separator"
                   aria-orientation="horizontal"
                   aria-label={t('problemSolve.dragResizeLabel')}
                 >
-                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-1 rounded-full bg-[var(--ws-border)] group-hover:bg-[var(--ws-accent)] transition-colors" />
+                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-1 rounded-full bg-(--ws-border) group-hover:bg-(--ws-accent) transition-colors" />
                 </div>
               )}
 
               {/* ============ bottom panel ============ */}
               <div
                 ref={bottomPanelRef}
-                className="border-t border-[var(--ws-border)] bg-[var(--ws-panel)] flex flex-col shrink-0 overflow-hidden"
+                className="border-t border-(--ws-border) bg-(--ws-panel) flex flex-col shrink-0 overflow-hidden"
                 style={{ height: bottomPanelOpen ? bottomHeight : COLLAPSED_BOTTOM_PANEL_HEIGHT }}
               >
-                <div className={`flex items-center gap-1 px-3 ${bottomPanelOpen ? 'pt-2 border-b border-[var(--ws-border-soft)]' : 'h-12'}`}>
+                <div className={`flex items-center gap-1 px-3 ${bottomPanelOpen ? 'pt-2 border-b border-(--ws-border-soft)' : 'h-12'}`}>
                   {bottomPanelOpen && ([
                     ['tests', t('problemSolve.tabSamples'), <FlaskConical size={13} key="i" />],
                     ['console', t('problemSolve.consoleTab'), <Terminal size={13} key="i" />],
@@ -1081,13 +1081,13 @@ export default function ProblemSolve() {
                       onClick={() => setBottomTab(tab)}
                       className={`flex items-center gap-1.5 px-3 py-2 text-[12.5px] font-semibold border-b-2 -mb-px transition-colors ${
                         bottomTab === tab
-                          ? 'text-[var(--ws-accent)] border-[var(--ws-accent)]'
-                          : 'text-[var(--ws-muted)] border-transparent hover:text-[var(--ws-text)]'
+                          ? 'text-(--ws-accent) border-(--ws-accent)'
+                          : 'text-(--ws-muted) border-transparent hover:text-(--ws-text)'
                       }`}
                     >
                       {icon} {label}
                       {tab === 'results' && finalVerdict && (
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded ${finalVerdict === 'AC' ? 'bg-[var(--ws-accent-soft)] text-[var(--ws-ok)]' : 'bg-red-500/15 text-[var(--ws-danger)]'}`}>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded ${finalVerdict === 'AC' ? 'bg-(--ws-accent-soft) text-(--ws-ok)' : 'bg-red-500/15 text-(--ws-danger)'}`}>
                           {finalVerdict}
                         </span>
                       )}
@@ -1098,14 +1098,14 @@ export default function ProblemSolve() {
                     <button
                       onClick={runSamples}
                       disabled={running || judging}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--ws-border)] text-[12.5px] font-semibold text-[var(--ws-text)] hover:border-[var(--ws-accent)] hover:text-[var(--ws-accent)] transition-colors disabled:opacity-50"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] font-semibold text-(--ws-text) hover:border-(--ws-accent) hover:text-(--ws-accent) transition-colors disabled:opacity-50"
                     >
                       {running ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} />} {t('problemSolve.runBtn')}
                     </button>
                     <button
                       onClick={submit}
                       disabled={isSubmitLocked}
-                      className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[var(--ws-accent)] text-[#062a25] text-[12.5px] font-bold hover:brightness-110 transition-all disabled:opacity-50 shadow-[0_0_20px_var(--ws-accent-soft)]"
+                      className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-(--ws-accent) text-[#062a25] text-[12.5px] font-bold hover:brightness-110 transition-all disabled:opacity-50 shadow-[0_0_20px_var(--ws-accent-soft)]"
                     >
                       {judging ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />} {cooldownSeconds > 0 ? t('problemSolve.submitCooldown', { seconds: cooldownSeconds }) : t('problemSolve.submitBtn')}
                     </button>
@@ -1118,7 +1118,7 @@ export default function ProblemSolve() {
                           setBottomPanelOpen(true);
                         }
                       }}
-                      className="p-1.5 rounded-lg border border-[var(--ws-border)] text-[var(--ws-muted)] hover:text-[var(--ws-accent)] hover:border-[var(--ws-accent)] transition-colors"
+                      className="p-1.5 rounded-lg border border-(--ws-border) text-(--ws-muted) hover:text-(--ws-accent) hover:border-(--ws-accent) transition-colors"
                       title={t(bottomPanelOpen ? 'problemSolve.collapsePanel' : 'problemSolve.expandPanel')}
                       aria-label={t(bottomPanelOpen ? 'problemSolve.collapsePanel' : 'problemSolve.expandPanel')}
                       aria-expanded={bottomPanelOpen}
@@ -1131,12 +1131,12 @@ export default function ProblemSolve() {
                 {bottomPanelOpen && <div className="flex-1 overflow-y-auto ws-editor-scroll p-4">
                   {judging && (
                     <div className="mb-4">
-                      <div className="flex items-center justify-between text-[11.5px] text-[var(--ws-muted)] mb-1.5">
+                      <div className="flex items-center justify-between text-[11.5px] text-(--ws-muted) mb-1.5">
                         <span>{t('problemSolve.judging', { percent: Math.round(judgeProgress) })}</span>
                         <span>{Math.round((judgeProgress / 100) * 8)}/8 tests</span>
                       </div>
-                      <div className="h-1.5 bg-[var(--ws-panel2)] rounded-full overflow-hidden">
-                        <div className="h-full bg-[var(--ws-accent)] transition-all duration-300" style={{ width: `${judgeProgress}%` }} />
+                      <div className="h-1.5 bg-(--ws-panel2) rounded-full overflow-hidden">
+                        <div className="h-full bg-(--ws-accent) transition-all duration-300" style={{ width: `${judgeProgress}%` }} />
                       </div>
                     </div>
                   )}
@@ -1145,48 +1145,48 @@ export default function ProblemSolve() {
                     <div className="space-y-5">
                       {samples.map((s, i) => (
                         <div key={i}>
-                          <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-2">{t('problemSolve.groupLabel', { index: i + 1 })}</p>
+                          <p className="text-[10.5px] font-bold uppercase tracking-widest text-(--ws-faint) mb-2">{t('problemSolve.groupLabel', { index: i + 1 })}</p>
                           <div className="grid grid-cols-2 gap-3">
-                            <div className="relative rounded-lg border border-[var(--ws-border)] bg-[var(--ws-editor)] overflow-hidden group">
+                            <div className="relative rounded-lg border border-(--ws-border) bg-(--ws-editor) overflow-hidden group">
                               <textarea
                                 value={s.input}
                                 onChange={(e) => setSamples(samples.map((x, j) => (j === i ? { ...x, input: e.target.value } : x)))}
                                 spellCheck={false}
-                                className="w-full h-24 px-3 py-2.5 bg-transparent font-mono text-[12.5px] leading-5 resize-none outline-none text-[var(--ws-text)]"
+                                className="w-full h-24 px-3 py-2.5 bg-transparent font-mono text-[12.5px] leading-5 resize-none outline-none text-(--ws-text)"
                               />
                               <button
                                 id={`copy-in-${i}`}
                                 onClick={() => copyText(s.input, `copy-in-${i}`)}
-                                className="absolute top-2 right-2 p-1.5 rounded-md bg-[var(--ws-panel2)] text-[var(--ws-muted)] opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="absolute top-2 right-2 p-1.5 rounded-md bg-(--ws-panel2) text-(--ws-muted) opacity-0 group-hover:opacity-100 transition-opacity"
                               >
                                 <Copy size={12} />
                               </button>
                             </div>
-                            <div className="relative rounded-lg border border-[var(--ws-border)] bg-[var(--ws-editor)] overflow-hidden group">
-                              <pre className="px-3 py-2.5 font-mono text-[12.5px] leading-5 whitespace-pre-wrap text-[var(--ws-text)]">{s.output}</pre>
+                            <div className="relative rounded-lg border border-(--ws-border) bg-(--ws-editor) overflow-hidden group">
+                              <pre className="px-3 py-2.5 font-mono text-[12.5px] leading-5 whitespace-pre-wrap text-(--ws-text)">{s.output}</pre>
                               <button
                                 id={`copy-out-${i}`}
                                 onClick={() => copyText(s.output, `copy-out-${i}`)}
-                                className="absolute top-2 right-2 p-1.5 rounded-md bg-[var(--ws-panel2)] text-[var(--ws-muted)] opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="absolute top-2 right-2 p-1.5 rounded-md bg-(--ws-panel2) text-(--ws-muted) opacity-0 group-hover:opacity-100 transition-opacity"
                               >
                                 <Copy size={12} />
                               </button>
                             </div>
                           </div>
                           {sampleOutputs[i] !== undefined && (
-                            <div className={`mt-2 rounded-lg border px-3 py-2 text-[12px] font-mono ${sampleOutputs[i].ok ? 'border-[var(--ws-ok)]/30 bg-[var(--ws-ok)]/5' : 'border-[var(--ws-danger)]/30 bg-[var(--ws-danger)]/5'}`}>
+                            <div className={`mt-2 rounded-lg border px-3 py-2 text-[12px] font-mono ${sampleOutputs[i].ok ? 'border-(--ws-ok)/30 bg-(--ws-ok)/5' : 'border-(--ws-danger)/30 bg-(--ws-danger)/5'}`}>
                               <div className="flex items-center gap-2 mb-1">
-                                <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${sampleOutputs[i].ok ? 'bg-[var(--ws-ok)]/20 text-[var(--ws-ok)]' : 'bg-[var(--ws-danger)]/20 text-[var(--ws-danger)]'}`}>
+                                <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${sampleOutputs[i].ok ? 'bg-(--ws-ok)/20 text-(--ws-ok)' : 'bg-(--ws-danger)/20 text-(--ws-danger)'}`}>
                                   {sampleOutputs[i].ok ? `OK${sampleOutputs[i].time !== undefined ? ` · ${sampleOutputs[i].time}ms` : ''}` : 'WRONG ANSWER'}
                                 </span>
-                                <span className="text-[var(--ws-faint)] text-[11px]">{t('problemSolve.actualResult')}</span>
+                                <span className="text-(--ws-faint) text-[11px]">{t('problemSolve.actualResult')}</span>
                               </div>
-                              <pre className="whitespace-pre-wrap break-all text-[var(--ws-text)] leading-5">{sampleOutputs[i].actual || '(không có output)'}</pre>
+                              <pre className="whitespace-pre-wrap break-all text-(--ws-text) leading-5">{sampleOutputs[i].actual || '(không có output)'}</pre>
                             </div>
                           )}
                         </div>
                       ))}
-                      <p className="text-[11.5px] italic text-[var(--ws-faint)]">
+                      <p className="text-[11.5px] italic text-(--ws-faint)">
                         {t('problemSolve.runSamplesHint')}
                       </p>
                     </div>
@@ -1194,27 +1194,27 @@ export default function ProblemSolve() {
 
                   {bottomTab === 'console' && (
                     <div className="font-mono text-[12.5px] leading-6 space-y-0.5">
-                      {consoleLines.length === 0 && <p className="text-[var(--ws-faint)]">{t('problemSolve.consoleEmpty')}</p>}
+                      {consoleLines.length === 0 && <p className="text-(--ws-faint)">{t('problemSolve.consoleEmpty')}</p>}
                       {consoleLines.map((l, i) => (
                         <p key={i} className="animate-slide-up">
-                          <span className="text-[var(--ws-faint)] mr-2">[{l.time}]</span>
-                          <span className={l.kind === 'ok' ? 'text-[var(--ws-ok)]' : l.kind === 'err' ? 'text-[var(--ws-danger)]' : l.kind === 'sys' ? 'text-[var(--ws-accent)]' : 'text-[var(--ws-text)]'}>
+                          <span className="text-(--ws-faint) mr-2">[{l.time}]</span>
+                          <span className={l.kind === 'ok' ? 'text-(--ws-ok)' : l.kind === 'err' ? 'text-(--ws-danger)' : l.kind === 'sys' ? 'text-(--ws-accent)' : 'text-(--ws-text)'}>
                             {l.msg}
                           </span>
                         </p>
                       ))}
-                      {(running || judging) && <span className="inline-block w-2 h-4 bg-[var(--ws-accent)] animate-pulse-dot align-middle" />}
+                      {(running || judging) && <span className="inline-block w-2 h-4 bg-(--ws-accent) animate-pulse-dot align-middle" />}
                     </div>
                   )}
 
                   {bottomTab === 'results' && (
                     <div>
                       {testVerdicts.length === 0 ? (
-                        <p className="text-[var(--ws-faint)] text-[13px]">{t('problemSolve.noResultYet')}</p>
+                        <p className="text-(--ws-faint) text-[13px]">{t('problemSolve.noResultYet')}</p>
                       ) : (
                         <>
                           <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg mb-4 font-bold text-[13px] ${
-                            finalVerdict === 'AC' ? 'bg-[var(--ws-accent-soft)] text-[var(--ws-ok)]' : 'bg-red-500/10 text-[var(--ws-danger)]'
+                            finalVerdict === 'AC' ? 'bg-(--ws-accent-soft) text-(--ws-ok)' : 'bg-red-500/10 text-(--ws-danger)'
                           }`}>
                             {finalVerdict === 'AC' ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
                             {finalVerdict === 'AC' ? t('problemSolve.acceptedLabel', { points: detail.points }) : finalVerdict === 'TLE' ? t('problemSolve.verdictTLE') : t('problemSolve.verdictWA')}
@@ -1226,8 +1226,8 @@ export default function ProblemSolve() {
                                 title={`Test ${tv.id}: ${tv.status} • ${tv.time}ms • ${tv.memory}MB`}
                                 className={`rounded-lg border px-2 py-2 text-center transition-transform hover:scale-105 ${
                                   tv.status === 'AC'
-                                    ? 'border-[var(--ws-ok)]/40 bg-[var(--ws-ok)]/10 text-[var(--ws-ok)]'
-                                    : 'border-[var(--ws-danger)]/40 bg-[var(--ws-danger)]/10 text-[var(--ws-danger)]'
+                                    ? 'border-(--ws-ok)/40 bg-(--ws-ok)/10 text-(--ws-ok)'
+                                    : 'border-(--ws-danger)/40 bg-(--ws-danger)/10 text-(--ws-danger)'
                                 }`}
                               >
                                 <p className="text-[10px] font-bold">#{tv.id}</p>
@@ -1242,10 +1242,10 @@ export default function ProblemSolve() {
                   )}
 
                   {bottomTab === 'debug' && (
-                    <div className="text-[13px] text-[var(--ws-muted)] space-y-2">
-                      <p className="flex items-center gap-2 text-[var(--ws-text)] font-semibold"><Bug size={14} /> {t('problemSolve.debuggerTitle')}</p>
+                    <div className="text-[13px] text-(--ws-muted) space-y-2">
+                      <p className="flex items-center gap-2 text-(--ws-text) font-semibold"><Bug size={14} /> {t('problemSolve.debuggerTitle')}</p>
                       <p>{t('problemSolve.noExceptions')}</p>
-                      <p className="text-[12px] text-[var(--ws-faint)]">{t('problemSolve.debugHint')}</p>
+                      <p className="text-[12px] text-(--ws-faint)">{t('problemSolve.debugHint')}</p>
                     </div>
                   )}
                 </div>}
@@ -1255,34 +1255,34 @@ export default function ProblemSolve() {
           </div>
 
           {showAssistant && (
-            <aside className="hidden lg:flex w-[360px] border-l border-[var(--ws-border)] bg-[var(--ws-panel)] flex-col">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--ws-border)] bg-[var(--ws-panel2)]">
+            <aside className="hidden lg:flex w-[360px] border-l border-(--ws-border) bg-(--ws-panel) flex-col">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-(--ws-border) bg-(--ws-panel2)">
                 <div className="flex items-center gap-2">
-                  <MessageCircle size={15} className="text-[var(--ws-accent)]" />
+                  <MessageCircle size={15} className="text-(--ws-accent)" />
                   <div>
-                    <p className="text-[13px] font-semibold text-[var(--ws-text)]">AI Assistant</p>
-                    <p className="text-[11px] text-[var(--ws-faint)]">{t('problemSolve.assistantSubtitle')}</p>
+                    <p className="text-[13px] font-semibold text-(--ws-text)">AI Assistant</p>
+                    <p className="text-[11px] text-(--ws-faint)">{t('problemSolve.assistantSubtitle')}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowAssistant(false)}
-                  className="rounded-lg p-1.5 text-[var(--ws-muted)] hover:bg-[var(--ws-panel)] hover:text-[var(--ws-text)]"
+                  className="rounded-lg p-1.5 text-(--ws-muted) hover:bg-(--ws-panel) hover:text-(--ws-text)"
                 >
                   <X size={16} />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto ws-editor-scroll p-3 space-y-2 bg-[var(--ws-bg)]">
+              <div className="flex-1 overflow-y-auto ws-editor-scroll p-3 space-y-2 bg-(--ws-bg)">
                 {assistantMessages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-[var(--ws-accent)] text-[#062a25]' : 'bg-[var(--ws-panel)] text-[var(--ws-text)] border border-[var(--ws-border)]'}`}>
+                    <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-(--ws-accent) text-[#062a25]' : 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border)'}`}>
                       {msg.content}
                     </div>
                   </div>
                 ))}
                 {assistantBusy && (
                   <div className="flex justify-start">
-                    <div className="rounded-2xl border border-[var(--ws-border)] bg-[var(--ws-panel)] px-3 py-2 text-[13px] text-[var(--ws-muted)]">
+                    <div className="rounded-2xl border border-(--ws-border) bg-(--ws-panel) px-3 py-2 text-[13px] text-(--ws-muted)">
                       {t('problemSolve.thinking')}
                     </div>
                   </div>
@@ -1290,15 +1290,15 @@ export default function ProblemSolve() {
                 <div ref={messagesEndRef} />
               </div>
 
-              <form onSubmit={askAssistant} className="border-t border-[var(--ws-border)] bg-[var(--ws-panel)] p-3">
-                <div className="flex items-center gap-2 rounded-xl border border-[var(--ws-border)] bg-[var(--ws-editor)] px-3 py-2">
+              <form onSubmit={askAssistant} className="border-t border-(--ws-border) bg-(--ws-panel) p-3">
+                <div className="flex items-center gap-2 rounded-xl border border-(--ws-border) bg-(--ws-editor) px-3 py-2">
                   <input
                     value={assistantInput}
                     onChange={(e) => setAssistantInput(e.target.value)}
                     placeholder={t('problemSolve.askPlaceholder')}
-                    className="flex-1 bg-transparent text-[13px] text-[var(--ws-text)] outline-none placeholder:text-[var(--ws-faint)]"
+                    className="flex-1 bg-transparent text-[13px] text-(--ws-text) outline-none placeholder:text-(--ws-faint)"
                   />
-                  <button type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-[var(--ws-accent)] p-2 text-[#062a25] disabled:opacity-50">
+                  <button type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-(--ws-accent) p-2 text-[#062a25] disabled:opacity-50">
                     <Send size={14} />
                   </button>
                 </div>
@@ -1309,50 +1309,50 @@ export default function ProblemSolve() {
 
       <button
         onClick={() => setShowAssistantMobile(true)}
-        className="fixed bottom-4 right-4 z-[85] flex lg:hidden items-center gap-2 rounded-full bg-[var(--ws-accent)] px-4 py-3 text-[13px] font-semibold text-[#062a25] shadow-xl transition-transform hover:scale-105"
+        className="fixed bottom-4 right-4 z-85 flex lg:hidden items-center gap-2 rounded-full bg-(--ws-accent) px-4 py-3 text-[13px] font-semibold text-[#062a25] shadow-xl transition-transform hover:scale-105"
       >
         <MessageCircle size={16} />
         {t('problemSolve.aiAssistantTitle')}
       </button>
 
       {showAssistantMobile && (
-        <div className="fixed inset-0 z-[90] bg-black/55 backdrop-blur-[2px] lg:hidden" onClick={() => setShowAssistantMobile(false)}>
-          <div className="absolute bottom-0 left-0 right-0 h-[72vh] rounded-t-2xl border-t border-x border-[var(--ws-border)] bg-[var(--ws-panel)] flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--ws-border)]">
+        <div className="fixed inset-0 z-90 bg-black/55 backdrop-blur-[2px] lg:hidden" onClick={() => setShowAssistantMobile(false)}>
+          <div className="absolute bottom-0 left-0 right-0 h-[72vh] rounded-t-2xl border-t border-x border-(--ws-border) bg-(--ws-panel) flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-(--ws-border)">
               <div className="flex items-center gap-2">
-                <MessageCircle size={15} className="text-[var(--ws-accent)]" />
+                <MessageCircle size={15} className="text-(--ws-accent)" />
                 <p className="text-[13px] font-semibold">Leet Coach</p>
               </div>
-              <button onClick={() => setShowAssistantMobile(false)} className="rounded-lg p-1.5 text-[var(--ws-muted)] hover:bg-[var(--ws-panel2)] hover:text-[var(--ws-text)]">
+              <button onClick={() => setShowAssistantMobile(false)} className="rounded-lg p-1.5 text-(--ws-muted) hover:bg-(--ws-panel2) hover:text-(--ws-text)">
                 <X size={16} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto ws-editor-scroll p-3 space-y-2 bg-[var(--ws-bg)]">
+            <div className="flex-1 overflow-y-auto ws-editor-scroll p-3 space-y-2 bg-(--ws-bg)">
               {assistantMessages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-[var(--ws-accent)] text-[#062a25]' : 'bg-[var(--ws-panel)] text-[var(--ws-text)] border border-[var(--ws-border)]'}`}>
+                  <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-(--ws-accent) text-[#062a25]' : 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border)'}`}>
                     {msg.content}
                   </div>
                 </div>
               ))}
               {assistantBusy && (
                 <div className="flex justify-start">
-                  <div className="rounded-2xl border border-[var(--ws-border)] bg-[var(--ws-panel)] px-3 py-2 text-[13px] text-[var(--ws-muted)]">
+                  <div className="rounded-2xl border border-(--ws-border) bg-(--ws-panel) px-3 py-2 text-[13px] text-(--ws-muted)">
                     {t('problemSolve.thinking')}
                   </div>
                 </div>
               )}
               <div ref={messagesEndRef} />
             </div>
-            <form onSubmit={askAssistant} className="border-t border-[var(--ws-border)] bg-[var(--ws-panel)] p-3">
-              <div className="flex items-center gap-2 rounded-xl border border-[var(--ws-border)] bg-[var(--ws-editor)] px-3 py-2">
+            <form onSubmit={askAssistant} className="border-t border-(--ws-border) bg-(--ws-panel) p-3">
+              <div className="flex items-center gap-2 rounded-xl border border-(--ws-border) bg-(--ws-editor) px-3 py-2">
                 <input
                   value={assistantInput}
                   onChange={(e) => setAssistantInput(e.target.value)}
                   placeholder={t('problemSolve.askPlaceholder')}
-                  className="flex-1 bg-transparent text-[13px] text-[var(--ws-text)] outline-none placeholder:text-[var(--ws-faint)]"
+                  className="flex-1 bg-transparent text-[13px] text-(--ws-text) outline-none placeholder:text-(--ws-faint)"
                 />
-                <button type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-[var(--ws-accent)] p-2 text-[#062a25] disabled:opacity-50">
+                <button type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-(--ws-accent) p-2 text-[#062a25] disabled:opacity-50">
                   <Send size={14} />
                 </button>
               </div>
@@ -1363,18 +1363,18 @@ export default function ProblemSolve() {
 
       {/* ============ SOLUTION MODAL ============ */}
       {showSolution && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-[90] flex items-center justify-center p-4" onClick={() => setShowSolution(false)}>
-          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--ws-border)]">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setShowSolution(false)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
               <h3 className="font-bold text-[15px]">Lời giải tham khảo — {problemTitle}</h3>
-              <button onClick={() => setShowSolution(false)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={18} /></button>
+              <button onClick={() => setShowSolution(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(80vh-64px)]">
-              <div className="flex items-center gap-2 mb-3 text-[12px] text-[var(--ws-muted)]">
+              <div className="flex items-center gap-2 mb-3 text-[12px] text-(--ws-muted)">
                 <Clock size={13} /> {detail.timeLimit}
                 <Zap size={13} className="ml-3" /> {detail.memoryLimit}
               </div>
-              <pre className="ws-dark bg-[#0b1210] border border-[var(--ws-border)] rounded-xl p-4 overflow-x-auto font-mono text-[12.5px] leading-6 text-[#e4ece8]" dangerouslySetInnerHTML={{ __html: highlight(detail.solutions[lang], lang) }} />
+              <pre className="ws-dark bg-[#0b1210] border border-(--ws-border) rounded-xl p-4 overflow-x-auto font-mono text-[12.5px] leading-6 text-[#e4ece8]" dangerouslySetInnerHTML={{ __html: highlight(detail.solutions[lang], lang) }} />
             </div>
           </div>
         </div>
@@ -1382,13 +1382,13 @@ export default function ProblemSolve() {
 
       {/* ============ GUIDE MODAL ============ */}
       {showGuide && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-[90] flex items-center justify-center p-4" onClick={() => setShowGuide(false)}>
-          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] rounded-2xl w-full max-w-lg shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--ws-border)]">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setShowGuide(false)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl w-full max-w-lg shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
               <h3 className="font-bold text-[15px]">{t('problemSolve.usageGuide')}</h3>
-              <button onClick={() => setShowGuide(false)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={18} /></button>
+              <button onClick={() => setShowGuide(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
-            <div className="p-6 space-y-3 text-[13.5px] leading-6 text-[var(--ws-muted)]">
+            <div className="p-6 space-y-3 text-[13.5px] leading-6 text-(--ws-muted)">
               {[
                 ['⌘K', t('problemSolve.guideSearch')],
                 [t('problemSolve.runBtn'), t('problemSolve.guideRun')],
@@ -1398,7 +1398,7 @@ export default function ProblemSolve() {
                 [t('problemSolve.guideModeLabel'), t('problemSolve.guideMode')],
               ].map(([k, v], i) => (
                 <div key={i} className="flex gap-3">
-                  <span className="flex-shrink-0 text-[11px] font-bold px-2 py-0.5 h-fit rounded-md bg-[var(--ws-accent-soft)] text-[var(--ws-accent)]">{k}</span>
+                  <span className="shrink-0 text-[11px] font-bold px-2 py-0.5 h-fit rounded-md bg-(--ws-accent-soft) text-(--ws-accent)">{k}</span>
                   <span>{v}</span>
                 </div>
               ))}

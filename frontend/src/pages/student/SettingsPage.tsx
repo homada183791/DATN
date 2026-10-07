@@ -251,7 +251,7 @@ export default function SettingsPage() {
       ) : (
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Tabs Sidebar */}
-          <div className="lg:w-56 flex-shrink-0">
+          <div className="lg:w-56 shrink-0">
             <div className="bg-white border border-[#e5dac9] rounded-xl p-2 space-y-1 shadow-sm">
               {tabs.map((tab) => (
                 <button
@@ -281,7 +281,7 @@ export default function SettingsPage() {
 
                 {/* Avatar Preview */}
                 <div className="flex items-center gap-4">
-                  <div className="w-20 h-20 bg-gradient-to-br from-[#193a2b] to-[#2d5a3f] rounded-2xl flex items-center justify-center text-white text-2xl font-bold font-serif relative shadow-md overflow-hidden shrink-0">
+                  <div className="w-20 h-20 bg-linear-to-br from-[#193a2b] to-[#2d5a3f] rounded-2xl flex items-center justify-center text-white text-2xl font-bold font-serif relative shadow-md overflow-hidden shrink-0">
                     {profileForm.avatarUrl ? (
                       <img
                         src={profileForm.avatarUrl}

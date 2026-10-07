@@ -264,14 +264,14 @@ export default function CalendarView({ events, userRole = 'student', classes = [
   return (
     <>
       {/* Unified Google Calendar Card */}
-      <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] rounded-2xl shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl shadow-sm overflow-hidden flex flex-col">
         {/* 1. Integrated Header Toolbar */}
-        <div className="p-2.5 px-3.5 border-b border-[var(--ws-border)] bg-[var(--ws-panel2)]/35 flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+        <div className="p-2.5 px-3.5 border-b border-(--ws-border) bg-(--ws-panel2)/35 flex flex-col md:flex-row md:items-center justify-between gap-2.5">
           {/* Left: Today + Arrows + Month/Year Picker Dropdown */}
           <div className="flex items-center gap-2">
             <button
               onClick={goToToday}
-              className="px-2.5 py-1 rounded-lg border border-[var(--ws-border)] text-[11.5px] font-semibold text-[var(--ws-text)] hover:bg-[var(--ws-hover)] transition-colors"
+              className="px-2.5 py-1 rounded-lg border border-(--ws-border) text-[11.5px] font-semibold text-(--ws-text) hover:bg-(--ws-hover) transition-colors"
             >
               {t('calendar.today')}
             </button>
@@ -279,14 +279,14 @@ export default function CalendarView({ events, userRole = 'student', classes = [
             <div className="flex items-center gap-0.5">
               <button
                 onClick={goToPrev}
-                className="w-7 h-7 rounded-lg flex items-center justify-center border border-[var(--ws-border)] text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:bg-[var(--ws-hover)] transition-colors"
+                className="w-7 h-7 rounded-lg flex items-center justify-center border border-(--ws-border) text-(--ws-muted) hover:text-(--ws-text) hover:bg-(--ws-hover) transition-colors"
                 title={t('calendar.previous')}
               >
                 <ChevronLeft size={14} />
               </button>
               <button
                 onClick={goToNext}
-                className="w-7 h-7 rounded-lg flex items-center justify-center border border-[var(--ws-border)] text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:bg-[var(--ws-hover)] transition-colors"
+                className="w-7 h-7 rounded-lg flex items-center justify-center border border-(--ws-border) text-(--ws-muted) hover:text-(--ws-text) hover:bg-(--ws-hover) transition-colors"
                 title={t('calendar.next')}
               >
                 <ChevronRight size={14} />
@@ -298,15 +298,15 @@ export default function CalendarView({ events, userRole = 'student', classes = [
               <button
                 type="button"
                 onClick={() => setShowMonthPicker((v) => !v)}
-                className="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-[var(--ws-hover)] transition-colors group cursor-pointer"
+                className="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-(--ws-hover) transition-colors group cursor-pointer"
                 title={t('calendar.chooseMonthYear')}
               >
-                <h2 className="text-base font-bold font-serif text-[var(--ws-text)] tracking-tight">
+                <h2 className="text-base font-bold font-serif text-(--ws-text) tracking-tight">
                   {monthNamesEn[currentMonth - 1]} {currentYear}
                 </h2>
                 <ChevronDown
                   size={14}
-                  className={`text-[var(--ws-muted)] group-hover:text-[var(--ws-text)] transition-transform duration-200 ${
+                  className={`text-(--ws-muted) group-hover:text-(--ws-text) transition-transform duration-200 ${
                     showMonthPicker ? 'rotate-180' : ''
                   }`}
                 />
@@ -314,19 +314,19 @@ export default function CalendarView({ events, userRole = 'student', classes = [
 
               {/* Quick Month & Year Popover */}
               {showMonthPicker && (
-                <div className="absolute top-full left-0 mt-1.5 w-64 p-3 bg-[var(--ws-panel)] border border-[var(--ws-border)] rounded-xl shadow-xl z-50">
-                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--ws-border)]">
-                    <span className="text-xs font-bold text-[var(--ws-text)]">{t('calendar.year', { year: currentYear })}</span>
+                <div className="absolute top-full left-0 mt-1.5 w-64 p-3 bg-(--ws-panel) border border-(--ws-border) rounded-xl shadow-xl z-50">
+                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-(--ws-border)">
+                    <span className="text-xs font-bold text-(--ws-text)">{t('calendar.year', { year: currentYear })}</span>
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => setCurrentYear((y) => y - 1)}
-                        className="p-1 rounded hover:bg-[var(--ws-hover)] text-[var(--ws-muted)] hover:text-[var(--ws-text)]"
+                        className="p-1 rounded hover:bg-(--ws-hover) text-(--ws-muted) hover:text-(--ws-text)"
                       >
                         <ChevronLeft size={13} />
                       </button>
                       <button
                         onClick={() => setCurrentYear((y) => y + 1)}
-                        className="p-1 rounded hover:bg-[var(--ws-hover)] text-[var(--ws-muted)] hover:text-[var(--ws-text)]"
+                        className="p-1 rounded hover:bg-(--ws-hover) text-(--ws-muted) hover:text-(--ws-text)"
                       >
                         <ChevronRight size={13} />
                       </button>
@@ -346,8 +346,8 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                           }}
                           className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                             isSelected
-                              ? 'bg-[var(--ws-accent)] text-white shadow-2xs'
-                              : 'text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:bg-[var(--ws-hover)]'
+                              ? 'bg-(--ws-accent) text-white shadow-2xs'
+                              : 'text-(--ws-muted) hover:text-(--ws-text) hover:bg-(--ws-hover)'
                           }`}
                         >
                           {mName.slice(0, 3)}
@@ -363,13 +363,13 @@ export default function CalendarView({ events, userRole = 'student', classes = [
           {/* Right: Filters & View Switcher */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Filter Type Pills */}
-            <div className="flex items-center p-0.5 rounded-lg bg-[var(--ws-panel2)] border border-[var(--ws-border)]">
+            <div className="flex items-center p-0.5 rounded-lg bg-(--ws-panel2) border border-(--ws-border)">
               <button
                 onClick={() => setTypeFilter('all')}
                 className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all ${
                   typeFilter === 'all'
-                    ? 'bg-[var(--ws-accent)] text-white shadow-2xs'
-                    : 'text-[var(--ws-muted)] hover:text-[var(--ws-text)]'
+                    ? 'bg-(--ws-accent) text-white shadow-2xs'
+                    : 'text-(--ws-muted) hover:text-(--ws-text)'
                 }`}
               >
                 {t('calendar.all')}
@@ -384,7 +384,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                 className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all flex items-center gap-1 ${
                   typeFilter === 'homework'
                     ? 'shadow-2xs text-white'
-                    : 'text-[var(--ws-muted)] hover:text-[var(--ws-text)]'
+                    : 'text-(--ws-muted) hover:text-(--ws-text)'
                 }`}
               >
                 <BookOpen size={11} /> {t('calendar.homework')}
@@ -399,7 +399,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                 className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all flex items-center gap-1 ${
                   typeFilter === 'contest'
                     ? 'shadow-2xs text-white'
-                    : 'text-[var(--ws-muted)] hover:text-[var(--ws-text)]'
+                    : 'text-(--ws-muted) hover:text-(--ws-text)'
                 }`}
               >
                 <Trophy size={11} /> {t('calendar.contests')}
@@ -411,7 +411,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
               <select
                 value={classFilter}
                 onChange={(e) => setClassFilter(e.target.value)}
-                className="px-2 py-1 rounded-lg bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[11px] font-semibold text-[var(--ws-text)] outline-hidden focus:border-[var(--ws-accent)]"
+                className="px-2 py-1 rounded-lg bg-(--ws-panel2) border border-(--ws-border) text-[11px] font-semibold text-(--ws-text) outline-hidden focus:border-(--ws-accent)"
               >
                 <option value="all">{t('calendar.allClasses')}</option>
                 {classes.map((c) => (
@@ -423,13 +423,13 @@ export default function CalendarView({ events, userRole = 'student', classes = [
             )}
 
             {/* View Mode Switcher */}
-            <div className="flex items-center p-0.5 rounded-lg bg-[var(--ws-panel2)] border border-[var(--ws-border)]">
+            <div className="flex items-center p-0.5 rounded-lg bg-(--ws-panel2) border border-(--ws-border)">
               <button
                 onClick={() => setViewMode('month')}
                 className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all ${
                   viewMode === 'month'
-                    ? 'bg-[var(--ws-panel)] text-[var(--ws-text)] border border-[var(--ws-border)] shadow-2xs'
-                    : 'text-[var(--ws-muted)] hover:text-[var(--ws-text)]'
+                    ? 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border) shadow-2xs'
+                    : 'text-(--ws-muted) hover:text-(--ws-text)'
                 }`}
               >
                 {t('calendar.month')}
@@ -438,8 +438,8 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                 onClick={() => setViewMode('week')}
                 className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all ${
                   viewMode === 'week'
-                    ? 'bg-[var(--ws-panel)] text-[var(--ws-text)] border border-[var(--ws-border)] shadow-2xs'
-                    : 'text-[var(--ws-muted)] hover:text-[var(--ws-text)]'
+                    ? 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border) shadow-2xs'
+                    : 'text-(--ws-muted) hover:text-(--ws-text)'
                 }`}
               >
                 {t('calendar.week')}
@@ -448,8 +448,8 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                 onClick={() => setViewMode('agenda')}
                 className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all ${
                   viewMode === 'agenda'
-                    ? 'bg-[var(--ws-panel)] text-[var(--ws-text)] border border-[var(--ws-border)] shadow-2xs'
-                    : 'text-[var(--ws-muted)] hover:text-[var(--ws-text)]'
+                    ? 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border) shadow-2xs'
+                    : 'text-(--ws-muted) hover:text-(--ws-text)'
                 }`}
               >
                 {t('calendar.schedule')}
@@ -459,7 +459,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
             {/* Export .ics */}
             <button
               onClick={downloadICS}
-              className="p-1.5 rounded-lg border border-[var(--ws-border)] text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:bg-[var(--ws-hover)] transition-colors"
+              className="p-1.5 rounded-lg border border-(--ws-border) text-(--ws-muted) hover:text-(--ws-text) hover:bg-(--ws-hover) transition-colors"
               title={t('calendar.exportCalendar')}
             >
               <Download size={14} />
@@ -471,7 +471,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
         {viewMode === 'month' && (
           <div className="flex flex-col">
             {/* Day of week headers (Centered like Google Calendar) */}
-            <div className="grid grid-cols-7 border-b border-[var(--ws-border)] bg-[var(--ws-panel2)]/50 text-center text-[11px] font-bold text-[var(--ws-muted)] py-1.5">
+            <div className="grid grid-cols-7 border-b border-(--ws-border) bg-(--ws-panel2)/50 text-center text-[11px] font-bold text-(--ws-muted) py-1.5">
               {DAYS_OF_WEEK.map((d) => (
                 <div key={d.key} className="tracking-wider">
                   <span className="hidden sm:inline">{d.labelEn}</span>
@@ -481,7 +481,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
             </div>
 
             {/* Month Day Grid - Balanced cell proportions min-h-[82px] md:min-h-[90px] */}
-            <div className="grid grid-cols-7 divide-x divide-y divide-[var(--ws-border)]">
+            <div className="grid grid-cols-7 divide-x divide-y divide-(--ws-border)">
               {monthGridDays.map((cell) => {
                 const dayEvents = eventsByDate[cell.dateString] || [];
                 const hasEvents = dayEvents.length > 0;
@@ -492,24 +492,24 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                     onClick={() => setSelectedDate(cell.dateString)}
                     className={`min-h-[82px] md:min-h-[90px] p-1.5 transition-colors flex flex-col justify-start cursor-pointer ${
                       cell.isCurrentMonth
-                        ? 'bg-[var(--ws-panel)] hover:bg-[var(--ws-panel2)]/30'
-                        : 'bg-[var(--ws-panel2)]/20 opacity-40'
+                        ? 'bg-(--ws-panel) hover:bg-(--ws-panel2)/30'
+                        : 'bg-(--ws-panel2)/20 opacity-40'
                     }`}
                   >
                     {/* Centered Date Header as shown in the Codeforces screenshot */}
                     <div className="relative text-center mb-1 leading-none">
                       {cell.isToday ? (
-                        <div className="w-5 h-5 rounded-full bg-[var(--ws-accent)] text-white font-bold text-[10.5px] flex items-center justify-center mx-auto shadow-2xs">
+                        <div className="w-5 h-5 rounded-full bg-(--ws-accent) text-white font-bold text-[10.5px] flex items-center justify-center mx-auto shadow-2xs">
                           {cell.day}
                         </div>
                       ) : cell.isFirstOfMonth ? (
-                        <span className="text-[10.5px] font-bold text-[var(--ws-text)]">
+                        <span className="text-[10.5px] font-bold text-(--ws-text)">
                           {monthNamesEn[cell.month - 1].slice(0, 3)} {cell.day}
                         </span>
                       ) : (
                         <span
                           className={`text-[10.5px] font-medium ${
-                            cell.isCurrentMonth ? 'text-[var(--ws-text)]' : 'text-[var(--ws-muted)]'
+                            cell.isCurrentMonth ? 'text-(--ws-text)' : 'text-(--ws-muted)'
                           }`}
                         >
                           {cell.day}
@@ -517,7 +517,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                       )}
 
                       {hasEvents && (
-                        <span className="absolute right-0 top-0 text-[9px] font-semibold text-[var(--ws-muted)] opacity-70 pr-0.5">
+                        <span className="absolute right-0 top-0 text-[9px] font-semibold text-(--ws-muted) opacity-70 pr-0.5">
                           {dayEvents.length}
                         </span>
                       )}
@@ -546,9 +546,9 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                               style={{
                                 backgroundColor: isContest ? 'var(--ws-contest-dot)' : 'var(--ws-hw-dot)',
                               }}
-                              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                              className="w-1.5 h-1.5 rounded-full shrink-0"
                             />
-                            <span className="font-mono text-[9px] opacity-80 flex-shrink-0">
+                            <span className="font-mono text-[9px] opacity-80 shrink-0">
                               {ev.timeStr}
                             </span>
                             <span className="truncate font-medium">{ev.title}</span>
@@ -563,7 +563,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                             setSelectedDate(cell.dateString);
                             setViewMode('agenda');
                           }}
-                          className="text-[9px] font-semibold text-[var(--ws-accent)] hover:underline pl-0.5 leading-none block mt-0.5"
+                          className="text-[9px] font-semibold text-(--ws-accent) hover:underline pl-0.5 leading-none block mt-0.5"
                         >
                           {t('calendar.moreEvents', { count: dayEvents.length - 2 })}
                         </button>
@@ -580,24 +580,24 @@ export default function CalendarView({ events, userRole = 'student', classes = [
         {viewMode === 'week' && (
           <div className="flex flex-col">
             {/* Week Headers */}
-            <div className="grid grid-cols-7 border-b border-[var(--ws-border)] bg-[var(--ws-panel2)]/50 divide-x divide-[var(--ws-border)]">
+            <div className="grid grid-cols-7 border-b border-(--ws-border) bg-(--ws-panel2)/50 divide-x divide-(--ws-border)">
               {weekDays.map((d) => (
                 <div
                   key={d.dateString}
                   className={`py-1.5 px-1 text-center ${
-                    d.isToday ? 'bg-[var(--ws-accent)]/10 font-bold' : ''
+                    d.isToday ? 'bg-(--ws-accent)/10 font-bold' : ''
                   }`}
                 >
-                  <p className="text-[10px] uppercase tracking-wider text-[var(--ws-muted)]">
+                  <p className="text-[10px] uppercase tracking-wider text-(--ws-muted)">
                     {d.dayName}
                   </p>
                   <div className="mt-0.5 flex items-center justify-center">
                     {d.isToday ? (
-                      <span className="w-5 h-5 rounded-full bg-[var(--ws-accent)] text-white text-[10.5px] font-bold flex items-center justify-center shadow-2xs">
+                      <span className="w-5 h-5 rounded-full bg-(--ws-accent) text-white text-[10.5px] font-bold flex items-center justify-center shadow-2xs">
                         {d.dayNumber}
                       </span>
                     ) : (
-                      <span className="text-xs font-semibold text-[var(--ws-text)]">
+                      <span className="text-xs font-semibold text-(--ws-text)">
                         {d.dayNumber}
                       </span>
                     )}
@@ -607,11 +607,11 @@ export default function CalendarView({ events, userRole = 'student', classes = [
             </div>
 
             {/* Week Event Columns */}
-            <div className="grid grid-cols-7 divide-x divide-[var(--ws-border)] min-h-[260px]">
+            <div className="grid grid-cols-7 divide-x divide-(--ws-border) min-h-[260px]">
               {weekDays.map((d) => {
                 const dayEvents = eventsByDate[d.dateString] || [];
                 return (
-                  <div key={d.dateString} className="p-1.5 space-y-1.5 bg-[var(--ws-panel)]">
+                  <div key={d.dateString} className="p-1.5 space-y-1.5 bg-(--ws-panel)">
                     {dayEvents.map((ev) => {
                       const isContest = ev.type === 'contest';
                       return (
@@ -639,7 +639,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                     })}
 
                     {dayEvents.length === 0 && (
-                      <div className="py-8 text-center text-[10px] text-[var(--ws-muted)] opacity-40">
+                      <div className="py-8 text-center text-[10px] text-(--ws-muted) opacity-40">
                         —
                       </div>
                     )}
@@ -653,24 +653,24 @@ export default function CalendarView({ events, userRole = 'student', classes = [
         {/* 4. Agenda / Schedule View */}
         {viewMode === 'agenda' && (
           <div className="p-3.5">
-            <div className="mb-2.5 pb-2 border-b border-[var(--ws-border)] flex items-center justify-between">
+            <div className="mb-2.5 pb-2 border-b border-(--ws-border) flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold font-serif text-[var(--ws-text)]">
+                <h3 className="text-sm font-bold font-serif text-(--ws-text)">
                   {t('calendar.upcomingSchedule')}
                 </h3>
-                <p className="text-[11px] text-[var(--ws-muted)] mt-0.5">
+                <p className="text-[11px] text-(--ws-muted) mt-0.5">
                   {t('calendar.scheduleSubtitle')}
                 </p>
               </div>
-              <span className="text-[11px] font-semibold text-[var(--ws-muted)] bg-[var(--ws-panel2)] px-2 py-0.5 rounded-md border border-[var(--ws-border)]">
+              <span className="text-[11px] font-semibold text-(--ws-muted) bg-(--ws-panel2) px-2 py-0.5 rounded-md border border-(--ws-border)">
                 {t('calendar.eventCount', { count: filteredEvents.length })}
               </span>
             </div>
 
             {filteredEvents.length === 0 ? (
-              <div className="py-8 text-center border border-dashed border-[var(--ws-border)] rounded-lg">
-                <CalendarIcon size={24} className="text-[var(--ws-faint)] mx-auto mb-1.5" />
-                <p className="text-xs text-[var(--ws-muted)]">
+              <div className="py-8 text-center border border-dashed border-(--ws-border) rounded-lg">
+                <CalendarIcon size={24} className="text-(--ws-faint) mx-auto mb-1.5" />
+                <p className="text-xs text-(--ws-muted)">
                   {t('calendar.noEvents')}
                 </p>
               </div>
@@ -682,7 +682,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                     <div
                       key={ev.id}
                       onClick={() => setActiveModalEvent(ev)}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 bg-[var(--ws-panel2)] rounded-lg border border-[var(--ws-border)] hover:border-[var(--ws-accent)]/40 transition-all cursor-pointer gap-2"
+                      className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 bg-(--ws-panel2) rounded-lg border border-(--ws-border) hover:border-(--ws-accent)/40 transition-all cursor-pointer gap-2"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div
@@ -690,7 +690,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                             backgroundColor: isContest ? 'var(--ws-contest-bg)' : 'var(--ws-hw-bg)',
                             color: isContest ? 'var(--ws-contest-text)' : 'var(--ws-hw-text)',
                           }}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                          className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                         >
                           {isContest ? <Trophy size={15} /> : <BookOpen size={15} />}
                         </div>
@@ -707,15 +707,15 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                             >
                               {isContest ? t('calendar.eventContestLabel') : t('calendar.eventHomeworkLabel')}
                             </span>
-                            <span className="text-[11px] text-[var(--ws-muted)] font-mono">
+                            <span className="text-[11px] text-(--ws-muted) font-mono">
                               {formatVN(ev.startDateTime)}
                             </span>
                           </div>
-                          <p className="text-xs font-semibold text-[var(--ws-text)] mt-0.5 truncate">
+                          <p className="text-xs font-semibold text-(--ws-text) mt-0.5 truncate">
                             {ev.title}
                           </p>
                           {ev.className && (
-                            <p className="text-[10px] text-[var(--ws-muted)] mt-0.2">{ev.className}</p>
+                            <p className="text-[10px] text-(--ws-muted) mt-0.2">{ev.className}</p>
                           )}
                         </div>
                       </div>
@@ -727,7 +727,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                             e.stopPropagation();
                             setActiveModalEvent(ev);
                           }}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[11px] font-semibold text-[var(--ws-text)] hover:bg-[var(--ws-hover)] transition-colors"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-(--ws-panel) border border-(--ws-border) text-[11px] font-semibold text-(--ws-text) hover:bg-(--ws-hover) transition-colors"
                         >
                           {t('calendar.details')} <ExternalLink size={11} />
                         </button>
@@ -741,9 +741,9 @@ export default function CalendarView({ events, userRole = 'student', classes = [
         )}
 
         {/* 5. Calendar Bottom Legend & Info (Matching Google Calendar in Codeforces screenshot) */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 px-4 text-xs text-[var(--ws-muted)] border-t border-[var(--ws-border)] bg-[var(--ws-panel2)]/25">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 px-4 text-xs text-(--ws-muted) border-t border-(--ws-border) bg-(--ws-panel2)/25">
           <div>
-            <p className="font-semibold text-[var(--ws-text)] text-[11.5px]">
+            <p className="font-semibold text-(--ws-text) text-[11.5px]">
               Programming Contests & Assignments Calendar
             </p>
             <div className="flex flex-wrap items-center gap-2 text-[10.5px] mt-0.5">
@@ -751,7 +751,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
               <span>•</span>
               <button
                 onClick={downloadICS}
-                className="hover:underline font-semibold text-[var(--ws-accent)]"
+                className="hover:underline font-semibold text-(--ws-accent)"
               >
                 {t('calendar.export')}
               </button>
@@ -780,7 +780,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
               href="https://calendar.google.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 text-[11px] font-semibold text-[var(--ws-text)] hover:text-[var(--ws-accent)] transition-colors border border-[var(--ws-border)] bg-[var(--ws-panel)] px-2 py-0.5 rounded-md shadow-2xs"
+              className="flex items-center gap-1 text-[11px] font-semibold text-(--ws-text) hover:text-(--ws-accent) transition-colors border border-(--ws-border) bg-(--ws-panel) px-2 py-0.5 rounded-md shadow-2xs"
               title={t('calendar.openGoogleCalendar')}
             >
               <span className="text-blue-500 font-bold">G</span>
@@ -789,7 +789,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
               <span className="text-blue-500 font-bold">g</span>
               <span className="text-green-500 font-bold">l</span>
               <span className="text-red-500 font-bold">e</span>
-              <span className="text-[var(--ws-text)] font-semibold ml-0.5">Calendar</span>
+              <span className="text-(--ws-text) font-semibold ml-0.5">Calendar</span>
             </a>
           </div>
         </div>

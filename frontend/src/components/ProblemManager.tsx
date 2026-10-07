@@ -177,22 +177,22 @@ export default function ProblemManager({ problems, onChange }: Props) {
         ) : (
           problems.map((p, i) => (
             <div key={p.id} className="flex items-center gap-3 px-3.5 py-2.5 hover:bg-[#f7f4eb] transition-colors">
-              <span className="text-xs text-[#8a8073] font-mono w-5 flex-shrink-0">{i + 1}.</span>
+              <span className="text-xs text-[#8a8073] font-mono w-5 shrink-0">{i + 1}.</span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <p className="text-sm font-medium text-[#191919] truncate">{p.title || t('problemManager.untitled')}</p>
                   {p.problem_id && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 border border-blue-200 font-bold flex-shrink-0">
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 border border-blue-200 font-bold shrink-0">
                       LINKED
                     </span>
                   )}
                 </div>
                 <p className="text-[11px] text-[#8a8073] truncate">{p.statement?.slice(0, 60) || t('problemManager.noDescription')}</p>
               </div>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium flex-shrink-0 ${diffChip[p.difficulty]}`}>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium shrink-0 ${diffChip[p.difficulty]}`}>
                 {t(`problemForm.${diffLabel[p.difficulty]}`)}
               </span>
-              <div className="flex items-center gap-1 flex-shrink-0">
+              <div className="flex items-center gap-1 shrink-0">
                 <input
                   type="number"
                   min={0}
@@ -207,7 +207,7 @@ export default function ProblemManager({ problems, onChange }: Props) {
               <button
                 type="button"
                 onClick={() => remove(p.id)}
-                className="p-1.5 text-[#8a8073] hover:text-red-600 rounded-md transition-colors flex-shrink-0"
+                className="p-1.5 text-[#8a8073] hover:text-red-600 rounded-md transition-colors shrink-0"
                 title={t('problemManager.delete')}
               >
                 <Trash2 size={14} />
@@ -224,7 +224,7 @@ export default function ProblemManager({ problems, onChange }: Props) {
       {/* ───── Modal: Liên kết từ Ngân hàng ───── */}
       {modalType === 'link' && hasDocument && createPortal(
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-[200] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-200 flex items-center justify-center p-4"
           onClick={() => !linkingId && setModalType(null)}
         >
           <div
@@ -232,7 +232,7 @@ export default function ProblemManager({ problems, onChange }: Props) {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5dac9] bg-[#f7f4eb] flex-shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5dac9] bg-[#f7f4eb] shrink-0">
               <div>
                 <h4 className="text-base font-bold text-[#191919] flex items-center gap-2">
                   <Link2 size={17} className="text-blue-600" /> {t('problemManager.linkTitle')}
@@ -252,7 +252,7 @@ export default function ProblemManager({ problems, onChange }: Props) {
             </div>
 
             {/* Search */}
-            <div className="p-4 border-b border-[#e5dac9] bg-white flex-shrink-0">
+            <div className="p-4 border-b border-[#e5dac9] bg-white shrink-0">
               <div className="relative">
                 <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8a8073]" />
                 <input
@@ -289,7 +289,7 @@ export default function ProblemManager({ problems, onChange }: Props) {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <p className="text-sm font-bold text-[#191919] truncate">{bp.title}</p>
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold flex-shrink-0 ${
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold shrink-0 ${
                             bp.difficulty === 'EASY' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
                             bp.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
                             'bg-red-100 text-red-800 border-red-200'
@@ -311,7 +311,7 @@ export default function ProblemManager({ problems, onChange }: Props) {
                         type="button"
                         onClick={() => !alreadyAdded && !isLinking && linkFromBank(bp.id)}
                         disabled={alreadyAdded || isLinking}
-                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold flex-shrink-0 transition-all ${
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all ${
                           alreadyAdded
                             ? 'bg-emerald-100 text-emerald-800 cursor-not-allowed border border-emerald-200'
                             : 'bg-[#193a2b] text-white hover:bg-[#143022] shadow-sm disabled:opacity-50'
@@ -338,7 +338,7 @@ export default function ProblemManager({ problems, onChange }: Props) {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-3.5 border-t border-[#e5dac9] bg-[#eee8d8] flex justify-between items-center flex-shrink-0">
+            <div className="px-6 py-3.5 border-t border-[#e5dac9] bg-[#eee8d8] flex justify-between items-center shrink-0">
               <span className="text-xs text-[#8a8073]">
                 {t('problemManager.bankCount', { count: bankFiltered.length })}
               </span>

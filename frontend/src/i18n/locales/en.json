@@ -13,7 +13,8 @@
     "homework": "Assign Homework",
     "students": "Students",
     "problemBank": "Problem Bank",
-    "calendar": "Calendar"
+    "calendar": "Calendar",
+    "myHomework": "Homework"
   },
   "breadcrumb": {
     "student": "Student",
@@ -291,8 +292,8 @@
     "collapseStatement": "Collapse statement",
     "viewStatement": "View statement",
     "goSolve": "Go solve",
-    "sampleInput": "Sample Input",
-    "sampleOutput": "Sample Output",
+    "sampleInput": "Sample input",
+    "sampleOutput": "Sample output",
     "emptyNoClassTitle": "You haven't joined any class yet",
     "emptyNoClassSubtitle": "Homework only shows up once you've joined your instructor's class.",
     "joinClassLink": "Join a class",
@@ -307,8 +308,6 @@
     "homeworkTitle": "Homework",
     "homeworkSummary": "{{total}} assignments • {{open}} open • {{closed}} closed",
     "manageClasses": "Manage classes",
-    "sampleInput": "Sample input",
-    "sampleOutput": "Sample output",
     "emptyProblems": "This homework has no problems yet."
   },
   "studentClass": {

@@ -102,7 +102,7 @@ export default function Homework() {
 
       {/* Homework Detail Modal */}
       {selectedHomework && selectedHw && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-[90] flex items-center justify-center p-4" onClick={() => setSelectedHomework(null)}>
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setSelectedHomework(null)}>
           <div className="bg-[#f7f4eb] border border-[#e5dac9] rounded-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-[#e5dac9]">
               <h3 className="text-lg font-serif font-bold text-[#191919]">{selectedHw.title}</h3>
@@ -141,12 +141,12 @@ export default function Homework() {
                           </span>
                           <span className="text-sm text-[#191919] font-medium truncate">{p.title}</span>
                           {hasLink && (
-                            <span className="text-[9px] px-1.5 py-0.5 bg-blue-100 text-blue-700 border border-blue-200 rounded font-bold flex-shrink-0">
+                            <span className="text-[9px] px-1.5 py-0.5 bg-blue-100 text-blue-700 border border-blue-200 rounded font-bold shrink-0">
                               CÓ THỂ NỘP
                             </span>
                           )}
                         </button>
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-2 shrink-0">
                           <span className="text-xs text-[#8a8073]">{p.points}{t('instructorHomework.pointsSuffix')}</span>
                           <button
                             onClick={() => setExpandedProblem(open ? null : p.id)}
@@ -267,8 +267,8 @@ export default function Homework() {
                       <div
                         className={`h-2 rounded-full transition-all ${
                           hw.completedCount === hw.problemCount
-                            ? 'bg-gradient-to-r from-emerald-600 to-teal-500'
-                            : 'bg-gradient-to-r from-[#193a2b] to-emerald-600'
+                            ? 'bg-linear-to-r from-emerald-600 to-teal-500'
+                            : 'bg-linear-to-r from-[#193a2b] to-emerald-600'
                         }`}
                         style={{ width: `${(hw.completedCount / hw.problemCount) * 100}%` }}
                       />

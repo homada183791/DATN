@@ -224,7 +224,7 @@ export default function StudentHomework() {
                   </div>
 
                   {/* Right: deadline label + arrow */}
-                  <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="flex items-center gap-3 shrink-0">
                     <span className={`text-sm font-semibold ${p.overdue ? 'text-[#cc5a37]' : p.daysLeft <= 3 ? 'text-yellow-700' : 'text-emerald-700'}`}>
                       {deadlineLabel(p)}
                     </span>
@@ -248,7 +248,7 @@ export default function StudentHomework() {
       {/* ===== Detail Modal ===== */}
       {selectedHw && hasDocument && createPortal(
         <div
-          className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-[95] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-95 flex items-center justify-center p-4"
           onClick={() => setSelectedHwId(null)}
         >
           <div
@@ -283,7 +283,7 @@ export default function StudentHomework() {
                     </div>
                     <div className="w-full h-2 bg-[#f0ebd9] rounded-full overflow-hidden">
                       <div
-                        className={`h-full rounded-full ${p.overdue ? 'bg-[#cc5a37]' : p.daysLeft <= 3 ? 'bg-gradient-to-r from-yellow-500 to-[#cc5a37]' : 'bg-gradient-to-r from-[#193a2b] to-emerald-500'}`}
+                        className={`h-full rounded-full ${p.overdue ? 'bg-[#cc5a37]' : p.daysLeft <= 3 ? 'bg-linear-to-r from-yellow-500 to-[#cc5a37]' : 'bg-linear-to-r from-[#193a2b] to-emerald-500'}`}
                         style={{ width: `${p.overdue ? 100 : p.pct}%` }}
                       />
                     </div>
@@ -316,18 +316,18 @@ export default function StudentHomework() {
                               onClick={() => setExpandedProblem(open ? null : p.id)}
                               className="flex items-center gap-3 flex-1 min-w-0 text-left"
                             >
-                              <span className="text-xs text-[#8a8073] font-mono w-5 flex-shrink-0">{i + 1}.</span>
-                              <span className={`text-xs px-2 py-0.5 rounded-md font-semibold flex-shrink-0 ${diffColors[p.difficulty] ?? 'bg-[#f0ebd9] text-[#5c5446]'}`}>
+                              <span className="text-xs text-[#8a8073] font-mono w-5 shrink-0">{i + 1}.</span>
+                              <span className={`text-xs px-2 py-0.5 rounded-md font-semibold shrink-0 ${diffColors[p.difficulty] ?? 'bg-[#f0ebd9] text-[#5c5446]'}`}>
                                 {p.difficulty}
                               </span>
                               <span className="text-sm font-medium text-[#191919] truncate">{p.title}</span>
                               {hasLink && (
-                                <span className="text-[9px] px-1.5 py-0.5 bg-blue-100 text-blue-700 border border-blue-200 rounded font-bold flex-shrink-0">
+                                <span className="text-[9px] px-1.5 py-0.5 bg-blue-100 text-blue-700 border border-blue-200 rounded font-bold shrink-0">
                                   {t('studentHomework.canSubmit')}
                                 </span>
                               )}
                             </button>
-                            <div className="flex items-center gap-2 flex-shrink-0">
+                            <div className="flex items-center gap-2 shrink-0">
                               <span className="text-xs text-[#8a8073]">{t('studentHomework.pointsUnit', { count: p.points })}</span>
                               <button
                                 onClick={() => setExpandedProblem(open ? null : p.id)}
