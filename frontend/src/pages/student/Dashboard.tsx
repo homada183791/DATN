@@ -193,7 +193,7 @@ export default function StudentDashboard() {
                     <p className="text-xs text-[#8a8073] flex items-center gap-1.5 mt-1">
                       <Calendar size={12} /> {contest.startTime ? formatVN(contest.startTime) : '-'}
                       {contest.endTime && (
-                        <span>• Hạn chót: {formatVN(contest.endTime)}</span>
+                        <span>• {t('studentDashboard.deadlinePrefix')}: {formatVN(contest.endTime)}</span>
                       )}
                     </p>
                   </div>
@@ -202,21 +202,21 @@ export default function StudentDashboard() {
                       ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                       : 'bg-amber-100 text-amber-800 border border-amber-300'
                   }`}>
-                    {contest.status === 'running' ? 'Đang diễn ra' : 'Sắp tới'}
+                    {contest.status === 'running' ? t('studentDashboard.statusRunning') : t('studentDashboard.statusUpcoming')}
                   </span>
                 </Link>
               ))}
 
               {contestsLoading && (
                 <div className="flex items-center justify-center py-6 text-sm text-[#8a8073]">
-                  <Loader2 size={16} className="mr-2 animate-spin" /> Đang tải kỳ thi...
+                  <Loader2 size={16} className="mr-2 animate-spin" /> {t('studentDashboard.loadingContests')}
                 </div>
               )}
 
               {!contestsLoading && runningContests.length === 0 && upcomingContests.length === 0 && (
                 <div className="py-8 text-center border border-dashed border-[#e5dac9] rounded-xl">
                   <Trophy size={28} className="text-[#bfae99] mx-auto mb-2" />
-                  <p className="text-sm text-[#8a8073]">Hiện không có kỳ thi nào đang mở hoặc sắp tới.</p>
+                  <p className="text-sm text-[#8a8073]">{t('studentDashboard.noContestsAvailable')}</p>
                 </div>
               )}
             </div>
@@ -226,22 +226,22 @@ export default function StudentDashboard() {
           <div className="bg-white border border-[#e5dac9] rounded-2xl p-6 shadow-xs">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-bold text-[#191919] font-serif">Bài nộp gần đây</h3>
-                <p className="text-xs text-[#8a8073]">Nhật ký nộp mã nguồn gần nhất của bạn</p>
+                <h3 className="text-base font-bold text-[#191919] font-serif">{t('studentDashboard.recentSubmissions')}</h3>
+                <p className="text-xs text-[#8a8073]">{t('studentDashboard.recentSubmissionsSubtitle')}</p>
               </div>
             </div>
 
             {submissionsLoading ? (
               <div className="flex items-center justify-center py-6 text-sm text-[#8a8073]">
-                <Loader2 size={16} className="mr-2 animate-spin" /> Đang tải bài nộp...
+                <Loader2 size={16} className="mr-2 animate-spin" /> {t('studentDashboard.loadingSubmissions')}
               </div>
             ) : submissionsError ? (
               <div className="rounded-xl border border-dashed border-[#e5dac9] p-6 text-center text-sm text-[#8a8073]">
-                Không thể tải dữ liệu bài nộp.
+                {t('studentDashboard.submissionsError')}
               </div>
             ) : recentSubmissions.length === 0 ? (
               <div className="rounded-xl border border-dashed border-[#e5dac9] p-6 text-center text-sm text-[#8a8073]">
-                Chưa có bài nộp nào. Hãy thử giải một bài toán ngay hôm nay!
+                {t('studentDashboard.noSubmissions')}
               </div>
             ) : (
               <div className="space-y-2">

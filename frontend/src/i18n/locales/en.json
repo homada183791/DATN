@@ -283,7 +283,17 @@
     "activeHomeworks": "Active Homework",
     "dueLabel": "Due",
     "suggestedProblems": "Suggested Problems",
-    "solvedSuffix": "solved"
+    "solvedSuffix": "solved",
+    "noContestsAvailable": "There are no open or upcoming contests right now.",
+    "loadingContests": "Loading contests...",
+    "statusRunning": "Running",
+    "statusUpcoming": "Upcoming",
+    "deadlinePrefix": "Deadline",
+    "recentSubmissions": "Recent Submissions",
+    "recentSubmissionsSubtitle": "Your latest code submission history",
+    "loadingSubmissions": "Loading submissions...",
+    "submissionsError": "Could not load submission data.",
+    "noSubmissions": "No submissions yet. Try solving a problem today!"
   },
   "studentHomework": {
     "activeCount": "{{count}} active homework",

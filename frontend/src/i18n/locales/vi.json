@@ -283,7 +283,17 @@
     "activeHomeworks": "Bài tập đang mở",
     "dueLabel": "Hạn",
     "suggestedProblems": "Bài tập gợi ý",
-    "solvedSuffix": "đã giải"
+    "solvedSuffix": "đã giải",
+    "noContestsAvailable": "Hiện không có kỳ thi nào đang mở hoặc sắp tới.",
+    "loadingContests": "Đang tải kỳ thi...",
+    "statusRunning": "Đang diễn ra",
+    "statusUpcoming": "Sắp tới",
+    "deadlinePrefix": "Hạn chót",
+    "recentSubmissions": "Bài nộp gần đây",
+    "recentSubmissionsSubtitle": "Nhật ký nộp mã nguồn gần nhất của bạn",
+    "loadingSubmissions": "Đang tải bài nộp...",
+    "submissionsError": "Không thể tải dữ liệu bài nộp.",
+    "noSubmissions": "Chưa có bài nộp nào. Hãy thử giải một bài toán ngay hôm nay!"
   },
   "studentHomework": {
     "activeCount": "{{count}} bài tập đang mở",
