@@ -54,6 +54,16 @@ export class ClassesController {
     return this.classesService.findOne(id);
   }
 
+  @Get(':id/gradebook')
+  @UseGuards(RolesGuard)
+  @Roles(Role.INSTRUCTOR)
+  getGradebook(
+    @Param('id') id: string,
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.classesService.getGradebook(id, req.user.userId);
+  }
+
   @Patch(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.INSTRUCTOR)
