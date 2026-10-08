@@ -52,6 +52,7 @@ function Breadcrumbs() {
     problems: t('breadcrumb.problems'),
     problem: t('breadcrumb.problem'),
     homework: t('breadcrumb.homework'),
+    homeworks: t('breadcrumb.homework'),
     contest: t('breadcrumb.contest'),
     submission: t('breadcrumb.submission'),
     class: t('breadcrumb.class'),
@@ -150,7 +151,8 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
       ]
     : [
         { label: t('nav.dashboard'), icon: <LayoutDashboard size={20} />, path: '/student/dashboard' },
-        { label: t('nav.homework'), icon: <BookOpen size={20} />, path: '/student/homeworks' },
+        { label: t('nav.practiceProblems', 'Kho bài tập'), icon: <Code2 size={20} />, path: '/student/problems' },
+        { label: t('nav.studentHomework', 'Bài tập'), icon: <BookOpen size={20} />, path: '/student/homeworks' },
         { label: t('nav.class'), icon: <GraduationCap size={20} />, path: '/student/class' },
         { label: t('nav.contest'), icon: <Trophy size={20} />, path: '/student/contest' },
         { label: t('nav.calendar'), icon: <Calendar size={20} />, path: '/student/calendar' },

@@ -11,8 +11,10 @@
     "submission": "Submissions",
     "class": "Classes",
     "homework": "Assign Homework",
+    "studentHomework": "Homework",
     "students": "Students",
     "problemBank": "Problem Bank",
+    "practiceProblems": "Problem Set",
     "calendar": "Calendar"
   },
   "breadcrumb": {

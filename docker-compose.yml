@@ -110,11 +110,11 @@ services:
       - NODE_ENV=development
       - PORT=4000
       - RABBITMQ_URL=amqp://root:rootpassword@rabbitmq:5672
-      - WEBHOOK_URL=http://backend:3000/api/v1/webhook/judge
+      - QUEUE_NAME=judge_queue
+      - WEBHOOK_URL=${WEBHOOK_URL:-http://host.docker.internal:3000/api/v1/webhook/judge}
       - DOCKER_SOCKET=/var/run/docker.sock
     depends_on:
       - rabbitmq
-      - backend
     restart: unless-stopped
 
 volumes:

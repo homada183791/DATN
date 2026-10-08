@@ -11,8 +11,10 @@
     "submission": "Nộp bài",
     "class": "Lớp học",
     "homework": "Giao bài tập",
+    "studentHomework": "Bài tập",
     "students": "Sinh viên",
     "problemBank": "Ngân hàng bài tập",
+    "practiceProblems": "Kho bài tập",
     "calendar": "Lịch biểu"
   },
   "breadcrumb": {

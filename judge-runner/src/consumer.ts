@@ -3,8 +3,8 @@ import axios from 'axios';
 import { DockerRunner, RunSubmissionPayload, CustomRunPayload } from './docker/docker-runner';
 
 const AMQP_URL = process.env.RABBITMQ_URL || 'amqp://root:rootpassword@localhost:5672';
-const QUEUE_NAME = 'judge_job';
-const WEBHOOK_URL = process.env.WEBHOOK_URL || 'http://localhost:3000/api/v1/webhook/judge';
+const QUEUE_NAME = process.env.QUEUE_NAME || 'judge_queue';
+const WEBHOOK_URL = process.env.WEBHOOK_URL || 'http://host.docker.internal:3000/api/v1/webhook/judge';
 
 export class JudgeConsumer {
   static async start() {
