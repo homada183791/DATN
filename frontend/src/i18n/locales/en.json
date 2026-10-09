@@ -2,7 +2,13 @@
   "common": {
     "edit": "Edit",
     "delete": "Delete",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "deadlineProgress": {
+      "overdue": "Overdue",
+      "dueToday": "Due today",
+      "oneDayLeft": "1 day left",
+      "daysLeft": "{{count}} days left"
+    }
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -277,8 +283,19 @@
   },
   "instructorHomework": {
     "errors": {
-      "classRequired": "Please select a class to assign this to."
+      "classRequired": "Please select a class to assign this to.",
+      "titleTooShort": "Title must be at least 3 characters.",
+      "deadlineRequired": "Please select a deadline.",
+      "problemsRequired": "Homework needs at least 1 problem.",
+      "saveFailed": "An error occurred while saving the homework.",
+      "deleteFailed": "Failed to delete homework."
     },
+    "goCreateClassBtn": "Create a class",
+    "emptyNoClassTitle": "You don't have any classes yet",
+    "classFallback": "Class",
+    "submittedOfTotalLabel": "submitted",
+    "deadlineInlineLabel": "Deadline:",
+    "problemNoStatement": "No description yet",
     "subtitle": "Assign and track homework for {{count}} classes you manage.",
     "createNew": "New Homework",
     "statusActive": "Active",

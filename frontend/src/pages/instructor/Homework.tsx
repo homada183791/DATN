@@ -78,10 +78,10 @@ export default function InstructorHomework() {
   };
 
   const save = async () => {
-    if (form.title.trim().length < 3) return setError('Tiêu đề cần ít nhất 3 ký tự.');
-    if (!form.classId) return setError('Vui lòng chọn lớp để giao bài.');
-    if (!form.deadline) return setError('Vui lòng chọn hạn nộp.');
-    if (draftProblems.length === 0) return setError('Cần ít nhất 1 bài toán trong bài tập.');
+    if (form.title.trim().length < 3) return setError(t('instructorHomework.errors.titleTooShort'));
+    if (!form.classId) return setError(t('instructorHomework.errors.classRequired'));
+    if (!form.deadline) return setError(t('instructorHomework.errors.deadlineRequired'));
+    if (draftProblems.length === 0) return setError(t('instructorHomework.errors.problemsRequired'));
     const cls = myClasses.find((c) => c.id === form.classId);
     const deadline = form.deadline.replace('T', ' ');
     const payload: HomeworkInput = {
@@ -105,7 +105,7 @@ export default function InstructorHomework() {
       await refetch();
       setEditor(null);
     } catch (e: any) {
-      setError(e.message || 'Có lỗi xảy ra khi lưu bài tập.');
+      setError(e.message || t('instructorHomework.errors.saveFailed'));
     } finally {
       setIsSaving(false);
     }
@@ -194,19 +194,19 @@ export default function InstructorHomework() {
         <div className="bg-white border border-[#e5dac9] rounded-xl p-14 text-center shadow-sm">
           <ClipboardList size={48} className="text-[#bfae99] mx-auto mb-4" />
           <p className="font-semibold text-[#191919]">
-            {myClasses.length === 0 ? 'Bạn chưa có lớp học nào' : 'Chưa có bài tập nào'}
+            {myClasses.length === 0 ? t('instructorHomework.emptyNoClassTitle') : t('instructorHomework.emptyTitle')}
           </p>
           <p className="text-sm text-[#8a8073] mt-1 mb-5">
             {myClasses.length === 0
-              ? 'Bạn cần tạo ít nhất 1 lớp học trước khi giao bài tập cho sinh viên.'
-              : 'Giao bài tập đầu tiên cho lớp của bạn.'}
+              ? t('instructorHomework.emptyNoClass')
+              : t('instructorHomework.emptySubtitle')}
           </p>
           {myClasses.length === 0 && (
             <Link
               to="/instructor/class"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md"
             >
-              <GraduationCap size={16} /> Đi tạo lớp học
+              <GraduationCap size={16} /> {t('instructorHomework.goCreateClassBtn')}
             </Link>
           )}
         </div>
@@ -227,9 +227,9 @@ export default function InstructorHomework() {
                     </div>
                     <p className="text-sm text-[#5c5446] mb-3 leading-relaxed line-clamp-2">{hw.description || t('instructorClass.noDescription')}</p>
                     <div className="flex items-center gap-4 text-sm text-[#8a8073] flex-wrap">
-                      <span className="flex items-center gap-1"><GraduationCap size={14} /> {hw.className || myClasses.find((c) => c.id === hw.classId)?.name || 'Lớp học'}</span>
-                      <span className="flex items-center gap-1"><BookOpen size={14} /> {hw.problemCount} bài</span>
-                      <span className="flex items-center gap-1"><Users size={14} /> {hw.submittedStudents}/{hw.totalStudents} đã nộp</span>
+                      <span className="flex items-center gap-1"><GraduationCap size={14} /> {hw.className || myClasses.find((c) => c.id === hw.classId)?.name || t('instructorHomework.classFallback')}</span>
+                      <span className="flex items-center gap-1"><BookOpen size={14} /> {hw.problemCount} {t('instructorHomework.problemsUnit')}</span>
+                      <span className="flex items-center gap-1"><Users size={14} /> {hw.submittedStudents}/{hw.totalStudents} {t('instructorHomework.submittedOfTotalLabel')}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -241,8 +241,8 @@ export default function InstructorHomework() {
                     </button>
                     {confirmDelete === hw.id ? (
                       <div className="flex items-center gap-1.5">
-                        <button onClick={async () => { setConfirmDelete(null); try { await deleteHomework(hw.id); } catch { setError('Xoá bài tập thất bại.'); } }} className="px-2.5 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-500">Xoá</button>
-                        <button onClick={() => setConfirmDelete(null)} className="px-2.5 py-1.5 bg-[#f0ebd9] text-[#5c5446] text-xs font-semibold rounded-lg hover:bg-[#e5dac9]">Huỷ</button>
+                        <button onClick={async () => { setConfirmDelete(null); try { await deleteHomework(hw.id); } catch { setError(t('instructorHomework.errors.deleteFailed')); } }} className="px-2.5 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-500">{t('common.delete')}</button>
+                        <button onClick={() => setConfirmDelete(null)} className="px-2.5 py-1.5 bg-[#f0ebd9] text-[#5c5446] text-xs font-semibold rounded-lg hover:bg-[#e5dac9]">{t('common.cancel')}</button>
                       </div>
                     ) : (
                       <button onClick={() => setConfirmDelete(hw.id)} className="p-2 text-[#8a8073] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title={t('common.delete')}>
@@ -256,7 +256,7 @@ export default function InstructorHomework() {
                 <div className="mt-5 pt-4 border-t border-[#e5dac9]/60">
                   <div className="flex items-center justify-between text-xs mb-1.5">
                     <span className="flex items-center gap-1.5 text-[#8a8073]">
-                      <span className="flex items-center gap-1"><Clock size={14} /> Hạn nộp: <span className="font-medium text-[#5c5446]">{formatVNFull(hw.deadline)}</span></span>
+                      <span className="flex items-center gap-1"><Clock size={14} /> {t('instructorHomework.deadlineInlineLabel')} <span className="font-medium text-[#5c5446]">{formatVNFull(hw.deadline)}</span></span>
                     </span>
                     <span className={`font-semibold ${p.overdue ? 'text-[#cc5a37]' : p.daysLeft <= 3 ? 'text-yellow-700' : 'text-emerald-700'}`}>
                       {p.label}
@@ -329,7 +329,7 @@ export default function InstructorHomework() {
                   disabled={isSaving}
                   className="px-5 py-2.5 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors disabled:opacity-50"
                 >
-                  Huỷ
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -338,7 +338,7 @@ export default function InstructorHomework() {
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
                 >
                   {isSaving && <Loader2 size={16} className="animate-spin" />}
-                  {editor.mode === 'edit' ? 'Lưu thay đổi' : 'Giao bài'}
+                  {editor.mode === 'edit' ? t('instructorHomework.saveChanges') : t('instructorClass.assignSubmit')}
                 </button>
               </div>
             </div>
@@ -357,7 +357,7 @@ export default function InstructorHomework() {
             <div className="p-6 space-y-4">
               <div className="flex flex-wrap gap-2">
                 <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${statusChip[viewHw.status]}`}>{statusLabel[viewHw.status]}</span>
-                <span className="text-xs px-2.5 py-1 rounded-full bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) flex items-center gap-1"><GraduationCap size={12} /> {viewHw.className || myClasses.find((c) => c.id === viewHw.classId)?.name || 'Lớp học'}</span>
+                <span className="text-xs px-2.5 py-1 rounded-full bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) flex items-center gap-1"><GraduationCap size={12} /> {viewHw.className || myClasses.find((c) => c.id === viewHw.classId)?.name || t('instructorHomework.classFallback')}</span>
               </div>
               <p className="text-sm text-(--ws-muted) leading-relaxed">{viewHw.description || t('instructorClass.noDescription')}</p>
               <div className="grid grid-cols-3 gap-3">
@@ -375,7 +375,7 @@ export default function InstructorHomework() {
                 </div>
               </div>
               <div className="flex items-center gap-2 text-sm text-(--ws-muted)">
-                <Calendar size={14} className="text-(--ws-muted)" /> Hạn nộp: <span className="font-medium text-(--ws-text)">{formatVNFull(viewHw.deadline)}</span>
+                <Calendar size={14} className="text-(--ws-muted)" /> {t('instructorHomework.deadlineInlineLabel')} <span className="font-medium text-(--ws-text)">{formatVNFull(viewHw.deadline)}</span>
               </div>
 
               {/* problem list */}
@@ -398,7 +398,7 @@ export default function InstructorHomework() {
                         <span className="text-xs text-(--ws-muted) font-mono w-5">{i + 1}.</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-(--ws-text) truncate">{p.title}</p>
-                          <p className="text-[11px] text-(--ws-muted) truncate">{p.statement?.slice(0, 70) || 'Chưa có mô tả'}</p>
+                          <p className="text-[11px] text-(--ws-muted) truncate">{p.statement?.slice(0, 70) || t('instructorHomework.problemNoStatement')}</p>
                         </div>
                         <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${dc[p.difficulty]}`}>{dl[p.difficulty]}</span>
                         <span className="text-[11px] text-(--ws-muted) w-9 text-right">{p.points}{t('instructorHomework.pointsSuffix')}</span>

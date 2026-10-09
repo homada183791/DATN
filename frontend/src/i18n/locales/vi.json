@@ -2,7 +2,13 @@
   "common": {
     "edit": "Chỉnh sửa",
     "delete": "Xoá",
-    "cancel": "Huỷ"
+    "cancel": "Huỷ",
+    "deadlineProgress": {
+      "overdue": "Đã quá hạn",
+      "dueToday": "Hết hạn hôm nay",
+      "oneDayLeft": "Còn 1 ngày",
+      "daysLeft": "Còn {{count}} ngày"
+    }
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -277,8 +283,19 @@
   },
   "instructorHomework": {
     "errors": {
-      "classRequired": "Vui lòng chọn lớp để giao bài."
+      "classRequired": "Vui lòng chọn lớp để giao bài.",
+      "titleTooShort": "Tiêu đề cần ít nhất 3 ký tự.",
+      "deadlineRequired": "Vui lòng chọn hạn nộp.",
+      "problemsRequired": "Cần ít nhất 1 bài toán trong bài tập.",
+      "saveFailed": "Có lỗi xảy ra khi lưu bài tập.",
+      "deleteFailed": "Xoá bài tập thất bại."
     },
+    "goCreateClassBtn": "Đi tạo lớp học",
+    "emptyNoClassTitle": "Bạn chưa có lớp học nào",
+    "classFallback": "Lớp học",
+    "submittedOfTotalLabel": "đã nộp",
+    "deadlineInlineLabel": "Hạn nộp:",
+    "problemNoStatement": "Chưa có mô tả",
     "subtitle": "Giao và theo dõi bài tập cho {{count}} lớp bạn quản lý.",
     "createNew": "Giao bài tập mới",
     "statusActive": "Đang mở",
