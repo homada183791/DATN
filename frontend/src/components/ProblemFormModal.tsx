@@ -130,7 +130,7 @@ export default function ProblemFormModal({
 
   const modal = (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-[2px] p-4"
+      className="fixed inset-0 z-200 flex items-center justify-center bg-black/60 backdrop-blur-[2px] p-4"
       onClick={onClose}
     >
       {/* ─── Modal shell — Warm cream, same as Homework modal ─── */}
@@ -139,7 +139,7 @@ export default function ProblemFormModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── TOP BAR ── */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5dac9] flex-shrink-0 bg-[#f7f4eb]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5dac9] shrink-0 bg-[#f7f4eb]">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-[#193a2b]/10">
               <FlaskConical size={18} className="text-[#193a2b]" />
@@ -162,7 +162,7 @@ export default function ProblemFormModal({
         </div>
 
         {/* ── TABS ── */}
-        <div className="flex border-b border-[#e5dac9] flex-shrink-0 bg-[#f7f4eb]">
+        <div className="flex border-b border-[#e5dac9] shrink-0 bg-[#f7f4eb]">
           {([
             { key: 'desc'  as const, label: t('problemForm.statementInfo'), icon: AlignLeft,    err: !!(errors.title || errors.description), count: undefined },
             { key: 'cases' as const, label: 'Test Cases',        icon: FlaskConical, err: caseErrCount > 0,                        count: testCases.length },
@@ -392,7 +392,7 @@ export default function ProblemFormModal({
                               onClick={() => updateTestCase(index, 'is_hidden', !tc.is_hidden)}
                               className="flex items-center gap-2"
                             >
-                              <div className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 ${tc.is_hidden ? 'bg-[#193a2b]' : 'bg-[#c8bfad]'}`}>
+                              <div className={`relative w-9 h-5 rounded-full transition-colors shrink-0 ${tc.is_hidden ? 'bg-[#193a2b]' : 'bg-[#c8bfad]'}`}>
                                 <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${tc.is_hidden ? 'translate-x-4' : ''}`} />
                               </div>
                               {tc.is_hidden
@@ -471,7 +471,7 @@ export default function ProblemFormModal({
           </div>
 
           {/* ── FOOTER ── */}
-          <div className="flex items-center justify-between px-6 py-4 border-t border-[#e5dac9] bg-[#eee8d8] flex-shrink-0 rounded-b-2xl">
+          <div className="flex items-center justify-between px-6 py-4 border-t border-[#e5dac9] bg-[#eee8d8] shrink-0 rounded-b-2xl">
             {/* Summary */}
             <div className="flex items-center gap-3 text-xs text-[#8a8073]">
               <span className="flex items-center gap-1"><Clock size={12} />{timeLimit}ms</span>

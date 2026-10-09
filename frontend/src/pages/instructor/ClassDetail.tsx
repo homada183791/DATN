@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { useClassDetailQuery, removeClassStudent, updateClass as updateClassApi, addStudentToClass as addStudentApi } from '../../api/classes';
 import { useClassHomeworksQuery } from '../../api/homeworks';
 import { useHomework, deadlineProgress, HomeworkProblem } from '../../context/HomeworkContext';
@@ -46,6 +47,7 @@ function getMSSV(email: string, username?: string | null, id?: string): string {
 }
 
 export default function InstructorClassDetail() {
+  const { t } = useTranslation();
   const { classId } = useParams<{ classId: string }>();
   const navigate = useNavigate();
 
@@ -126,22 +128,25 @@ export default function InstructorClassDetail() {
   // Members list with derived data
   const rawMembers = useMemo(() => {
     if (!classData?.students) return [];
-    return classData.students.map((item, index) => {
-      const student = item.student;
-      const mssv = getMSSV(student.email, student.username, student.id);
-      const displayName = student.username || student.email.split('@')[0];
-      return {
-        stt: index + 1,
-        id: student.id,
-        email: student.email,
-        username: student.username || student.email.split('@')[0],
-        displayName,
-        mssv,
-        rating: student.elo_rating ?? 1200,
-        submissionsCount: student._count?.submissions ?? 0,
-        joinedAt: item.joined_at,
-      };
-    });
+    return classData.students
+      .filter((item) => !!item?.student)
+      .map((item, index) => {
+        const student = item.student;
+        const email = student.email || '';
+        const mssv = getMSSV(email, student.username, student.id);
+        const displayName = student.username || email.split('@')[0] || mssv;
+        return {
+          stt: index + 1,
+          id: student.id,
+          email,
+          username: student.username || email.split('@')[0] || mssv,
+          displayName,
+          mssv,
+          rating: student.elo_rating ?? 1200,
+          submissionsCount: student._count?.submissions ?? 0,
+          joinedAt: item.joined_at,
+        };
+      });
   }, [classData]);
 
   // Filter & Sort members
@@ -179,7 +184,7 @@ export default function InstructorClassDetail() {
       await refetchClass();
       setConfirmKickStudent(null);
     } catch (e: any) {
-      alert(e?.message || 'Có lỗi xảy ra khi xóa sinh viên');
+      alert(e?.message || t('instructorClassDetail.errors.kickStudentFailed'));
     } finally {
       setIsKicking(false);
     }
@@ -188,9 +193,9 @@ export default function InstructorClassDetail() {
   // Handle Save Homework
   const handleSaveHomework = async () => {
     if (!classData) return;
-    if (hwForm.title.trim().length < 3) return setHwError('Tiêu đề cần ít nhất 3 ký tự.');
-    if (!hwForm.deadline) return setHwError('Vui lòng chọn hạn nộp.');
-    if (hwProblems.length === 0) return setHwError('Cần ít nhất 1 bài toán trong bài tập.');
+    if (hwForm.title.trim().length < 3) return setHwError(t('instructorClass.errors.titleTooShort'));
+    if (!hwForm.deadline) return setHwError(t('instructorClass.errors.deadlineRequired'));
+    if (hwProblems.length === 0) return setHwError(t('instructorClass.errors.problemsRequired'));
     setIsSavingHw(true);
     setHwError('');
     try {
@@ -209,7 +214,7 @@ export default function InstructorClassDetail() {
       setHwForm({ title: '', description: '', deadline: '' });
       setHwProblems([]);
     } catch (e: any) {
-      setHwError(e.message || 'Có lỗi xảy ra khi giao bài.');
+      setHwError(e.message || t('instructorClass.errors.assignHomeworkFailed'));
     } finally {
       setIsSavingHw(false);
     }
@@ -222,7 +227,7 @@ export default function InstructorClassDetail() {
       await refetchHw();
       setConfirmDeleteHwId(null);
     } catch (e: any) {
-      alert(e?.message || 'Không thể xóa bài tập');
+      alert(e?.message || t('instructorClassDetail.errors.deleteHwFailed'));
     }
   };
 
@@ -240,7 +245,7 @@ export default function InstructorClassDetail() {
   const handleUpdateClass = async () => {
     if (!classId) return;
     if (editForm.name.trim().length < 3) {
-      setEditError('Tên lớp cần ít nhất 3 ký tự.');
+      setEditError(t('instructorClass.errors.nameTooShort'));
       return;
     }
     setIsUpdatingClass(true);
@@ -254,7 +259,7 @@ export default function InstructorClassDetail() {
       await refetchClass();
       setShowEditClass(false);
     } catch (e: any) {
-      setEditError(e.message || 'Có lỗi xảy ra khi cập nhật thông tin lớp.');
+      setEditError(e.message || t('instructorClass.errors.updateClassFailed'));
     } finally {
       setIsUpdatingClass(false);
     }
@@ -264,11 +269,11 @@ export default function InstructorClassDetail() {
     if (!classId) return;
     const email = studentEmail.trim();
     if (!email) {
-      setAddStudentError('Vui lòng nhập email sinh viên.');
+      setAddStudentError(t('instructorClassDetail.errors.emailRequired'));
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setAddStudentError('Định dạng email không hợp lệ.');
+      setAddStudentError(t('instructorClassDetail.errors.invalidEmail'));
       return;
     }
     setIsAddingStudent(true);
@@ -279,7 +284,7 @@ export default function InstructorClassDetail() {
       setShowAddStudent(false);
       setStudentEmail('');
     } catch (e: any) {
-      setAddStudentError(e.message || 'Không thể thêm sinh viên vào lớp. Vui lòng kiểm tra lại email.');
+      setAddStudentError(e.message || t('instructorClassDetail.errors.addStudentFailed'));
     } finally {
       setIsAddingStudent(false);
     }
@@ -299,13 +304,13 @@ export default function InstructorClassDetail() {
     return (
       <div className="text-center py-20 bg-white border border-[#e5dac9] rounded-2xl shadow-sm">
         <GraduationCap size={48} className="text-[#bfae99] mx-auto mb-4" />
-        <h3 className="text-lg font-bold text-[#191919]">Không tìm thấy lớp học</h3>
-        <p className="text-sm text-[#8a8073] mt-1 mb-5">Lớp học này không tồn tại hoặc bạn không có quyền truy cập.</p>
+        <h3 className="text-lg font-bold text-[#191919]">{t('instructorClassDetail.notFoundTitle')}</h3>
+        <p className="text-sm text-[#8a8073] mt-1 mb-5">{t('instructorClassDetail.notFoundSubtitle')}</p>
         <button
           onClick={() => navigate('/instructor/classes')}
           className="inline-flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-sm font-medium rounded-xl hover:bg-[#143022] shadow-sm"
         >
-          <ArrowLeft size={16} /> Quay lại Danh sách lớp
+          <ArrowLeft size={16} /> {t('instructorClassDetail.backToClassList')}
         </button>
       </div>
     );
@@ -320,7 +325,7 @@ export default function InstructorClassDetail() {
             onClick={() => navigate('/instructor/classes')}
             className="hover:text-[#193a2b] transition-colors flex items-center gap-1 font-medium"
           >
-            <ArrowLeft size={16} /> Lớp học
+            <ArrowLeft size={16} /> {t('instructorClassDetail.backLabel')}
           </button>
           <span>/</span>
           <span className="text-[#191919] font-semibold truncate">{classData.name}</span>
@@ -334,15 +339,15 @@ export default function InstructorClassDetail() {
           <button
             onClick={() => copy(fullInviteUrl, 'link')}
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
-            title="Sao chép link mời đầy đủ cho sinh viên"
+            title={t('instructorClassDetail.copyFullInviteLinkTooltip')}
           >
             {copied === 'link' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-            <span>{copied === 'link' ? 'Đã sao chép' : 'Sao chép link'}</span>
+            <span>{copied === 'link' ? t('instructorClass.copiedLabel') : t('instructorClass.copyLinkLabel')}</span>
           </button>
           <button
             onClick={() => copy(classData.invite_code || '', 'code')}
             className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#f0ebd9] border border-[#e5dac9] text-xs font-semibold text-[#193a2b] rounded-xl hover:bg-[#e5dac9] transition-colors"
-            title="Sao chép mã lớp"
+            title={t('instructorClass.copyClassCode')}
           >
             {copied === 'code' ? <Check size={14} className="text-emerald-700" /> : <Hash size={14} />}
             <span className="font-mono">{displayCode}</span>
@@ -350,10 +355,10 @@ export default function InstructorClassDetail() {
           <button
             onClick={openEditModal}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#f0ebd9] border border-[#e5dac9] text-xs font-semibold text-[#193a2b] rounded-xl hover:bg-[#e5dac9] transition-colors"
-            title="Chỉnh sửa thông tin lớp học"
+            title={t('instructorClassDetail.editClassInfoTooltip')}
           >
             <Edit3 size={13} />
-            <span>Sửa lớp</span>
+            <span>{t('instructorClassDetail.editClassBtn')}</span>
           </button>
         </div>
       </div>
@@ -369,22 +374,22 @@ export default function InstructorClassDetail() {
               <div className="flex flex-wrap items-center gap-2 mb-1">
                 <h1 className="text-2xl font-bold font-serif text-[#191919]">{classData.name}</h1>
                 <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-[#f0ebd9] text-[#193a2b] border border-[#e5dac9]">
-                  {classData.semester || 'Học kỳ 1'}
+                  {classData.semester || t('instructorClassDetail.defaultSemesterLabel')}
                 </span>
               </div>
               <p className="text-sm text-[#5c5446] max-w-2xl leading-relaxed">
-                {classData.description || 'Chưa có phần giới thiệu chi tiết cho lớp học này.'}
+                {classData.description || t('instructorClassDetail.noDescriptionLong')}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-6 border-t md:border-t-0 md:border-l border-[#e5dac9] pt-4 md:pt-0 md:pl-6">
             <div className="text-center md:text-left">
-              <p className="text-xs text-[#8a8073] font-medium">Sinh viên</p>
+              <p className="text-xs text-[#8a8073] font-medium">{t('instructorClassDetail.studentsStatLabel')}</p>
               <p className="text-2xl font-bold text-[#193a2b]">{rawMembers.length}</p>
             </div>
             <div className="text-center md:text-left">
-              <p className="text-xs text-[#8a8073] font-medium">Bài tập</p>
+              <p className="text-xs text-[#8a8073] font-medium">{t('instructorClassDetail.homeworkStatLabel')}</p>
               <p className="text-2xl font-bold text-[#193a2b]">{apiHomeworks.length}</p>
             </div>
           </div>
@@ -402,7 +407,7 @@ export default function InstructorClassDetail() {
           }`}
         >
           <ClipboardList size={17} />
-          Bài tập
+          {t('instructorClassDetail.homeworkStatLabel')}
           <span className="px-2 py-0.5 text-xs rounded-full bg-[#f0ebd9] text-[#193a2b] font-mono">
             {apiHomeworks.length}
           </span>
@@ -417,7 +422,7 @@ export default function InstructorClassDetail() {
           }`}
         >
           <Users size={17} />
-          Thành viên
+          {t('instructorClassDetail.membersTab')}
           <span className="px-2 py-0.5 text-xs rounded-full bg-[#f0ebd9] text-[#193a2b] font-mono">
             {rawMembers.length}
           </span>
@@ -434,8 +439,8 @@ export default function InstructorClassDetail() {
                 <ClipboardList size={20} />
               </div>
               <div>
-                <h2 className="text-base font-bold font-serif text-[#191919]">Danh sách bài tập của lớp</h2>
-                <p className="text-xs text-[#8a8073]">Quản lý bài tập, theo dõi tiến độ nộp và chấm điểm sinh viên.</p>
+                <h2 className="text-base font-bold font-serif text-[#191919]">{t('instructorClassDetail.hwSectionTitle')}</h2>
+                <p className="text-xs text-[#8a8073]">{t('instructorClassDetail.hwSectionSubtitle')}</p>
               </div>
             </div>
             <button
@@ -447,7 +452,7 @@ export default function InstructorClassDetail() {
               }}
               className="inline-flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm shrink-0"
             >
-              <Plus size={15} /> Giao bài tập mới
+              <Plus size={15} /> {t('instructorClassDetail.createHwBtn')}
             </button>
           </div>
 
@@ -459,7 +464,7 @@ export default function InstructorClassDetail() {
               <input
                 value={hwSearchQuery}
                 onChange={(e) => setHwSearchQuery(e.target.value)}
-                placeholder="Tìm kiếm bài tập theo tiêu đề hoặc mô tả..."
+                placeholder={t('instructorClassDetail.hwSearchPlaceholder')}
                 className="w-full pl-10 pr-4 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-sm text-[#191919] placeholder:text-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
               />
               {hwSearchQuery && (
@@ -480,7 +485,7 @@ export default function InstructorClassDetail() {
                   hwStatusFilter === 'all' ? 'bg-[#193a2b] text-white shadow-xs' : 'text-[#8a8073] hover:text-[#191919]'
                 }`}
               >
-                Tất cả ({apiHomeworks.length})
+                {t('instructorClassDetail.filterAll', { count: apiHomeworks.length })}
               </button>
               <button
                 onClick={() => setHwStatusFilter('active')}
@@ -488,7 +493,7 @@ export default function InstructorClassDetail() {
                   hwStatusFilter === 'active' ? 'bg-[#193a2b] text-white shadow-xs' : 'text-[#8a8073] hover:text-[#191919]'
                 }`}
               >
-                Đang mở ({activeHwCount})
+                {t('instructorClassDetail.filterActive', { count: activeHwCount })}
               </button>
               <button
                 onClick={() => setHwStatusFilter('overdue')}
@@ -496,7 +501,7 @@ export default function InstructorClassDetail() {
                   hwStatusFilter === 'overdue' ? 'bg-[#193a2b] text-white shadow-xs' : 'text-[#8a8073] hover:text-[#191919]'
                 }`}
               >
-                Đã hết hạn ({overdueHwCount})
+                {t('instructorClassDetail.filterOverdue', { count: overdueHwCount })}
               </button>
             </div>
           </div>
@@ -504,33 +509,27 @@ export default function InstructorClassDetail() {
           {/* List Header Summary Bar */}
           <div className="px-5 py-3 border border-[#e5dac9] rounded-xl bg-[#f7f4eb] flex items-center justify-between text-xs">
             <span className="font-bold uppercase tracking-wider text-[#5c5446]">
-              Danh sách bài tập ({filteredHomeworks.length})
+              {t('instructorClassDetail.hwListHeader', { count: filteredHomeworks.length })}
             </span>
             <span className="text-[#8a8073]">
-              Hiển thị <span className="font-semibold text-[#191919]">{filteredHomeworks.length}</span> / {apiHomeworks.length} bài tập
+              {t('instructorClassDetail.hwShowingCount', { shown: filteredHomeworks.length, total: apiHomeworks.length })}
             </span>
           </div>
 
           {apiHomeworks.length === 0 ? (
             <div className="bg-white border border-[#e5dac9] rounded-2xl p-12 text-center shadow-sm">
               <ClipboardList size={42} className="text-[#bfae99] mx-auto mb-3" />
-              <h3 className="text-base font-bold text-[#191919]">Chưa có bài tập nào</h3>
+              <h3 className="text-base font-bold text-[#191919]">{t('instructorClassDetail.hwEmptyTitle')}</h3>
               <p className="text-sm text-[#8a8073] mt-1 mb-5 max-w-md mx-auto">
-                Hãy giao bài tập đầu tiên cho lớp để sinh viên luyện tập và nộp bài.
+                {t('instructorClassDetail.hwEmptySubtitle')}
               </p>
-              <button
-                onClick={() => setShowCreateHw(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm"
-              >
-                <Plus size={15} /> Giao bài tập ngay
-              </button>
             </div>
           ) : filteredHomeworks.length === 0 ? (
             <div className="bg-white border border-[#e5dac9] rounded-2xl p-10 text-center shadow-sm">
               <Search size={36} className="text-[#bfae99] mx-auto mb-3" />
-              <h3 className="text-base font-bold text-[#191919]">Không tìm thấy bài tập phù hợp</h3>
+              <h3 className="text-base font-bold text-[#191919]">{t('instructorClassDetail.hwNoMatchTitle')}</h3>
               <p className="text-xs text-[#8a8073] mt-1">
-                Thử thay đổi từ khóa tìm kiếm hoặc điều chỉnh bộ lọc trạng thái.
+                {t('instructorClassDetail.hwNoMatchSubtitle')}
               </p>
             </div>
           ) : (
@@ -562,18 +561,18 @@ export default function InstructorClassDetail() {
                       </div>
 
                       <p className="text-xs text-[#8a8073] line-clamp-1 mb-3">
-                        {hw.description || 'Chưa có mô tả chi tiết.'}
+                        {hw.description || t('instructorClassDetail.hwNoDescription')}
                       </p>
 
                       <div className="flex flex-wrap items-center gap-5 text-xs text-[#5c5446]">
                         <span className="flex items-center gap-1">
-                          <BookOpen size={13} className="text-[#193a2b]" /> {problemsCount} bài toán
+                          <BookOpen size={13} className="text-[#193a2b]" /> {t('instructorClass.problemsCountSuffix', { count: problemsCount })}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Calendar size={13} className="text-[#193a2b]" /> Hạn nộp: {formatVNFull(hw.deadline)}
+                          <Calendar size={13} className="text-[#193a2b]" /> {t('instructorClassDetail.deadlineLabel', { date: formatVNFull(hw.deadline) })}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Users size={13} className="text-[#193a2b]" /> Tiến độ: {submittedCount}/{rawMembers.length} sinh viên đã nộp
+                          <Users size={13} className="text-[#193a2b]" /> {t('instructorClassDetail.progressLabel', { submitted: submittedCount, total: rawMembers.length })}
                         </span>
                       </div>
 
@@ -594,7 +593,7 @@ export default function InstructorClassDetail() {
                         onClick={() => setViewHw(hw)}
                         className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#f0ebd9] text-[#191919] text-xs font-semibold rounded-xl hover:bg-[#e5dac9] transition-colors"
                       >
-                        <Eye size={14} /> Chi tiết đề bài
+                        <Eye size={14} /> {t('instructorClassDetail.viewDetailBtn')}
                       </button>
 
                       {confirmDeleteHwId === hw.id ? (
@@ -603,20 +602,20 @@ export default function InstructorClassDetail() {
                             onClick={() => handleDeleteHomework(hw.id)}
                             className="px-2.5 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-500"
                           >
-                            Xóa
+                            {t('common.delete')}
                           </button>
                           <button
                             onClick={() => setConfirmDeleteHwId(null)}
                             className="px-2.5 py-1.5 bg-[#f0ebd9] text-[#5c5446] text-xs font-semibold rounded-lg hover:bg-[#e5dac9]"
                           >
-                            Hủy
+                            {t('common.cancel')}
                           </button>
                         </div>
                       ) : (
                         <button
                           onClick={() => setConfirmDeleteHwId(hw.id)}
                           className="p-2 text-[#8a8073] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Xóa bài tập"
+                          title={t('instructorClassDetail.deleteHwTooltip')}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -640,34 +639,34 @@ export default function InstructorClassDetail() {
                 <Users size={20} />
               </div>
               <div>
-                <h2 className="text-base font-bold font-serif text-[#191919]">Danh sách thành viên lớp</h2>
-                <p className="text-xs text-[#8a8073]">Quản lý sinh viên ghi danh, theo dõi mức độ tích cực và kết quả học tập.</p>
+                <h2 className="text-base font-bold font-serif text-[#191919]">{t('instructorClassDetail.membersSectionTitle')}</h2>
+                <p className="text-xs text-[#8a8073]">{t('instructorClassDetail.membersSectionSubtitle')}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => { setStudentEmail(''); setAddStudentError(''); setShowAddStudent(true); }}
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
-                title="Thêm sinh viên trực tiếp bằng email"
+                title={t('instructorClassDetail.addStudentTooltip')}
               >
                 <UserPlus size={14} />
-                <span>Thêm sinh viên</span>
+                <span>{t('instructorClassDetail.addStudentBtn')}</span>
               </button>
               <button
                 onClick={() => copy(classData.invite_code || '', 'code')}
                 className="inline-flex items-center gap-1 px-2.5 py-2 bg-[#f0ebd9] border border-[#e5dac9] text-xs font-semibold text-[#193a2b] rounded-xl hover:bg-[#e5dac9] transition-colors"
-                title="Sao chép mã lớp"
+                title={t('instructorClass.copyClassCode')}
               >
                 {copied === 'code' ? <Check size={14} className="text-emerald-700" /> : <Hash size={14} />}
-                Mã: <span className="font-mono">{displayCode}</span>
+                {t('instructorClassDetail.codeWithPrefix', { code: displayCode })}
               </button>
               <button
                 onClick={() => copy(fullInviteUrl, 'link')}
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#f0ebd9] text-[#191919] border border-[#e5dac9] text-xs font-semibold rounded-xl hover:bg-[#e5dac9] transition-colors shadow-xs"
-                title="Sao chép link mời sinh viên"
+                title={t('instructorClassDetail.copyInviteLinkTooltip')}
               >
                 {copied === 'link' ? <Check size={14} className="text-emerald-700" /> : <Link2 size={14} />}
-                Sao chép link
+                {t('instructorClass.copyLinkLabel')}
               </button>
             </div>
           </div>
@@ -680,7 +679,7 @@ export default function InstructorClassDetail() {
               <input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Tìm kiếm theo Tên, MSSV hoặc Email sinh viên..."
+                placeholder={t('instructorClassDetail.membersSearchPlaceholder')}
                 className="w-full pl-10 pr-4 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-sm text-[#191919] placeholder:text-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
               />
               {searchQuery && (
@@ -696,19 +695,19 @@ export default function InstructorClassDetail() {
             {/* Sort */}
             <div className="flex items-center gap-2 shrink-0">
               <ArrowUpDown size={15} className="text-[#8a8073]" />
-              <span className="text-xs font-semibold text-[#8a8073] uppercase tracking-wider">Sắp xếp:</span>
+              <span className="text-xs font-semibold text-[#8a8073] uppercase tracking-wider">{t('instructorClassDetail.sortLabel')}</span>
               <select
                 value={sortKey}
                 onChange={(e) => setSortKey(e.target.value as any)}
                 className="px-3 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-xs font-semibold text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
               >
-                <option value="stt">Thứ tự gia nhập (STT)</option>
-                <option value="name_asc">Tên: A → Z</option>
-                <option value="name_desc">Tên: Z → A</option>
-                <option value="mssv_asc">MSSV: Tăng dần</option>
-                <option value="mssv_desc">MSSV: Giảm dần</option>
-                <option value="rating_desc">Rating: Cao → Thấp</option>
-                <option value="subs_desc">Bài nộp: Nhiều nhất</option>
+                <option value="stt">{t('instructorClassDetail.sortJoinOrder')}</option>
+                <option value="name_asc">{t('instructorClassDetail.sortNameAsc')}</option>
+                <option value="name_desc">{t('instructorClassDetail.sortNameDesc')}</option>
+                <option value="mssv_asc">{t('instructorClassDetail.sortMssvAsc')}</option>
+                <option value="mssv_desc">{t('instructorClassDetail.sortMssvDesc')}</option>
+                <option value="rating_desc">{t('instructorClassDetail.sortRatingDesc')}</option>
+                <option value="subs_desc">{t('instructorClassDetail.sortSubsDesc')}</option>
               </select>
             </div>
           </div>
@@ -717,10 +716,10 @@ export default function InstructorClassDetail() {
           <div className="bg-white border border-[#e5dac9] rounded-2xl shadow-sm overflow-hidden">
             <div className="px-5 py-3 border-b border-[#e5dac9] bg-[#f7f4eb] flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-[#5c5446]">
-                Danh sách thành viên ({filteredMembers.length})
+                {t('instructorClassDetail.membersListHeader', { count: filteredMembers.length })}
               </span>
               <span className="text-xs text-[#8a8073]">
-                Hiển thị <span className="font-semibold text-[#191919]">{filteredMembers.length}</span> / {rawMembers.length} sinh viên
+                {t('instructorClassDetail.membersShowingCount', { shown: filteredMembers.length, total: rawMembers.length })}
               </span>
             </div>
 
@@ -728,12 +727,12 @@ export default function InstructorClassDetail() {
               <div className="p-12 text-center">
                 <Users size={36} className="text-[#bfae99] mx-auto mb-3" />
                 <p className="font-semibold text-[#191919]">
-                  {searchQuery ? 'Không tìm thấy sinh viên nào' : 'Lớp học chưa có sinh viên'}
+                  {searchQuery ? t('instructorClassDetail.noStudentsFound') : t('instructorClassDetail.noStudentsYet')}
                 </p>
                 <p className="text-xs text-[#8a8073] mt-1">
                   {searchQuery
-                    ? 'Thử thay đổi từ khóa tìm kiếm MSSV, tên hoặc email.'
-                    : 'Hãy chia sẻ mã lớp hoặc link mời để sinh viên tham gia.'}
+                    ? t('instructorClassDetail.noStudentsFoundHint')
+                    : t('instructorClassDetail.noStudentsYetHint')}
                 </p>
               </div>
             ) : (
@@ -741,14 +740,14 @@ export default function InstructorClassDetail() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-[#e5dac9] bg-[#faf8f2] text-[11px] font-bold text-[#8a8073] uppercase tracking-wider">
-                      <th className="py-3 px-4 w-12 text-center">STT</th>
-                      <th className="py-3 px-4">MSSV</th>
-                      <th className="py-3 px-4">Sinh viên</th>
-                      <th className="py-3 px-4">Email</th>
-                      <th className="py-3 px-4 text-center">Bài nộp</th>
-                      <th className="py-3 px-4 text-center">Rating</th>
-                      <th className="py-3 px-4">Ngày tham gia</th>
-                      <th className="py-3 px-4 text-right">Thao tác</th>
+                      <th className="py-3 px-4 w-12 text-center">{t('instructorClassDetail.colStt')}</th>
+                      <th className="py-3 px-4">{t('instructorClassDetail.colMssv')}</th>
+                      <th className="py-3 px-4">{t('instructorClass.colStudent')}</th>
+                      <th className="py-3 px-4">{t('instructorClassDetail.colEmail')}</th>
+                      <th className="py-3 px-4 text-center">{t('instructorClassDetail.colSubmissions')}</th>
+                      <th className="py-3 px-4 text-center">{t('instructorClassDetail.colRating')}</th>
+                      <th className="py-3 px-4">{t('instructorClassDetail.colJoinedDate')}</th>
+                      <th className="py-3 px-4 text-right">{t('instructorClassDetail.colActions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#e5dac9] text-sm">
@@ -778,7 +777,7 @@ export default function InstructorClassDetail() {
                         </td>
                         <td className="py-3.5 px-4 text-center">
                           <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#f0ebd9] text-[#193a2b]">
-                            {m.submissionsCount} bài
+                            {t('instructorClassDetail.submissionsCountSuffix', { count: m.submissionsCount })}
                           </span>
                         </td>
                         <td className="py-3.5 px-4 text-center">
@@ -793,7 +792,7 @@ export default function InstructorClassDetail() {
                           <button
                             onClick={() => setConfirmKickStudent({ id: m.id, name: m.displayName })}
                             className="p-1.5 text-[#8a8073] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Xóa sinh viên khỏi lớp"
+                            title={t('instructorClassDetail.removeStudentTooltip')}
                           >
                             <UserX size={15} />
                           </button>
@@ -814,25 +813,25 @@ export default function InstructorClassDetail() {
           <div className="bg-white border border-[#e5dac9] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5dac9]">
               <div>
-                <h3 className="font-bold font-serif text-[16px] text-[#191919]">Giao bài tập mới</h3>
-                <p className="text-xs text-[#8a8073] mt-0.5">Lớp: {classData.name} ({classData.invite_code})</p>
+                <h3 className="font-bold font-serif text-[16px] text-[#191919]">{t('instructorClassDetail.createHwBtn')}</h3>
+                <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorClassDetail.createHwModalClassLabel', { name: classData.name, code: classData.invite_code })}</p>
               </div>
               <button onClick={() => setShowCreateHw(false)} className="text-[#8a8073] hover:text-[#191919]"><X size={18} /></button>
             </div>
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#5c5446] mb-1.5">Tiêu đề bài tập *</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#5c5446] mb-1.5">{t('instructorClassDetail.fieldHwTitle')}</label>
                 <input
                   value={hwForm.title}
                   onChange={(e) => setHwForm({ ...hwForm, title: e.target.value })}
-                  placeholder="VD: Bài tập Tuần 1 - Cây nhị phân tìm kiếm"
+                  placeholder={t('instructorClassDetail.fieldHwTitlePlaceholder')}
                   className="w-full px-4 py-2.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-sm text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#5c5446] mb-1.5">Hạn nộp bài *</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#5c5446] mb-1.5">{t('instructorClassDetail.fieldHwDeadline')}</label>
                 <input
                   type="datetime-local"
                   value={hwForm.deadline}
@@ -842,12 +841,12 @@ export default function InstructorClassDetail() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#5c5446] mb-1.5">Mô tả & Hướng dẫn</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#5c5446] mb-1.5">{t('instructorClassDetail.fieldHwDescriptionLabel')}</label>
                 <textarea
                   value={hwForm.description}
                   onChange={(e) => setHwForm({ ...hwForm, description: e.target.value })}
                   rows={2}
-                  placeholder="Lưu ý khi nộp bài, định dạng code..."
+                  placeholder={t('instructorClassDetail.fieldHwDescriptionPlaceholder')}
                   className="w-full px-4 py-2.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-sm text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
                 />
               </div>
@@ -865,7 +864,7 @@ export default function InstructorClassDetail() {
                   disabled={isSavingHw}
                   className="px-5 py-2.5 border border-[#e5dac9] text-[#5c5446] text-xs font-semibold rounded-xl hover:bg-[#f0ebd9] transition-colors"
                 >
-                  Hủy
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={handleSaveHomework}
@@ -873,7 +872,7 @@ export default function InstructorClassDetail() {
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50"
                 >
                   {isSavingHw && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                  Lưu & Giao bài tập
+                  {t('instructorClassDetail.saveAndAssignHw')}
                 </button>
               </div>
             </div>
@@ -889,20 +888,20 @@ export default function InstructorClassDetail() {
               <h3 className="font-bold font-serif text-base text-[#191919]">{viewHw.title}</h3>
               <button onClick={() => setViewHw(null)} className="text-[#8a8073] hover:text-[#191919]"><X size={16} /></button>
             </div>
-            <p className="text-sm text-[#5c5446]">{viewHw.description || 'Không có mô tả.'}</p>
+            <p className="text-sm text-[#5c5446]">{viewHw.description || t('instructorClassDetail.viewHwModalNoDescription')}</p>
             <div className="p-3 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-xs space-y-1">
-              <p><strong className="text-[#191919]">Hạn nộp:</strong> {formatVNFull(viewHw.deadline)}</p>
-              <p><strong className="text-[#191919]">Số bài toán:</strong> {Array.isArray(viewHw.tasks) ? viewHw.tasks.length : viewHw.problemCount ?? 0}</p>
+              <p><strong className="text-[#191919]">{t('instructorClassDetail.deadlineInlineLabel')}</strong> {formatVNFull(viewHw.deadline)}</p>
+              <p><strong className="text-[#191919]">{t('instructorClassDetail.problemCountFieldLabel')}</strong> {Array.isArray(viewHw.tasks) ? viewHw.tasks.length : viewHw.problemCount ?? 0}</p>
             </div>
 
             {Array.isArray(viewHw.tasks) && viewHw.tasks.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-bold text-[#5c5446] uppercase">Danh sách bài toán:</p>
+                <p className="text-xs font-bold text-[#5c5446] uppercase">{t('instructorClassDetail.problemListLabel')}</p>
                 <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                  {viewHw.tasks.map((t: any, i: number) => (
+                  {viewHw.tasks.map((task: any, i: number) => (
                     <div key={i} className="flex items-center justify-between p-2 bg-[#f7f4eb] rounded-lg text-xs">
-                      <span className="font-semibold text-[#191919] truncate">{i + 1}. {t.title}</span>
-                      <span className="text-[#193a2b] font-bold">{t.points ?? 100} điểm</span>
+                      <span className="font-semibold text-[#191919] truncate">{i + 1}. {task.title}</span>
+                      <span className="text-[#193a2b] font-bold">{task.points ?? 100} {t('instructorClassDetail.pointsSuffix')}</span>
                     </div>
                   ))}
                 </div>
@@ -913,7 +912,7 @@ export default function InstructorClassDetail() {
               onClick={() => setViewHw(null)}
               className="w-full py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022]"
             >
-              Đóng
+              {t('instructorClassDetail.closeBtn')}
             </button>
           </div>
         </div>
@@ -927,9 +926,9 @@ export default function InstructorClassDetail() {
               <UserX size={24} />
             </div>
             <div>
-              <h3 className="font-bold text-base text-[#191919]">Xác nhận xóa sinh viên</h3>
+              <h3 className="font-bold text-base text-[#191919]">{t('instructorClassDetail.kickConfirmTitle')}</h3>
               <p className="text-xs text-[#8a8073] mt-1">
-                Bạn có chắc chắn muốn xóa sinh viên <strong className="text-[#191919]">{confirmKickStudent.name}</strong> ra khỏi lớp học này không?
+                {t('instructorClassDetail.kickConfirmBody', { name: confirmKickStudent.name })}
               </p>
             </div>
             <div className="flex gap-2">
@@ -938,7 +937,7 @@ export default function InstructorClassDetail() {
                 disabled={isKicking}
                 className="flex-1 py-2 border border-[#e5dac9] text-xs font-semibold rounded-xl hover:bg-[#f0ebd9]"
               >
-                Hủy
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleKickStudent}
@@ -946,7 +945,7 @@ export default function InstructorClassDetail() {
                 className="flex-1 py-2 bg-red-600 text-white text-xs font-semibold rounded-xl hover:bg-red-700 disabled:opacity-50 flex items-center justify-center gap-1.5"
               >
                 {isKicking && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                Xác nhận xóa
+                {t('instructorClassDetail.kickConfirmBtn')}
               </button>
             </div>
           </div>
@@ -959,23 +958,23 @@ export default function InstructorClassDetail() {
           <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-lg shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
               <div>
-                <h3 className="font-bold font-serif text-[16px]">Chỉnh sửa lớp học</h3>
-                <p className="text-xs text-(--ws-muted) mt-0.5">Mã lớp: {classData.invite_code}</p>
+                <h3 className="font-bold font-serif text-[16px]">{t('instructorClass.editModalTitle')}</h3>
+                <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorClass.editModalCode', { code: classData.invite_code })}</p>
               </div>
               <button onClick={() => setShowEditClass(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">Tên lớp *</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldClassName')}</label>
                 <input
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  placeholder="VD: Cấu trúc dữ liệu & Giải thuật"
+                  placeholder={t('instructorClass.fieldClassNamePlaceholder')}
                   className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">Học kỳ</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldSemester')}</label>
                 <select
                   value={editForm.semester}
                   onChange={(e) => setEditForm({ ...editForm, semester: e.target.value })}
@@ -987,12 +986,12 @@ export default function InstructorClassDetail() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">Mô tả</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldDescription')}</label>
                 <textarea
                   value={editForm.description}
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                   rows={3}
-                  placeholder="Giới thiệu ngắn về nội dung môn học…"
+                  placeholder={t('instructorClass.fieldDescriptionPlaceholder')}
                   className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
                 />
               </div>
@@ -1004,7 +1003,7 @@ export default function InstructorClassDetail() {
                   disabled={isUpdatingClass}
                   className="px-5 py-2.5 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors disabled:opacity-50"
                 >
-                  Huỷ
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -1013,7 +1012,7 @@ export default function InstructorClassDetail() {
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
                 >
                   {isUpdatingClass && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                  Lưu thay đổi
+                  {t('instructorClass.saveChanges')}
                 </button>
               </div>
             </div>
@@ -1027,25 +1026,25 @@ export default function InstructorClassDetail() {
           <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-md shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
               <div>
-                <h3 className="font-bold font-serif text-[16px]">Thêm sinh viên vào lớp</h3>
+                <h3 className="font-bold font-serif text-[16px]">{t('instructorClassDetail.addStudentModalTitle')}</h3>
                 <p className="text-xs text-(--ws-muted) mt-0.5">{classData.name}</p>
               </div>
               <button onClick={() => setShowAddStudent(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">Email sinh viên *</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClassDetail.fieldStudentEmail')}</label>
                 <input
                   type="email"
                   value={studentEmail}
                   onChange={(e) => setStudentEmail(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddStudent()}
-                  placeholder="VD: sinhvien@student.edu.vn"
+                  placeholder={t('instructorClassDetail.fieldStudentEmailPlaceholder')}
                   className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                   autoFocus
                 />
                 <p className="text-xs text-(--ws-muted) mt-1.5">
-                  Tài khoản sinh viên đã đăng ký trên hệ thống sẽ được ghi danh ngay vào lớp này.
+                  {t('instructorClassDetail.addStudentHint')}
                 </p>
               </div>
               {addStudentError && <p className="text-xs text-red-600 font-medium">{addStudentError}</p>}
@@ -1056,7 +1055,7 @@ export default function InstructorClassDetail() {
                   disabled={isAddingStudent}
                   className="px-5 py-2.5 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors disabled:opacity-50"
                 >
-                  Huỷ
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -1065,7 +1064,7 @@ export default function InstructorClassDetail() {
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
                 >
                   {isAddingStudent && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                  Thêm sinh viên
+                  {t('instructorClassDetail.addStudentBtn')}
                 </button>
               </div>
             </div>

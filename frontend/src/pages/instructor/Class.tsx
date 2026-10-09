@@ -65,9 +65,9 @@ export default function InstructorClass() {
 
   const saveHomework = async () => {
     if (!hwClass) return;
-    if (hwForm.title.trim().length < 3) return setHwError('Tiêu đề cần ít nhất 3 ký tự.');
-    if (!hwForm.deadline) return setHwError('Vui lòng chọn hạn nộp.');
-    if (hwProblems.length === 0) return setHwError('Cần ít nhất 1 bài toán trong bài tập.');
+    if (hwForm.title.trim().length < 3) return setHwError(t('instructorClass.errors.titleTooShort'));
+    if (!hwForm.deadline) return setHwError(t('instructorClass.errors.deadlineRequired'));
+    if (hwProblems.length === 0) return setHwError(t('instructorClass.errors.problemsRequired'));
     setIsSavingHw(true);
     setHwError('');
     try {
@@ -83,7 +83,7 @@ export default function InstructorClass() {
       await refetch();
       setHwClassId(null);
     } catch (e: any) {
-      setHwError(e.message || 'Có lỗi xảy ra khi giao bài.');
+      setHwError(e.message || t('instructorClass.errors.assignHomeworkFailed'));
     } finally {
       setIsSavingHw(false);
     }
@@ -119,7 +119,7 @@ export default function InstructorClass() {
       setForm({ name: '', semester: 'Học kỳ 2 - 2024/2025', description: '' });
       setShowCreate(false);
     } catch (e: any) {
-      setFormError(e.message || 'Có lỗi xảy ra khi tạo lớp.');
+      setFormError(e.message || t('instructorClass.errors.createClassFailed'));
     } finally {
       setIsCreatingClass(false);
     }
@@ -138,7 +138,7 @@ export default function InstructorClass() {
   const handleUpdateClass = async () => {
     if (!editingClass) return;
     if (editForm.name.trim().length < 3) {
-      setEditError('Tên lớp cần ít nhất 3 ký tự.');
+      setEditError(t('instructorClass.errors.nameTooShort'));
       return;
     }
     setIsUpdatingClass(true);
@@ -151,7 +151,7 @@ export default function InstructorClass() {
       });
       setEditingClass(null);
     } catch (e: any) {
-      setEditError(e.message || 'Có lỗi xảy ra khi cập nhật thông tin lớp.');
+      setEditError(e.message || t('instructorClass.errors.updateClassFailed'));
     } finally {
       setIsUpdatingClass(false);
     }
@@ -261,18 +261,18 @@ export default function InstructorClass() {
                     <button
                       onClick={() => copy(inviteLink(cls.code), `link-${cls.id}`)}
                       className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[#193a2b] bg-[#e5dac9]/60 hover:bg-[#e5dac9] rounded-lg transition-colors"
-                      title="Sao chép link mời đầy đủ"
+                      title={t('instructorClass.copyFullInviteLink')}
                     >
                       {copied === `link-${cls.id}` ? <Check size={12} className="text-emerald-700" /> : <Copy size={12} />}
-                      <span>{copied === `link-${cls.id}` ? 'Đã chép' : 'Copy link'}</span>
+                      <span>{copied === `link-${cls.id}` ? t('instructorClass.copiedLabel') : t('instructorClass.copyLinkLabel')}</span>
                     </button>
                     <button
                       onClick={() => copy(cls.code, `code-${cls.id}`)}
                       className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-[#5c5446] hover:text-[#193a2b] hover:bg-[#e5dac9]/60 rounded-lg transition-colors"
-                      title="Sao chép mã lớp"
+                      title={t('instructorClass.copyClassCode')}
                     >
                       {copied === `code-${cls.id}` ? <Check size={12} className="text-emerald-700" /> : <Hash size={12} />}
-                      <span>Mã</span>
+                      <span>{t('instructorClass.codeAbbr')}</span>
                     </button>
                   </div>
                 </div>
@@ -282,21 +282,21 @@ export default function InstructorClass() {
                   <div className="flex items-center justify-between text-xs font-bold text-[#5c5446] mb-2">
                     <span className="flex items-center gap-1.5">
                       <ClipboardList size={14} className="text-[#193a2b]" />
-                      Bài tập ({homeworksOfClass(cls.id).length})
+                      {t('instructorClass.homeworkCountLabel', { count: homeworksOfClass(cls.id).length })}
                     </span>
                     {homeworksOfClass(cls.id).length > 0 && (
                       <Link
                         to="/instructor/homework"
                         className="text-[11px] text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
                       >
-                        Tất cả &rarr;
+                        {t('instructorClass.viewAllShort')} &rarr;
                       </Link>
                     )}
                   </div>
 
                   {homeworksOfClass(cls.id).length === 0 ? (
                     <div className="px-3 py-2.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-center">
-                      <p className="text-xs text-[#8a8073]">Chưa có bài tập nào được giao cho lớp này.</p>
+                      <p className="text-xs text-[#8a8073]">{t('instructorClass.noHomeworkAssigned')}</p>
                     </div>
                   ) : (
                     <div className="space-y-1.5">
@@ -324,8 +324,8 @@ export default function InstructorClass() {
                               </span>
                             </div>
                             <div className="flex items-center justify-between text-[11px] text-[#8a8073] mb-1">
-                              <span>{hw.problemCount} bài toán</span>
-                              <span>{hw.submittedStudents}/{members.length} đã nộp</span>
+                              <span>{t('instructorClass.problemsCountSuffix', { count: hw.problemCount })}</span>
+                              <span>{t('instructorClass.submittedOfTotal', { submitted: hw.submittedStudents, total: members.length })}</span>
                             </div>
                             <div className="w-full h-1.5 bg-[#e5dac9] rounded-full overflow-hidden">
                               <div
@@ -343,7 +343,7 @@ export default function InstructorClass() {
                           to="/instructor/homework"
                           className="block text-center text-[11px] text-[#8a8073] hover:text-[#193a2b] font-medium py-1 hover:underline"
                         >
-                          +{homeworksOfClass(cls.id).length - 3} bài tập khác &bull; Xem tất cả
+                          {t('instructorClass.moreHomeworkAndViewAll', { count: homeworksOfClass(cls.id).length - 3 })}
                         </Link>
                       )}
                     </div>
@@ -356,20 +356,20 @@ export default function InstructorClass() {
                     to={`/instructor/class/${cls.id}`}
                     className="flex items-center gap-1.5 px-3.5 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-lg hover:bg-[#143022] transition-colors shadow-sm"
                   >
-                    Chi tiết lớp &rarr;
+                    {t('instructorClass.classDetailsLink')} &rarr;
                   </Link>
                   <button
                     onClick={() => openHwModal(cls.id)}
                     className="flex items-center gap-1.5 px-3 py-2 bg-[#f0ebd9] text-[#191919] text-xs font-semibold rounded-lg hover:bg-[#e5dac9] transition-colors"
                   >
-                    <Plus size={13} /> Giao bài
+                    <Plus size={13} /> {t('instructorClass.assignSubmit')}
                   </button>
                   <button
                     onClick={() => openEditClass(cls)}
                     className="flex items-center gap-1.5 px-3 py-2 bg-[#f0ebd9] text-[#191919] text-xs font-semibold rounded-lg hover:bg-[#e5dac9] transition-colors"
-                    title="Chỉnh sửa thông tin lớp"
+                    title={t('instructorClass.editClassTooltip')}
                   >
-                    <Edit3 size={13} /> Sửa
+                    <Edit3 size={13} /> {t('common.edit')}
                   </button>
                   {confirmDelete === cls.id ? (
                     <div className="flex items-center gap-1.5 ml-auto">
@@ -454,7 +454,7 @@ export default function InstructorClass() {
                   disabled={isCreatingClass}
                   className="px-5 py-2.5 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors disabled:opacity-50"
                 >
-                  Huỷ
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -463,7 +463,7 @@ export default function InstructorClass() {
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
                 >
                   {isCreatingClass && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                  Tạo lớp học
+                  {t('instructorClass.createSubmit')}
                 </button>
               </div>
             </div>
@@ -477,23 +477,23 @@ export default function InstructorClass() {
           <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-lg shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
               <div>
-                <h3 className="font-bold font-serif text-[16px]">Chỉnh sửa lớp học</h3>
-                <p className="text-xs text-(--ws-muted) mt-0.5">Mã lớp: {editingClass.code}</p>
+                <h3 className="font-bold font-serif text-[16px]">{t('instructorClass.editModalTitle')}</h3>
+                <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorClass.editModalCode', { code: editingClass.code })}</p>
               </div>
               <button onClick={() => setEditingClass(null)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">Tên lớp *</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldClassName')}</label>
                 <input
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  placeholder="VD: Cấu trúc dữ liệu & Giải thuật"
+                  placeholder={t('instructorClass.fieldClassNamePlaceholder')}
                   className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">Học kỳ</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldSemester')}</label>
                 <select
                   value={editForm.semester}
                   onChange={(e) => setEditForm({ ...editForm, semester: e.target.value })}
@@ -505,12 +505,12 @@ export default function InstructorClass() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">Mô tả</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldDescription')}</label>
                 <textarea
                   value={editForm.description}
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                   rows={3}
-                  placeholder="Giới thiệu ngắn về nội dung môn học…"
+                  placeholder={t('instructorClass.fieldDescriptionPlaceholder')}
                   className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
                 />
               </div>
@@ -522,7 +522,7 @@ export default function InstructorClass() {
                   disabled={isUpdatingClass}
                   className="px-5 py-2.5 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors disabled:opacity-50"
                 >
-                  Huỷ
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -531,7 +531,7 @@ export default function InstructorClass() {
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
                 >
                   {isUpdatingClass && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                  Lưu thay đổi
+                  {t('instructorClass.saveChanges')}
                 </button>
               </div>
             </div>
@@ -582,21 +582,21 @@ export default function InstructorClass() {
                         <td className="py-3 px-5 text-right">
                           {confirmKickId === m.id ? (
                             <div className="flex items-center gap-1.5 justify-end">
-                              <span className="text-[11px] text-red-600 font-medium">Xoá?</span>
+                              <span className="text-[11px] text-red-600 font-medium">{t('instructorClass.confirmRemoveQuestion')}</span>
                               <button
                                 onClick={async () => { await removeMember(rosterClass.id, m.username); setConfirmKickId(null); }}
                                 className="px-2 py-1 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-500"
-                              >Xoá</button>
+                              >{t('common.delete')}</button>
                               <button
                                 onClick={() => setConfirmKickId(null)}
                                 className="px-2 py-1 bg-[#f0ebd9] text-[#5c5446] text-xs font-semibold rounded-lg hover:bg-[#e5dac9]"
-                              >Huỷ</button>
+                              >{t('common.cancel')}</button>
                             </div>
                           ) : (
                             <button
                               onClick={() => setConfirmKickId(m.id)}
                               className="p-1.5 text-[#8a8073] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Gỡ khỏi lớp"
+                              title={t('instructorClass.removeFromClass')}
                             >
                               <UserMinus size={14} />
                             </button>
@@ -653,7 +653,7 @@ export default function InstructorClass() {
                   disabled={isSavingHw}
                   className="px-5 py-2.5 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors disabled:opacity-50"
                 >
-                  Huỷ
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -662,7 +662,7 @@ export default function InstructorClass() {
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
                 >
                   {isSavingHw && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                  Lưu & Giao bài
+                  {t('instructorClass.saveAndAssign')}
                 </button>
               </div>
             </div>

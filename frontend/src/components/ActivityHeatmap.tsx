@@ -131,7 +131,7 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
                     return (
                       <div
                         key={day.date}
-                        className={`w-[13px] h-[13px] rounded-[2px] ${day.isFuture ? 'bg-transparent' : level.bg} ${day.isToday ? 'ring-2 ring-[#193a2b]' : ''} transition-all`}
+                        className={`w-[13px] h-[13px] rounded-xs ${day.isFuture ? 'bg-transparent' : level.bg} ${day.isToday ? 'ring-2 ring-[#193a2b]' : ''} transition-all`}
                         title={day.isFuture ? '' : t('activityHeatmap.day', { date: day.date, count: day.count })}
                       />
                     );
@@ -147,7 +147,7 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
       <div className="flex items-center justify-end gap-2 mt-3">
         <span className="text-[10px] text-[#8a8073]">{t('activityHeatmap.less')}</span>
         {LEVELS.map((l, i) => (
-          <div key={i} className={`w-[13px] h-[13px] rounded-[2px] ${l.bg}`} title={t(l.titleKey)} />
+          <div key={i} className={`w-[13px] h-[13px] rounded-xs ${l.bg}`} title={t(l.titleKey)} />
         ))}
         <span className="text-[10px] text-[#8a8073]">{t('activityHeatmap.more')}</span>
       </div>
