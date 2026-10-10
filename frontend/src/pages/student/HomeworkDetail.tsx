@@ -165,7 +165,7 @@ export default function HomeworkDetail() {
         <div className="w-full h-2.5 bg-[#f0ebd9] rounded-full overflow-hidden">
           <div
             className={`h-full transition-all duration-500 rounded-full ${
-              progressPct === 100 ? 'bg-emerald-600' : 'bg-gradient-to-r from-emerald-500 to-[#193a2b]'
+              progressPct === 100 ? 'bg-emerald-600' : 'bg-linear-to-r from-emerald-500 to-[#193a2b]'
             }`}
             style={{ width: `${progressPct}%` }}
           />
@@ -234,7 +234,7 @@ export default function HomeworkDetail() {
                   </span>
 
                   {/* Action & Status */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     {canSolve && (
                       isSolved ? (
                         <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-lg">

@@ -42,6 +42,8 @@ docker compose up -d postgres redis rabbitmq
 
 ## Prisma
 
+Trước khi khởi động backend, áp dụng các migration để đồng bộ schema PostgreSQL với Prisma, bao gồm các trường chấm bài của submission.
+
 ```bash
 npx prisma migrate deploy
 npx prisma generate

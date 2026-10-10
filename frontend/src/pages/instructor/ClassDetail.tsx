@@ -2,7 +2,14 @@ import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { useClassDetailQuery, removeClassStudent, updateClass as updateClassApi, addStudentToClass as addStudentApi } from '../../api/classes';
+import {
+  useClassDetailQuery,
+  removeClassStudent,
+  updateClass as updateClassApi,
+  addStudentToClass as addStudentApi,
+  useClassGradebookQuery,
+  type ClassGradebookDto,
+} from '../../api/classes';
 import { useClassHomeworksQuery } from '../../api/homeworks';
 import { useHomework, deadlineProgress, HomeworkProblem } from '../../context/HomeworkContext';
 import { formatVN, formatVNFull } from '../../utils/dateTime';

@@ -871,20 +871,20 @@ export default function ProblemSolve() {
             {/* ---- statement / submissions pane ---- */}
             {(layout !== 'editor') && (
               <section
-                className={`flex flex-col min-h-0 bg-[var(--ws-bg)] ${
+                className={`flex flex-col min-h-0 bg-(--ws-bg) ${
                   layout === 'split'
-                    ? `${mobilePane === 'statement' ? 'flex' : 'hidden'} md:flex md:w-1/2 border-r border-[var(--ws-border)]`
+                    ? `${mobilePane === 'statement' ? 'flex' : 'hidden'} md:flex md:w-1/2 border-r border-(--ws-border)`
                     : 'w-full flex'
                 }`}
               >
                 {/* Left Pane Navigation Tabs */}
-                <div className="flex items-center gap-1 px-4 border-b border-[var(--ws-border)] bg-[var(--ws-panel)] flex-shrink-0">
+                <div className="flex items-center gap-1 px-4 border-b border-(--ws-border) bg-(--ws-panel) shrink-0">
                   <button
                     onClick={() => setLeftTab('statement')}
                     className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all ${
                       leftTab === 'statement'
-                        ? 'border-[var(--ws-accent)] text-[var(--ws-accent)]'
-                        : 'border-transparent text-[var(--ws-muted)] hover:text-[var(--ws-text)]'
+                        ? 'border-(--ws-accent) text-(--ws-accent)'
+                        : 'border-transparent text-(--ws-muted) hover:text-(--ws-text)'
                     }`}
                   >
                     <FileText size={14} />
@@ -894,14 +894,14 @@ export default function ProblemSolve() {
                     onClick={() => setLeftTab('submissions')}
                     className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all ${
                       leftTab === 'submissions'
-                        ? 'border-[var(--ws-accent)] text-[var(--ws-accent)]'
-                        : 'border-transparent text-[var(--ws-muted)] hover:text-[var(--ws-text)]'
+                        ? 'border-(--ws-accent) text-(--ws-accent)'
+                        : 'border-transparent text-(--ws-muted) hover:text-(--ws-text)'
                     }`}
                   >
                     <Clock size={14} />
                     {t('problemSolve.submissionHistory', 'Lịch sử nộp')}
                     {problemSubmissions.length > 0 && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--ws-accent-soft)] text-[var(--ws-accent)] font-bold">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-(--ws-accent-soft) text-(--ws-accent) font-bold">
                         {problemSubmissions.length}
                       </span>
                     )}
@@ -913,24 +913,24 @@ export default function ProblemSolve() {
                   {leftTab === 'statement' ? (
                     <div className="px-7 py-6 max-w-3xl">
                       {/* limits */}
-                      <div className="grid grid-cols-3 gap-6 pb-5 border-b border-[var(--ws-border)]">
+                      <div className="grid grid-cols-3 gap-6 pb-5 border-b border-(--ws-border)">
                         <div>
-                          <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">{t('problemSolve.timeLimit')}</p>
+                          <p className="text-[10.5px] font-bold uppercase tracking-widest text-(--ws-faint) mb-1.5">{t('problemSolve.timeLimit')}</p>
                           <p className="text-[15px] font-bold font-mono">{problemTimeLimit}</p>
                         </div>
                         <div>
-                          <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">{t('problemSolve.memoryLimit')}</p>
+                          <p className="text-[10.5px] font-bold uppercase tracking-widest text-(--ws-faint) mb-1.5">{t('problemSolve.memoryLimit')}</p>
                           <p className="text-[15px] font-bold font-mono">{problemMemoryLimit}</p>
                         </div>
                         <div>
-                          <p className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] mb-1.5">{t('problemSolve.maxScore')}</p>
+                          <p className="text-[10.5px] font-bold uppercase tracking-widest text-(--ws-faint) mb-1.5">{t('problemSolve.maxScore')}</p>
                           <p className="text-[15px] font-bold font-mono">{detail.points}</p>
                         </div>
                       </div>
 
                       <button
                         onClick={downloadStatement}
-                        className="mt-5 flex items-center gap-1.5 text-[13px] font-medium text-[var(--ws-accent)] hover:underline"
+                        className="mt-5 flex items-center gap-1.5 text-[13px] font-medium text-(--ws-accent) hover:underline"
                       >
                         <Download size={14} /> {t('problemSolve.downloadOriginal')}
                       </button>
@@ -938,7 +938,7 @@ export default function ProblemSolve() {
                       <h2 className="mt-6 mb-5 text-[26px] font-extrabold leading-tight">{problemTitle}</h2>
 
                       {problemDescription && (
-                        <div className="mb-7 rounded-xl border border-[var(--ws-border)] bg-[var(--ws-panel)] p-5">
+                        <div className="mb-7 rounded-xl border border-(--ws-border) bg-(--ws-panel) p-5">
                           <ReactMarkdown>{problemDescription}</ReactMarkdown>
                         </div>
                       )}
@@ -947,23 +947,23 @@ export default function ProblemSolve() {
                         <div key={i} className="mb-7">
                           {sec.heading && <h3 className="text-[19px] font-bold mb-3">{sec.heading}</h3>}
                           {sec.paragraphs?.map((p, j) => (
-                            <p key={j} className="text-[14.5px] leading-7 text-[var(--ws-text)]/90 mb-2">{p}</p>
+                            <p key={j} className="text-[14.5px] leading-7 text-(--ws-text)/90 mb-2">{p}</p>
                           ))}
                           {sec.bullets && (
                             <ul className="space-y-2 ml-1">
                               {sec.bullets.map((b, j) => (
                                 <li key={j} className="flex gap-2.5 text-[14.5px] leading-7">
-                                  <span className="mt-[11px] w-1.5 h-1.5 rounded-full bg-[var(--ws-accent)] flex-shrink-0" />
+                                  <span className="mt-[11px] w-1.5 h-1.5 rounded-full bg-(--ws-accent) shrink-0" />
                                   <span>{b}</span>
                                 </li>
                               ))}
                             </ul>
                           )}
                           {sec.table && (
-                            <div className="overflow-hidden rounded-lg border border-[var(--ws-border)]">
+                            <div className="overflow-hidden rounded-lg border border-(--ws-border)">
                               <table className="w-full text-[13.5px]">
                                 <thead>
-                                  <tr className="bg-[var(--ws-panel2)]">
+                                  <tr className="bg-(--ws-panel2)">
                                     {sec.table.head.map((h, j) => (
                                       <th key={j} className="text-left px-4 py-2.5 font-bold">{h}</th>
                                     ))}
@@ -971,7 +971,7 @@ export default function ProblemSolve() {
                                 </thead>
                                 <tbody>
                                   {sec.table.rows.map((r, j) => (
-                                    <tr key={j} className="border-t border-[var(--ws-border)]">
+                                    <tr key={j} className="border-t border-(--ws-border)">
                                       <td className="px-4 py-2.5 font-semibold italic">{r[0]}</td>
                                       <td className="px-4 py-2.5 font-mono text-[13px]">{r[1]}</td>
                                     </tr>
@@ -987,12 +987,12 @@ export default function ProblemSolve() {
                       <h3 className="text-[19px] font-bold mb-3">{t('problemSolve.examplesTitle')}</h3>
                       {detail.samples.map((s, i) => (
                         <div key={i} className="mb-4 grid grid-cols-2 gap-3">
-                          <div className="rounded-lg border border-[var(--ws-border)] bg-[var(--ws-panel)] overflow-hidden">
-                            <p className="px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] bg-[var(--ws-panel2)]">Input</p>
+                          <div className="rounded-lg border border-(--ws-border) bg-(--ws-panel) overflow-hidden">
+                            <p className="px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-widest text-(--ws-faint) bg-(--ws-panel2)">Input</p>
                             <pre className="px-3 py-2.5 text-[13px] font-mono whitespace-pre-wrap">{s.input}</pre>
                           </div>
-                          <div className="rounded-lg border border-[var(--ws-border)] bg-[var(--ws-panel)] overflow-hidden">
-                            <p className="px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-widest text-[var(--ws-faint)] bg-[var(--ws-panel2)]">Output</p>
+                          <div className="rounded-lg border border-(--ws-border) bg-(--ws-panel) overflow-hidden">
+                            <p className="px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-widest text-(--ws-faint) bg-(--ws-panel2)">Output</p>
                             <pre className="px-3 py-2.5 text-[13px] font-mono whitespace-pre-wrap">{s.output}</pre>
                           </div>
                         </div>
@@ -1003,14 +1003,14 @@ export default function ProblemSolve() {
                     <div className="p-6 max-w-3xl">
                       <div className="flex items-center justify-between mb-5">
                         <div>
-                          <h2 className="text-lg font-bold text-[var(--ws-text)]">Lịch sử nộp bài</h2>
-                          <p className="text-xs text-[var(--ws-muted)] mt-0.5">
+                          <h2 className="text-lg font-bold text-(--ws-text)">Lịch sử nộp bài</h2>
+                          <p className="text-xs text-(--ws-muted) mt-0.5">
                             Danh sách các lần nộp mã nguồn của bạn cho bài toán này
                           </p>
                         </div>
                         <button
                           onClick={() => queryClient.invalidateQueries({ queryKey: ['submissions', 'problem', problemId] })}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--ws-border)] text-xs text-[var(--ws-muted)] hover:text-[var(--ws-text)] hover:border-[var(--ws-accent)] transition-colors"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-(--ws-border) text-xs text-(--ws-muted) hover:text-(--ws-text) hover:border-(--ws-accent) transition-colors"
                           title="Làm mới danh sách"
                         >
                           <RefreshCw size={13} className={isFetchingSubmissions ? 'animate-spin' : ''} />
@@ -1019,15 +1019,15 @@ export default function ProblemSolve() {
                       </div>
 
                       {isLoadingSubmissions ? (
-                        <div className="flex flex-col items-center justify-center py-16 text-[var(--ws-muted)]">
-                          <Loader2 size={28} className="animate-spin mb-3 text-[var(--ws-accent)]" />
+                        <div className="flex flex-col items-center justify-center py-16 text-(--ws-muted)">
+                          <Loader2 size={28} className="animate-spin mb-3 text-(--ws-accent)" />
                           <p className="text-sm">Đang tải lịch sử bài nộp...</p>
                         </div>
                       ) : problemSubmissions.length === 0 ? (
-                        <div className="rounded-2xl border border-[var(--ws-border)] bg-[var(--ws-panel)] p-12 text-center">
-                          <Clock size={36} className="text-[var(--ws-muted)] mx-auto mb-3 opacity-60" />
+                        <div className="rounded-2xl border border-(--ws-border) bg-(--ws-panel) p-12 text-center">
+                          <Clock size={36} className="text-(--ws-muted) mx-auto mb-3 opacity-60" />
                           <h3 className="font-semibold text-base mb-1">Chưa có bài nộp nào</h3>
-                          <p className="text-xs text-[var(--ws-muted)] max-w-xs mx-auto">
+                          <p className="text-xs text-(--ws-muted) max-w-xs mx-auto">
                             Bạn chưa nộp bài giải cho bài toán này. Hãy viết code ở khung bên phải và bấm "Nộp bài".
                           </p>
                         </div>
@@ -1064,8 +1064,8 @@ export default function ProblemSolve() {
                                 key={sub.id}
                                 className={`rounded-xl border transition-all ${
                                   isInspecting
-                                    ? 'border-[var(--ws-accent)] bg-[var(--ws-panel)] shadow-sm'
-                                    : 'border-[var(--ws-border)] bg-[var(--ws-panel)] hover:border-[var(--ws-accent)]/50'
+                                    ? 'border-(--ws-accent) bg-(--ws-panel) shadow-sm'
+                                    : 'border-(--ws-border) bg-(--ws-panel) hover:border-(--ws-accent)/50'
                                 }`}
                               >
                                 <div className="p-4 flex flex-col gap-3">
@@ -1077,22 +1077,22 @@ export default function ProblemSolve() {
                                         {badgeIcon}
                                         {sub.status}
                                       </span>
-                                      <span className="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-[var(--ws-panel2)] text-[var(--ws-muted)] font-semibold">
+                                      <span className="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-(--ws-panel2) text-(--ws-muted) font-semibold">
                                         {sub.language}
                                       </span>
                                     </div>
-                                    <span className="text-xs text-[var(--ws-muted)] flex items-center gap-1">
+                                    <span className="text-xs text-(--ws-muted) flex items-center gap-1">
                                       <Clock size={12} />
                                       {formatVNFull(sub.created_at)}
                                     </span>
                                   </div>
 
-                                  <div className="flex items-center gap-4 text-xs text-[var(--ws-muted)]">
+                                  <div className="flex items-center gap-4 text-xs text-(--ws-muted)">
                                     <span>
-                                      ⏱️ Thời gian: <strong className="text-[var(--ws-text)]">{sub.execution_time != null ? `${sub.execution_time} ms` : '—'}</strong>
+                                      ⏱️ Thời gian: <strong className="text-(--ws-text)">{sub.execution_time != null ? `${sub.execution_time} ms` : '—'}</strong>
                                     </span>
                                     <span>
-                                      💾 Bộ nhớ: <strong className="text-[var(--ws-text)]">{sub.memory_used != null ? `${(sub.memory_used / 1024).toFixed(1)} MB` : '—'}</strong>
+                                      💾 Bộ nhớ: <strong className="text-(--ws-text)">{sub.memory_used != null ? `${(sub.memory_used / 1024).toFixed(1)} MB` : '—'}</strong>
                                     </span>
                                   </div>
 
@@ -1109,17 +1109,17 @@ export default function ProblemSolve() {
                                     </div>
                                   )}
 
-                                  <div className="flex items-center gap-2 pt-2 border-t border-[var(--ws-border)] flex-wrap">
+                                  <div className="flex items-center gap-2 pt-2 border-t border-(--ws-border) flex-wrap">
                                     <button
                                       onClick={() => setInspectedSubmission(isInspecting ? null : sub)}
-                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--ws-border)] text-xs font-medium text-[var(--ws-text)] hover:border-[var(--ws-accent)] transition-colors"
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-(--ws-border) text-xs font-medium text-(--ws-text) hover:border-(--ws-accent) transition-colors"
                                     >
                                       <Code size={13} />
                                       {isInspecting ? 'Đóng code' : 'Xem code'}
                                     </button>
                                     <button
                                       onClick={() => restoreCodeFromSubmission(sub)}
-                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--ws-accent)] text-white text-xs font-semibold hover:opacity-90 transition-opacity"
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-(--ws-accent) text-white text-xs font-semibold hover:opacity-90 transition-opacity"
                                       title="Nạp lại đoạn code này vào khung soạn thảo để sửa và nộp lại"
                                     >
                                       <ClipboardPaste size={13} />
@@ -1130,7 +1130,7 @@ export default function ProblemSolve() {
                                         navigator.clipboard?.writeText(sub.source_code);
                                         showToast('Đã sao chép mã nguồn vào clipboard!', 'success');
                                       }}
-                                      className="p-1.5 rounded-lg border border-[var(--ws-border)] text-[var(--ws-muted)] hover:text-[var(--ws-text)] transition-colors ml-auto"
+                                      className="p-1.5 rounded-lg border border-(--ws-border) text-(--ws-muted) hover:text-(--ws-text) transition-colors ml-auto"
                                       title="Sao chép mã nguồn"
                                     >
                                       <Copy size={13} />
@@ -1138,12 +1138,12 @@ export default function ProblemSolve() {
                                   </div>
 
                                   {isInspecting && (
-                                    <div className="mt-2 rounded-lg bg-[var(--ws-panel2)] p-3 border border-[var(--ws-border)] overflow-hidden">
-                                      <div className="flex items-center justify-between text-[11px] text-[var(--ws-muted)] mb-2 pb-1.5 border-b border-[var(--ws-border)]">
+                                    <div className="mt-2 rounded-lg bg-(--ws-panel2) p-3 border border-(--ws-border) overflow-hidden">
+                                      <div className="flex items-center justify-between text-[11px] text-(--ws-muted) mb-2 pb-1.5 border-b border-(--ws-border)">
                                         <span>Mã nguồn lần nộp #{sub.id.slice(0, 8)} ({sub.language})</span>
                                         <span>{sub.source_code.split('\n').length} dòng</span>
                                       </div>
-                                      <pre className="text-xs font-mono text-[var(--ws-text)] overflow-x-auto whitespace-pre p-1">
+                                      <pre className="text-xs font-mono text-(--ws-text) overflow-x-auto whitespace-pre p-1">
                                         {sub.source_code}
                                       </pre>
                                     </div>
@@ -1327,7 +1327,7 @@ export default function ProblemSolve() {
                     <button
                       onClick={submit}
                       disabled={isSubmitLocked}
-                      className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-(--ws-accent) text-[#062a25] text-[12.5px] font-bold hover:brightness-110 transition-all disabled:opacity-50 shadow-[0_0_20px_var(--ws-accent-soft)]"
+                      className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#193a2b] text-white text-[12.5px] font-bold hover:bg-[#122c26] transition-all disabled:opacity-50 shadow-[0_0_20px_rgba(25,58,43,0.22)]"
                     >
                       {judging ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />} {cooldownSeconds > 0 ? t('problemSolve.submitCooldown', { seconds: cooldownSeconds }) : t('problemSolve.submitBtn')}
                     </button>
@@ -1531,7 +1531,7 @@ export default function ProblemSolve() {
 
       <button
         onClick={() => setShowAssistantMobile(true)}
-        className="fixed bottom-4 right-4 z-85 flex lg:hidden items-center gap-2 rounded-full bg-(--ws-accent) px-4 py-3 text-[13px] font-semibold text-[#062a25] shadow-xl transition-transform hover:scale-105"
+        className="fixed bottom-4 right-4 z-85 flex lg:hidden items-center gap-2 rounded-full bg-[#193a2b] px-4 py-3 text-[13px] font-semibold text-white shadow-xl transition-transform hover:scale-105 hover:bg-[#122c26]"
       >
         <MessageCircle size={16} />
         {t('problemSolve.aiAssistantTitle')}
