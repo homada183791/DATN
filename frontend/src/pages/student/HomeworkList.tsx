@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useHomeworksQuery } from '../../api/homeworks';
+import { useSubmissionsQuery } from '../../api/submissions';
 import { useClass } from '../../context/ClassContext';
 import { formatVNFull } from '../../utils/dateTime';
 import {
@@ -10,6 +11,7 @@ import {
   Lock,
   GraduationCap,
   Search,
+  Trophy,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -24,13 +26,13 @@ function deadlineInfo(deadline: string, t: (key: string, options?: Record<string
   return { label: t('studentContest.dueDays', { count: days }), chipClass: 'bg-emerald-50 text-emerald-700 border-emerald-200', closed: false, daysLeft: days };
 }
 
-
 type SortKey = 'deadline_asc' | 'deadline_desc' | 'name_az' | 'name_za';
 type StatusFilter = 'all' | 'open' | 'closed';
 
 export default function HomeworkList() {
   const { t } = useTranslation();
   const { data: allHomeworks = [], isLoading } = useHomeworksQuery();
+  const { data: submissions = [] } = useSubmissionsQuery();
   const { enrolledClasses } = useClass();
 
   const [search, setSearch] = useState('');
@@ -40,6 +42,34 @@ export default function HomeworkList() {
 
   // Chỉ hiển thị homework của các lớp đã tham gia
   const enrolledIds = useMemo(() => new Set(enrolledClasses.map((c) => c.id)), [enrolledClasses]);
+
+  const solvedProblemIds = useMemo(() => {
+    const set = new Set<string>();
+    submissions.forEach((s) => {
+      const status = s.status?.toUpperCase();
+      if (status === 'ACCEPTED' || status === 'AC') {
+        set.add(s.problem_id);
+      }
+    });
+    return set;
+  }, [submissions]);
+
+  const { totalEnrolledTasks, solvedEnrolledTasks, totalPct } = useMemo(() => {
+    let total = 0;
+    let solved = 0;
+    allHomeworks.forEach((hw) => {
+      if (enrolledIds.has(hw.class_id) && Array.isArray(hw.tasks)) {
+        hw.tasks.forEach((t: any) => {
+          total += 1;
+          if (t.problem_id && solvedProblemIds.has(t.problem_id)) {
+            solved += 1;
+          }
+        });
+      }
+    });
+    const pct = total > 0 ? Math.round((solved / total) * 100) : 0;
+    return { totalEnrolledTasks: total, solvedEnrolledTasks: solved, totalPct: pct };
+  }, [allHomeworks, enrolledIds, solvedProblemIds]);
 
   const filtered = useMemo(() => {
     let list = allHomeworks.filter((hw) => enrolledIds.has(hw.class_id));
@@ -121,6 +151,42 @@ export default function HomeworkList() {
         ))}
       </div>
 
+      {/* Overall Progress Banner */}
+      {totalEnrolledTasks > 0 && (
+        <div className="bg-white border border-[#e5dac9] rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-4 mb-2">
+            <div className="flex items-center gap-2">
+              <Trophy size={18} className="text-[#193a2b]" />
+              <span className="font-bold text-sm text-[#191919]">Tiến độ bài tập tổng quan</span>
+            </div>
+            <span
+              className={`text-xs font-bold font-mono px-2.5 py-0.5 rounded-full border ${
+                totalPct === 100
+                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                  : totalPct > 0
+                  ? 'bg-amber-100 text-amber-800 border-amber-300'
+                  : 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]'
+              }`}
+            >
+              {solvedEnrolledTasks}/{totalEnrolledTasks} bài ({totalPct}%)
+            </span>
+          </div>
+          <div className="w-full h-2.5 bg-[#f0ebd9] rounded-full overflow-hidden">
+            <div
+              className={`h-full transition-all duration-500 rounded-full ${
+                totalPct === 100 ? 'bg-emerald-600' : 'bg-gradient-to-r from-emerald-500 to-[#193a2b]'
+              }`}
+              style={{ width: `${totalPct}%` }}
+            />
+          </div>
+          <p className="text-xs text-[#8a8073] mt-2">
+            {totalPct === 100
+              ? '🎉 Tuyệt vời! Bạn đã hoàn thành toàn bộ bài tập trong tất cả các lớp tham gia!'
+              : `Bạn đã giải quyết được ${solvedEnrolledTasks} trên tổng số ${totalEnrolledTasks} bài toán được giao.`}
+          </p>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Search */}
@@ -196,6 +262,8 @@ export default function HomeworkList() {
           {filtered.map((hw) => {
             const dl = deadlineInfo(hw.deadline, t);
             const tasks = Array.isArray(hw.tasks) ? hw.tasks as Array<{ problem_id?: string; points?: number }> : [];
+            const hwSolved = tasks.filter((t) => t.problem_id && solvedProblemIds.has(t.problem_id)).length;
+            const hwPct = tasks.length > 0 ? Math.round((hwSolved / tasks.length) * 100) : 0;
 
             return (
               <Link
@@ -215,6 +283,19 @@ export default function HomeworkList() {
                     <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold shrink-0 ${dl.chipClass}`}>
                       {dl.closed && <Lock size={9} className="inline mr-0.5" />}{dl.label}
                     </span>
+                    {tasks.length > 0 && (
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold flex-shrink-0 ${
+                          hwPct === 100
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : hwPct > 0
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]'
+                        }`}
+                      >
+                        Hoàn thành {hwSolved}/{tasks.length} ({hwPct}%)
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-3 text-xs text-[#8a8073] flex-wrap">
                     <span className="flex items-center gap-1">

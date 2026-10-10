@@ -208,6 +208,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: email.trim(),
           username: trimmedUsername || undefined,
           password,
+          full_name: fullName.trim() || undefined,
         }),
       });
       return { ok: true };
