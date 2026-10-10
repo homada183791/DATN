@@ -213,11 +213,15 @@ export default function Submission() {
     <div className="space-y-6 text-[#191919]">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold font-serif text-[#191919]">{t('nav.submission', 'Bài nộp')}</h2>
+          <h2 className="text-2xl font-bold font-serif text-[#191919]">
+            {isInstructor
+              ? t('submission.instructorTitle', 'Quản lý bài nộp & Chấm điểm')
+              : t('submission.studentTitle', 'Lịch sử nộp bài')}
+          </h2>
           <p className="text-xs text-[#8a8073] mt-0.5">
             {isInstructor
-              ? 'Theo dõi, chấm điểm thủ công và chấm lại các bài nộp của học viên'
-              : 'Theo dõi kết quả biên dịch và nhận xét từ giảng viên'}
+              ? t('submission.instructorSubtitle', 'Theo dõi, chấm điểm thủ công và chấm lại các bài nộp của học viên')
+              : t('submission.studentSubtitle', 'Theo dõi kết quả chấm tự động và nhận xét từ giảng viên')}
           </p>
         </div>
         <span className="text-sm font-semibold text-[#8a8073] bg-[#f7f4eb] border border-[#e5dac9] px-3 py-1 rounded-full">

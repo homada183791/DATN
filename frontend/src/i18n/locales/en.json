@@ -15,7 +15,8 @@
     "students": "Students",
     "problemBank": "Problem Bank",
     "practiceProblems": "Problem Set",
-    "calendar": "Calendar"
+    "calendar": "Calendar",
+    "gradingSubmissions": "Grading & Submissions"
   },
   "breadcrumb": {
     "student": "Student",
@@ -26,7 +27,10 @@
     "homework": "Homework",
     "contest": "Contest",
     "submission": "Submissions",
+    "submissions": "Submissions",
+    "gradingSubmissions": "Grading & Submissions",
     "class": "Class",
+    "classes": "Classes",
     "profile": "Profile",
     "settings": "Settings",
     "students": "Students",
@@ -208,6 +212,10 @@
     "classCount": "{{count}} classes on the system"
   },
   "submission": {
+    "instructorTitle": "Grading & Submissions",
+    "instructorSubtitle": "Review, grade manually, and rejudge student submissions",
+    "studentTitle": "Submission History",
+    "studentSubtitle": "Track judge results and pedagogical feedback from instructor",
     "resultCount": "{{count}} results",
     "searchPlaceholder": "Search by problem name or user...",
     "colVerdict": "Verdict",

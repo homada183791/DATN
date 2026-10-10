@@ -8,9 +8,13 @@ import {
   addStudentToClass as addStudentApi,
   useClassGradebookQuery,
   type ClassGradebookDto,
+  type ClassGradebookStudent,
+  type ClassGradeItem,
 } from '../../api/classes';
 import { useClassHomeworksQuery } from '../../api/homeworks';
 import { useHomework, deadlineProgress, HomeworkProblem } from '../../context/HomeworkContext';
+import { useSubmissionDetailQuery, gradeSubmission } from '../../api/submissions';
+import { useToast } from '../../context/ToastContext';
 import { formatVN, formatVNFull } from '../../utils/dateTime';
 import ProblemManager from '../../components/ProblemManager';
 import {
@@ -36,6 +40,8 @@ import {
   UserPlus,
   Download,
   RotateCcw,
+  Award,
+  Code2,
 } from 'lucide-react';
 
 function exportGradebookCsv(gradebook: ClassGradebookDto) {
@@ -136,6 +142,51 @@ export default function InstructorClassDetail() {
   const [isAddingStudent, setIsAddingStudent] = useState(false);
 
   const hasDocument = typeof document !== 'undefined';
+  const { showToast } = useToast();
+
+  // Quick-grading state for Gradebook matrix
+  const [quickGradingItem, setQuickGradingItem] = useState<{
+    student: ClassGradebookStudent;
+    grade: ClassGradeItem;
+  } | null>(null);
+  const [quickScoreInput, setQuickScoreInput] = useState<string>('');
+  const [quickFeedbackInput, setQuickFeedbackInput] = useState<string>('');
+  const [isSubmittingQuickGrade, setIsSubmittingQuickGrade] = useState(false);
+
+  const { data: quickSubDetail, isLoading: isQuickSubLoading } = useSubmissionDetailQuery(
+    quickGradingItem?.grade.submission_id || undefined
+  );
+
+  const handleOpenQuickGrade = (student: ClassGradebookStudent, grade: ClassGradeItem) => {
+    if (!grade.submission_id) return;
+    setQuickGradingItem({ student, grade });
+    setQuickScoreInput(grade.instructor_score != null ? String(grade.instructor_score) : '');
+    setQuickFeedbackInput(grade.instructor_feedback || '');
+  };
+
+  const handleSaveQuickGrade = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickGradingItem?.grade.submission_id) return;
+    const numScore = parseFloat(quickScoreInput);
+    if (isNaN(numScore) || numScore < 0 || numScore > 100) {
+      showToast('Điểm số phải là số hợp lệ từ 0 đến 10 (hoặc 100).', 'error');
+      return;
+    }
+    setIsSubmittingQuickGrade(true);
+    try {
+      await gradeSubmission(quickGradingItem.grade.submission_id, {
+        instructor_score: numScore,
+        instructor_feedback: quickFeedbackInput.trim(),
+      });
+      showToast('Đã lưu điểm và nhận xét thành công!', 'success');
+      await refetchGradebook();
+      setQuickGradingItem(null);
+    } catch (err: any) {
+      showToast(err?.message || 'Không thể lưu điểm chấm.', 'error');
+    } finally {
+      setIsSubmittingQuickGrade(false);
+    }
+  };
 
   const copy = (text: string, key: string) => {
     navigator.clipboard?.writeText(text);
@@ -988,14 +1039,25 @@ export default function InstructorClassDetail() {
                           return (
                             <td
                               key={gIdx}
-                              className="py-3 px-2 text-center border-l border-[#e5dac9]/40"
+                              onClick={() => {
+                                if (g.submission_id) {
+                                  handleOpenQuickGrade(st, g);
+                                }
+                              }}
+                              className={`py-3 px-2 text-center border-l border-[#e5dac9]/40 ${
+                                g.submission_id
+                                  ? 'cursor-pointer hover:bg-amber-100/60 transition-all group'
+                                  : ''
+                              }`}
+                              title={g.submission_id ? 'Click để xem bài nộp & chấm điểm trực tiếp' : 'Sinh viên chưa nộp bài'}
                             >
                               {isNotSub ? (
                                 <span className="text-[#bfae99]">—</span>
                               ) : isAc ? (
-                                <div className="inline-flex flex-col items-center">
-                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                <div className="inline-flex flex-col items-center group-hover:scale-105 transition-transform">
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 shadow-2xs">
                                     {g.instructor_score != null ? `⭐ ${g.instructor_score}/10` : 'AC (100)'}
+                                    <Edit3 size={9} className="opacity-0 group-hover:opacity-100 text-emerald-900 transition-opacity" />
                                   </span>
                                   {g.instructor_feedback && (
                                     <span className="text-[9px] text-[#8a8073] italic truncate max-w-[110px]" title={g.instructor_feedback}>
@@ -1004,9 +1066,12 @@ export default function InstructorClassDetail() {
                                   )}
                                 </div>
                               ) : (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-800 border border-red-300">
-                                  {g.status}
-                                </span>
+                                <div className="inline-flex flex-col items-center group-hover:scale-105 transition-transform">
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-800 border border-red-300 flex items-center gap-1 shadow-2xs">
+                                    {g.instructor_score != null ? `⭐ ${g.instructor_score}/10 (${g.status})` : g.status}
+                                    <Edit3 size={9} className="opacity-0 group-hover:opacity-100 text-red-900 transition-opacity" />
+                                  </span>
+                                </div>
                               )}
                             </td>
                           );
@@ -1281,6 +1346,164 @@ export default function InstructorClassDetail() {
                   Thêm sinh viên
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      ), document.body)}
+
+      {/* ================= MODAL: CHẤM ĐIỂM NHANH TỪ SỔ ĐIỂM ================= */}
+      {quickGradingItem && hasDocument && createPortal((
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in"
+          onClick={() => setQuickGradingItem(null)}
+        >
+          <div
+            className="bg-[#f7f4eb] border border-[#e5dac9] rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5dac9] bg-white">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-800 flex items-center justify-center font-bold">
+                  <Award size={22} />
+                </div>
+                <div>
+                  <h3 className="font-serif font-bold text-base text-[#191919] flex items-center gap-2">
+                    <span>{quickGradingItem.grade.task_title}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full font-sans font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      {quickGradingItem.grade.status}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-[#8a8073]">
+                    Sinh viên: <span className="font-semibold text-[#5c5446]">{quickGradingItem.student.full_name || quickGradingItem.student.username}</span> ({quickGradingItem.student.email}) • Bài tập: {quickGradingItem.grade.homework_title}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setQuickGradingItem(null)}
+                className="p-1.5 hover:bg-[#e5dac9]/50 rounded-lg text-[#8a8073] hover:text-[#191919] transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-5">
+              {/* Grading Form */}
+              <form onSubmit={handleSaveQuickGrade} className="bg-white p-5 rounded-xl border border-amber-300/80 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-[#e5dac9]/60 pb-3">
+                  <div className="flex items-center gap-2 text-amber-950 font-serif font-bold text-sm">
+                    <Award size={18} className="text-amber-700" />
+                    <span>Đánh giá sư phạm & Chấm điểm</span>
+                  </div>
+                  <span className="text-xs text-[#8a8073] font-mono">
+                    Điểm tự động: {quickGradingItem.grade.score}đ / Trọng số: {quickGradingItem.grade.points}đ
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#191919] mb-1">
+                      Điểm GV chấm (Thang 10): *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="10"
+                      value={quickScoreInput}
+                      onChange={(e) => setQuickScoreInput(e.target.value)}
+                      placeholder="VD: 9.5"
+                      required
+                      className="w-full px-3 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-lg text-sm text-[#191919] font-bold focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-[#191919] mb-1">
+                      Lời nhận xét sư phạm:
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={quickFeedbackInput}
+                      onChange={(e) => setQuickFeedbackInput(e.target.value)}
+                      placeholder="Nhận xét về thuật toán, tính tối ưu, trình bày code..."
+                      className="w-full px-3 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-lg text-xs text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#e5dac9]/60">
+                  <button
+                    type="button"
+                    onClick={() => setQuickGradingItem(null)}
+                    disabled={isSubmittingQuickGrade}
+                    className="px-4 py-2 border border-[#e5dac9] bg-white text-xs font-semibold rounded-lg text-[#5c5446] hover:bg-[#f7f4eb] transition-colors"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingQuickGrade}
+                    className="px-5 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-lg hover:bg-[#143022] transition-colors shadow-xs disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    {isSubmittingQuickGrade ? 'Đang lưu...' : 'Lưu điểm & Cập nhật Sổ điểm'}
+                  </button>
+                </div>
+              </form>
+
+              {/* Submitted Code Preview */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#5c5446] flex items-center gap-1.5">
+                    <Code2 size={14} className="text-[#193a2b]" />
+                    Mã nguồn sinh viên đã nộp
+                  </h4>
+                  {quickSubDetail && (
+                    <span className="text-xs text-[#8a8073] font-mono">
+                      Ngôn ngữ: {quickSubDetail.language} • {quickSubDetail.execution_time ? `${quickSubDetail.execution_time}ms` : ''}
+                    </span>
+                  )}
+                </div>
+
+                {isQuickSubLoading ? (
+                  <div className="p-8 text-center text-xs text-[#8a8073] bg-white rounded-xl border border-[#e5dac9]">
+                    Đang tải mã nguồn...
+                  </div>
+                ) : quickSubDetail?.source_code ? (
+                  <div className="bg-[#242424] border border-[#333333] rounded-xl p-4 overflow-x-auto shadow-inner max-h-72">
+                    <pre className="text-xs text-emerald-400 font-mono whitespace-pre">{quickSubDetail.source_code}</pre>
+                  </div>
+                ) : (
+                  <div className="p-6 text-center text-xs text-[#8a8073] bg-white rounded-xl border border-[#e5dac9]">
+                    Không thể tải mã nguồn của bài nộp này.
+                  </div>
+                )}
+              </div>
+
+              {/* Testcases summary if available */}
+              {quickSubDetail?.test_results && quickSubDetail.test_results.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#5c5446] mb-2">
+                    Kết quả chi tiết các bộ test ({quickSubDetail.test_results.filter((r) => r.status === 'ACCEPTED').length}/{quickSubDetail.test_results.length} PASSED)
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {quickSubDetail.test_results.map((tr, idx) => (
+                      <div
+                        key={idx}
+                        className={`p-2.5 rounded-lg border text-center text-xs ${
+                          tr.status === 'ACCEPTED'
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                            : 'bg-red-50 border-red-200 text-red-800'
+                        }`}
+                      >
+                        <span className="font-bold block">TC #{tr.testcase_index ?? idx + 1}</span>
+                        <span className="text-[10px] uppercase font-mono">{tr.status}</span>
+                        {tr.execution_time != null && <span className="block text-[9px] opacity-75">{tr.execution_time}ms</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

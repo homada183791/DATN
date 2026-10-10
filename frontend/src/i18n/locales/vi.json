@@ -15,7 +15,8 @@
     "students": "Sinh viên",
     "problemBank": "Ngân hàng bài tập",
     "practiceProblems": "Kho bài tập",
-    "calendar": "Lịch biểu"
+    "calendar": "Lịch biểu",
+    "gradingSubmissions": "Chấm bài & Bài nộp"
   },
   "breadcrumb": {
     "student": "Sinh viên",
@@ -26,7 +27,10 @@
     "homework": "Bài tập về nhà",
     "contest": "Kỳ thi",
     "submission": "Nộp bài",
+    "submissions": "Bài nộp",
+    "gradingSubmissions": "Chấm bài & Bài nộp",
     "class": "Lớp học",
+    "classes": "Lớp học",
     "profile": "Hồ sơ",
     "settings": "Cài đặt",
     "students": "Sinh viên",
@@ -208,6 +212,10 @@
     "classCount": "{{count}} lớp trên hệ thống"
   },
   "submission": {
+    "instructorTitle": "Quản lý bài nộp & Chấm điểm",
+    "instructorSubtitle": "Theo dõi, chấm điểm thủ công và chấm lại các bài nộp của học viên",
+    "studentTitle": "Lịch sử nộp bài",
+    "studentSubtitle": "Theo dõi kết quả chấm tự động và nhận xét từ giảng viên",
     "resultCount": "{{count}} kết quả",
     "searchPlaceholder": "Tìm kiếm theo tên bài hoặc người dùng...",
     "colVerdict": "Kết quả",

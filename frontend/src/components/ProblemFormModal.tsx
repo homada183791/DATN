@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import {
   X, Plus, Trash2, Eye, EyeOff,
   Clock, HardDrive, AlignLeft, FlaskConical, Loader2,
-  AlertCircle,
+  AlertCircle, Upload, CheckCheck,
 } from 'lucide-react';
 import { CreateProblemDto, ProblemDifficulty, ProblemDto } from '../api/problems';
 import { useTranslation } from 'react-i18next';
@@ -53,6 +53,9 @@ export default function ProblemFormModal({
   const [testCases,   setTestCases]   = useState<CreateProblemDto['test_cases']>([]);
   const [activeTab,   setActiveTab]   = useState<'desc' | 'cases'>('desc');
   const [errors,      setErrors]      = useState<Record<string, string>>({});
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [bulkText,    setBulkText]    = useState('');
+  const [bulkError,   setBulkError]   = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -117,6 +120,7 @@ export default function ProblemFormModal({
     }, showPoints ? points : undefined);
   };
 
+
   const addTestCase    = () => setTestCases([...testCases, { input: '', expected_output: '', is_hidden: false }]);
   const removeTestCase = (i: number) => setTestCases(testCases.filter((_, idx) => idx !== i));
   const updateTestCase = (i: number, field: keyof CreateProblemDto['test_cases'][0], value: unknown) => {
@@ -125,11 +129,88 @@ export default function ProblemFormModal({
     setTestCases(next);
   };
 
+  const handleParseBulk = () => {
+    if (!bulkText.trim()) {
+      setBulkError('Vui lòng dán nội dung các bộ test.');
+      return;
+    }
+    try {
+      const trimmed = bulkText.trim();
+      // 1. Try JSON array
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const newCases = parsed.map((item: any) => ({
+            input: String(item.input ?? item.in ?? '').trim(),
+            expected_output: String(item.expected_output ?? item.output ?? item.out ?? '').trim(),
+            is_hidden: Boolean(item.is_hidden ?? true),
+          }));
+          setTestCases((prev) => [...prev, ...newCases]);
+          setShowBulkModal(false);
+          setBulkText('');
+          setBulkError('');
+          return;
+        }
+      }
+
+      // 2. Try delimiter regex for === INPUT === and === OUTPUT ===
+      const regex = /===+\s*INPUT\s*===+([\s\S]*?)===+\s*OUTPUT\s*===+([\s\S]*?)(?====+\s*INPUT\s*===+|$)/gi;
+      let match;
+      const parsedCases: CreateProblemDto['test_cases'] = [];
+      while ((match = regex.exec(trimmed)) !== null) {
+        const inp = match[1].trim();
+        const out = match[2].trim();
+        if (inp || out) {
+          parsedCases.push({ input: inp, expected_output: out, is_hidden: true });
+        }
+      }
+
+      // 3. Fallback: blocks separated by ---
+      if (parsedCases.length === 0) {
+        const blocks = trimmed.split(/---+/).filter((b) => b.trim());
+        for (const block of blocks) {
+          const ioMatch = block.split(/===+\s*OUTPUT\s*===+|output:/i);
+          if (ioMatch.length === 2) {
+            const inputPart = ioMatch[0].replace(/===+\s*INPUT\s*===+|input:/i, '').trim();
+            const outputPart = ioMatch[1].trim();
+            if (inputPart || outputPart) {
+              parsedCases.push({ input: inputPart, expected_output: outputPart, is_hidden: true });
+            }
+          }
+        }
+      }
+
+      if (parsedCases.length === 0) {
+        setBulkError('Không nhận diện được test cases. Hãy dùng cấu trúc:\n=== INPUT ===\n[dữ liệu]\n=== OUTPUT ===\n[kết quả]\n(hoặc mảng JSON)');
+        return;
+      }
+
+      setTestCases((prev) => [...prev, ...parsedCases]);
+      setShowBulkModal(false);
+      setBulkText('');
+      setBulkError('');
+    } catch (err: any) {
+      setBulkError('Lỗi cú pháp: ' + (err.message || 'Không thể đọc dữ liệu'));
+    }
+  };
+
+  const markAllHidden = (hidden: boolean) => {
+    setTestCases((prev) => prev.map((tc) => ({ ...tc, is_hidden: hidden })));
+  };
+
+  const clearAllTestCases = () => {
+    if (window.confirm('Bạn có chắc muốn xóa tất cả test cases hiện tại?')) {
+      setTestCases([]);
+    }
+  };
+
   const isEdit = !!initialData;
   const caseErrCount = Object.keys(errors).filter(k => k.startsWith('tc_') || k === 'cases').length;
 
   const modal = (
     <div
+      role="dialog"
+      aria-modal="true"
       className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-[2px] p-4"
       onClick={onClose}
     >
@@ -340,21 +421,73 @@ export default function ProblemFormModal({
             {/* ─── TAB: Test Cases ─── */}
             {activeTab === 'cases' && (
               <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                   <div>
-                    <h3 className="font-semibold text-[#191919]">Test Cases</h3>
+                    <h3 className="font-semibold text-[#191919] flex items-center gap-2">
+                      <span>Test Cases</span>
+                      {testCases.length > 0 && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-[#193a2b]/10 text-[#193a2b] font-bold">
+                          {testCases.length} bộ test (~{Math.round(100 / testCases.length)}% điểm/test)
+                        </span>
+                      )}
+                    </h3>
                     <p className="text-xs text-[#8a8073] mt-0.5">
                       {t('problemForm.testCaseHint')}
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={addTestCase}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#193a2b] text-white text-sm font-medium hover:bg-[#143022] transition-colors shadow-sm"
-                  >
-                    <Plus size={15} /> {t('problemForm.addTestCase')}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowBulkModal(true)}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#e5dac9] bg-white text-[#5c5446] hover:text-[#191919] hover:bg-[#eee8d8] text-xs font-semibold transition-colors shadow-2xs"
+                      title="Dán hàng loạt test case từ clipboard"
+                    >
+                      <Upload size={14} className="text-[#193a2b]" />
+                      Nhập hàng loạt (Bulk)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={addTestCase}
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#193a2b] text-white text-xs font-semibold hover:bg-[#143022] transition-colors shadow-sm"
+                    >
+                      <Plus size={14} /> {t('problemForm.addTestCase')}
+                    </button>
+                  </div>
                 </div>
+
+                {/* Batch toolbar if testCases.length > 1 */}
+                {testCases.length > 1 && (
+                  <div className="flex items-center justify-between px-3.5 py-2 bg-[#eee8d8]/80 rounded-xl border border-[#e5dac9] mb-4 text-xs text-[#5c5446]">
+                    <span className="font-medium">
+                      Tổng số: <strong>{testCases.length}</strong> test cases ({testCases.filter(c => c.is_hidden).length} ẩn, {testCases.filter(c => !c.is_hidden).length} mẫu)
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => markAllHidden(true)}
+                        className="hover:text-[#193a2b] font-medium transition-colors"
+                      >
+                        Ẩn tất cả
+                      </button>
+                      <span>•</span>
+                      <button
+                        type="button"
+                        onClick={() => markAllHidden(false)}
+                        className="hover:text-[#193a2b] font-medium transition-colors"
+                      >
+                        Mẫu tất cả
+                      </button>
+                      <span>•</span>
+                      <button
+                        type="button"
+                        onClick={clearAllTestCases}
+                        className="hover:text-red-600 font-medium transition-colors"
+                      >
+                        Xóa tất cả
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {errors.cases && (
                   <div className="mb-4 flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
@@ -386,6 +519,9 @@ export default function ProblemFormModal({
                         <div className="flex items-center justify-between px-4 py-2.5 bg-[#eee8d8] border-b border-[#e5dac9]">
                           <div className="flex items-center gap-3">
                             <span className="text-xs font-bold text-[#5c5446] font-mono">TC #{index + 1}</span>
+                            <span className="text-[10px] text-[#8a8073] bg-white px-2 py-0.5 rounded border border-[#e5dac9] font-mono">
+                              ~{Math.round(100 / testCases.length)}% điểm
+                            </span>
                             {/* Toggle switch */}
                             <button
                               type="button"
@@ -508,6 +644,82 @@ export default function ProblemFormModal({
           </div>
         </form>
       </div>
+
+      {/* ─── BULK TESTCASE IMPORT MODAL ─── */}
+      {showBulkModal && (
+        <div
+          className="fixed inset-0 z-[250] flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-in fade-in"
+          onClick={() => setShowBulkModal(false)}
+        >
+          <div
+            className="w-full max-w-2xl bg-[#f7f4eb] border border-[#e5dac9] rounded-2xl p-6 shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-[#e5dac9] pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-[#193a2b]/10 text-[#193a2b]">
+                  <Upload size={18} />
+                </div>
+                <div>
+                  <h3 className="font-serif font-bold text-base text-[#191919]">Nhập hàng loạt Test Cases</h3>
+                  <p className="text-xs text-[#8a8073]">Hỗ trợ định dạng phân tách hoặc mảng JSON</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowBulkModal(false)}
+                className="p-1.5 rounded-lg text-[#8a8073] hover:text-[#191919] hover:bg-[#e5dac9] transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="bg-white p-3 rounded-xl border border-[#e5dac9] text-xs text-[#5c5446] space-y-1">
+              <p className="font-semibold text-[#191919]">Định dạng phân tách chuẩn:</p>
+              <pre className="bg-[#f0ebd9] p-2.5 rounded-lg text-[11px] font-mono text-[#191919]">
+{`=== INPUT ===
+5
+1 2 3 4 5
+=== OUTPUT ===
+15
+=== INPUT ===
+3
+10 20 30
+=== OUTPUT ===
+60`}
+              </pre>
+            </div>
+
+            <div>
+              <textarea
+                rows={8}
+                value={bulkText}
+                onChange={(e) => { setBulkText(e.target.value); setBulkError(''); }}
+                placeholder="Dán nội dung test cases vào đây..."
+                className="w-full rounded-xl border border-[#e5dac9] bg-white p-3 font-mono text-xs text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+              />
+              {bulkError && <p className="mt-1.5 text-xs text-red-600 font-medium whitespace-pre-wrap">{bulkError}</p>}
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-[#e5dac9]">
+              <button
+                type="button"
+                onClick={() => setShowBulkModal(false)}
+                className="px-4 py-2 border border-[#e5dac9] bg-white rounded-xl text-xs font-semibold text-[#5c5446] hover:bg-[#eee8d8] transition-colors"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={handleParseBulk}
+                className="px-5 py-2 bg-[#193a2b] text-white rounded-xl text-xs font-semibold hover:bg-[#143022] transition-colors shadow-sm flex items-center gap-1.5"
+              >
+                <CheckCheck size={14} /> Thêm vào danh sách Test Cases
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
