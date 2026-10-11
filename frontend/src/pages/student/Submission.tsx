@@ -157,7 +157,7 @@ export default function Submission() {
 
     const numScore = parseFloat(gradeInput);
     if (isNaN(numScore) || numScore < 0 || numScore > 100) {
-      showToast('Điểm số phải là số hợp lệ từ 0 đến 100 hoặc 0 đến 10.', 'error');
+      showToast(t('submission.gradeValidationError'), 'error');
       return;
     }
 
@@ -168,12 +168,12 @@ export default function Submission() {
         instructor_feedback: feedbackInput.trim() || undefined,
       });
 
-      showToast('Đã lưu điểm và nhận xét của Giảng viên thành công!', 'success');
+      showToast(t('submission.gradeSavedSuccess'), 'success');
       setIsGradingOpen(false);
       queryClient.invalidateQueries({ queryKey: ['submissions'] });
       queryClient.invalidateQueries({ queryKey: ['submission', selectedSubmission] });
     } catch (err: any) {
-      showToast(err.message || 'Không thể lưu điểm chấm.', 'error');
+      showToast(err.message || t('submission.saveGradeFailed'), 'error');
     } finally {
       setIsSubmittingGrade(false);
     }
@@ -185,11 +185,11 @@ export default function Submission() {
     try {
       setIsRejudging(true);
       await rejudgeSubmission(selectedSubmission);
-      showToast('Đã gửi yêu cầu chấm lại bài nộp thành công!', 'success');
+      showToast(t('submission.rejudgeSentSuccess'), 'success');
       queryClient.invalidateQueries({ queryKey: ['submissions'] });
       queryClient.invalidateQueries({ queryKey: ['submission', selectedSubmission] });
     } catch (err: any) {
-      showToast(err.message || 'Không thể chấm lại bài nộp.', 'error');
+      showToast(err.message || t('submission.rejudgeFailed'), 'error');
     } finally {
       setIsRejudging(false);
     }
@@ -272,7 +272,7 @@ export default function Submission() {
               <option value="MLE">Memory Limit Exceeded (MLE)</option>
               <option value="RTE">Runtime Error (RTE)</option>
               <option value="CE">Compile Error (CE)</option>
-              <option value="PENDING">Đang chấm</option>
+              <option value="PENDING">{t('submission.pending')}</option>
             </select>
           </div>
           <div>
@@ -315,13 +315,13 @@ export default function Submission() {
                     <button
                       onClick={() => navigate(isInstructor ? `/instructor/problem/${selectedSub.problemId}` : `/student/problem/${selectedSub.problemId}`)}
                       className="text-[#8a8073] hover:text-[#193a2b] transition-colors"
-                      title="Mở đề bài"
+                      title={t('submission.openStatementTooltip')}
                     >
                       <ExternalLink size={16} />
                     </button>
                   </h3>
                   <p className="text-xs text-[#8a8073]">
-                    Người nộp: <span className="font-semibold text-[#5c5446]">@{selectedSub.username}</span> • Mã nộp: #{selectedSub.id.slice(0, 8)}
+                    {t('submission.submitterLabel')} <span className="font-semibold text-[#5c5446]">@{selectedSub.username}</span> • {t('submission.submissionIdLabel')} #{selectedSub.id.slice(0, 8)}
                   </p>
                 </div>
               </div>
@@ -331,16 +331,16 @@ export default function Submission() {
                     onClick={handleRejudge}
                     disabled={isRejudging}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 rounded-lg text-xs font-semibold transition-all disabled:opacity-50"
-                    title="Chấm lại bài nộp này qua sandbox"
+                    title={t('submission.rejudgeTooltip')}
                   >
                     <RotateCcw size={14} className={isRejudging ? 'animate-spin' : ''} />
-                    {isRejudging ? 'Đang gửi...' : 'Chấm lại'}
+                    {isRejudging ? t('submission.rejudgingLabel') : t('submission.rejudgeBtn')}
                   </button>
                 )}
                 <button
                   onClick={() => navigate(isInstructor ? `/instructor/problem/${selectedSub.problemId}` : `/student/problem/${selectedSub.problemId}`)}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#193a2b] bg-[#193a2b]/10 hover:bg-[#193a2b]/20 rounded-lg transition-colors"
-                  title="Đi tới trang làm bài"
+                  title={t('submission.goToProblem')}
                 >
                   <ExternalLink size={14} />
                   {t('submission.goToProblem', 'Đến bài')}
@@ -363,21 +363,21 @@ export default function Submission() {
                   <p className="text-sm text-[#191919] font-bold">{selectedSub.language}</p>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-[#e5dac9] text-center shadow-sm">
-                  <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">Thời gian</p>
+                  <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">{t('submission.colTime')}</p>
                   <p className="text-sm text-[#191919] font-bold flex items-center justify-center gap-1">
                     <Clock size={14} className="text-[#8a8073]" />
                     {selectedSub.executionTime != null ? `${selectedSub.executionTime}ms` : '—'}
                   </p>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-[#e5dac9] text-center shadow-sm">
-                  <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">Bộ nhớ</p>
+                  <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">{t('submission.colMemory')}</p>
                   <p className="text-sm text-[#191919] font-bold flex items-center justify-center gap-1">
                     <Cpu size={14} className="text-[#8a8073]" />
                     {selectedSub.memory != null ? `${selectedSub.memory}MB` : '—'}
                   </p>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-[#e5dac9] text-center shadow-sm">
-                  <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">Điểm tự động</p>
+                  <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">{t('submission.autoScoreLabel')}</p>
                   <p className="text-sm text-[#191919] font-bold">
                     {selectedSub.score != null ? `${selectedSub.score}/100` : selectedSub.verdict === 'AC' ? '100/100' : '0/100'}
                   </p>
@@ -389,7 +389,7 @@ export default function Submission() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-amber-950 font-serif font-bold text-base">
                     <Award size={20} className="text-amber-700" />
-                    <span>Đánh giá của Giảng viên</span>
+                    <span>{t('submission.instructorReviewTitle')}</span>
                   </div>
                   {isInstructor && !isGradingOpen && (
                     <button
@@ -397,7 +397,7 @@ export default function Submission() {
                       className="text-xs font-semibold px-3 py-1 bg-[#193a2b] text-[#f7f4eb] rounded-lg hover:bg-[#2d5a3f] transition-all flex items-center gap-1"
                     >
                       <MessageSquare size={13} />
-                      {selectedSub.instructorScore != null ? 'Sửa điểm & Nhận xét' : 'Chấm điểm & Nhận xét'}
+                      {selectedSub.instructorScore != null ? t('submission.editGradeBtn') : t('submission.gradeBtn')}
                     </button>
                   )}
                 </div>
@@ -407,18 +407,18 @@ export default function Submission() {
                   <div className="space-y-2 bg-white/80 p-4 rounded-xl border border-amber-200">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-[#8a8073] uppercase tracking-wider font-semibold">Điểm GV chấm:</span>
+                        <span className="text-xs text-[#8a8073] uppercase tracking-wider font-semibold">{t('submission.instructorGradedScoreLabel')}</span>
                         <span className="text-base font-bold text-amber-900 bg-amber-100 px-2.5 py-0.5 rounded-lg border border-amber-300">
                           ⭐ {selectedSub.instructorScore}/10
                         </span>
                       </div>
                       {selectedSub.gradedAt && (
-                        <span className="text-xs text-[#8a8073]">Chấm lúc: {formatVNFull(selectedSub.gradedAt)}</span>
+                        <span className="text-xs text-[#8a8073]">{t('submission.gradedAtLabel')} {formatVNFull(selectedSub.gradedAt)}</span>
                       )}
                     </div>
                     {selectedSub.instructorFeedback && (
                       <div className="pt-2 border-t border-amber-100">
-                        <p className="text-xs font-semibold text-amber-900 mb-1">Lời nhận xét sư phạm:</p>
+                        <p className="text-xs font-semibold text-amber-900 mb-1">{t('submission.pedagogicalFeedbackLabel')}</p>
                         <p className="text-sm text-[#4a4238] italic bg-[#faf7ee] p-3 rounded-lg border-l-4 border-amber-500 leading-relaxed">
                           "{selectedSub.instructorFeedback}"
                         </p>
@@ -428,7 +428,7 @@ export default function Submission() {
                 ) : (
                   !isGradingOpen && (
                     <p className="text-xs text-[#8a8073] italic">
-                      Bài nộp chưa có điểm chấm thủ công hoặc nhận xét từ Giảng viên.
+                      {t('submission.noGradeYetMessage')}
                     </p>
                   )
                 )}
@@ -439,7 +439,7 @@ export default function Submission() {
                     <div className="flex flex-col sm:flex-row gap-4">
                       <div className="sm:w-1/3">
                         <label className="block text-xs font-bold text-[#191919] mb-1">
-                          Điểm số (Thang 10 hoặc 100):
+                          {t('submission.scoreInputLabel')}
                         </label>
                         <input
                           type="number"
@@ -448,20 +448,20 @@ export default function Submission() {
                           max="100"
                           value={gradeInput}
                           onChange={(e) => setGradeInput(e.target.value)}
-                          placeholder="Ví dụ: 9.5"
+                          placeholder={t('submission.scorePlaceholder')}
                           required
                           className="w-full px-3 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-lg text-sm text-[#191919] font-bold focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                         />
                       </div>
                       <div className="flex-1">
                         <label className="block text-xs font-bold text-[#191919] mb-1">
-                          Lời nhận xét, góp ý mã nguồn:
+                          {t('submission.feedbackInputLabel')}
                         </label>
                         <textarea
                           rows={2}
                           value={feedbackInput}
                           onChange={(e) => setFeedbackInput(e.target.value)}
-                          placeholder="Nhận xét về thuật toán, phong cách code hoặc lưu ý cải thiện..."
+                          placeholder={t('submission.feedbackPlaceholder')}
                           className="w-full px-3 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-lg text-sm text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                         />
                       </div>
@@ -472,14 +472,14 @@ export default function Submission() {
                         onClick={() => setIsGradingOpen(false)}
                         className="px-3 py-1.5 text-xs text-[#5c5446] hover:bg-[#e5dac9]/50 rounded-lg transition-all"
                       >
-                        Hủy
+                        {t('common.cancel')}
                       </button>
                       <button
                         type="submit"
                         disabled={isSubmittingGrade}
                         className="px-4 py-1.5 bg-[#193a2b] hover:bg-[#2d5a3f] text-[#f7f4eb] text-xs font-bold rounded-lg transition-all disabled:opacity-50"
                       >
-                        {isSubmittingGrade ? 'Đang lưu...' : 'Lưu điểm & Nhận xét'}
+                        {isSubmittingGrade ? t('submission.savingLabel') : t('submission.saveGradeBtn')}
                       </button>
                     </div>
                   </form>
@@ -490,11 +490,11 @@ export default function Submission() {
               <div>
                 <h4 className="text-sm font-bold text-[#191919] font-serif mb-2.5 flex items-center gap-1.5">
                   <Layers size={16} className="text-[#193a2b]" />
-                  Chi tiết kết quả các bộ Test
+                  {t('submission.testBreakdownTitle')}
                 </h4>
 
                 {isDetailLoading ? (
-                  <div className="p-6 text-center text-xs text-[#8a8073]">Đang nạp chi tiết các bộ test...</div>
+                  <div className="p-6 text-center text-xs text-[#8a8073]">{t('submission.loadingTestDetails')}</div>
                 ) : detailData?.test_results && detailData.test_results.length > 0 ? (
                   <div className="space-y-2">
                     {detailData.test_results.map((tr, idx) => {
@@ -516,11 +516,11 @@ export default function Submission() {
                                 <XCircle size={16} className="text-red-600" />
                               )}
                               <span className="text-xs font-bold text-[#191919]">
-                                Test #{tr.testcase_index + 1}
+                                {t('submission.testNumberLabel', { number: tr.testcase_index + 1 })}
                               </span>
                               {tr.is_hidden && (
                                 <span className="text-[10px] bg-[#e5dac9] text-[#5c5446] px-1.5 py-0.5 rounded font-mono">
-                                  Test ẩn
+                                  {t('submission.hiddenTestLabel')}
                                 </span>
                               )}
                             </div>
@@ -542,21 +542,21 @@ export default function Submission() {
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2 pt-2 border-t border-black/5 text-[11px] font-mono">
                               {tr.input && (
                                 <div className="bg-white/80 p-2 rounded border border-[#e5dac9]/60">
-                                  <span className="text-[#8a8073] block mb-0.5 font-bold uppercase text-[9px]">Input:</span>
+                                  <span className="text-[#8a8073] block mb-0.5 font-bold uppercase text-[9px]">{t('submission.inputLabel')}</span>
                                   <pre className="whitespace-pre-wrap break-all text-[#191919]">{tr.input}</pre>
                                 </div>
                               )}
                               {tr.actual_output !== undefined && (
                                 <div className="bg-white/80 p-2 rounded border border-[#e5dac9]/60">
-                                  <span className="text-[#8a8073] block mb-0.5 font-bold uppercase text-[9px]">Output thực tế:</span>
+                                  <span className="text-[#8a8073] block mb-0.5 font-bold uppercase text-[9px]">{t('submission.actualOutputLabel')}</span>
                                   <pre className={`whitespace-pre-wrap break-all ${isAC ? 'text-emerald-700' : 'text-red-700'}`}>
-                                    {tr.actual_output || '(Rỗng)'}
+                                    {tr.actual_output || t('submission.emptyOutputLabel')}
                                   </pre>
                                 </div>
                               )}
                               {tr.expected_output && (
                                 <div className="bg-white/80 p-2 rounded border border-[#e5dac9]/60">
-                                  <span className="text-[#8a8073] block mb-0.5 font-bold uppercase text-[9px]">Đáp án đúng:</span>
+                                  <span className="text-[#8a8073] block mb-0.5 font-bold uppercase text-[9px]">{t('submission.expectedOutputLabel')}</span>
                                   <pre className="whitespace-pre-wrap break-all text-emerald-700">{tr.expected_output}</pre>
                                 </div>
                               )}
@@ -568,7 +568,7 @@ export default function Submission() {
                   </div>
                 ) : (
                   <div className="p-4 bg-white rounded-xl border border-[#e5dac9] text-xs text-[#8a8073] text-center">
-                    Chưa có chi tiết test case cho bài nộp này.
+                    {t('submission.noTestDetailsMessage')}
                   </div>
                 )}
               </div>
@@ -631,7 +631,7 @@ export default function Submission() {
                   {t('submission.colVerdict', 'Kết quả')}
                 </th>
                 <th className="text-center text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">
-                  Điểm GV chấm
+                  {t('submission.instructorScoreColLabel')}
                 </th>
                 <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">
                   {t('submission.colLanguage', 'Ngôn ngữ')}

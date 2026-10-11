@@ -249,7 +249,7 @@ export default function Contest() {
                       <h4 className="text-sm font-bold font-serif text-[#191919] mb-1.5">{t('studentContest.registerTitle')}</h4>
                       <p className="text-xs text-[#8a8073] mb-3">
                         {selectedContestData.visibility === 'private'
-                          ? 'Bạn đã được giảng viên thêm vào lớp, kỳ thi này dành riêng cho lớp bạn.'
+                          ? t('studentContest.privateClassAddedHint')
                           : t('studentContest.publicHint')}
                       </p>
                       <button
@@ -331,7 +331,7 @@ export default function Contest() {
                       <Trophy size={16} className="text-amber-600" /> {t('studentContest.leaderboardTab')}
                     </h4>
                     <span className="text-xs text-[#8a8073]">
-                      {leaderboard.length} {t('studentContest.peopleCount', { count: leaderboard.length })}
+                      {t('studentContest.peopleCount', { count: leaderboard.length })}
                     </span>
                   </div>
 
@@ -363,7 +363,7 @@ export default function Contest() {
                                 {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
                               </td>
                               <td className="py-2.5 px-3 font-semibold text-[#191919]">
-                                {row.fullName || row.username || 'Thí sinh'}
+                                {row.fullName || row.username || t('studentContest.contestantFallback')}
                               </td>
                               <td className="py-2.5 px-3 text-center font-bold text-emerald-700">
                                 {row.solvedCount ?? row.solved ?? 0}
@@ -423,7 +423,7 @@ export default function Contest() {
                       <Calendar size={12} /> {formatVNFull(contest.startTime)}
                     </span>
                     <span className="flex items-center gap-1">
-                      <Users size={12} /> {contest.participantCount ?? 0} người
+                      <Users size={12} /> {t('studentContest.peopleCount', { count: contest.participantCount ?? 0 })}
                     </span>
                   </div>
                   <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${statusColors[contest.status ?? 'upcoming']}`}>

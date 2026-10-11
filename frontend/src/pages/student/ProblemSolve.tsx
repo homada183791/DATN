@@ -134,7 +134,7 @@ export default function ProblemSolve() {
   const { data: apiProblem, isLoading, error } = useProblemQuery(resolvedId);
 
   const problemId = apiProblem?.id ?? resolvedId ?? 'unknown-problem';
-  const problemTitle = apiProblem?.title ?? 'Bài tập';
+  const problemTitle = apiProblem?.title ?? t('problemSolve.fallbackProblemTitle');
   const problemDifficulty = apiProblem?.difficulty ?? 'MEDIUM';
   const problemDescription = apiProblem?.description ?? '';
   const problemPoints = useMemo(() => {
@@ -183,7 +183,7 @@ export default function ProblemSolve() {
     } else {
       setLang('cpp');
     }
-    showToast(`Đã nạp lại mã nguồn lần nộp #${sub.id.slice(0, 8)} vào Editor!`, 'success');
+    showToast(t('problemSolve.restoredCodeToast', { id: sub.id.slice(0, 8) }), 'success');
   };
 
   const [layout, setLayout] = useState<LayoutMode>('split');
@@ -278,7 +278,7 @@ export default function ProblemSolve() {
     {
       id: 1,
       role: 'assistant',
-      content: `Xin chào! Tôi là trợ lý học tập cho bài “${problemTitle}”. Bạn có thể hỏi về đề bài, gợi ý thuật toán hoặc cách viết code.`,
+      content: t('problemSolve.assistantWelcome', { title: problemTitle }),
     },
   ]);
 
@@ -336,9 +336,9 @@ export default function ProblemSolve() {
         setCheatWarnings(res.cheat_warnings);
         if (res.is_disqualified) {
           setIsDisqualified(true);
-          showToast('BẠN ĐÃ BỊ TRUẤT QUYỀN THI do vi phạm quy chế thi cử quá 3 lần!', 'error');
+          showToast(t('problemSolve.disqualifiedToast'), 'error');
         } else {
-          showToast(`⚠️ CẢNH BÁO GIAN LẬN: ${reason}! Lần vi phạm ${res.cheat_warnings}/3. Vi phạm 3 lần sẽ bị truất quyền thi.`, 'error');
+          showToast(t('problemSolve.cheatWarningToast', { reason, count: res.cheat_warnings }), 'error');
         }
       } catch (err: any) {
         console.error('Không thể gửi cảnh báo gian lận:', err);
@@ -347,12 +347,12 @@ export default function ProblemSolve() {
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        reportCheat('Chuyển tab hoặc thu nhỏ trình duyệt');
+        reportCheat(t('problemSolve.cheatReasonTabSwitch'));
       }
     };
 
     const handleBlur = () => {
-      reportCheat('Rời khỏi cửa sổ làm bài');
+      reportCheat(t('problemSolve.cheatReasonBlur'));
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -405,7 +405,7 @@ export default function ProblemSolve() {
       {
         id: Date.now(),
         role: 'assistant',
-        content: `Xin chào! Tôi là trợ lý học tập cho bài “${problemTitle}”. Bạn có thể hỏi về đề bài, gợi ý thuật toán hoặc cách viết code.`,
+        content: t('problemSolve.assistantWelcome', { title: problemTitle }),
       },
     ]);
     setShowAssistant(false);
@@ -479,7 +479,7 @@ export default function ProblemSolve() {
 
   const runSamples = async () => {
     if (code.trim().length < 10) {
-      pushConsole('error: code rỗng — không có gì để chạy.', 'err');
+      pushConsole(t('problemSolve.consoleEmptyCode'), 'err');
       return;
     }
     setRunning(true);
@@ -499,7 +499,7 @@ export default function ProblemSolve() {
       setTimeout(() => res(false), 5000);
     });
     if (!connected) {
-      pushConsole('error: không thể kết nối Socket.io để nhận kết quả.', 'err');
+      pushConsole(t('problemSolve.consoleSocketConnectError'), 'err');
       setRunning(false);
       socket.disconnect();
       customRunSocketRef.current = null;
@@ -509,7 +509,7 @@ export default function ProblemSolve() {
     const newOutputs: Record<number, { actual: string; ok: boolean; time?: number }> = {};
 
     for (let i = 0; i < samples.length; i++) {
-      pushConsole(`Đang chạy test mẫu ${i + 1}/${samples.length}...`, 'info');
+      pushConsole(t('problemSolve.consoleRunningSample', { current: i + 1, total: samples.length }), 'info');
       try {
         const resp = await apiFetch<{ success: boolean; session_id: string }>('/api/v1/submissions/run-custom', {
           method: 'POST',
@@ -533,7 +533,7 @@ export default function ProblemSolve() {
           pushConsole(`  Got:      ${result.output.slice(0, 100)}${result.output.length > 100 ? '\u2026' : ''}`, 'err');
         }
       } catch (err) {
-        const msg = err instanceof ApiError ? err.message : 'Lỗi không xác định';
+        const msg = err instanceof ApiError ? err.message : t('problemSolve.unknownError');
         pushConsole(`Test ${i + 1}: ERROR — ${msg}`, 'err');
         newOutputs[i] = { actual: `ERROR: ${msg}`, ok: false };
         setSampleOutputs({ ...newOutputs });
@@ -543,12 +543,12 @@ export default function ProblemSolve() {
     socket.disconnect();
     customRunSocketRef.current = null;
     setRunning(false);
-    pushConsole('Hoàn thành chạy test mẫu.', 'sys');
+    pushConsole(t('problemSolve.consoleRunSamplesDone'), 'sys');
   };
 
   const submit = async () => {
     if (isDisqualified) {
-      showToast('Bạn đã bị truất quyền thi cử do vi phạm quy chế (gian lận quá 3 lần). Không thể nộp bài!', 'error');
+      showToast(t('problemSolve.disqualifiedSubmitToast'), 'error');
       return;
     }
     setJudging(true);
@@ -558,7 +558,7 @@ export default function ProblemSolve() {
     setTestVerdicts([]);
     setJudgeProgress(0);
     pushConsole(`$ judge --submit ${detail.code} --lang ${LANG_LABELS[lang]}`, 'sys');
-    pushConsole('Đang gửi bài lên máy chấm...', 'info');
+    pushConsole(t('problemSolve.consoleSubmitting'), 'info');
     let submissionId: string;
     try {
       const response = await apiFetch<{ submission_id: string }>('/api/v1/submissions', {
@@ -572,27 +572,27 @@ export default function ProblemSolve() {
       });
       submissionId = response.submission_id;
       if (!submissionId) {
-        throw new Error('Backend không trả về mã bài nộp.');
+        throw new Error(t('problemSolve.submissionIdMissingError'));
       }
     } catch (submitError) {
       if (submitError instanceof ApiError) {
         if (submitError.status === 429) {
-          showToast('Bạn thao tác quá nhanh, vui lòng chờ 60 giây trước khi nộp lại.', 'error');
+          showToast(t('problemSolve.throttledToast'), 'error');
           setCooldownUntil(Date.now() + 60_000);
           pushConsole('error: throttled by server (429 Too Many Requests)', 'err');
         } else if (submitError.status === 403) {
-          showToast('Kỳ thi đã đóng, bạn không thể nộp bài lúc này.', 'error');
+          showToast(t('problemSolve.contestClosedToast'), 'error');
           pushConsole('error: deadline passed (403 Forbidden)', 'err');
         } else if (submitError.status === 409) {
-          showToast('Bài nộp của bạn bị trùng hoặc không hợp lệ.', 'error');
+          showToast(t('problemSolve.duplicateSubmissionToast'), 'error');
           pushConsole('error: conflict detected (409 Conflict)', 'err');
         } else {
-          showToast(submitError.message || 'Không thể gửi bài lên máy chấm.', 'error');
-          pushConsole('error: không thể gửi bài lên máy chấm.', 'err');
+          showToast(submitError.message || t('problemSolve.submitFailedToast'), 'error');
+          pushConsole(t('problemSolve.consoleSubmitFailed'), 'err');
         }
       } else {
-        showToast('Không thể gửi bài lên máy chấm.', 'error');
-        pushConsole('error: không thể gửi bài lên máy chấm.', 'err');
+        showToast(t('problemSolve.submitFailedToast'), 'error');
+        pushConsole(t('problemSolve.consoleSubmitFailed'), 'err');
       }
       setJudging(false);
       return;
@@ -611,8 +611,8 @@ export default function ProblemSolve() {
     };
 
     const watchdogTimer = window.setTimeout(() => {
-      showToast('Máy chấm không phản hồi (Timeout). Vui lòng thử lại.', 'error');
-      pushConsole('error: máy chấm không phản hồi sau 60s.', 'err');
+      showToast(t('problemSolve.watchdogTimeoutToast'), 'error');
+      pushConsole(t('problemSolve.consoleJudgeNoResponse'), 'err');
       setJudging(false);
       socket.disconnect();
       submissionSocketRef.current = null;
@@ -620,14 +620,14 @@ export default function ProblemSolve() {
 
     socket.on('connect', () => {
       socket.emit('join_submission', { submission_id: submissionId });
-      pushConsole(`Đã kết nối Socket.io theo dõi bài nộp #${submissionId.slice(0, 8)}. Đang chờ máy chấm...`, 'info');
+      pushConsole(t('problemSolve.consoleSocketConnected', { id: submissionId.slice(0, 8) }), 'info');
     });
 
     socket.on('submission_status_changed', (payload: SubmissionStatusPayload) => {
       const status = payload.status.toUpperCase();
       const verdict = terminalVerdicts[status];
       setJudgeProgress(verdict ? 100 : status === 'IN_QUEUE' ? 35 : 15);
-      pushConsole(`Trạng thái bài nộp: ${status}.`, verdict === 'AC' ? 'ok' : verdict ? 'err' : 'info');
+      pushConsole(t('problemSolve.consoleSubmissionStatus', { status }), verdict === 'AC' ? 'ok' : verdict ? 'err' : 'info');
 
       if (!verdict) return;
 
@@ -644,8 +644,8 @@ export default function ProblemSolve() {
 
     socket.on('connect_error', (err) => {
       window.clearTimeout(watchdogTimer);
-      showToast('Không thể kết nối máy chủ chấm bài.', 'error');
-      pushConsole(`error: không thể kết nối Socket.io (${err?.message || 'Lỗi kết nối'}).`, 'err');
+      showToast(t('problemSolve.judgeServerConnectError'), 'error');
+      pushConsole(t('problemSolve.consoleSocketError', { message: err?.message || t('problemSolve.connectionErrorFallback') }), 'err');
       setJudging(false);
       socket.disconnect();
       submissionSocketRef.current = null;
@@ -693,18 +693,18 @@ export default function ProblemSolve() {
   const getAssistantReply = (text: string) => {
     const input = text.toLowerCase();
     if (input.includes('gợi ý') || input.includes('hint') || input.includes('ý tưởng')) {
-      return `Gợi ý cho ${problemTitle}: hãy bắt đầu bằng cách phân tích đầu vào, đầu ra và các trường hợp biên. Sau đó, thử xây dựng một giải pháp đơn giản trước khi tối ưu.`;
+      return t('problemSolve.assistantHintReply', { title: problemTitle });
     }
     if (input.includes('độ phức tạp') || input.includes('complex')) {
-      return `Bạn có thể ưu tiên giải pháp có độ phức tạp tuyến tính hoặc logarit nếu phù hợp. Hãy chú ý đến số lần duyệt dữ liệu và bộ nhớ sử dụng.`;
+      return t('problemSolve.assistantComplexityReply');
     }
     if (input.includes('code') || input.includes('viết') || input.includes('c++') || input.includes('python') || input.includes('java')) {
-      return `Mình có thể hỗ trợ viết khung code cho ${detail.code}. Hãy cho mình ngôn ngữ bạn đang dùng để mình đưa template phù hợp.`;
+      return t('problemSolve.assistantCodeReply', { code: detail.code });
     }
     if (input.includes('đề bài') || input.includes('ý nghĩa')) {
-      return `Đây là bài tập về ${problemTitle}. Hãy đọc kỹ ví dụ và xác định hành vi mong muốn trước khi viết code.`;
+      return t('problemSolve.assistantStatementReply', { title: problemTitle });
     }
-    return `Mình có thể hỗ trợ bạn hiểu bài “${problemTitle}” và gợi ý cách giải. Hãy thử hỏi: “gợi ý”, “độ phức tạp” hoặc “viết code mẫu”.`;
+    return t('problemSolve.assistantDefaultReply', { title: problemTitle });
   };
 
   const askAssistant = (e: FormEvent<HTMLFormElement>) => {
@@ -756,8 +756,8 @@ export default function ProblemSolve() {
       <div className="flex-1 flex items-center justify-center h-full bg-(--ws-bg) text-(--ws-text) px-6">
         <div className="max-w-lg w-full rounded-3xl border border-(--ws-border) bg-(--ws-panel) p-8 text-center shadow-sm">
           <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-(--ws-faint)">404</p>
-          <h1 className="mt-3 text-2xl font-bold">Không tìm thấy bài tập</h1>
-          <p className="mt-3 text-sm text-(--ws-muted)">Mã bài này không tồn tại hoặc đã bị xóa.</p>
+          <h1 className="mt-3 text-2xl font-bold">{t('problemSolve.notFoundTitle')}</h1>
+          <p className="mt-3 text-sm text-(--ws-muted)">{t('problemSolve.notFoundSubtitle')}</p>
         </div>
       </div>
     );
@@ -767,9 +767,9 @@ export default function ProblemSolve() {
     return (
       <div className="flex-1 flex items-center justify-center h-full bg-(--ws-bg) text-(--ws-text) px-6">
         <div className="max-w-lg w-full rounded-3xl border border-(--ws-border) bg-(--ws-panel) p-8 text-center shadow-sm">
-          <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-(--ws-faint)">Lỗi tải dữ liệu</p>
-          <h1 className="mt-3 text-2xl font-bold">Không thể tải đề bài</h1>
-          <p className="mt-3 text-sm text-(--ws-muted)">Vui lòng thử lại sau.</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-(--ws-faint)">{t('problemSolve.loadErrorBadge')}</p>
+          <h1 className="mt-3 text-2xl font-bold">{t('problemSolve.loadErrorHeading')}</h1>
+          <p className="mt-3 text-sm text-(--ws-muted)">{t('problemSolve.tryAgainLater')}</p>
         </div>
       </div>
     );
@@ -784,7 +784,7 @@ export default function ProblemSolve() {
             <button
               onClick={() => navigate(`/student/class/${classId}/homework/${homeworkId}`)}
               className="flex items-center gap-1 text-[12px] text-(--ws-muted) hover:text-(--ws-text) transition-colors mr-1"
-              title="Quay lại bài tập"
+              title={t('problemSolve.backToProblemsTitle')}
             >
               ← {t('problemSolve.backToProblems')}
             </button>
@@ -792,16 +792,16 @@ export default function ProblemSolve() {
             <button
               onClick={() => navigate(-1)}
               className="flex items-center gap-1 text-[12px] text-(--ws-muted) hover:text-(--ws-text) transition-colors mr-1"
-              title="Quay lại danh sách"
+              title={t('problemSolve.backToListTitle')}
             >
-              ← Quay lại
+              ← {t('studentContest.back')}
             </button>
           )}
           <span className="text-[11px] font-bold tracking-wider px-2.5 py-1 rounded-md bg-(--ws-accent-soft) text-(--ws-accent)">
             {detail.code}
           </span>
           <h1 className="text-[17px] font-bold">{problemTitle}</h1>
-          <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-md ${diffChip}`}>{problemDifficulty === 'EASY' ? 'Dễ' : problemDifficulty === 'MEDIUM' ? 'Trung bình' : 'Khó'}</span>
+          <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-md ${diffChip}`}>{problemDifficulty === 'EASY' ? t('problemForm.easy') : problemDifficulty === 'MEDIUM' ? t('problemForm.medium') : t('problemForm.hard')}</span>
           {contestId && (
             <span className={`flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-md border ${
               isDisqualified
@@ -810,7 +810,7 @@ export default function ProblemSolve() {
                 ? 'bg-amber-100 text-amber-800 border-amber-300 animate-pulse'
                 : 'bg-purple-100 text-purple-800 border-purple-200'
             }`}>
-              🛡️ {isDisqualified ? 'ĐÃ BỊ TRUẤT QUYỀN THI' : cheatWarnings > 0 ? `Cảnh báo vi phạm: ${cheatWarnings}/3` : 'Phòng thi trực tuyến (Giám sát chống gian lận)'}
+              🛡️ {isDisqualified ? t('problemSolve.cheatDisqualifiedBadge') : cheatWarnings > 0 ? t('problemSolve.cheatWarningBadge', { count: cheatWarnings }) : t('problemSolve.onlineExamBadge')}
             </span>
           )}
           {solved && (
@@ -1003,32 +1003,32 @@ export default function ProblemSolve() {
                     <div className="p-6 max-w-3xl">
                       <div className="flex items-center justify-between mb-5">
                         <div>
-                          <h2 className="text-lg font-bold text-(--ws-text)">Lịch sử nộp bài</h2>
+                          <h2 className="text-lg font-bold text-(--ws-text)">{t('problemSolve.submissionHistoryHeading')}</h2>
                           <p className="text-xs text-(--ws-muted) mt-0.5">
-                            Danh sách các lần nộp mã nguồn của bạn cho bài toán này
+                            {t('problemSolve.submissionHistorySubtitle')}
                           </p>
                         </div>
                         <button
                           onClick={() => queryClient.invalidateQueries({ queryKey: ['submissions', 'problem', problemId] })}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-(--ws-border) text-xs text-(--ws-muted) hover:text-(--ws-text) hover:border-(--ws-accent) transition-colors"
-                          title="Làm mới danh sách"
+                          title={t('problemSolve.refreshListTitle')}
                         >
                           <RefreshCw size={13} className={isFetchingSubmissions ? 'animate-spin' : ''} />
-                          Làm mới
+                          {t('problemSolve.refreshBtn')}
                         </button>
                       </div>
 
                       {isLoadingSubmissions ? (
                         <div className="flex flex-col items-center justify-center py-16 text-(--ws-muted)">
                           <Loader2 size={28} className="animate-spin mb-3 text-(--ws-accent)" />
-                          <p className="text-sm">Đang tải lịch sử bài nộp...</p>
+                          <p className="text-sm">{t('problemSolve.loadingSubmissionHistory')}</p>
                         </div>
                       ) : problemSubmissions.length === 0 ? (
                         <div className="rounded-2xl border border-(--ws-border) bg-(--ws-panel) p-12 text-center">
                           <Clock size={36} className="text-(--ws-muted) mx-auto mb-3 opacity-60" />
-                          <h3 className="font-semibold text-base mb-1">Chưa có bài nộp nào</h3>
+                          <h3 className="font-semibold text-base mb-1">{t('problemSolve.noSubmissionsYet')}</h3>
                           <p className="text-xs text-(--ws-muted) max-w-xs mx-auto">
-                            Bạn chưa nộp bài giải cho bài toán này. Hãy viết code ở khung bên phải và bấm "Nộp bài".
+                            {t('problemSolve.noSubmissionsHint')}
                           </p>
                         </div>
                       ) : (
@@ -1089,17 +1089,17 @@ export default function ProblemSolve() {
 
                                   <div className="flex items-center gap-4 text-xs text-(--ws-muted)">
                                     <span>
-                                      ⏱️ Thời gian: <strong className="text-(--ws-text)">{sub.execution_time != null ? `${sub.execution_time} ms` : '—'}</strong>
+                                      {t('problemSolve.executionTimeLabel')} <strong className="text-(--ws-text)">{sub.execution_time != null ? `${sub.execution_time} ms` : '—'}</strong>
                                     </span>
                                     <span>
-                                      💾 Bộ nhớ: <strong className="text-(--ws-text)">{sub.memory_used != null ? `${(sub.memory_used / 1024).toFixed(1)} MB` : '—'}</strong>
+                                      {t('problemSolve.memoryUsedLabel')} <strong className="text-(--ws-text)">{sub.memory_used != null ? `${(sub.memory_used / 1024).toFixed(1)} MB` : '—'}</strong>
                                     </span>
                                   </div>
 
                                   {sub.instructor_score != null && (
                                     <div className="flex flex-col gap-1 text-xs bg-amber-50 border border-amber-200 text-amber-900 p-2.5 rounded-lg">
                                       <div className="flex items-center gap-1.5 font-bold">
-                                        <span>⭐ Giảng viên chấm: {sub.instructor_score}/10</span>
+                                        <span>{t('problemSolve.instructorScoreLabel', { score: sub.instructor_score })}</span>
                                       </div>
                                       {sub.instructor_feedback && (
                                         <p className="text-[11px] text-amber-800 italic bg-white/70 p-1.5 rounded border border-amber-100">
@@ -1115,23 +1115,23 @@ export default function ProblemSolve() {
                                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-(--ws-border) text-xs font-medium text-(--ws-text) hover:border-(--ws-accent) transition-colors"
                                     >
                                       <Code size={13} />
-                                      {isInspecting ? 'Đóng code' : 'Xem code'}
+                                      {isInspecting ? t('problemSolve.closeCode') : t('problemSolve.viewCode')}
                                     </button>
                                     <button
                                       onClick={() => restoreCodeFromSubmission(sub)}
                                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-(--ws-accent) text-white text-xs font-semibold hover:opacity-90 transition-opacity"
-                                      title="Nạp lại đoạn code này vào khung soạn thảo để sửa và nộp lại"
+                                      title={t('problemSolve.loadIntoEditorTitle')}
                                     >
                                       <ClipboardPaste size={13} />
-                                      Nạp vào Editor
+                                      {t('problemSolve.loadIntoEditorBtn')}
                                     </button>
                                     <button
                                       onClick={() => {
                                         navigator.clipboard?.writeText(sub.source_code);
-                                        showToast('Đã sao chép mã nguồn vào clipboard!', 'success');
+                                        showToast(t('problemSolve.copiedSourceToast'), 'success');
                                       }}
                                       className="p-1.5 rounded-lg border border-(--ws-border) text-(--ws-muted) hover:text-(--ws-text) transition-colors ml-auto"
-                                      title="Sao chép mã nguồn"
+                                      title={t('problemSolve.copySourceTitle')}
                                     >
                                       <Copy size={13} />
                                     </button>
@@ -1140,8 +1140,8 @@ export default function ProblemSolve() {
                                   {isInspecting && (
                                     <div className="mt-2 rounded-lg bg-(--ws-panel2) p-3 border border-(--ws-border) overflow-hidden">
                                       <div className="flex items-center justify-between text-[11px] text-(--ws-muted) mb-2 pb-1.5 border-b border-(--ws-border)">
-                                        <span>Mã nguồn lần nộp #{sub.id.slice(0, 8)} ({sub.language})</span>
-                                        <span>{sub.source_code.split('\n').length} dòng</span>
+                                        <span>{t('problemSolve.submissionSourceHeader', { id: sub.id.slice(0, 8), lang: sub.language })}</span>
+                                        <span>{t('problemSolve.lineCountSuffix', { count: sub.source_code.split('\n').length })}</span>
                                       </div>
                                       <pre className="text-xs font-mono text-(--ws-text) overflow-x-auto whitespace-pre p-1">
                                         {sub.source_code}
@@ -1403,7 +1403,7 @@ export default function ProblemSolve() {
                                 </span>
                                 <span className="text-(--ws-faint) text-[11px]">{t('problemSolve.actualResult')}</span>
                               </div>
-                              <pre className="whitespace-pre-wrap break-all text-(--ws-text) leading-5">{sampleOutputs[i].actual || '(không có output)'}</pre>
+                              <pre className="whitespace-pre-wrap break-all text-(--ws-text) leading-5">{sampleOutputs[i].actual || t('problemSolve.noOutput')}</pre>
                             </div>
                           )}
                         </div>
@@ -1588,7 +1588,7 @@ export default function ProblemSolve() {
         <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setShowSolution(false)}>
           <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
-              <h3 className="font-bold text-[15px]">Lời giải tham khảo — {problemTitle}</h3>
+              <h3 className="font-bold text-[15px]">{t('problemSolve.referenceSolutionTitle', { title: problemTitle })}</h3>
               <button onClick={() => setShowSolution(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(80vh-64px)]">
