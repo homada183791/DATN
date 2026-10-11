@@ -213,11 +213,15 @@ export default function Submission() {
     <div className="space-y-6 text-[#191919]">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold font-serif text-[#191919]">{t('nav.submission', 'Bài nộp')}</h2>
+          <h2 className="text-2xl font-bold font-serif text-[#191919]">
+            {isInstructor
+              ? t('submission.instructorTitle', 'Quản lý bài nộp & Chấm điểm')
+              : t('submission.studentTitle', 'Lịch sử nộp bài')}
+          </h2>
           <p className="text-xs text-[#8a8073] mt-0.5">
             {isInstructor
-              ? t('submission.instructorSubtitle')
-              : t('submission.studentSubtitle')}
+              ? t('submission.instructorSubtitle', 'Theo dõi, chấm điểm thủ công và chấm lại các bài nộp của học viên')
+              : t('submission.studentSubtitle', 'Theo dõi kết quả chấm tự động và nhận xét từ giảng viên')}
           </p>
         </div>
         <span className="text-sm font-semibold text-[#8a8073] bg-[#f7f4eb] border border-[#e5dac9] px-3 py-1 rounded-full">
@@ -309,7 +313,7 @@ export default function Submission() {
                   <h3 className="font-serif font-bold text-lg text-[#191919] flex items-center gap-2">
                     {selectedSub.problemTitle}
                     <button
-                      onClick={() => navigate(`/student/problem/${selectedSub.problemId}`)}
+                      onClick={() => navigate(isInstructor ? `/instructor/problem/${selectedSub.problemId}` : `/student/problem/${selectedSub.problemId}`)}
                       className="text-[#8a8073] hover:text-[#193a2b] transition-colors"
                       title={t('submission.openStatementTooltip')}
                     >
@@ -334,7 +338,7 @@ export default function Submission() {
                   </button>
                 )}
                 <button
-                  onClick={() => navigate(`/problem/${selectedSub.problemId}`)}
+                  onClick={() => navigate(isInstructor ? `/instructor/problem/${selectedSub.problemId}` : `/student/problem/${selectedSub.problemId}`)}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#193a2b] bg-[#193a2b]/10 hover:bg-[#193a2b]/20 rounded-lg transition-colors"
                   title={t('submission.goToProblem')}
                 >

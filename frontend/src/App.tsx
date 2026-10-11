@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { createSocket } from './api/socket';
 import { queryClient } from './api/queryClient';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { ClassProvider } from './context/ClassContext';
@@ -31,6 +31,19 @@ import InstructorContest from './pages/instructor/Contest';
 import InstructorStudent from './pages/instructor/Student';
 import CalendarPage from './pages/calendar/CalendarPage';
 import NotFoundPage from './pages/NotFound';
+
+function ProblemRedirect() {
+  const { id } = useParams();
+  const { user } = useAuth();
+  const target = user?.role === 'instructor' ? `/instructor/problem/${id}` : `/student/problem/${id}`;
+  return <Navigate to={target} replace />;
+}
+
+function ProblemsRedirect() {
+  const { user } = useAuth();
+  const target = user?.role === 'instructor' ? '/instructor/problems' : '/student/problems';
+  return <Navigate to={target} replace />;
+}
 
 export default function App() {
   useEffect(() => {
@@ -107,6 +120,10 @@ export default function App() {
 
           {/* Invite link: /join/CODE */}
           <Route path="/join/:code" element={<JoinClass />} />
+
+          {/* Fallback role-aware redirects for legacy or direct problem links */}
+          <Route path="/problem/:id" element={<ProblemRedirect />} />
+          <Route path="/problems" element={<ProblemsRedirect />} />
 
           {/* Catch all */}
           <Route path="*" element={<NotFoundPage />} />

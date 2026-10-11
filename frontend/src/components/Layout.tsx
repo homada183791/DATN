@@ -43,6 +43,7 @@ interface SidebarItem {
 function Breadcrumbs() {
   const location = useLocation();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const pathSegments = location.pathname.split('/').filter(Boolean);
 
   const labels: Record<string, string> = {
@@ -51,8 +52,11 @@ function Breadcrumbs() {
     dashboard: t('breadcrumb.dashboard'),
     problems: t('breadcrumb.problems'),
     problem: t('breadcrumb.problem'),
+    homework: t('breadcrumb.homework'),
+    homeworks: t('breadcrumb.homework'),
     contest: t('breadcrumb.contest'),
-    submission: t('breadcrumb.submission'),
+    submission: user?.role === 'instructor' ? t('breadcrumb.gradingSubmissions', 'Chấm bài & Bài nộp') : t('breadcrumb.submission'),
+    submissions: user?.role === 'instructor' ? t('breadcrumb.gradingSubmissions', 'Chấm bài & Bài nộp') : t('breadcrumb.submission'),
     class: t('breadcrumb.class'),
     classes: t('breadcrumb.class'),
     profile: t('breadcrumb.profile'),
@@ -149,6 +153,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
         { label: t('nav.dashboard'), icon: <LayoutDashboard size={20} />, path: '/instructor/dashboard' },
         { label: t('nav.class'), icon: <GraduationCap size={20} />, path: '/instructor/classes' },
         { label: t('nav.homework'), icon: <ClipboardList size={20} />, path: '/instructor/homework' },
+        { label: t('nav.gradingSubmissions', 'Chấm bài & Bài nộp'), icon: <Send size={20} />, path: '/instructor/submissions' },
         { label: t('nav.contest'), icon: <Trophy size={20} />, path: '/instructor/contest' },
         { label: t('nav.calendar'), icon: <Calendar size={20} />, path: '/instructor/calendar' },
         { label: t('nav.students'), icon: <Users size={20} />, path: '/instructor/students' },
@@ -156,7 +161,8 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
       ]
     : [
         { label: t('nav.dashboard'), icon: <LayoutDashboard size={20} />, path: '/student/dashboard' },
-        { label: t('nav.myHomework'), icon: <BookOpen size={20} />, path: '/student/homeworks' },
+        { label: t('nav.practiceProblems', 'Kho bài tập'), icon: <Code2 size={20} />, path: '/student/problems' },
+        { label: t('nav.studentHomework', 'Bài tập'), icon: <BookOpen size={20} />, path: '/student/homeworks' },
         { label: t('nav.class'), icon: <GraduationCap size={20} />, path: '/student/class' },
         { label: t('nav.contest'), icon: <Trophy size={20} />, path: '/student/contest' },
         { label: t('nav.calendar'), icon: <Calendar size={20} />, path: '/student/calendar' },
@@ -210,7 +216,10 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
           {items.map((item) => {
             const isActive =
               location.pathname === item.path ||
-              (item.path === '/student/problems' && location.pathname.startsWith('/student/problem'));
+              (item.path === '/student/problems' && location.pathname.startsWith('/student/problem')) ||
+              (item.path === '/instructor/problems' && location.pathname.startsWith('/instructor/problem')) ||
+              (item.path === '/instructor/submissions' && (location.pathname === '/instructor/submission' || location.pathname === '/instructor/submissions')) ||
+              (item.path === '/student/submission' && (location.pathname === '/student/submission' || location.pathname === '/student/submissions'));
             return (
               <Link
                 key={item.path}

@@ -17,10 +17,13 @@
     "submission": "Submissions",
     "class": "Classes",
     "homework": "Assign Homework",
+    "studentHomework": "Homework",
     "students": "Students",
     "problemBank": "Problem Bank",
+    "practiceProblems": "Problem Set",
     "calendar": "Calendar",
-    "myHomework": "Homework"
+    "myHomework": "Homework",
+    "gradingSubmissions": "Grading & Submissions"
   },
   "breadcrumb": {
     "student": "Student",
@@ -31,7 +34,10 @@
     "homework": "Homework",
     "contest": "Contest",
     "submission": "Submissions",
+    "submissions": "Submissions",
+    "gradingSubmissions": "Grading & Submissions",
     "class": "Class",
+    "classes": "Classes",
     "profile": "Profile",
     "settings": "Settings",
     "students": "Students",
