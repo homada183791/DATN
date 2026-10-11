@@ -107,9 +107,9 @@ export default function InstructorContest() {
       const detail = await fetchContestDetail(contestId);
       setContestProblems(detail.problems ?? []);
       await queryClient.invalidateQueries({ queryKey: ['contests'] });
-      notifyGlobalToast('Đã thêm bài vào kỳ thi.', 'success');
+      notifyGlobalToast(t('instructorContest.success.problemAdded'), 'success');
     } catch (err) {
-      notifyGlobalToast(err instanceof ApiError ? err.message : 'Không thể thêm bài.');
+      notifyGlobalToast(err instanceof ApiError ? err.message : t('instructorContest.errors.addProblemFailed'));
     } finally {
       setAddingProblemId(null);
     }
@@ -121,9 +121,9 @@ export default function InstructorContest() {
       const detail = await fetchContestDetail(contestId);
       setContestProblems(detail.problems ?? []);
       await queryClient.invalidateQueries({ queryKey: ['contests'] });
-      notifyGlobalToast('Đã xoá bài khỏi kỳ thi.', 'success');
+      notifyGlobalToast(t('instructorContest.success.problemRemoved'), 'success');
     } catch (err) {
-      notifyGlobalToast(err instanceof ApiError ? err.message : 'Không thể xoá bài.');
+      notifyGlobalToast(err instanceof ApiError ? err.message : t('instructorContest.errors.removeProblemFailed'));
     }
   };
 
@@ -131,11 +131,11 @@ export default function InstructorContest() {
     setCalculatingEloContestId(contestId);
     try {
       await calculateContestElo(contestId);
-      notifyGlobalToast('Đã tính toán và cập nhật điểm ELO thành công cho các sinh viên!', 'success');
+      notifyGlobalToast(t('instructorContest.success.eloCalculated'), 'success');
       await queryClient.invalidateQueries({ queryKey: ['contests'] });
       await queryClient.invalidateQueries({ queryKey: ['users', 'top-rated'] });
     } catch (err: any) {
-      notifyGlobalToast(err instanceof ApiError ? err.message : 'Lỗi khi tính điểm ELO');
+      notifyGlobalToast(err instanceof ApiError ? err.message : t('instructorContest.errors.eloCalculationFailed'));
     } finally {
       setCalculatingEloContestId(null);
     }
@@ -148,7 +148,7 @@ export default function InstructorContest() {
       const reports = await fetchPlagiarismReports(contestId);
       setPlagiarismReports(reports);
     } catch (err: any) {
-      notifyGlobalToast(err instanceof ApiError ? err.message : 'Không thể tải báo cáo đạo văn');
+      notifyGlobalToast(err instanceof ApiError ? err.message : t('instructorContest.errors.loadPlagiarismFailed'));
       setPlagiarismReports([]);
     } finally {
       setLoadingPlagiarism(false);
@@ -157,15 +157,15 @@ export default function InstructorContest() {
 
   const saveContest = async () => {
     if (!form.title.trim() || !form.startTime || !form.endTime) {
-      notifyGlobalToast('Vui lòng nhập đầy đủ tên và thời gian kỳ thi.');
+      notifyGlobalToast(t('instructorContest.errors.missingFields'));
       return;
     }
     if (new Date(form.endTime) <= new Date(form.startTime)) {
-      notifyGlobalToast('Thời gian kết thúc phải lớn hơn thời gian bắt đầu.');
+      notifyGlobalToast(t('instructorContest.errors.endBeforeStart'));
       return;
     }
     if (form.visibility === 'private' && !form.classId) {
-      notifyGlobalToast('Vui lòng chọn lớp cho kỳ thi riêng tư.');
+      notifyGlobalToast(t('instructorContest.errors.privateClassRequired'));
       return;
     }
 
@@ -185,23 +185,23 @@ export default function InstructorContest() {
       await queryClient.invalidateQueries({ queryKey: ['contests'] });
       setShowCreateModal(false);
       setSelectedContest(null);
-      notifyGlobalToast(editingContest ? 'Đã cập nhật kỳ thi.' : 'Đã tạo kỳ thi.', 'success');
+      notifyGlobalToast(editingContest ? t('instructorContest.success.contestUpdated') : t('instructorContest.success.contestCreated'), 'success');
     } catch (error) {
-      notifyGlobalToast(error instanceof ApiError ? error.message : 'Không thể lưu kỳ thi.');
+      notifyGlobalToast(error instanceof ApiError ? error.message : t('instructorContest.errors.saveFailed'));
     } finally {
       setIsSaving(false);
     }
   };
 
   const removeContest = async (id: string) => {
-    if (!window.confirm('Bạn có chắc muốn xoá kỳ thi này? Toàn bộ bài toán, session và kết quả sẽ bị xoá.')) return;
+    if (!window.confirm(t('instructorContest.confirmDeleteContest'))) return;
     try {
       await deleteContest(id);
       await queryClient.invalidateQueries({ queryKey: ['contests'] });
       setSelectedContest(null);
-      notifyGlobalToast('Đã xoá kỳ thi.', 'success');
+      notifyGlobalToast(t('instructorContest.success.contestDeleted'), 'success');
     } catch (error) {
-      notifyGlobalToast(error instanceof ApiError ? error.message : 'Không thể xoá kỳ thi.');
+      notifyGlobalToast(error instanceof ApiError ? error.message : t('instructorContest.errors.deleteFailed'));
     }
   };
 
@@ -294,11 +294,11 @@ export default function InstructorContest() {
 
       {/* ── Contest Detail Modal ──────────────────────────────────────────── */}
       {selectedContest && selectedContestData && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-[80] flex items-center justify-center p-4" onClick={() => setSelectedContest(null)}>
-          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-6 border-b border-[var(--ws-border)]">
-              <h3 className="text-lg font-serif font-bold text-[var(--ws-text)]">{selectedContestData.title}</h3>
-              <button onClick={() => setSelectedContest(null)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-80 flex items-center justify-center p-4" onClick={() => setSelectedContest(null)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-6 border-b border-(--ws-border)">
+              <h3 className="text-lg font-serif font-bold text-(--ws-text)">{selectedContestData.title}</h3>
+              <button onClick={() => setSelectedContest(null)} className="text-(--ws-muted) hover:text-(--ws-text)">
                 <X size={20} />
               </button>
             </div>
@@ -309,57 +309,57 @@ export default function InstructorContest() {
                 </span>
                 {selectedContestData.visibility === 'private' ? (
                   <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border font-medium bg-purple-50 text-purple-700 border-purple-200">
-                    <Lock size={10} /> Riêng tư
+                    <Lock size={10} /> {t('instructorContest.visibilityPrivate')}
                   </span>
                 ) : (
                   <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border font-medium bg-sky-50 text-sky-700 border-sky-200">
-                    <Globe size={10} /> Công khai
+                    <Globe size={10} /> {t('instructorContest.visibilityPublic')}
                   </span>
                 )}
               </div>
 
               <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] shadow-xs">
-                  <p className="text-xs text-[var(--ws-muted)] font-semibold uppercase tracking-wider">Bắt đầu</p>
-                  <p className="text-sm text-[var(--ws-text)] font-semibold mt-1">{formatVNFull(selectedContestData.startTime)}</p>
+                <div className="p-3 bg-(--ws-panel2) rounded-xl border border-(--ws-border) shadow-xs">
+                  <p className="text-xs text-(--ws-muted) font-semibold uppercase tracking-wider">{t('instructorContest.fieldStart')}</p>
+                  <p className="text-sm text-(--ws-text) font-semibold mt-1">{formatVNFull(selectedContestData.startTime)}</p>
                 </div>
-                <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] shadow-xs">
-                  <p className="text-xs text-[var(--ws-muted)] font-semibold uppercase tracking-wider">Kết thúc</p>
-                  <p className="text-sm text-[var(--ws-text)] font-semibold mt-1">{formatVNFull(selectedContestData.endTime)}</p>
+                <div className="p-3 bg-(--ws-panel2) rounded-xl border border-(--ws-border) shadow-xs">
+                  <p className="text-xs text-(--ws-muted) font-semibold uppercase tracking-wider">{t('instructorContest.fieldEnd')}</p>
+                  <p className="text-sm text-(--ws-text) font-semibold mt-1">{formatVNFull(selectedContestData.endTime)}</p>
                 </div>
-                <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] shadow-xs">
-                  <p className="text-xs text-[var(--ws-muted)] font-semibold uppercase tracking-wider">{t('instructorContest.fieldParticipants')}</p>
-                  <p className="text-sm text-[var(--ws-text)] font-semibold mt-1">{selectedContestData.participantCount}</p>
+                <div className="p-3 bg-(--ws-panel2) rounded-xl border border-(--ws-border) shadow-xs">
+                  <p className="text-xs text-(--ws-muted) font-semibold uppercase tracking-wider">{t('instructorContest.fieldParticipants')}</p>
+                  <p className="text-sm text-(--ws-text) font-semibold mt-1">{selectedContestData.participantCount}</p>
                 </div>
-                <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] shadow-xs">
-                  <p className="text-xs text-[var(--ws-muted)] font-semibold uppercase tracking-wider">{t('instructorContest.fieldProblemCount')}</p>
-                  <p className="text-sm text-[var(--ws-text)] font-semibold mt-1">{selectedContestData.problemCount}</p>
+                <div className="p-3 bg-(--ws-panel2) rounded-xl border border-(--ws-border) shadow-xs">
+                  <p className="text-xs text-(--ws-muted) font-semibold uppercase tracking-wider">{t('instructorContest.fieldProblemCount')}</p>
+                  <p className="text-sm text-(--ws-text) font-semibold mt-1">{selectedContestData.problemCount}</p>
                 </div>
               </div>
 
               {/* Standings */}
-              <h4 className="text-sm font-bold font-serif text-[var(--ws-text)] mb-3">Bảng xếp hạng ICPC</h4>
-              <div className="bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] overflow-hidden shadow-xs mb-6">
+              <h4 className="text-sm font-bold font-serif text-(--ws-text) mb-3">{t('instructorContest.standingsTitle')}</h4>
+              <div className="bg-(--ws-panel2) rounded-xl border border-(--ws-border) overflow-hidden shadow-xs mb-6">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-[var(--ws-border)] bg-[var(--ws-hover)]">
-                      <th className="text-left text-xs font-semibold text-[var(--ws-muted)] py-2.5 px-3 uppercase tracking-wider">#</th>
-                      <th className="text-left text-xs font-semibold text-[var(--ws-muted)] py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colUser')}</th>
-                      <th className="text-right text-xs font-semibold text-[var(--ws-muted)] py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colSolved')}</th>
-                      <th className="text-right text-xs font-semibold text-[var(--ws-muted)] py-2.5 px-3 uppercase tracking-wider">Penalty</th>
+                    <tr className="border-b border-(--ws-border) bg-(--ws-hover)">
+                      <th className="text-left text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">#</th>
+                      <th className="text-left text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colUser')}</th>
+                      <th className="text-right text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colSolved')}</th>
+                      <th className="text-right text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colPenalty')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {standings.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="py-6 text-center text-sm text-[var(--ws-muted)]">Chưa có dữ liệu bảng xếp hạng</td>
+                        <td colSpan={4} className="py-6 text-center text-sm text-(--ws-muted)">{t('instructorContest.noStandingsData')}</td>
                       </tr>
                     ) : standings.map((s) => (
-                      <tr key={s.user_id ?? s.rank} className="border-b border-[var(--ws-border)] hover:bg-[var(--ws-hover)]">
-                        <td className="py-2.5 px-3 text-sm text-[var(--ws-muted)]">{s.rank}</td>
-                        <td className="py-2.5 px-3 text-sm text-[var(--ws-text)] font-semibold">{s.fullName ?? s.username ?? s.email}</td>
+                      <tr key={s.user_id ?? s.rank} className="border-b border-(--ws-border) hover:bg-(--ws-hover)">
+                        <td className="py-2.5 px-3 text-sm text-(--ws-muted)">{s.rank}</td>
+                        <td className="py-2.5 px-3 text-sm text-(--ws-text) font-semibold">{s.fullName ?? s.username ?? s.email}</td>
                         <td className="py-2.5 px-3 text-sm text-emerald-700 font-bold text-right">{s.solvedCount ?? s.solved}</td>
-                        <td className="py-2.5 px-3 text-sm text-[var(--ws-muted)] text-right">{s.penalty ?? '—'}</td>
+                        <td className="py-2.5 px-3 text-sm text-(--ws-muted) text-right">{s.penalty ?? '—'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -376,7 +376,7 @@ export default function InstructorContest() {
                   }}
                   className="flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-sm font-medium rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
                 >
-                  <Edit3 size={14} /> Chỉnh sửa
+                  <Edit3 size={14} /> {t('common.edit')}
                 </button>
                 <button
                   onClick={() => {
@@ -384,34 +384,34 @@ export default function InstructorContest() {
                     setSelectedContest(null);
                     setTimeout(() => openProblemManager(id), 50);
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-text)] text-sm font-medium rounded-xl hover:bg-[var(--ws-hover)] transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-text) text-sm font-medium rounded-xl hover:bg-(--ws-hover) transition-colors"
                 >
-                  <BookOpen size={14} /> Quản lý bài thi
+                  <BookOpen size={14} /> {t('instructorContest.manageProblems')}
                 </button>
                 <button
                   onClick={() => openPlagiarismModal(selectedContestData.id)}
                   className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-800 border border-amber-200 text-sm font-medium rounded-xl hover:bg-amber-100 transition-colors shadow-sm"
-                  title="Kiểm tra báo cáo đạo văn"
+                  title={t('instructorContest.checkPlagiarismTooltip')}
                 >
-                  <ShieldAlert size={14} /> Kiểm tra đạo văn
+                  <ShieldAlert size={14} /> {t('instructorContest.checkPlagiarismBtn')}
                 </button>
                 {selectedContestData.status === 'ended' && (
                   <button
                     onClick={() => handleCalculateElo(selectedContestData.id)}
                     disabled={calculatingEloContestId === selectedContestData.id}
                     className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 border border-indigo-200 text-sm font-medium rounded-xl hover:bg-indigo-100 transition-colors shadow-sm disabled:opacity-60"
-                    title="Tổng kết và tính điểm ELO cho các thí sinh"
+                    title={t('instructorContest.finalizeEloTooltip')}
                   >
                     {calculatingEloContestId === selectedContestData.id ? (
                       <Loader2 size={14} className="animate-spin" />
                     ) : (
                       <TrendingUp size={14} />
                     )}
-                    Tổng kết & Cập nhật ELO
+                    {t('instructorContest.finalizeEloBtn')}
                   </button>
                 )}
                 <button onClick={() => { removeContest(selectedContestData.id); }} className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 border border-red-200 text-sm font-medium rounded-xl hover:bg-red-100 transition-colors">
-                  <Trash2 size={14} /> Xoá
+                  <Trash2 size={14} /> {t('common.delete')}
                 </button>
               </div>
             </div>
@@ -421,46 +421,53 @@ export default function InstructorContest() {
 
       {/* ── Problem Manager Modal ──────────────────────────────────────────── */}
       {showProblemManager && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-[80] flex items-center justify-center p-4" onClick={() => setShowProblemManager(null)}>
-          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-6 border-b border-[var(--ws-border)]">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-80 flex items-center justify-center p-4" onClick={() => setShowProblemManager(null)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-6 border-b border-(--ws-border)">
               <div>
-                <h3 className="text-lg font-serif font-bold text-[var(--ws-text)]">Quản lý bài thi</h3>
-                <p className="text-xs text-[var(--ws-muted)] mt-0.5">Thêm bài từ ngân hàng vào kỳ thi</p>
+                <h3 className="text-lg font-serif font-bold text-(--ws-text)">{t('instructorContest.manageProblems')}</h3>
+                <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorContest.manageProblemsModalSubtitle')}</p>
               </div>
-              <button onClick={() => setShowProblemManager(null)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={20} /></button>
+              <button onClick={() => setShowProblemManager(null)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={20} /></button>
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)] space-y-6">
               {/* Current contest problems */}
               <div>
-                <h4 className="text-sm font-bold text-[var(--ws-text)] mb-3 flex items-center gap-2">
+                <h4 className="text-sm font-bold text-(--ws-text) mb-3 flex items-center gap-2">
                   <CheckCircle2 size={16} className="text-emerald-600" />
-                  Bài đang có trong kỳ thi ({loadingContestProblems ? '...' : contestProblems.length})
+                  {t('instructorContest.currentProblemsHeading', { count: loadingContestProblems ? '...' : contestProblems.length })}
                 </h4>
                 {loadingContestProblems ? (
                   <div className="flex items-center justify-center h-16">
                     <div className="w-6 h-6 border-2 border-[#193a2b] border-t-transparent rounded-full animate-spin" />
                   </div>
                 ) : contestProblems.length === 0 ? (
-                  <div className="bg-[var(--ws-panel2)] border border-[var(--ws-border)] rounded-xl p-6 text-center text-sm text-[var(--ws-muted)]">
-                    Chưa có bài nào trong kỳ thi này
+                  <div className="bg-(--ws-panel2) border border-(--ws-border) rounded-xl p-6 text-center text-sm text-(--ws-muted)">
+                    {t('instructorContest.noProblemsInContest')}
                   </div>
                 ) : (
                   <div className="space-y-2">
                     {contestProblems.map((cp, i) => {
-                      const diffMap: Record<string, string> = { EASY: 'Dễ', MEDIUM: 'Trung bình', HARD: 'Khó', Easy: 'Dễ', Medium: 'Trung bình', Hard: 'Khó' };
+                      const diffMap: Record<string, string> = {
+                        EASY: t('instructorHomework.difficultyEasyFull'),
+                        MEDIUM: t('instructorHomework.difficultyMediumFull'),
+                        HARD: t('instructorHomework.difficultyHard'),
+                        Easy: t('instructorHomework.difficultyEasyFull'),
+                        Medium: t('instructorHomework.difficultyMediumFull'),
+                        Hard: t('instructorHomework.difficultyHard'),
+                      };
                       const diffColor: Record<string, string> = { EASY: 'bg-emerald-100 text-emerald-700', MEDIUM: 'bg-yellow-100 text-yellow-700', HARD: 'bg-red-100 text-red-700', Easy: 'bg-emerald-100 text-emerald-700', Medium: 'bg-yellow-100 text-yellow-700', Hard: 'bg-red-100 text-red-700' };
                       return (
-                        <div key={cp.problem_id} className="flex items-center gap-3 px-4 py-3 bg-[var(--ws-panel2)] border border-[var(--ws-border)] rounded-xl">
-                          <span className="text-sm font-mono text-[var(--ws-muted)] w-5 text-center">{String.fromCharCode(65 + i)}</span>
-                          <p className="flex-1 text-sm font-semibold text-[var(--ws-text)]">{cp.problem.title}</p>
+                        <div key={cp.problem_id} className="flex items-center gap-3 px-4 py-3 bg-(--ws-panel2) border border-(--ws-border) rounded-xl">
+                          <span className="text-sm font-mono text-(--ws-muted) w-5 text-center">{String.fromCharCode(65 + i)}</span>
+                          <p className="flex-1 text-sm font-semibold text-(--ws-text)">{cp.problem.title}</p>
                           <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${diffColor[cp.problem.difficulty] ?? 'bg-gray-100 text-gray-600'}`}>
                             {diffMap[cp.problem.difficulty] ?? cp.problem.difficulty}
                           </span>
                           <button
                             onClick={() => handleRemoveProblem(showProblemManager!, cp.problem_id)}
-                            className="flex-shrink-0 p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Xoá bài khỏi kỳ thi"
+                            className="shrink-0 p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            title={t('instructorContest.removeProblemTooltip')}
                           >
                             <Trash2 size={14} />
                           </button>
@@ -473,46 +480,50 @@ export default function InstructorContest() {
 
               {/* Bank problems picker */}
               <div>
-                <h4 className="text-sm font-bold text-[var(--ws-text)] mb-3 flex items-center gap-2">
+                <h4 className="text-sm font-bold text-(--ws-text) mb-3 flex items-center gap-2">
                   <BookOpen size={16} className="text-blue-600" />
-                  Ngân hàng bài toán — Thêm bài
+                  {t('instructorContest.problemBankHeading')}
                 </h4>
                 <div className="relative mb-3">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ws-muted)]" />
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-(--ws-muted)" />
                   <input
                     value={problemSearch}
                     onChange={(e) => setProblemSearch(e.target.value)}
-                    placeholder="Tìm kiếm bài toán..."
-                    className="w-full pl-9 pr-4 py-2 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-sm text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                    placeholder={t('instructorContest.searchProblemPlaceholder')}
+                    className="w-full pl-9 pr-4 py-2 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-sm text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                   />
                 </div>
                 {availableProblems.length === 0 ? (
-                  <div className="bg-[var(--ws-panel2)] border border-[var(--ws-border)] rounded-xl p-6 text-center text-sm text-[var(--ws-muted)]">
-                    {bankProblems.length === 0 ? 'Ngân hàng bài toán chưa có bài nào' : 'Tất cả bài đã được thêm vào kỳ thi'}
+                  <div className="bg-(--ws-panel2) border border-(--ws-border) rounded-xl p-6 text-center text-sm text-(--ws-muted)">
+                    {bankProblems.length === 0 ? t('instructorContest.bankEmptyNoProblems') : t('instructorContest.bankEmptyAllAdded')}
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
                     {availableProblems.map((p) => {
-                      const diffMap: Record<string, string> = { EASY: 'Dễ', MEDIUM: 'Trung bình', HARD: 'Khó' };
+                      const diffMap: Record<string, string> = {
+                        EASY: t('instructorHomework.difficultyEasyFull'),
+                        MEDIUM: t('instructorHomework.difficultyMediumFull'),
+                        HARD: t('instructorHomework.difficultyHard'),
+                      };
                       const diffColor: Record<string, string> = { EASY: 'bg-emerald-100 text-emerald-700', MEDIUM: 'bg-yellow-100 text-yellow-700', HARD: 'bg-red-100 text-red-700' };
                       const isAdding = addingProblemId === p.id;
                       return (
-                        <div key={p.id} className="flex items-center gap-3 px-4 py-3 bg-[var(--ws-panel2)] border border-[var(--ws-border)] rounded-xl hover:bg-[var(--ws-hover)] transition-colors">
-                          <p className="flex-1 text-sm font-semibold text-[var(--ws-text)] truncate">{p.title}</p>
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${diffColor[p.difficulty] ?? 'bg-gray-100 text-gray-600'}`}>
+                        <div key={p.id} className="flex items-center gap-3 px-4 py-3 bg-(--ws-panel2) border border-(--ws-border) rounded-xl hover:bg-(--ws-hover) transition-colors">
+                          <p className="flex-1 text-sm font-semibold text-(--ws-text) truncate">{p.title}</p>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold shrink-0 ${diffColor[p.difficulty] ?? 'bg-gray-100 text-gray-600'}`}>
                             {diffMap[p.difficulty] ?? p.difficulty}
                           </span>
                           <button
                             onClick={() => handleAddProblem(showProblemManager!, p.id)}
                             disabled={isAdding}
-                            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] disabled:opacity-60 transition-colors"
+                            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] disabled:opacity-60 transition-colors"
                           >
                             {isAdding ? (
                               <span className="w-3.5 h-3.5 border border-white border-t-transparent rounded-full animate-spin" />
                             ) : (
                               <Plus size={12} />
                             )}
-                            Thêm
+                            {t('instructorContest.addBtn')}
                           </button>
                         </div>
                       );
@@ -527,61 +538,61 @@ export default function InstructorContest() {
 
       {/* ── Create / Edit Contest Modal ───────────────────────────────────── */}
       {showCreateModal && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-[80] flex items-center justify-center p-4" onClick={() => setShowCreateModal(false)}>
-          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-6 border-b border-[var(--ws-border)]">
-              <h3 className="text-lg font-serif font-bold text-[var(--ws-text)]">
-                {editingContest ? 'Chỉnh sửa kỳ thi' : 'Tạo kỳ thi mới'}
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-80 flex items-center justify-center p-4" onClick={() => setShowCreateModal(false)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-6 border-b border-(--ws-border)">
+              <h3 className="text-lg font-serif font-bold text-(--ws-text)">
+                {editingContest ? t('instructorContest.editContestModalTitle') : t('instructorContest.createContestModalTitle')}
               </h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]">
+              <button onClick={() => setShowCreateModal(false)} className="text-(--ws-muted) hover:text-(--ws-text)">
                 <X size={20} />
               </button>
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)] space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Tên kỳ thi <span className="text-red-500">*</span></label>
-                <input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} type="text" className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]" placeholder="Nhập tên kỳ thi" />
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorContest.fieldName')} <span className="text-red-500">*</span></label>
+                <input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} type="text" className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]" placeholder={t('instructorContest.fieldNamePlaceholder')} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Mô tả</label>
-                <textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} rows={3} className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none" placeholder="Mô tả kỳ thi" />
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldDescription')}</label>
+                <textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} rows={3} className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none" placeholder={t('instructorContest.fieldDescPlaceholder')} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Thời gian bắt đầu <span className="text-red-500">*</span></label>
-                  <input value={form.startTime} onChange={(event) => setForm({ ...form, startTime: event.target.value })} type="datetime-local" className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
+                  <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorContest.fieldStartAt')} <span className="text-red-500">*</span></label>
+                  <input value={form.startTime} onChange={(event) => setForm({ ...form, startTime: event.target.value })} type="datetime-local" className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Thời gian kết thúc <span className="text-red-500">*</span></label>
-                  <input value={form.endTime} onChange={(event) => setForm({ ...form, endTime: event.target.value })} type="datetime-local" className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
+                  <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorContest.fieldEndAt')} <span className="text-red-500">*</span></label>
+                  <input value={form.endTime} onChange={(event) => setForm({ ...form, endTime: event.target.value })} type="datetime-local" className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">Quyền truy cập</label>
-                  <select value={form.visibility} onChange={(event) => setForm({ ...form, visibility: event.target.value as ContestForm['visibility'], classId: event.target.value === 'public' ? '' : form.classId })} className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]">
-                    <option value="public">🌐 Công khai</option>
-                    <option value="private">🔒 Riêng tư (theo lớp)</option>
+                  <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorContest.fieldVisibility')}</label>
+                  <select value={form.visibility} onChange={(event) => setForm({ ...form, visibility: event.target.value as ContestForm['visibility'], classId: event.target.value === 'public' ? '' : form.classId })} className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b]">
+                    <option value="public">{t('instructorContest.visibilityPublicOption')}</option>
+                    <option value="private">{t('instructorContest.visibilityPrivateOption')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">
-                    Lớp học {form.visibility === 'private' && <span className="text-red-500">*</span>}
+                  <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">
+                    {t('instructorContest.fieldClassLabel')} {form.visibility === 'private' && <span className="text-red-500">*</span>}
                   </label>
                   <select
                     value={form.classId}
                     onChange={(event) => setForm({ ...form, classId: event.target.value })}
                     disabled={form.visibility !== 'private'}
-                    className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b] disabled:opacity-50"
+                    className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b] disabled:opacity-50"
                   >
-                    <option value="">-- Chọn lớp --</option>
+                    <option value="">{t('instructorContest.selectClassPlaceholderOption')}</option>
                     {classes.map((classItem) => <option key={classItem.id} value={classItem.id}>{classItem.name}</option>)}
                   </select>
                 </div>
               </div>
               {form.visibility === 'private' && !form.classId && (
                 <p className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 px-3 py-2 rounded-xl">
-                  ⚠️ Kỳ thi riêng tư yêu cầu chọn lớp học. Sinh viên trong lớp đó mới thấy kỳ thi này.
+                  {t('instructorContest.privateClassWarning')}
                 </p>
               )}
               <div className="flex gap-3 pt-4">
@@ -591,11 +602,11 @@ export default function InstructorContest() {
                   className="flex-1 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] transition-colors shadow-md disabled:opacity-60 flex items-center justify-center gap-2"
                 >
                   {isSaving && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                  {editingContest ? 'Lưu thay đổi' : 'Tạo kỳ thi'}
+                  {editingContest ? t('instructorHomework.saveChanges') : t('instructorContest.createSubmitBtn')}
                 </button>
                 <button
                   onClick={() => setShowCreateModal(false)}
-                  className="px-6 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] font-medium rounded-xl hover:bg-[var(--ws-hover)] transition-colors"
+                  className="px-6 py-2.5 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) font-medium rounded-xl hover:bg-(--ws-hover) transition-colors"
                 >
                   {t('common.cancel')}
                 </button>
@@ -609,7 +620,7 @@ export default function InstructorContest() {
       {filteredContests.length === 0 ? (
         <div className="bg-white border border-[#e5dac9] rounded-2xl p-14 text-center shadow-sm">
           <Trophy size={48} className="text-[#bfae99] mx-auto mb-4" />
-          <p className="text-[#8a8073]">Không tìm thấy kỳ thi nào</p>
+          <p className="text-[#8a8073]">{t('instructorContest.noContestsFound')}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -633,16 +644,16 @@ export default function InstructorContest() {
                       {/* Visibility badge */}
                       {contest.visibility === 'private' ? (
                         <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase bg-purple-50 text-purple-700 border-purple-200">
-                          <Lock size={9} /> Riêng tư
+                          <Lock size={9} /> {t('instructorContest.visibilityPrivate')}
                         </span>
                       ) : (
                         <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase bg-sky-50 text-sky-700 border-sky-200">
-                          <Globe size={9} /> Công khai
+                          <Globe size={9} /> {t('instructorContest.visibilityPublic')}
                         </span>
                       )}
                       <span className="flex items-center gap-1"><Calendar size={12} /> {formatVNFull(contest.startTime)}</span>
-                      <span className="flex items-center gap-1"><Users size={12} /> {contest.participantCount} người</span>
-                      <span className="flex items-center gap-1"><BookOpen size={12} /> {contest.problemCount} bài</span>
+                      <span className="flex items-center gap-1"><Users size={12} /> {contest.participantCount} {t('instructorContest.participantsCountSuffix')}</span>
+                      <span className="flex items-center gap-1"><BookOpen size={12} /> {contest.problemCount} {t('instructorHomework.problemsUnit')}</span>
                     </div>
                   </div>
                 </div>
@@ -654,28 +665,28 @@ export default function InstructorContest() {
                     <button
                       onClick={() => setSelectedContest(contest.id)}
                       className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-[#191919] hover:bg-[#f7f4eb] transition-colors"
-                      title="Xem chi tiết"
+                      title={t('instructorContest.viewDetail')}
                     >
                       <Eye size={16} />
                     </button>
                     <button
                       onClick={() => openEdit(contest)}
                       className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-blue-600 hover:bg-[#f7f4eb] transition-colors"
-                      title="Chỉnh sửa"
+                      title={t('common.edit')}
                     >
                       <Edit3 size={16} />
                     </button>
                     <button
                       onClick={() => openProblemManager(contest.id)}
                       className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-emerald-600 hover:bg-[#f7f4eb] transition-colors"
-                      title="Quản lý bài thi"
+                      title={t('instructorContest.manageProblems')}
                     >
                       <BookOpen size={16} />
                     </button>
                     <button
                       onClick={() => openPlagiarismModal(contest.id)}
                       className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-amber-600 hover:bg-[#f7f4eb] transition-colors"
-                      title="Báo cáo đạo văn"
+                      title={t('instructorContest.checkPlagiarismBtn')}
                     >
                       <ShieldAlert size={16} />
                     </button>
@@ -684,7 +695,7 @@ export default function InstructorContest() {
                         onClick={() => handleCalculateElo(contest.id)}
                         disabled={calculatingEloContestId === contest.id}
                         className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-indigo-600 hover:bg-[#f7f4eb] transition-colors disabled:opacity-50"
-                        title="Tổng kết & Cập nhật ELO"
+                        title={t('instructorContest.finalizeEloBtn')}
                       >
                         {calculatingEloContestId === contest.id ? (
                           <Loader2 size={16} className="animate-spin" />
@@ -696,7 +707,7 @@ export default function InstructorContest() {
                     <button
                       onClick={() => removeContest(contest.id)}
                       className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-red-600 hover:bg-[#f7f4eb] transition-colors"
-                      title="Xoá"
+                      title={t('common.delete')}
                     >
                       <Trash2 size={16} />
                     </button>
@@ -710,18 +721,18 @@ export default function InstructorContest() {
 
       {/* ── Plagiarism Report Modal ────────────────────────────────────────── */}
       {showPlagiarismModal && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-[90] flex items-center justify-center p-4" onClick={() => setShowPlagiarismModal(null)}>
-          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-6 border-b border-[var(--ws-border)]">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setShowPlagiarismModal(null)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-6 border-b border-(--ws-border)">
               <div>
-                <h3 className="text-lg font-serif font-bold text-[var(--ws-text)] flex items-center gap-2">
-                  <ShieldAlert size={20} className="text-amber-600" /> Báo cáo đạo văn & Tương đồng mã nguồn
+                <h3 className="text-lg font-serif font-bold text-(--ws-text) flex items-center gap-2">
+                  <ShieldAlert size={20} className="text-amber-600" /> {t('instructorContest.plagiarismModalTitle')}
                 </h3>
-                <p className="text-xs text-[var(--ws-muted)] mt-0.5">
-                  Phát hiện các cặp bài nộp có mức độ tương đồng cao trong kỳ thi
+                <p className="text-xs text-(--ws-muted) mt-0.5">
+                  {t('instructorContest.plagiarismModalSubtitle')}
                 </p>
               </div>
-              <button onClick={() => setShowPlagiarismModal(null)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]">
+              <button onClick={() => setShowPlagiarismModal(null)} className="text-(--ws-muted) hover:text-(--ws-text)">
                 <X size={20} />
               </button>
             </div>
@@ -730,55 +741,55 @@ export default function InstructorContest() {
               {loadingPlagiarism ? (
                 <div className="flex flex-col items-center justify-center py-16 gap-3">
                   <Loader2 size={28} className="animate-spin text-[#193a2b]" />
-                  <p className="text-xs text-[var(--ws-muted)]">Đang tải báo cáo phân tích đạo văn...</p>
+                  <p className="text-xs text-(--ws-muted)">{t('instructorContest.loadingPlagiarismText')}</p>
                 </div>
               ) : plagiarismReports.length === 0 ? (
-                <div className="bg-[var(--ws-panel2)] border border-[var(--ws-border)] rounded-2xl p-12 text-center">
+                <div className="bg-(--ws-panel2) border border-(--ws-border) rounded-2xl p-12 text-center">
                   <CheckCircle2 size={40} className="text-emerald-600 mx-auto mb-3" />
-                  <p className="font-bold text-[var(--ws-text)]">Không phát hiện nghi vấn đạo văn</p>
-                  <p className="text-xs text-[var(--ws-muted)] mt-1">
-                    Hệ thống chưa ghi nhận cặp bài nộp nào vượt ngưỡng tương đồng đáng ngờ trong kỳ thi này.
+                  <p className="font-bold text-(--ws-text)">{t('instructorContest.noPlagiarismTitle')}</p>
+                  <p className="text-xs text-(--ws-muted) mt-1">
+                    {t('instructorContest.noPlagiarismSubtitle')}
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold text-[var(--ws-muted)]">
-                      Tìm thấy {plagiarismReports.length} cặp bài nộp có dấu hiệu tương đồng:
+                    <p className="text-xs font-semibold text-(--ws-muted)">
+                      {t('instructorContest.foundPairsText', { count: plagiarismReports.length })}
                     </p>
                   </div>
-                  <div className="bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] overflow-hidden shadow-xs">
+                  <div className="bg-(--ws-panel2) rounded-xl border border-(--ws-border) overflow-hidden shadow-xs">
                     <table className="w-full text-left text-sm">
                       <thead>
-                        <tr className="border-b border-[var(--ws-border)] bg-[var(--ws-hover)] text-xs text-[var(--ws-muted)] uppercase tracking-wider">
-                          <th className="py-3 px-4">Bài tập</th>
-                          <th className="py-3 px-4">Sinh viên 1</th>
-                          <th className="py-3 px-4">Sinh viên 2</th>
-                          <th className="py-3 px-4 text-center">Độ tương đồng</th>
-                          <th className="py-3 px-4 text-right">Thời gian nộp</th>
+                        <tr className="border-b border-(--ws-border) bg-(--ws-hover) text-xs text-(--ws-muted) uppercase tracking-wider">
+                          <th className="py-3 px-4">{t('instructorContest.colProblem')}</th>
+                          <th className="py-3 px-4">{t('instructorContest.colStudent1')}</th>
+                          <th className="py-3 px-4">{t('instructorContest.colStudent2')}</th>
+                          <th className="py-3 px-4 text-center">{t('instructorContest.colSimilarity')}</th>
+                          <th className="py-3 px-4 text-right">{t('instructorContest.colSubmittedAt')}</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[var(--ws-border)]">
+                      <tbody className="divide-y divide-(--ws-border)">
                         {plagiarismReports.map((report) => {
                           const pct = Math.round(report.similarity_score * 100);
                           const badgeColor = pct >= 80 ? 'bg-red-100 text-red-800 border-red-200' : pct >= 60 ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-yellow-50 text-yellow-800 border-yellow-200';
                           return (
-                            <tr key={report.id} className="hover:bg-[var(--ws-hover)] transition-colors">
-                              <td className="py-3 px-4 font-semibold text-[var(--ws-text)]">
-                                {report.problem?.title ?? 'Bài tập'}
+                            <tr key={report.id} className="hover:bg-(--ws-hover) transition-colors">
+                              <td className="py-3 px-4 font-semibold text-(--ws-text)">
+                                {report.problem?.title ?? t('instructorContest.colProblem')}
                               </td>
-                              <td className="py-3 px-4 text-[var(--ws-text)]">
-                                {report.submission_1?.user?.email ?? 'Sinh viên 1'}
+                              <td className="py-3 px-4 text-(--ws-text)">
+                                {report.submission_1?.user?.email ?? t('instructorContest.colStudent1')}
                               </td>
-                              <td className="py-3 px-4 text-[var(--ws-text)]">
-                                {report.submission_2?.user?.email ?? 'Sinh viên 2'}
+                              <td className="py-3 px-4 text-(--ws-text)">
+                                {report.submission_2?.user?.email ?? t('instructorContest.colStudent2')}
                               </td>
                               <td className="py-3 px-4 text-center">
                                 <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold border ${badgeColor}`}>
                                   {pct}%
                                 </span>
                               </td>
-                              <td className="py-3 px-4 text-xs text-[var(--ws-muted)] text-right font-mono">
+                              <td className="py-3 px-4 text-xs text-(--ws-muted) text-right font-mono">
                                 {report.created_at ? formatVNFull(report.created_at) : '—'}
                               </td>
                             </tr>

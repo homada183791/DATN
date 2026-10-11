@@ -24,7 +24,13 @@ RABBITMQ_URL=amqp://root:rootpassword@localhost:5672
 REDIS_URL=redis://localhost:6379
 PORT=3000
 JWT_SECRET=super-secret-key-for-dev
+GOOGLE_CLIENT_ID=your-google-oauth-client-id
 ```
+
+Đặt `GOOGLE_CLIENT_ID` bằng cùng OAuth client ID với `VITE_GOOGLE_CLIENT_ID` trong
+`frontend/.env`. Trong Google Cloud Console, cấu hình OAuth client kiểu Web
+application và thêm origin của frontend (ví dụ `http://localhost:5173`) vào
+Authorized JavaScript origins.
 
 ## Khởi động hạ tầng
 
@@ -35,6 +41,8 @@ docker compose up -d postgres redis rabbitmq
 ```
 
 ## Prisma
+
+Trước khi khởi động backend, áp dụng các migration để đồng bộ schema PostgreSQL với Prisma, bao gồm các trường chấm bài của submission.
 
 ```bash
 npx prisma migrate deploy

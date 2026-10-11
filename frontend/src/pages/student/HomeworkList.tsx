@@ -272,7 +272,7 @@ export default function HomeworkList() {
                 className="flex items-center gap-4 bg-white border border-[#e5dac9] rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#193a2b]/30 transition-all shadow-sm group"
               >
                 {/* Left accent */}
-                <div className={`w-1 h-10 rounded-full flex-shrink-0 ${dl.closed ? 'bg-[#e5dac9]' : 'bg-[#193a2b]'}`} />
+                <div className={`w-1 h-10 rounded-full shrink-0 ${dl.closed ? 'bg-[#e5dac9]' : 'bg-[#193a2b]'}`} />
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
@@ -280,7 +280,7 @@ export default function HomeworkList() {
                     <p className="font-bold text-[#191919] group-hover:text-[#193a2b] transition-colors truncate">
                       {hw.title}
                     </p>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold flex-shrink-0 ${dl.chipClass}`}>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold shrink-0 ${dl.chipClass}`}>
                       {dl.closed && <Lock size={9} className="inline mr-0.5" />}{dl.label}
                     </span>
                     {tasks.length > 0 && (
@@ -310,7 +310,7 @@ export default function HomeworkList() {
                   </div>
                 </div>
 
-                <ChevronRight size={16} className="text-[#bfae99] group-hover:text-[#193a2b] flex-shrink-0 transition-colors" />
+                <ChevronRight size={16} className="text-[#bfae99] group-hover:text-[#193a2b] shrink-0 transition-colors" />
               </Link>
             );
           })}

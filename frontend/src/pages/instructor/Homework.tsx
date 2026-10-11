@@ -78,10 +78,10 @@ export default function InstructorHomework() {
   };
 
   const save = async () => {
-    if (form.title.trim().length < 3) return setError('Tiêu đề cần ít nhất 3 ký tự.');
-    if (!form.classId) return setError('Vui lòng chọn lớp để giao bài.');
-    if (!form.deadline) return setError('Vui lòng chọn hạn nộp.');
-    if (draftProblems.length === 0) return setError('Cần ít nhất 1 bài toán trong bài tập.');
+    if (form.title.trim().length < 3) return setError(t('instructorHomework.errors.titleTooShort'));
+    if (!form.classId) return setError(t('instructorHomework.errors.classRequired'));
+    if (!form.deadline) return setError(t('instructorHomework.errors.deadlineRequired'));
+    if (draftProblems.length === 0) return setError(t('instructorHomework.errors.problemsRequired'));
     const cls = myClasses.find((c) => c.id === form.classId);
     const deadline = form.deadline.replace('T', ' ');
     const payload: HomeworkInput = {
@@ -105,7 +105,7 @@ export default function InstructorHomework() {
       await refetch();
       setEditor(null);
     } catch (e: any) {
-      setError(e.message || 'Có lỗi xảy ra khi lưu bài tập.');
+      setError(e.message || t('instructorHomework.errors.saveFailed'));
     } finally {
       setIsSaving(false);
     }
@@ -127,7 +127,7 @@ export default function InstructorHomework() {
       {/* header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold font-serif text-[#191919]">{t('nav.problems')}</h2>
+          <h2 className="text-2xl font-bold font-serif text-[#191919]">{t('nav.homework')}</h2>
           <p className="text-sm text-[#8a8073] mt-1">
             {t('instructorHomework.subtitle', { count: myClasses.length })}
           </p>
@@ -194,24 +194,20 @@ export default function InstructorHomework() {
         <div className="bg-white border border-[#e5dac9] rounded-xl p-14 text-center shadow-sm">
           <ClipboardList size={48} className="text-[#bfae99] mx-auto mb-4" />
           <p className="font-semibold text-[#191919]">
-            {myClasses.length === 0 ? 'Bạn chưa có lớp học nào' : 'Chưa có bài tập nào'}
+            {myClasses.length === 0 ? t('instructorHomework.emptyNoClassTitle') : t('instructorHomework.emptyTitle')}
           </p>
           <p className="text-sm text-[#8a8073] mt-1 mb-5">
             {myClasses.length === 0
-              ? 'Bạn cần tạo ít nhất 1 lớp học trước khi giao bài tập cho sinh viên.'
-              : 'Giao bài tập đầu tiên cho lớp của bạn.'}
+              ? t('instructorHomework.emptyNoClass')
+              : t('instructorHomework.emptySubtitle')}
           </p>
-          {myClasses.length === 0 ? (
+          {myClasses.length === 0 && (
             <Link
               to="/instructor/class"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md"
             >
-              <GraduationCap size={16} /> Đi tạo lớp học
+              <GraduationCap size={16} /> {t('instructorHomework.goCreateClassBtn')}
             </Link>
-          ) : (
-            <button onClick={openCreate} className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md">
-              <Plus size={16} /> {t('instructorHomework.createNew')}
-            </button>
           )}
         </div>
       ) : (
@@ -231,12 +227,12 @@ export default function InstructorHomework() {
                     </div>
                     <p className="text-sm text-[#5c5446] mb-3 leading-relaxed line-clamp-2">{hw.description || t('instructorClass.noDescription')}</p>
                     <div className="flex items-center gap-4 text-sm text-[#8a8073] flex-wrap">
-                      <span className="flex items-center gap-1"><GraduationCap size={14} /> {hw.className || myClasses.find((c) => c.id === hw.classId)?.name || 'Lớp học'}</span>
-                      <span className="flex items-center gap-1"><BookOpen size={14} /> {hw.problemCount} bài</span>
-                      <span className="flex items-center gap-1"><Users size={14} /> {hw.submittedStudents}/{hw.totalStudents} đã nộp</span>
+                      <span className="flex items-center gap-1"><GraduationCap size={14} /> {hw.className || myClasses.find((c) => c.id === hw.classId)?.name || t('instructorHomework.classFallback')}</span>
+                      <span className="flex items-center gap-1"><BookOpen size={14} /> {hw.problemCount} {t('instructorHomework.problemsUnit')}</span>
+                      <span className="flex items-center gap-1"><Users size={14} /> {hw.submittedStudents}/{hw.totalStudents} {t('instructorHomework.submittedOfTotalLabel')}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     <button onClick={() => setViewId(hw.id)} className="p-2 bg-[#f0ebd9] rounded-lg text-[#5c5446] hover:bg-[#e5dac9] transition-colors" title={t('instructorContest.viewDetail')}>
                       <Eye size={16} />
                     </button>
@@ -245,8 +241,8 @@ export default function InstructorHomework() {
                     </button>
                     {confirmDelete === hw.id ? (
                       <div className="flex items-center gap-1.5">
-                        <button onClick={async () => { setConfirmDelete(null); try { await deleteHomework(hw.id); } catch { setError('Xoá bài tập thất bại.'); } }} className="px-2.5 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-500">Xoá</button>
-                        <button onClick={() => setConfirmDelete(null)} className="px-2.5 py-1.5 bg-[#f0ebd9] text-[#5c5446] text-xs font-semibold rounded-lg hover:bg-[#e5dac9]">Huỷ</button>
+                        <button onClick={async () => { setConfirmDelete(null); try { await deleteHomework(hw.id); } catch { setError(t('instructorHomework.errors.deleteFailed')); } }} className="px-2.5 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-500">{t('common.delete')}</button>
+                        <button onClick={() => setConfirmDelete(null)} className="px-2.5 py-1.5 bg-[#f0ebd9] text-[#5c5446] text-xs font-semibold rounded-lg hover:bg-[#e5dac9]">{t('common.cancel')}</button>
                       </div>
                     ) : (
                       <button onClick={() => setConfirmDelete(hw.id)} className="p-2 text-[#8a8073] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title={t('common.delete')}>
@@ -260,7 +256,7 @@ export default function InstructorHomework() {
                 <div className="mt-5 pt-4 border-t border-[#e5dac9]/60">
                   <div className="flex items-center justify-between text-xs mb-1.5">
                     <span className="flex items-center gap-1.5 text-[#8a8073]">
-                      <span className="flex items-center gap-1"><Clock size={14} /> Hạn nộp: <span className="font-medium text-[#5c5446]">{formatVNFull(hw.deadline)}</span></span>
+                      <span className="flex items-center gap-1"><Clock size={14} /> {t('instructorHomework.deadlineInlineLabel')} <span className="font-medium text-[#5c5446]">{formatVNFull(hw.deadline)}</span></span>
                     </span>
                     <span className={`font-semibold ${p.overdue ? 'text-[#cc5a37]' : p.daysLeft <= 3 ? 'text-yellow-700' : 'text-emerald-700'}`}>
                       {p.label}
@@ -269,7 +265,7 @@ export default function InstructorHomework() {
                   <div className="w-full h-2 bg-[#f0ebd9] rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${
-                        p.overdue ? 'bg-[#cc5a37]' : p.daysLeft <= 3 ? 'bg-gradient-to-r from-yellow-500 to-[#cc5a37]' : 'bg-gradient-to-r from-[#193a2b] to-emerald-500'
+                        p.overdue ? 'bg-[#cc5a37]' : p.daysLeft <= 3 ? 'bg-linear-to-r from-yellow-500 to-[#cc5a37]' : 'bg-linear-to-r from-[#193a2b] to-emerald-500'
                       }`}
                       style={{ width: `${p.overdue ? 100 : p.pct}%` }}
                     />
@@ -290,20 +286,20 @@ export default function InstructorHomework() {
 
       {/* ===== editor modal ===== */}
       {editor && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-[80] flex items-center justify-center p-4" onClick={() => setEditor(null)}>
-          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--ws-border)] sticky top-0 bg-[var(--ws-panel)]">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-80 flex items-center justify-center p-4" onClick={() => setEditor(null)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border) sticky top-0 bg-(--ws-panel)">
               <h3 className="font-bold font-serif text-[16px]">{editor.mode === 'edit' ? t('instructorHomework.editTitle') : t('instructorHomework.createNew')}</h3>
-              <button onClick={() => setEditor(null)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={18} /></button>
+              <button onClick={() => setEditor(null)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">{t('instructorClass.fieldTitle')}</label>
-                <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={t('instructorClass.fieldTitlePlaceholder')} className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldTitle')}</label>
+                <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={t('instructorClass.fieldTitlePlaceholder')} className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">{t('instructorHomework.fieldAssignTo')}</label>
-                <select value={form.classId} onChange={(e) => setForm({ ...form, classId: e.target.value })} className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]">
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorHomework.fieldAssignTo')}</label>
+                <select value={form.classId} onChange={(e) => setForm({ ...form, classId: e.target.value })} className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b]">
                   <option value="">{t('instructorHomework.selectClassOption')}</option>
                   {myClasses.map((c) => (
                     <option key={c.id} value={c.id}>{c.name} ({c.code})</option>
@@ -311,12 +307,12 @@ export default function InstructorHomework() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">{t('instructorClass.fieldDeadline')}</label>
-                <input type="datetime-local" value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} className="w-full px-3 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldDeadline')}</label>
+                <input type="datetime-local" value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} className="w-full px-3 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--ws-muted)] mb-1.5">{t('instructorClass.fieldDescription')}</label>
-                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} placeholder={t('instructorClass.fieldHwDescriptionPlaceholder')} className="w-full px-4 py-2.5 bg-[var(--ws-editor)] border border-[var(--ws-border)] rounded-xl text-[var(--ws-text)] placeholder-[var(--ws-faint)] focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none" />
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldDescription')}</label>
+                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} placeholder={t('instructorClass.fieldHwDescriptionPlaceholder')} className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none" />
               </div>
 
               {/* Problem manager */}
@@ -326,14 +322,14 @@ export default function InstructorHomework() {
               <p className="text-[11.5px] text-[#8a8073] bg-[#f0ebd9] border border-[#e5dac9] rounded-lg px-3 py-2">
                 🔒 {t('instructorHomework.visibilityHint')}
               </p>
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--ws-border)]">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-(--ws-border)">
                 <button
                   type="button"
                   onClick={() => setEditor(null)}
                   disabled={isSaving}
-                  className="px-5 py-2.5 bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] text-xs font-semibold rounded-xl hover:bg-[var(--ws-hover)] transition-colors disabled:opacity-50"
+                  className="px-5 py-2.5 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors disabled:opacity-50"
                 >
-                  Huỷ
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -342,7 +338,7 @@ export default function InstructorHomework() {
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
                 >
                   {isSaving && <Loader2 size={16} className="animate-spin" />}
-                  {editor.mode === 'edit' ? 'Lưu thay đổi' : 'Giao bài'}
+                  {editor.mode === 'edit' ? t('instructorHomework.saveChanges') : t('instructorClass.assignSubmit')}
                 </button>
               </div>
             </div>
@@ -352,40 +348,40 @@ export default function InstructorHomework() {
 
       {/* ===== view modal ===== */}
       {viewHw && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-[80] flex items-center justify-center p-4" onClick={() => setViewId(null)}>
-          <div className="bg-[var(--ws-panel)] border border-[var(--ws-border)] text-[var(--ws-text)] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--ws-border)] sticky top-0 bg-[var(--ws-panel)] z-10">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-80 flex items-center justify-center p-4" onClick={() => setViewId(null)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border) sticky top-0 bg-(--ws-panel) z-10">
               <h3 className="font-bold font-serif text-[16px]">{viewHw.title}</h3>
-              <button onClick={() => setViewId(null)} className="text-[var(--ws-muted)] hover:text-[var(--ws-text)]"><X size={18} /></button>
+              <button onClick={() => setViewId(null)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
             <div className="p-6 space-y-4">
               <div className="flex flex-wrap gap-2">
                 <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${statusChip[viewHw.status]}`}>{statusLabel[viewHw.status]}</span>
-                <span className="text-xs px-2.5 py-1 rounded-full bg-[var(--ws-panel2)] border border-[var(--ws-border)] text-[var(--ws-muted)] flex items-center gap-1"><GraduationCap size={12} /> {viewHw.className || myClasses.find((c) => c.id === viewHw.classId)?.name || 'Lớp học'}</span>
+                <span className="text-xs px-2.5 py-1 rounded-full bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) flex items-center gap-1"><GraduationCap size={12} /> {viewHw.className || myClasses.find((c) => c.id === viewHw.classId)?.name || t('instructorHomework.classFallback')}</span>
               </div>
-              <p className="text-sm text-[var(--ws-muted)] leading-relaxed">{viewHw.description || t('instructorClass.noDescription')}</p>
+              <p className="text-sm text-(--ws-muted) leading-relaxed">{viewHw.description || t('instructorClass.noDescription')}</p>
               <div className="grid grid-cols-3 gap-3">
-                <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] text-center">
+                <div className="p-3 bg-(--ws-panel2) rounded-xl border border-(--ws-border) text-center">
                   <p className="text-lg font-bold font-serif">{viewHw.problemCount}</p>
-                  <p className="text-xs text-[var(--ws-muted)] mt-0.5">{t('instructorContest.fieldProblemCount')}</p>
+                  <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorContest.fieldProblemCount')}</p>
                 </div>
-                <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] text-center">
+                <div className="p-3 bg-(--ws-panel2) rounded-xl border border-(--ws-border) text-center">
                   <p className="text-lg font-bold font-serif">{viewHw.submittedStudents}/{viewHw.totalStudents}</p>
-                  <p className="text-xs text-[var(--ws-muted)] mt-0.5">{t('instructorHomework.submittedLabel')}</p>
+                  <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorHomework.submittedLabel')}</p>
                 </div>
-                <div className="p-3 bg-[var(--ws-panel2)] rounded-xl border border-[var(--ws-border)] text-center">
+                <div className="p-3 bg-(--ws-panel2) rounded-xl border border-(--ws-border) text-center">
                   <p className="text-lg font-bold font-serif text-[#193a2b]">{deadlineProgress(viewHw.deadline).label}</p>
-                  <p className="text-xs text-[var(--ws-muted)] mt-0.5">Deadline</p>
+                  <p className="text-xs text-(--ws-muted) mt-0.5">Deadline</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-sm text-[var(--ws-muted)]">
-                <Calendar size={14} className="text-[var(--ws-muted)]" /> Hạn nộp: <span className="font-medium text-[var(--ws-text)]">{formatVNFull(viewHw.deadline)}</span>
+              <div className="flex items-center gap-2 text-sm text-(--ws-muted)">
+                <Calendar size={14} className="text-(--ws-muted)" /> {t('instructorHomework.deadlineInlineLabel')} <span className="font-medium text-(--ws-text)">{formatVNFull(viewHw.deadline)}</span>
               </div>
 
               {/* problem list */}
               <div>
-                <p className="text-sm font-medium text-[var(--ws-muted)] mb-2">{t('instructorHomework.problemListTitle')}</p>
-                <div className="border border-[var(--ws-border)] rounded-xl overflow-hidden divide-y divide-[var(--ws-border)] bg-[var(--ws-panel2)]">
+                <p className="text-sm font-medium text-(--ws-muted) mb-2">{t('instructorHomework.problemListTitle')}</p>
+                <div className="border border-(--ws-border) rounded-xl overflow-hidden divide-y divide-(--ws-border) bg-(--ws-panel2)">
                   {problemsOf(viewHw.id).map((p, i) => {
                     const dc: Record<string, string> = {
                       Easy: 'bg-emerald-100 text-emerald-800 border-emerald-200',
@@ -399,13 +395,13 @@ export default function InstructorHomework() {
                     };
                     return (
                       <div key={p.id} className="flex items-center gap-3 px-3.5 py-2.5">
-                        <span className="text-xs text-[var(--ws-muted)] font-mono w-5">{i + 1}.</span>
+                        <span className="text-xs text-(--ws-muted) font-mono w-5">{i + 1}.</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-[var(--ws-text)] truncate">{p.title}</p>
-                          <p className="text-[11px] text-[var(--ws-muted)] truncate">{p.statement?.slice(0, 70) || 'Chưa có mô tả'}</p>
+                          <p className="text-sm font-medium text-(--ws-text) truncate">{p.title}</p>
+                          <p className="text-[11px] text-(--ws-muted) truncate">{p.statement?.slice(0, 70) || t('instructorHomework.problemNoStatement')}</p>
                         </div>
                         <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${dc[p.difficulty]}`}>{dl[p.difficulty]}</span>
-                        <span className="text-[11px] text-[var(--ws-muted)] w-9 text-right">{p.points}{t('instructorHomework.pointsSuffix')}</span>
+                        <span className="text-[11px] text-(--ws-muted) w-9 text-right">{p.points}{t('instructorHomework.pointsSuffix')}</span>
                       </div>
                     );
                   })}

@@ -263,7 +263,7 @@ export default function ProblemList() {
               </div>
               <p className="mt-1 line-clamp-2 text-sm text-[#8a8073]">{problem.description}</p>
             </div>
-            <div className="flex items-center gap-4 text-sm text-[#8a8073] flex-shrink-0">
+            <div className="flex items-center gap-4 text-sm text-[#8a8073] shrink-0">
               <div className="flex flex-col items-end gap-0.5">
                 <span className="text-xs font-semibold text-[#5c5446]">{problem.time_limit} ms</span>
                 <span className="text-[10px] text-[#bfae99]">{t('problemList.timeLabel')}</span>

@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, ReactNode } from 'react';
 import { useHomeworkMutations, useHomeworksQuery, HomeworkTaskDto } from '../api/homeworks';
 import { datetimeLocalToISO } from '../utils/dateTime';
+import i18n from '../i18n';
 
 export interface Homework {
   id: string;
@@ -126,6 +127,12 @@ export function deadlineProgress(deadline: string, createdWindowDays = 14) {
   const pct = Math.max(0, Math.min(100, ((now - start) / (timestamp - start)) * 100));
   const daysLeft = Math.ceil((timestamp - now) / 86400000);
   const overdue = timestamp < now;
-  const label = overdue ? 'Đã quá hạn' : daysLeft <= 0 ? 'Hết hạn hôm nay' : daysLeft === 1 ? 'Còn 1 ngày' : `Còn ${daysLeft} ngày`;
+  const label = overdue
+    ? i18n.t('common.deadlineProgress.overdue')
+    : daysLeft <= 0
+    ? i18n.t('common.deadlineProgress.dueToday')
+    : daysLeft === 1
+    ? i18n.t('common.deadlineProgress.oneDayLeft')
+    : i18n.t('common.deadlineProgress.daysLeft', { count: daysLeft });
   return { pct, daysLeft, overdue, label };
 }

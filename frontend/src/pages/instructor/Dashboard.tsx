@@ -176,7 +176,7 @@ export default function InstructorDashboard() {
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 bg-[#193a2b] text-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-xs">
+                      <div className="w-9 h-9 bg-[#193a2b] text-white rounded-lg flex items-center justify-center shrink-0 shadow-xs">
                         <GraduationCap size={18} />
                       </div>
                       <div className="min-w-0">
@@ -188,16 +188,16 @@ export default function InstructorDashboard() {
                         </p>
                       </div>
                     </div>
-                    <span className="text-[11px] font-semibold text-[#5c5446] bg-[#f0ebd9] px-2 py-0.5 rounded-full border border-[#e5dac9] flex-shrink-0">
-                      {cls.studentCount} SV
+                    <span className="text-[11px] font-semibold text-[#5c5446] bg-[#f0ebd9] px-2 py-0.5 rounded-full border border-[#e5dac9] shrink-0">
+                      {cls.studentCount} {t('instructorDashboard.studentsAbbr')}
                     </span>
                   </div>
                   <div className="flex items-center gap-4 text-xs text-[#8a8073] mt-3 pt-2.5 border-t border-[#e5dac9]/60">
                     <span className="flex items-center gap-1">
-                      <BookOpen size={12} /> {cls.homeworkCount} bài tập
+                      <BookOpen size={12} /> {cls.homeworkCount} {t('instructorDashboard.homeworkCount')}
                     </span>
                     <span className="flex items-center gap-1">
-                      <Trophy size={12} /> {cls.contestCount} kỳ thi
+                      <Trophy size={12} /> {cls.contestCount} {t('instructorDashboard.contestCount')}
                     </span>
                   </div>
                 </Link>
@@ -205,7 +205,7 @@ export default function InstructorDashboard() {
 
               {myClasses.length === 0 && (
                 <div className="sm:col-span-2 py-8 text-center border border-dashed border-[#e5dac9] rounded-xl">
-                  <p className="text-sm text-[#8a8073]">Chưa có lớp học nào. Hãy tạo lớp học mới để bắt đầu.</p>
+                  <p className="text-sm text-[#8a8073]">{t('instructorDashboard.noClasses')}</p>
                 </div>
               )}
             </div>
@@ -215,8 +215,8 @@ export default function InstructorDashboard() {
           <div className="bg-white border border-[#e5dac9] rounded-2xl p-6 shadow-xs">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-bold font-serif text-[#191919]">Bài nộp sinh viên gần đây</h3>
-                <p className="text-xs text-[#8a8073]">Các lời giải mới nhất trên hệ thống</p>
+                <h3 className="text-base font-bold font-serif text-[#191919]">{t('instructorDashboard.recentStudentSubmissions')}</h3>
+                <p className="text-xs text-[#8a8073]">{t('instructorDashboard.recentSubmissionsSubtitle')}</p>
               </div>
               <Link to="/instructor/submissions" className="text-xs text-[#193a2b] hover:text-[#2d5a3f] font-semibold flex items-center gap-1">
                 {t('instructorDashboard.viewAll')} <ArrowRight size={13} />
@@ -237,7 +237,7 @@ export default function InstructorDashboard() {
                       </p>
                     </div>
                   </div>
-                  <div className="text-right text-xs text-[#8a8073] flex-shrink-0 pl-3">
+                  <div className="text-right text-xs text-[#8a8073] shrink-0 pl-3">
                     <p className="font-mono">{sub.executionTime !== null && sub.executionTime !== undefined ? `${sub.executionTime}ms` : '—'}</p>
                     <p className="mt-0.5">{formatVNFull(sub.timestamp)}</p>
                   </div>
@@ -246,7 +246,7 @@ export default function InstructorDashboard() {
 
               {recentSubmissions.length === 0 && (
                 <div className="py-6 text-center border border-dashed border-[#e5dac9] rounded-xl text-xs text-[#8a8073]">
-                  Chưa có bài nộp nào từ sinh viên.
+                  {t('instructorDashboard.noSubmissionsFromStudents')}
                 </div>
               )}
             </div>
@@ -262,11 +262,11 @@ export default function InstructorDashboard() {
           <div className="bg-white border border-[#e5dac9] rounded-2xl p-5 shadow-xs">
             <div className="flex items-center justify-between mb-3 pb-3 border-b border-[#e5dac9]">
               <div>
-                <h3 className="text-sm font-bold font-serif text-[#191919]">Hạn chót bài tập</h3>
-                <p className="text-[11px] text-[#8a8073]">Bài tập sinh viên cần hoàn thành</p>
+                <h3 className="text-sm font-bold font-serif text-[#191919]">{t('instructorDashboard.homeworkDeadlines')}</h3>
+                <p className="text-[11px] text-[#8a8073]">{t('instructorDashboard.homeworkDeadlinesSubtitle')}</p>
               </div>
               <Link to="/instructor/classes" className="text-xs text-[#193a2b] font-semibold hover:underline">
-                Chi tiết
+                {t('instructorDashboard.details')}
               </Link>
             </div>
 
@@ -278,19 +278,19 @@ export default function InstructorDashboard() {
                       <p className="text-xs font-semibold text-[#191919] truncate">{hw.title}</p>
                       <p className="text-[11px] text-[#8a8073] mt-0.5">{hw.className}</p>
                     </div>
-                    <span className="text-[10px] font-semibold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300 flex-shrink-0 flex items-center gap-1">
+                    <span className="text-[10px] font-semibold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300 shrink-0 flex items-center gap-1">
                       <Clock size={10} /> {hw.deadline}
                     </span>
                   </div>
                   <div className="mt-2 pt-2 border-t border-[#e5dac9]/60 flex items-center justify-between text-[11px] text-[#8a8073]">
-                    <span>Tiến độ nộp</span>
-                    <span className="font-semibold text-[#191919]">{hw.submittedStudents}/{hw.totalStudents} sinh viên</span>
+                    <span>{t('instructorDashboard.submissionProgress')}</span>
+                    <span className="font-semibold text-[#191919]">{hw.submittedStudents}/{hw.totalStudents} {t('instructorDashboard.studentsSuffix')}</span>
                   </div>
                 </div>
               ))}
 
               {allHomeworks.filter((h) => h.status === 'active').length === 0 && (
-                <p className="text-xs text-[#8a8073] text-center py-4">Hiện không có bài tập nào đang mở.</p>
+                <p className="text-xs text-[#8a8073] text-center py-4">{t('instructorDashboard.noActiveHomework')}</p>
               )}
             </div>
           </div>
@@ -303,12 +303,12 @@ export default function InstructorDashboard() {
           <div className="flex items-center gap-2">
             <BarChart3 size={18} className="text-[#193a2b]" />
             <div>
-              <h3 className="text-base font-bold font-serif text-[#191919]">Phân bố kết quả chấm bài</h3>
-              <p className="text-xs text-[#8a8073]">Tỷ lệ các verdict trên toàn bộ các bài nộp</p>
+              <h3 className="text-base font-bold font-serif text-[#191919]">{t('instructorDashboard.verdictDistribution')}</h3>
+              <p className="text-xs text-[#8a8073]">{t('instructorDashboard.verdictDistributionSubtitle')}</p>
             </div>
           </div>
           <span className="text-xs text-[#8a8073] font-semibold">
-            Tổng {totalSubmissions} bài nộp
+            {t('instructorDashboard.totalSubmissionsLabel', { count: totalSubmissions })}
           </span>
         </div>
 

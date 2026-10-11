@@ -111,11 +111,11 @@ export default function StudentClassDetail() {
       </div>
 
       {/* Class header */}
-      <div className="bg-gradient-to-br from-[#193a2b] to-[#2a5540] rounded-2xl p-6 text-white shadow-lg">
+      <div className="bg-linear-to-br from-[#193a2b] to-[#2a5540] rounded-2xl p-6 text-white shadow-lg">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
-              <GraduationCap size={20} className="flex-shrink-0 opacity-80" />
+              <GraduationCap size={20} className="shrink-0 opacity-80" />
               <span className="text-sm opacity-75">{classInfo.semester}</span>
             </div>
             <h1 className="text-2xl font-bold font-serif mb-1">{classInfo.name}</h1>
@@ -123,7 +123,7 @@ export default function StudentClassDetail() {
               <p className="text-sm opacity-80 line-clamp-2 mt-1">{classInfo.description}</p>
             )}
           </div>
-          <div className="text-right flex-shrink-0">
+          <div className="text-right shrink-0">
             <p className="text-xs opacity-60 mb-1">{t('studentClass.classCode')}</p>
             <p className="text-lg font-mono font-bold tracking-widest">{classInfo.invite_code}</p>
           </div>
@@ -210,7 +210,7 @@ export default function StudentClassDetail() {
                         <h3 className="font-bold text-[#191919] group-hover:text-[#193a2b] transition-colors">
                           {hw.title}
                         </h3>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold flex-shrink-0 ${dl.chipClass}`}>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold shrink-0 ${dl.chipClass}`}>
                           {dl.closed ? <Lock size={10} className="inline mr-1" /> : null}
                           {dl.label}
                         </span>
@@ -245,7 +245,7 @@ export default function StudentClassDetail() {
                         </span>
                       </div>
                     </div>
-                    <ChevronRight size={18} className="text-[#bfae99] group-hover:text-[#193a2b] flex-shrink-0 mt-1 transition-colors" />
+                    <ChevronRight size={18} className="text-[#bfae99] group-hover:text-[#193a2b] shrink-0 mt-1 transition-colors" />
                   </div>
 
                   {/* Task completion progress bar */}

@@ -131,9 +131,9 @@ export default function TopRatedLeaderboard({ maxItems = 5, showTitle = true }: 
               }`}
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="flex-shrink-0">{getRankBadge(rank, t)}</div>
+                <div className="shrink-0">{getRankBadge(rank, t)}</div>
 
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#193a2b] to-[#2d5a3f] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs">
+                <div className="w-8 h-8 rounded-full bg-linear-to-br from-[#193a2b] to-[#2d5a3f] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                   {initial}
                 </div>
 
@@ -157,7 +157,7 @@ export default function TopRatedLeaderboard({ maxItems = 5, showTitle = true }: 
                 </div>
               </div>
 
-              <div className="text-right flex-shrink-0 pl-3">
+              <div className="text-right shrink-0 pl-3">
                 <span
                   className={`inline-block px-2.5 py-0.5 rounded-lg border text-xs font-bold font-mono ${getRatingBadgeColor(
                     u.elo_rating

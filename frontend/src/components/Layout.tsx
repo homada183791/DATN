@@ -64,6 +64,13 @@ function Breadcrumbs() {
   };
 
   const formatSegment = (segment: string) => {
+    // "homework"/"homeworks" dùng chung 1 từ trong URL cho cả 2 vai trò,
+    // nhưng ý nghĩa khác nhau: giảng viên "giao bài tập", sinh viên "xem
+    // bài tập của mình" — nên không thể gộp vào từ điển `labels` phía trên
+    // (nó không biết đoạn URL đang thuộc nhánh /instructor hay /student).
+    if (segment === 'homework' || segment === 'homeworks') {
+      return pathSegments[0] === 'instructor' ? t('nav.homework') : t('nav.myHomework');
+    }
     if (labels[segment]) return labels[segment];
     if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment)) {
       return `#${segment.slice(0, 8)}`;
@@ -374,7 +381,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
               <Languages size={18} />
             </button>
             {langOpen && (
-              <div className="absolute right-0 top-full mt-2 w-44 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl z-[60] animate-slide-up overflow-hidden p-1.5">
+              <div className="absolute right-0 top-full mt-2 w-44 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden p-1.5">
                 {(['vi', 'en'] as const).map((language) => (
                   <button
                     key={language}
@@ -383,7 +390,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                       setLangOpen(false);
                     }}
                     className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-[13px] transition-colors ${
-                      i18n.resolvedLanguage === language ? 'bg-[var(--ws-accent-soft)] text-[#193a2b] font-semibold' : 'text-[#191919] hover:bg-[var(--ws-hover)]'
+                      i18n.resolvedLanguage === language ? 'bg-(--ws-accent-soft) text-[#193a2b] font-semibold' : 'text-[#191919] hover:bg-(--ws-hover)'
                     }`}
                   >
                     <span className="w-6 h-4 flex items-center justify-center rounded-[3px] border border-[#e5dac9] text-[8px] font-bold bg-white text-[#8a8073]">

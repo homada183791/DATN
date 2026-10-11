@@ -125,7 +125,7 @@ export default function HomeworkDetail() {
           </div>
           <button
             onClick={() => navigate(`/student/class/${classId}`)}
-            className="flex items-center gap-1.5 text-sm text-[#8a8073] hover:text-[#193a2b] transition-colors flex-shrink-0"
+            className="flex items-center gap-1.5 text-sm text-[#8a8073] hover:text-[#193a2b] transition-colors shrink-0"
           >
             <ArrowLeft size={14} /> {t('studentContest.back')}
           </button>
@@ -165,7 +165,7 @@ export default function HomeworkDetail() {
         <div className="w-full h-2.5 bg-[#f0ebd9] rounded-full overflow-hidden">
           <div
             className={`h-full transition-all duration-500 rounded-full ${
-              progressPct === 100 ? 'bg-emerald-600' : 'bg-gradient-to-r from-emerald-500 to-[#193a2b]'
+              progressPct === 100 ? 'bg-emerald-600' : 'bg-linear-to-r from-emerald-500 to-[#193a2b]'
             }`}
             style={{ width: `${progressPct}%` }}
           />
@@ -209,7 +209,7 @@ export default function HomeworkDetail() {
                   }`}
                 >
                   {/* Index */}
-                  <span className="text-sm font-mono text-[#8a8073] w-6 flex-shrink-0 text-center">
+                  <span className="text-sm font-mono text-[#8a8073] w-6 shrink-0 text-center">
                     {String.fromCharCode(65 + i)}
                   </span>
 
@@ -224,17 +224,17 @@ export default function HomeworkDetail() {
                   </div>
 
                   {/* Difficulty */}
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold flex-shrink-0 ${diffChip[task.difficulty] ?? diffChip.Easy}`}>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold shrink-0 ${diffChip[task.difficulty] ?? diffChip.Easy}`}>
                     {t(`problemForm.${diffLabel[task.difficulty] ?? 'easy'}`)}
                   </span>
 
                   {/* Points */}
-                  <span className="text-xs text-[#8a8073] w-12 text-right flex-shrink-0 font-mono">
+                  <span className="text-xs text-[#8a8073] w-12 text-right shrink-0 font-mono">
                     {task.points}đ
                   </span>
 
                   {/* Action & Status */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     {canSolve && (
                       isSolved ? (
                         <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-lg">
