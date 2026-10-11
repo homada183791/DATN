@@ -137,7 +137,7 @@ export default function HomeworkDetail() {
             <BookOpen size={14} /> {t('studentContest.problemCount', { count: tasks.length })}
           </span>
           <span className="flex items-center gap-1.5">
-            <Trophy size={14} /> {totalPoints} điểm
+            <Trophy size={14} /> {t('studentContest.pointsShort', { count: totalPoints })}
           </span>
           <span className="flex items-center gap-1.5">
             <Clock size={14} /> {t('studentContest.deadlineLabel')}: {formatVNFull(homework.deadline)}
@@ -150,7 +150,7 @@ export default function HomeworkDetail() {
         <div className="flex items-center justify-between gap-4 mb-2">
           <div className="flex items-center gap-2">
             <Trophy size={18} className="text-[#193a2b]" />
-            <span className="font-bold text-sm text-[#191919]">Tiến độ bài tập của bạn</span>
+            <span className="font-bold text-sm text-[#191919]">{t('studentContest.yourProgress')}</span>
           </div>
           <span className={`text-xs font-bold font-mono px-2.5 py-0.5 rounded-full border ${
             progressPct === 100
@@ -159,7 +159,7 @@ export default function HomeworkDetail() {
               ? 'bg-amber-100 text-amber-800 border-amber-300'
               : 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]'
           }`}>
-            {completedCount}/{tasks.length} bài ({progressPct}%)
+            {t('studentContest.progressFraction', { completed: completedCount, total: tasks.length, percent: progressPct })}
           </span>
         </div>
         <div className="w-full h-2.5 bg-[#f0ebd9] rounded-full overflow-hidden">
@@ -172,8 +172,8 @@ export default function HomeworkDetail() {
         </div>
         <p className="text-xs text-[#8a8073] mt-2">
           {completedCount === tasks.length && tasks.length > 0
-            ? '🎉 Xuất sắc! Bạn đã hoàn thành 100% tất cả các bài toán trong bài tập này!'
-            : `Bạn đã giải quyết thành công ${completedCount}/${tasks.length} bài toán. Hãy hoàn thành các bài còn lại trước hạn nộp!`}
+            ? t('studentContest.allCompletedMsg')
+            : t('studentContest.progressMsg', { completed: completedCount, total: tasks.length })}
         </p>
       </div>
 
@@ -230,7 +230,7 @@ export default function HomeworkDetail() {
 
                   {/* Points */}
                   <span className="text-xs text-[#8a8073] w-12 text-right shrink-0 font-mono">
-                    {task.points}đ
+                    {t('studentContest.pointsShort', { count: task.points })}
                   </span>
 
                   {/* Action & Status */}
@@ -238,15 +238,15 @@ export default function HomeworkDetail() {
                     {canSolve && (
                       isSolved ? (
                         <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-lg">
-                          <CheckCircle2 size={12} className="text-emerald-600" /> Đã hoàn thành
+                          <CheckCircle2 size={12} className="text-emerald-600" /> {t('studentHomework.completed')}
                         </span>
                       ) : isAttempted ? (
                         <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-semibold rounded-lg">
-                          <Clock size={12} className="text-amber-600" /> Đang làm dở
+                          <Clock size={12} className="text-amber-600" /> {t('studentContest.inProgress')}
                         </span>
                       ) : (
                         <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 bg-[#f0ebd9] text-[#8a8073] text-xs rounded-lg">
-                          Chưa nộp
+                          {t('studentContest.notSubmitted')}
                         </span>
                       )
                     )}

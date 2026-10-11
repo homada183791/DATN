@@ -148,7 +148,7 @@ export default function StudentClassDetail() {
           <div className="flex items-center justify-between gap-4 mb-2">
             <div className="flex items-center gap-2">
               <Trophy size={18} className="text-[#193a2b]" />
-              <span className="font-bold text-sm text-[#191919]">Tiến độ bài tập trong lớp</span>
+              <span className="font-bold text-sm text-[#191919]">{t('studentClass.classProgressTitle')}</span>
             </div>
             <span
               className={`text-xs font-bold font-mono px-2.5 py-0.5 rounded-full border ${
@@ -159,21 +159,21 @@ export default function StudentClassDetail() {
                   : 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]'
               }`}
             >
-              {solvedClassTasks}/{totalClassTasks} bài ({overallProgressPct}%)
+              {t('studentClass.classProgressFraction', { solved: solvedClassTasks, total: totalClassTasks, percent: overallProgressPct })}
             </span>
           </div>
           <div className="w-full h-2.5 bg-[#f0ebd9] rounded-full overflow-hidden">
             <div
               className={`h-full transition-all duration-500 rounded-full ${
-                overallProgressPct === 100 ? 'bg-emerald-600' : 'bg-gradient-to-r from-emerald-500 to-[#193a2b]'
+                overallProgressPct === 100 ? 'bg-emerald-600' : 'bg-linear-to-r from-emerald-500 to-[#193a2b]'
               }`}
               style={{ width: `${overallProgressPct}%` }}
             />
           </div>
           <p className="text-xs text-[#8a8073] mt-2">
             {overallProgressPct === 100
-              ? '🎉 Tuyệt vời! Bạn đã hoàn thành toàn bộ bài tập được giao trong lớp học này!'
-              : `Bạn đã giải quyết được ${solvedClassTasks} trên tổng số ${totalClassTasks} bài toán được giao.`}
+              ? t('studentClass.allClassCompletedMsg')
+              : t('studentClass.classProgressMsg', { solved: solvedClassTasks, total: totalClassTasks })}
           </p>
         </div>
       )}
@@ -216,7 +216,7 @@ export default function StudentClassDetail() {
                         </span>
                         {taskCount > 0 && (
                           <span
-                            className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold flex-shrink-0 ${
+                            className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold shrink-0 ${
                               hwPct === 100
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                 : hwPct > 0
@@ -224,7 +224,7 @@ export default function StudentClassDetail() {
                                 : 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]'
                             }`}
                           >
-                            Hoàn thành {hwSolved}/{taskCount} ({hwPct}%)
+                            {t('studentClass.homeworkCompletedFraction', { solved: hwSolved, total: taskCount, percent: hwPct })}
                           </span>
                         )}
                       </div>
@@ -252,7 +252,7 @@ export default function StudentClassDetail() {
                   {taskCount > 0 && (
                     <div className="mt-3 pt-3 border-t border-[#f0ebd9]">
                       <div className="flex items-center justify-between text-[11px] text-[#8a8073] mb-1">
-                        <span>Tiến độ bài làm</span>
+                        <span>{t('studentClass.taskProgressLabel')}</span>
                         <span className="font-semibold text-[#191919]">{hwSolved}/{taskCount} ({hwPct}%)</span>
                       </div>
                       <div className="w-full h-1.5 bg-[#f0ebd9] rounded-full overflow-hidden">

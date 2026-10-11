@@ -170,29 +170,29 @@ export default function ClassPage() {
                     </div>
                     {leaveConfirmId === cls.id ? (
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[11px] text-red-600 font-medium">Rời lớp?</span>
+                        <span className="text-[11px] text-red-600 font-medium">{t('studentClass.leaveClassQuestion')}</span>
                         <button
                           onClick={async () => { await leaveClass(cls.id); setLeaveConfirmId(null); }}
                           className="px-2 py-1 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-500"
-                        >Xác nhận</button>
+                        >{t('studentClass.confirmShort')}</button>
                         <button
                           onClick={() => setLeaveConfirmId(null)}
                           className="px-2 py-1 bg-[#f0ebd9] text-[#5c5446] text-xs font-semibold rounded-lg hover:bg-[#e5dac9]"
-                        >Huỷ</button>
+                        >{t('common.cancel')}</button>
                       </div>
                     ) : (
                       <button
                         onClick={(e) => { e.stopPropagation(); setLeaveConfirmId(cls.id); }}
                         className="flex items-center gap-1 text-[11px] text-[#8a8073] hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Rời lớp"
+                        title={t('studentClass.leaveClass')}
                       >
-                        <LogOut size={12} /> Rời lớp
+                        <LogOut size={12} /> {t('studentClass.leaveClass')}
                       </button>
                     )}
                   </div>
                   <h3 className="text-lg font-bold font-serif text-[#191919] mb-1">{cls.name}</h3>
                   <p className="text-sm text-[#8a8073] mb-1">{cls.code} • {cls.semester}</p>
-                  <p className="text-xs text-[#8a8073] mb-4">GV: {cls.instructor}</p>
+                  <p className="text-xs text-[#8a8073] mb-4">{t('studentClass.instructorPrefix')}: {cls.instructor}</p>
                   <div className="flex items-center gap-4 text-sm text-[#8a8073] mt-auto mb-4">
                     <span className="flex items-center gap-1"><Users size={14} /> {membersOf(cls.id).length}</span>
                   </div>
@@ -201,7 +201,7 @@ export default function ClassPage() {
                     to={`/student/class/${cls.id}`}
                     className="flex items-center justify-center gap-1.5 w-full py-2 bg-[#193a2b] text-white text-sm font-medium rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
                   >
-                    <ChevronRight size={14} /> Xem bài tập
+                    <ChevronRight size={14} /> {t('studentClass.viewHomeworkBtn')}
                   </Link>
                 </div>
               ))}
@@ -304,14 +304,14 @@ export default function ClassPage() {
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-sm font-bold font-serif text-[#191919] flex items-center gap-1.5">
-                      <ClipboardList size={15} /> Bài tập ({selectedClassHws.length})
+                      <ClipboardList size={15} /> {t('studentClass.homeworkCountHeading', { count: selectedClassHws.length })}
                     </h4>
                     <Link
                       to={`/student/homework?class=${selectedClassData?.id}`}
                       onClick={() => setSelectedClass(null)}
                       className="text-xs text-[#193a2b] font-semibold hover:underline flex items-center gap-1"
                     >
-                      Xem tất cả <ChevronRight size={12} />
+                      {t('studentClass.viewAll')} <ChevronRight size={12} />
                     </Link>
                   </div>
                   <div className="space-y-2.5">
@@ -334,7 +334,7 @@ export default function ClassPage() {
                           </div>
                           <div className="flex items-center justify-between text-[11px] text-[#8a8073] mb-1.5">
                             <span className="flex items-center gap-1"><Clock size={11} /> {formatVNFull(hw.deadline)}</span>
-                            <span className="flex items-center gap-1"><BookOpen size={11} /> {hw.problemCount} bài</span>
+                            <span className="flex items-center gap-1"><BookOpen size={11} /> {t('studentClass.problemCount', { count: hw.problemCount })}</span>
                           </div>
                           <div className="w-full h-1.5 bg-[#f0ebd9] rounded-full overflow-hidden">
                             <div
@@ -380,13 +380,13 @@ export default function ClassPage() {
                         onClick={async () => { await leaveClass(selectedClassData.id); setSelectedClass(null); setLeaveConfirmId(null); }}
                         className="flex-1 py-2.5 bg-red-600 text-white font-medium rounded-xl hover:bg-red-500 transition-colors flex items-center justify-center gap-2"
                       >
-                        <LogOut size={15} /> Xác nhận rời lớp
+                        <LogOut size={15} /> {t('studentClass.confirmLeaveClass')}
                       </button>
                       <button
                         onClick={() => setLeaveConfirmId(null)}
                         className="px-5 py-2.5 bg-[#f0ebd9] text-[#5c5446] border border-[#e5dac9] font-medium rounded-xl hover:bg-[#e5dac9]"
                       >
-                        Huỷ
+                        {t('common.cancel')}
                       </button>
                     </div>
                   ) : (
@@ -394,7 +394,7 @@ export default function ClassPage() {
                       onClick={() => setLeaveConfirmId(`modal-${selectedClassData.id}`)}
                       className="w-full py-2.5 bg-red-50 text-red-700 border border-red-200 font-medium rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
                     >
-                      <LogOut size={15} /> Rời lớp
+                      <LogOut size={15} /> {t('studentClass.leaveClass')}
                     </button>
                   )
                 ) : (
@@ -427,7 +427,7 @@ export default function ClassPage() {
                 return (
                   <div className="p-4 bg-white rounded-xl border border-[#e5dac9]">
                     <div className="flex items-center justify-between text-xs mb-2">
-                      <span className="flex items-center gap-1.5 text-[#8a8073]"><Clock size={13} /> Hạn nộp: <span className="font-medium text-[#5c5446]">{formatVNFull(hwDetail.deadline)}</span></span>
+                      <span className="flex items-center gap-1.5 text-[#8a8073]"><Clock size={13} /> {t('studentContest.deadlineLabel')}: <span className="font-medium text-[#5c5446]">{formatVNFull(hwDetail.deadline)}</span></span>
                       <span className={`font-semibold ${p.overdue ? 'text-[#cc5a37]' : p.daysLeft <= 3 ? 'text-yellow-700' : 'text-emerald-700'}`}>{p.label}</span>
                     </div>
                     <div className="w-full h-2 bg-[#f0ebd9] rounded-full overflow-hidden">
@@ -464,15 +464,15 @@ export default function ClassPage() {
                           <span className="text-xs text-[#8a8073] font-mono w-5">{i + 1}.</span>
                           <span className="flex-1 text-sm font-medium text-[#191919] truncate">{p.title}</span>
                           <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${dc[p.difficulty]}`}>{dl[p.difficulty]}</span>
-                          <span className="text-[11px] text-[#8a8073] w-9 text-right">{p.points}đ</span>
+                          <span className="text-[11px] text-[#8a8073] w-9 text-right">{t('studentContest.pointsShort', { count: p.points })}</span>
                           {p.problem_id ? (
                             <Link
                               to={`/student/problem/${p.problem_id}`}
                               onClick={(e) => e.stopPropagation()}
                               className="flex items-center gap-1 px-2 py-1 bg-[#193a2b] text-white text-[11px] font-semibold rounded-lg hover:bg-[#143022] transition-colors shrink-0"
-                              title="Làm bài và nộp code"
+                              title={t('studentClass.solveAndSubmitTooltip')}
                             >
-                              <Play size={11} /> Làm bài
+                              <Play size={11} /> {t('studentContest.solveTask')}
                             </Link>
                           ) : (
                             <ChevronRight size={14} className={`text-[#8a8073] transition-transform ${open ? 'rotate-90' : ''} shrink-0`} />
