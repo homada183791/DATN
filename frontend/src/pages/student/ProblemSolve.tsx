@@ -8,6 +8,24 @@ import { getDetail, LANG_LABELS, Lang, ProblemDetail } from '../../data/problemD
 import { ApiError, apiFetch } from '../../api/http';
 import { useProblemQuery } from '../../api/problems';
 import { useProblemSubmissionsQuery, type SubmissionDto } from '../../api/submissions';
+import {
+  SUPPORTED_LANGUAGES,
+  getAllowedLanguagesList,
+  getLanguageConfig,
+  mapVersionToApi,
+  LanguageVersionConfig,
+} from '../../config/languages';
+
+function highlightCode(raw: string): string {
+  const esc = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  let out = esc(raw || '');
+  out = out.replace(/(\/\/[^\n]*|#[^\n]*)/g, '<span class="text-[#6a9955]">$1</span>');
+  out = out.replace(/("[^"\\]*(?:\\.[^"\\]*)*"|'[^'\\]*(?:\\.[^'\\]*)*')/g, '<span class="text-[#ce9178]">$1</span>');
+  const kw = /\b(def|class|return|if|else|elif|for|while|import|from|in|include|int|float|double|char|void|bool|auto|vector|string|public|private|static|const|namespace|using|try|catch|new|throw|package|func|var|let)\b/g;
+  out = out.replace(kw, '<span class="text-[#569cd6] font-semibold">$1</span>');
+  return out;
+}
 import { formatVNFull } from '../../utils/dateTime';
 import { joinContest } from '../../api/contests';
 import { useToast } from '../../context/ToastContext';
@@ -40,56 +58,132 @@ import {
   MessageCircle,
   ChevronDown,
   ChevronUp,
+  Sparkles,
+  BookOpen,
+  ShieldAlert,
+  Monitor,
+  Lock,
 } from 'lucide-react';
+import { getLocalizedProblemTitle, getLocalizedProblemDescription } from '../../utils/problemTranslation';
+import { getAiTutorHint, explainSubmissionError } from '../../api/ai';
 
-/* ---------------- syntax highlighting ---------------- */
+/* ---------------- allowed contest resources ---------------- */
 
-function escapeHtml(s: string) {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
+const ALLOWED_RESOURCES = [
+  {
+    id: 'cpp_stl',
+    title: 'C++ Standard Template Library (STL)',
+    lang: 'C++',
+    content: `### C++ STL Reference
+**1. vector (Mảng động)**
+\`\`\`cpp
+#include <vector>
+vector<int> a = {1, 2, 3};
+a.push_back(4);
+a.pop_back();
+int n = a.size();
+sort(a.begin(), a.end()); // Tăng dần
+sort(a.rbegin(), a.rend()); // Giảm dần
+\`\`\`
 
-function highlight(code: string, lang: Lang): string {
-  const esc = escapeHtml(code);
-  let regex: RegExp;
-  if (lang === 'python') {
-    regex =
-      /(#[^\n]*)|("""[\s\S]*?"""|'''[\s\S]*?'''|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\b(\d+(?:\.\d+)?)\b|\b(def|return|if|elif|else|for|while|in|not|and|or|break|continue|import|from|as|class|lambda|pass|with|try|except|finally|True|False|None|print|range|len|input|map|int|str|list|sorted|sum|abs)\b/g;
-  } else if (lang === 'java') {
-    regex =
-      /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\b(\d+(?:\.\d+)?[Ll]?)\b|\b(public|private|protected|static|final|class|interface|void|int|long|double|float|char|boolean|byte|short|return|if|else|for|while|do|break|continue|new|import|package|try|catch|finally|throw|throws|this|null|true|false)\b|\b([A-Z][A-Za-z0-9_]*)\b|(\w+)(?=\s*\()/g;
-  } else {
-    regex =
-      /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|(^[ \t]*#[^\n]*)|\b(\d+(?:\.\d+)?[Ll]?)\b|\b(using|namespace|int|long|long long|double|float|char|void|bool|return|if|else|for|while|do|break|continue|struct|class|const|auto|true|false|nullptr|new|delete|public|private|static|sizeof|typedef)\b|\b(vector|string|cin|cout|endl|cerr|map|set|pair|queue|stack|priority_queue|array)\b|(\w+)(?=\s*\()/gm;
-  }
+**2. map / unordered_map (Bảng băm & Cây đỏ đen)**
+\`\`\`cpp
+#include <map>
+#include <unordered_map>
+unordered_map<string, int> freq; // O(1) trung bình
+freq["apple"]++;
+if (freq.count("apple")) { /* tồn tại */ }
+\`\`\`
 
-  return esc.replace(regex, (m, com, str, g3, g4, g5, g6, g7) => {
-    if (com) return `<span class="tok-com">${com}</span>`;
-    if (str) return `<span class="tok-str">${str}</span>`;
-    if (lang === 'python') {
-      if (g3) return `<span class="tok-num">${g3}</span>`;
-      if (g4) return `<span class="tok-kw">${g4}</span>`;
-      return m;
-    }
-    if (lang === 'java') {
-      if (g3) return `<span class="tok-num">${g3}</span>`;
-      if (g4) return `<span class="tok-kw">${g4}</span>`;
-      if (g5) return `<span class="tok-ty">${g5}</span>`;
-      if (g6) return `<span class="tok-fn">${g6}</span>`;
-      return m;
-    }
-    // C++: g3 preprocessor, g4 number, g5 keyword, g6 type, g7 function
-    if (g3) return `<span class="tok-pp">${g3}</span>`;
-    if (g4) return `<span class="tok-num">${g4}</span>`;
-    if (g5) return `<span class="tok-kw">${g5}</span>`;
-    if (g6) return `<span class="tok-ty">${g6}</span>`;
-    if (g7) return `<span class="tok-fn">${g7}</span>`;
-    return m;
-  });
-}
+**3. priority_queue (Hàng đợi ưu tiên / Max Heap)**
+\`\`\`cpp
+#include <queue>
+priority_queue<int> maxHeap; // Phần tử lớn nhất ở đỉnh
+priority_queue<int, vector<int>, greater<int>> minHeap; // Phần tử nhỏ nhất ở đỉnh
+minHeap.push(10);
+int top = minHeap.top(); minHeap.pop();
+\`\`\`
+
+**4. Binary Search (Tìm kiếm nhị phân)**
+\`\`\`cpp
+#include <algorithm>
+// Mảng hoặc vector phải được sắp xếp trước
+auto it = lower_bound(a.begin(), a.end(), x); // Phần tử đầu tiên >= x
+auto it2 = upper_bound(a.begin(), a.end(), x); // Phần tử đầu tiên > x
+\`\`\`
+
+**5. Fast I/O**
+\`\`\`cpp
+ios_base::sync_with_stdio(false);
+cin.tie(NULL);
+\`\`\`
+`,
+  },
+  {
+    id: 'py_std',
+    title: 'Python 3 Standard Library',
+    lang: 'Python',
+    content: `### Python 3 Quick Reference
+**1. Fast Input & Output**
+\`\`\`python
+import sys
+input = sys.stdin.readline
+# Đọc dòng số nguyên:
+nums = list(map(int, input().split()))
+\`\`\`
+
+**2. collections (Counter, deque, defaultdict)**
+\`\`\`python
+from collections import Counter, deque, defaultdict
+cnt = Counter([1, 2, 2, 3]) # đếm tần suất
+q = deque([1, 2])
+q.append(3); q.appendleft(0)
+x = q.popleft(); y = q.pop()
+
+graph = defaultdict(list)
+graph[u].append(v)
+\`\`\`
+
+**3. heapq (Min Heap)**
+\`\`\`python
+import heapq
+h = []
+heapq.heappush(h, 5)
+heapq.heappush(h, 2)
+val = heapq.heappop(h) # trả về 2 (nhỏ nhất)
+\`\`\`
+
+**4. bisect (Binary Search)**
+\`\`\`python
+import bisect
+idx = bisect.bisect_left(arr, x)  # tương đương lower_bound
+idx2 = bisect.bisect_right(arr, x) # tương đương upper_bound
+\`\`\`
+`,
+  },
+  {
+    id: 'complexity',
+    title: 'Bảng độ phức tạp & Giới hạn thời gian (Time Limits)',
+    lang: 'Chung',
+    content: `### Quy tắc ước lượng độ phức tạp thuật toán (1 giây ~ 10^8 phép tính)
+| Kích thước N | Độ phức tạp mong muốn | Thuật toán thường gặp |
+|---|---|---|
+| N ≤ 10–12 | O(N!) | Quay lui hoán vị, vét cạn |
+| N ≤ 20–25 | O(2^N) | Quay lui tập con, Bitmask DP |
+| N ≤ 100 | O(N^4) hoặc O(N^3) | Floyd-Warshall, Matrix DP |
+| N ≤ 500 | O(N^3) | Nhân ma trận, DP 3 chiều |
+| N ≤ 2,000 | O(N^2) | 2 vòng lặp lồng, DP 2 chiều |
+| N ≤ 100,000 | O(N log N) | Sắp xếp, Segment Tree, Binary Search |
+| N ≤ 10,000,000 | O(N) | Two Pointers, Prefix Sum, Hash Map |
+| N rất lớn (10^9) | O(log N) hoặc O(1) | Tìm kiếm nhị phân, Công thức toán học |
+`,
+  },
+];
 
 /* ---------------- types ---------------- */
 
 type LayoutMode = 'split' | 'statement' | 'editor';
+type LeftTab = 'statement' | 'submissions' | 'ai_tutor' | 'resources';
 type BottomTab = 'tests' | 'console' | 'results' | 'debug';
 interface ConsoleLine { time: string; msg: string; kind: 'info' | 'ok' | 'err' | 'sys' }
 interface TestVerdict { id: number; status: 'AC' | 'WA' | 'TLE'; time: number; memory: number }
@@ -108,7 +202,8 @@ const COLLAPSED_BOTTOM_PANEL_HEIGHT = 48;
 const BOTTOM_RESIZE_HANDLE_HEIGHT = 6;
 
 export default function ProblemSolve() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language || 'vi';
   // Hỗ trợ các URL pattern:
   // - /student/problem/:id  (cũ)
   // - /student/class/:classId/homework/:homeworkId/problem/:problemId  (homework)
@@ -126,7 +221,14 @@ export default function ProblemSolve() {
 
   const [cheatWarnings, setCheatWarnings] = useState(0);
   const [isDisqualified, setIsDisqualified] = useState(false);
+  const [isFullscreenLock, setIsFullscreenLock] = useState(false);
   const lastCheatReportTime = useRef(0);
+  const reportCheatRef = useRef<((reason: string) => Promise<void>) | null>(null);
+
+  /* AI Tutor state */
+  const [aiTutorHintType, setAiTutorHintType] = useState<'HINT' | 'COMPLEXITY' | 'EDGE_CASE' | 'EXPLAIN_LOGIC'>('HINT');
+  const [aiTutorLoading, setAiTutorLoading] = useState(false);
+  const [aiTutorResponse, setAiTutorResponse] = useState<string | null>(null);
 
   const resolvedId = pid ?? id;
   const navigate = useNavigate();
@@ -137,13 +239,26 @@ export default function ProblemSolve() {
   const problemTitle = apiProblem?.title ?? t('problemSolve.fallbackProblemTitle');
   const problemDifficulty = apiProblem?.difficulty ?? 'MEDIUM';
   const problemDescription = apiProblem?.description ?? '';
+
+  const localizedTitle = useMemo(
+    () => getLocalizedProblemTitle(problemTitle, currentLang),
+    [problemTitle, currentLang],
+  );
+  const localizedDescription = useMemo(
+    () => getLocalizedProblemDescription(problemDescription, currentLang),
+    [problemDescription, currentLang],
+  );
+
   const problemPoints = useMemo(() => {
     if (problemDifficulty === 'EASY') return 100;
     if (problemDifficulty === 'HARD') return 300;
     return 200;
   }, [problemDifficulty]);
 
-  const detail: ProblemDetail = useMemo(() => getDetail(problemId, problemTitle, problemPoints), [problemId, problemTitle, problemPoints]);
+  const detail: ProblemDetail = useMemo(
+    () => getDetail(problemId, localizedTitle, problemPoints),
+    [problemId, localizedTitle, problemPoints],
+  );
 
   const problemTimeLimit = apiProblem?.time_limit ? `${apiProblem.time_limit} ms` : detail.timeLimit;
   const problemMemoryLimit = apiProblem?.memory_limit ? `${apiProblem.memory_limit} MB` : detail.memoryLimit;
@@ -165,7 +280,7 @@ export default function ProblemSolve() {
 
   /* ui state */
   const queryClient = useQueryClient();
-  const [leftTab, setLeftTab] = useState<'statement' | 'submissions'>('statement');
+  const [leftTab, setLeftTab] = useState<LeftTab>('statement');
   const [inspectedSubmission, setInspectedSubmission] = useState<SubmissionDto | null>(null);
   const {
     data: problemSubmissions = [],
@@ -173,15 +288,38 @@ export default function ProblemSolve() {
     isFetching: isFetchingSubmissions,
   } = useProblemSubmissionsQuery(problemId);
 
+  const allowedLangConfigs = useMemo(
+    () => getAllowedLanguagesList(apiProblem?.allowed_languages),
+    [apiProblem?.allowed_languages],
+  );
+
+  const [selectedLangId, setSelectedLangId] = useState<string>('CPP17');
+
+  const currentLangConfig = useMemo(
+    () => getLanguageConfig(selectedLangId),
+    [selectedLangId],
+  );
+
+  // Tự động chuyển ngôn ngữ nếu ngôn ngữ hiện tại không nằm trong danh sách cho phép
+  useEffect(() => {
+    if (allowedLangConfigs.length > 0) {
+      const isAllowed = allowedLangConfigs.some((l) => l.id === selectedLangId);
+      if (!isAllowed) {
+        setSelectedLangId(allowedLangConfigs[0].id);
+      }
+    }
+  }, [allowedLangConfigs, selectedLangId]);
+
   const restoreCodeFromSubmission = (sub: SubmissionDto) => {
     setCode(sub.source_code);
-    const subLang = sub.language?.toLowerCase();
-    if (subLang === 'python' || subLang === 'py') {
-      setLang('python');
-    } else if (subLang === 'java') {
-      setLang('java');
+    if (sub.language_version && allowedLangConfigs.some((l) => l.id === sub.language_version)) {
+      setSelectedLangId(sub.language_version);
     } else {
-      setLang('cpp');
+      const subLang = sub.language?.toUpperCase();
+      const matched = allowedLangConfigs.find((l) => l.category === subLang);
+      if (matched) {
+        setSelectedLangId(matched.id);
+      }
     }
     showToast(t('problemSolve.restoredCodeToast', { id: sub.id.slice(0, 8) }), 'success');
   };
@@ -193,9 +331,9 @@ export default function ProblemSolve() {
   const hasDocument = typeof document !== 'undefined';
 
   /* editor state */
-  const [lang, setLang] = useState<Lang>('cpp');
+  const lang = (currentLangConfig.monacoLang || 'cpp') as Lang;
   const [code, setCode] = useState(() =>
-    localStorage.getItem(`jh-code-${problemId}-cpp`) ?? detail.templates.cpp
+    localStorage.getItem(`jh-code-${problemId}-${selectedLangId}`) ?? currentLangConfig.template
   );
   const [wrap, setWrap] = useState(false);
   const [fontSize, setFontSize] = useState(14);
@@ -315,6 +453,58 @@ export default function ProblemSolve() {
       });
   }, [contestId, user?.role]);
 
+  const toggleFullscreenLock = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+        setIsFullscreenLock(true);
+        showToast('Đã kích hoạt chế độ toàn màn hình F11 (Phòng thi giám sát)!', 'success');
+      } else {
+        await document.exitFullscreen();
+        setIsFullscreenLock(false);
+      }
+    } catch {
+      showToast('Trình duyệt chặn toàn màn hình. Vui lòng cho phép quyền toàn màn hình.', 'error');
+    }
+  };
+
+  const requestAiHint = async (type: 'HINT' | 'COMPLEXITY' | 'EDGE_CASE' | 'EXPLAIN_LOGIC' = 'HINT') => {
+    if (contestId) {
+      showToast('AI Tutor bị vô hiệu hóa trong phòng thi để đảm bảo tính công bằng!', 'error');
+      return;
+    }
+    setAiTutorLoading(true);
+    setAiTutorHintType(type);
+    try {
+      const apiLang = mapVersionToApi(selectedLangId);
+      const res = await getAiTutorHint({
+        problem_id: problemId,
+        current_code: code,
+        language: apiLang.language as any,
+        hint_type: type,
+        contest_id: contestId,
+      });
+      setAiTutorResponse(res.response);
+    } catch (e: any) {
+      showToast(e.message || 'Không thể lấy gợi ý từ AI.', 'error');
+    } finally {
+      setAiTutorLoading(false);
+    }
+  };
+
+  const requestExplainError = async (submissionId: string) => {
+    setAiTutorLoading(true);
+    setLeftTab('ai_tutor');
+    try {
+      const res = await explainSubmissionError({ submission_id: submissionId });
+      setAiTutorResponse(`### 🔍 Phân tích lỗi bài nộp (#${submissionId.slice(0, 8)} - ${res.status})\n\n${res.analysis}`);
+    } catch (e: any) {
+      showToast(e.message || 'Không thể phân tích lỗi bài nộp.', 'error');
+    } finally {
+      setAiTutorLoading(false);
+    }
+  };
+
   // ── Anti-cheat monitoring khi đang làm bài trong phòng thi ─────────────────────
   useEffect(() => {
     if (!contestId || user?.role !== 'student' || isDisqualified) return;
@@ -344,6 +534,7 @@ export default function ProblemSolve() {
         console.error('Không thể gửi cảnh báo gian lận:', err);
       }
     };
+    reportCheatRef.current = reportCheat;
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
@@ -355,14 +546,48 @@ export default function ProblemSolve() {
       reportCheat(t('problemSolve.cheatReasonBlur'));
     };
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Chặn các phím chức năng F1 đến F12
+      if (/^F([1-9]|1[0-2])$/.test(e.key)) {
+        e.preventDefault();
+        e.stopPropagation();
+        showToast('Các phím chức năng F1–F12 bị vô hiệu hóa trong phòng thi!', 'error');
+        return false;
+      }
+      // Chặn Alt (Alt+Tab, Alt+F4) và các phím tắt devtools/view-source
+      if (e.altKey || (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S' || e.key === 'i' || e.key === 'I'))) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    const handleFullscreenChange = () => {
+      const isNowFullscreen = !!document.fullscreenElement;
+      setIsFullscreenLock(isNowFullscreen);
+      if (!isNowFullscreen && isFullscreenLock) {
+        reportCheatRef.current?.('Thoát chế độ toàn màn hình F11');
+      }
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('blur', handleBlur);
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    window.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleBlur);
+      window.removeEventListener('keydown', handleKeyDown, { capture: true });
+      window.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
-  }, [contestId, user?.role, isDisqualified, showToast]);
+  }, [contestId, user?.role, isDisqualified, showToast, isFullscreenLock]);
 
   useEffect(() => {
     if (!cooldownUntil) {
@@ -385,8 +610,8 @@ export default function ProblemSolve() {
 
   /* load code when problem/lang changes */
   useEffect(() => {
-    const saved = localStorage.getItem(`jh-code-${problemId}-${lang}`);
-    setCode(saved ?? detail.templates[lang]);
+    const saved = localStorage.getItem(`jh-code-${problemId}-${selectedLangId}`);
+    setCode(saved ?? currentLangConfig.template);
     setSaveState(saved ? 'saved' : 'unsaved');
     setTestVerdicts([]);
     setFinalVerdict(null);
@@ -394,7 +619,7 @@ export default function ProblemSolve() {
     setSamples(getInitialSamples());
     setSampleOutputs({});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [problemId, lang, detail, getInitialSamples]);
+  }, [problemId, selectedLangId, currentLangConfig, getInitialSamples]);
 
   useEffect(() => {
     setSamples(getInitialSamples());
@@ -427,7 +652,7 @@ export default function ProblemSolve() {
     if (saveTimer.current) window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
       setSaveState('saving');
-      localStorage.setItem(`jh-code-${problemId}-${lang}`, v);
+      localStorage.setItem(`jh-code-${problemId}-${selectedLangId}`, v);
       window.setTimeout(() => setSaveState('saved'), 350);
     }, 700);
   };
@@ -486,7 +711,7 @@ export default function ProblemSolve() {
     setBottomTab('console');
     setConsoleLines([]);
     setSampleOutputs({});
-    pushConsole(`$ run --lang ${LANG_LABELS[lang]} --samples ${samples.length}`, 'sys');
+    pushConsole(`$ run --lang ${currentLangConfig.name} (${currentLangConfig.compiler}) --samples ${samples.length}`, 'sys');
 
     customRunSocketRef.current?.disconnect();
     const socket = createSocket();
@@ -511,10 +736,12 @@ export default function ProblemSolve() {
     for (let i = 0; i < samples.length; i++) {
       pushConsole(t('problemSolve.consoleRunningSample', { current: i + 1, total: samples.length }), 'info');
       try {
+        const apiLang = mapVersionToApi(selectedLangId);
         const resp = await apiFetch<{ success: boolean; session_id: string }>('/api/v1/submissions/run-custom', {
           method: 'POST',
           body: JSON.stringify({
-            language: LANG_API[lang],
+            language: apiLang.language,
+            language_version: apiLang.language_version,
             source_code: code,
             custom_input: samples[i].input,
           }),
@@ -529,8 +756,8 @@ export default function ProblemSolve() {
           pushConsole(`Test ${i + 1}: OK${result.time !== undefined ? ` (${result.time}ms)` : ''}`, 'ok');
         } else {
           pushConsole(`Test ${i + 1}: WRONG ANSWER`, 'err');
-          pushConsole(`  Expected: ${expected.slice(0, 100)}${expected.length > 100 ? '\u2026' : ''}`, 'info');
-          pushConsole(`  Got:      ${result.output.slice(0, 100)}${result.output.length > 100 ? '\u2026' : ''}`, 'err');
+          pushConsole(`  Expected: ${expected.slice(0, 100)}${expected.length > 100 ? '…' : ''}`, 'info');
+          pushConsole(`  Got:      ${result.output.slice(0, 100)}${result.output.length > 100 ? '…' : ''}`, 'err');
         }
       } catch (err) {
         const msg = err instanceof ApiError ? err.message : t('problemSolve.unknownError');
@@ -557,15 +784,17 @@ export default function ProblemSolve() {
     setFinalVerdict(null);
     setTestVerdicts([]);
     setJudgeProgress(0);
-    pushConsole(`$ judge --submit ${detail.code} --lang ${LANG_LABELS[lang]}`, 'sys');
+    pushConsole(`$ judge --submit ${detail.code} --lang ${currentLangConfig.name} (${currentLangConfig.compiler})`, 'sys');
     pushConsole(t('problemSolve.consoleSubmitting'), 'info');
     let submissionId: string;
     try {
+      const apiLang = mapVersionToApi(selectedLangId);
       const response = await apiFetch<{ submission_id: string }>('/api/v1/submissions', {
         method: 'POST',
         body: JSON.stringify({
           problem_id: problemId,
-          language: lang === 'cpp' ? 'CPP' : lang === 'python' ? 'PYTHON' : 'JAVA',
+          language: apiLang.language,
+          language_version: apiLang.language_version,
           source_code: code,
           contest_id: contestId || undefined,
         }),
@@ -673,7 +902,30 @@ export default function ProblemSolve() {
 
   const uploadFile = (file: File) => {
     const reader = new FileReader();
-    reader.onload = () => onCodeChange(String(reader.result ?? ''));
+    reader.onload = () => {
+      onCodeChange(String(reader.result ?? ''));
+      const name = file.name.toLowerCase();
+      let matched = allowedLangConfigs.find((l) => name.endsWith(l.extension));
+      if (!matched) {
+        if (name.endsWith('.cpp') || name.endsWith('.cc')) {
+          matched = allowedLangConfigs.find((l) => l.category === 'CPP');
+        } else if (name.endsWith('.py')) {
+          matched = allowedLangConfigs.find((l) => l.category === 'PYTHON');
+        } else if (name.endsWith('.java')) {
+          matched = allowedLangConfigs.find((l) => l.category === 'JAVA');
+        } else if (name.endsWith('.c')) {
+          matched = allowedLangConfigs.find((l) => l.category === 'C');
+        } else if (name.endsWith('.go')) {
+          matched = allowedLangConfigs.find((l) => l.category === 'GO');
+        } else if (name.endsWith('.js') || name.endsWith('.ts')) {
+          matched = allowedLangConfigs.find((l) => l.category === 'NODE');
+        }
+      }
+      if (matched) {
+        setSelectedLangId(matched.id);
+        showToast(`Đã nhận diện tệp mã nguồn: ${matched.name}`, 'info');
+      }
+    };
     reader.readAsText(file);
   };
 
@@ -726,7 +978,7 @@ export default function ProblemSolve() {
   const solved = false;
 
   const lineCount = code.split('\n').length;
-  const highlighted = useMemo(() => highlight(code, lang), [code, lang]);
+  const highlighted = useMemo(() => highlightCode(code), [code]);
 
   const diffChip =
     problemDifficulty === 'EASY'
@@ -800,18 +1052,32 @@ export default function ProblemSolve() {
           <span className="text-[11px] font-bold tracking-wider px-2.5 py-1 rounded-md bg-(--ws-accent-soft) text-(--ws-accent)">
             {detail.code}
           </span>
-          <h1 className="text-[17px] font-bold">{problemTitle}</h1>
+          <h1 className="text-[17px] font-bold">{localizedTitle}</h1>
           <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-md ${diffChip}`}>{problemDifficulty === 'EASY' ? t('problemForm.easy') : problemDifficulty === 'MEDIUM' ? t('problemForm.medium') : t('problemForm.hard')}</span>
           {contestId && (
-            <span className={`flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-md border ${
-              isDisqualified
-                ? 'bg-red-100 text-red-800 border-red-300'
-                : cheatWarnings > 0
-                ? 'bg-amber-100 text-amber-800 border-amber-300 animate-pulse'
-                : 'bg-purple-100 text-purple-800 border-purple-200'
-            }`}>
-              🛡️ {isDisqualified ? t('problemSolve.cheatDisqualifiedBadge') : cheatWarnings > 0 ? t('problemSolve.cheatWarningBadge', { count: cheatWarnings }) : t('problemSolve.onlineExamBadge')}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className={`flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-md border ${
+                isDisqualified
+                  ? 'bg-red-100 text-red-800 border-red-300'
+                  : cheatWarnings > 0
+                  ? 'bg-amber-100 text-amber-800 border-amber-300 animate-pulse'
+                  : 'bg-purple-100 text-purple-800 border-purple-200'
+              }`}>
+                🛡️ {isDisqualified ? t('problemSolve.cheatDisqualifiedBadge') : cheatWarnings > 0 ? t('problemSolve.cheatWarningBadge', { count: cheatWarnings }) : t('problemSolve.onlineExamBadge')}
+              </span>
+              <button
+                onClick={toggleFullscreenLock}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold border transition-all ${
+                  isFullscreenLock
+                    ? 'bg-purple-900/30 text-purple-200 border-purple-500 shadow-sm animate-pulse'
+                    : 'bg-(--ws-panel2) text-(--ws-muted) border-(--ws-border) hover:border-purple-400 hover:text-(--ws-text)'
+                }`}
+                title="Chế độ toàn màn hình giám sát thi cử (F11 Lockdown)"
+              >
+                <Monitor size={12} />
+                {isFullscreenLock ? '🔒 Đang khóa F11' : '🖥️ Bật F11 Lockdown'}
+              </button>
+            </div>
           )}
           {solved && (
             <span className="flex items-center gap-1 text-[12px] font-semibold text-(--ws-ok)">
@@ -878,10 +1144,10 @@ export default function ProblemSolve() {
                 }`}
               >
                 {/* Left Pane Navigation Tabs */}
-                <div className="flex items-center gap-1 px-4 border-b border-(--ws-border) bg-(--ws-panel) shrink-0">
+                <div className="flex items-center gap-1 px-4 border-b border-(--ws-border) bg-(--ws-panel) shrink-0 overflow-x-auto">
                   <button
                     onClick={() => setLeftTab('statement')}
-                    className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all ${
+                    className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all whitespace-nowrap ${
                       leftTab === 'statement'
                         ? 'border-(--ws-accent) text-(--ws-accent)'
                         : 'border-transparent text-(--ws-muted) hover:text-(--ws-text)'
@@ -892,7 +1158,7 @@ export default function ProblemSolve() {
                   </button>
                   <button
                     onClick={() => setLeftTab('submissions')}
-                    className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all ${
+                    className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all whitespace-nowrap ${
                       leftTab === 'submissions'
                         ? 'border-(--ws-accent) text-(--ws-accent)'
                         : 'border-transparent text-(--ws-muted) hover:text-(--ws-text)'
@@ -906,11 +1172,35 @@ export default function ProblemSolve() {
                       </span>
                     )}
                   </button>
+                  <button
+                    onClick={() => setLeftTab('ai_tutor')}
+                    className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all whitespace-nowrap ${
+                      leftTab === 'ai_tutor'
+                        ? 'border-(--ws-accent) text-(--ws-accent)'
+                        : 'border-transparent text-(--ws-muted) hover:text-(--ws-text)'
+                    }`}
+                  >
+                    <Sparkles size={14} />
+                    <span>AI Tutor</span>
+                    {contestId && <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-bold">Khóa khi thi</span>}
+                  </button>
+                  <button
+                    onClick={() => setLeftTab('resources')}
+                    className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all whitespace-nowrap ${
+                      leftTab === 'resources'
+                        ? 'border-(--ws-accent) text-(--ws-accent)'
+                        : 'border-transparent text-(--ws-muted) hover:text-(--ws-text)'
+                    }`}
+                  >
+                    <BookOpen size={14} />
+                    <span>Tài liệu cho phép</span>
+                    {contestId && <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold">Hợp lệ</span>}
+                  </button>
                 </div>
 
                 {/* Left Pane Body */}
                 <div className="flex-1 overflow-y-auto ws-editor-scroll">
-                  {leftTab === 'statement' ? (
+                  {leftTab === 'statement' && (
                     <div className="px-7 py-6 max-w-3xl">
                       {/* limits */}
                       <div className="grid grid-cols-3 gap-6 pb-5 border-b border-(--ws-border)">
@@ -935,11 +1225,11 @@ export default function ProblemSolve() {
                         <Download size={14} /> {t('problemSolve.downloadOriginal')}
                       </button>
 
-                      <h2 className="mt-6 mb-5 text-[26px] font-extrabold leading-tight">{problemTitle}</h2>
+                      <h2 className="mt-6 mb-5 text-[26px] font-extrabold leading-tight">{localizedTitle}</h2>
 
-                      {problemDescription && (
+                      {localizedDescription && (
                         <div className="mb-7 rounded-xl border border-(--ws-border) bg-(--ws-panel) p-5">
-                          <ReactMarkdown>{problemDescription}</ReactMarkdown>
+                          <ReactMarkdown>{localizedDescription}</ReactMarkdown>
                         </div>
                       )}
 
@@ -998,7 +1288,9 @@ export default function ProblemSolve() {
                         </div>
                       ))}
                     </div>
-                  ) : (
+                  )}
+
+                  {leftTab === 'submissions' && (
                     /* ---- submissions tab content ---- */
                     <div className="p-6 max-w-3xl">
                       <div className="flex items-center justify-between mb-5">
@@ -1078,7 +1370,7 @@ export default function ProblemSolve() {
                                         {sub.status}
                                       </span>
                                       <span className="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-(--ws-panel2) text-(--ws-muted) font-semibold">
-                                        {sub.language}
+                                        {sub.language_version || sub.language}
                                       </span>
                                     </div>
                                     <span className="text-xs text-(--ws-muted) flex items-center gap-1">
@@ -1125,6 +1417,16 @@ export default function ProblemSolve() {
                                       <ClipboardPaste size={13} />
                                       {t('problemSolve.loadIntoEditorBtn')}
                                     </button>
+                                    {!isAc && !contestId && (
+                                      <button
+                                        onClick={() => requestExplainError(sub.id)}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-purple-300 bg-purple-50 text-purple-800 text-xs font-semibold hover:bg-purple-100 transition-colors"
+                                        title="Nhờ AI phân tích nguyên nhân lỗi và gợi ý sửa"
+                                      >
+                                        <Sparkles size={13} className="text-purple-600" />
+                                        <span>Hỏi AI về lỗi</span>
+                                      </button>
+                                    )}
                                     <button
                                       onClick={() => {
                                         navigator.clipboard?.writeText(sub.source_code);
@@ -1156,6 +1458,167 @@ export default function ProblemSolve() {
                       )}
                     </div>
                   )}
+
+                  {leftTab === 'ai_tutor' && (
+                    <div className="p-6 max-w-3xl">
+                      {contestId ? (
+                        <div className="rounded-2xl border border-amber-300 bg-amber-50/70 p-8 text-center text-amber-900 shadow-sm">
+                          <div className="w-16 h-16 rounded-full bg-amber-200/80 flex items-center justify-center mx-auto mb-4 text-2xl">
+                            🛡️
+                          </div>
+                          <h3 className="font-bold text-lg mb-2">AI Tutor bị vô hiệu hóa trong phòng thi</h3>
+                          <p className="text-xs text-amber-800/90 max-w-md mx-auto leading-relaxed mb-4">
+                            Để đảm bảo tính nghiêm túc và công bằng của kỳ thi trực tuyến, toàn bộ tính năng trợ lý AI đã được tự động khóa đối với bài toán này.
+                          </p>
+                          <p className="text-xs font-semibold text-amber-900">
+                            Vui lòng chuyển qua tab <strong>"Đề bài"</strong> hoặc <strong>"Tài liệu cho phép"</strong> để làm bài.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-5">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <Sparkles size={20} className="text-(--ws-accent)" />
+                              <h2 className="text-lg font-bold text-(--ws-text)">AI Tutor & Trợ lý học tập</h2>
+                            </div>
+                            <p className="text-xs text-(--ws-muted)">
+                              Gợi ý tư duy thuật toán, phân tích độ phức tạp và hỗ trợ gỡ lỗi mà không làm hộ bài giải.
+                            </p>
+                          </div>
+
+                          {/* Quick action buttons */}
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                            <button
+                              onClick={() => requestAiHint('HINT')}
+                              disabled={aiTutorLoading}
+                              className={`p-3 rounded-xl border text-left transition-all ${
+                                aiTutorHintType === 'HINT'
+                                  ? 'border-(--ws-accent) bg-(--ws-accent-soft) text-(--ws-accent)'
+                                  : 'border-(--ws-border) bg-(--ws-panel) hover:border-(--ws-accent) text-(--ws-text)'
+                              }`}
+                            >
+                              <p className="text-xs font-bold mb-0.5">💡 Gợi ý tư duy</p>
+                              <p className="text-[11px] text-(--ws-muted)">Hướng tiếp cận</p>
+                            </button>
+                            <button
+                              onClick={() => requestAiHint('COMPLEXITY')}
+                              disabled={aiTutorLoading}
+                              className={`p-3 rounded-xl border text-left transition-all ${
+                                aiTutorHintType === 'COMPLEXITY'
+                                  ? 'border-(--ws-accent) bg-(--ws-accent-soft) text-(--ws-accent)'
+                                  : 'border-(--ws-border) bg-(--ws-panel) hover:border-(--ws-accent) text-(--ws-text)'
+                              }`}
+                            >
+                              <p className="text-xs font-bold mb-0.5">⏱️ Độ phức tạp</p>
+                              <p className="text-[11px] text-(--ws-muted)">Thời gian & Bộ nhớ</p>
+                            </button>
+                            <button
+                              onClick={() => requestAiHint('EDGE_CASE')}
+                              disabled={aiTutorLoading}
+                              className={`p-3 rounded-xl border text-left transition-all ${
+                                aiTutorHintType === 'EDGE_CASE'
+                                  ? 'border-(--ws-accent) bg-(--ws-accent-soft) text-(--ws-accent)'
+                                  : 'border-(--ws-border) bg-(--ws-panel) hover:border-(--ws-accent) text-(--ws-text)'
+                              }`}
+                            >
+                              <p className="text-xs font-bold mb-0.5">⚠️ Edge Cases</p>
+                              <p className="text-[11px] text-(--ws-muted)">Trường hợp đặc biệt</p>
+                            </button>
+                            <button
+                              onClick={() => requestAiHint('EXPLAIN_LOGIC')}
+                              disabled={aiTutorLoading}
+                              className={`p-3 rounded-xl border text-left transition-all ${
+                                aiTutorHintType === 'EXPLAIN_LOGIC'
+                                  ? 'border-(--ws-accent) bg-(--ws-accent-soft) text-(--ws-accent)'
+                                  : 'border-(--ws-border) bg-(--ws-panel) hover:border-(--ws-accent) text-(--ws-text)'
+                              }`}
+                            >
+                              <p className="text-xs font-bold mb-0.5">🧠 Logic bài toán</p>
+                              <p className="text-[11px] text-(--ws-muted)">Giải thích đề</p>
+                            </button>
+                          </div>
+
+                          {/* AI Tutor Response Area */}
+                          <div className="rounded-2xl border border-(--ws-border) bg-(--ws-panel) p-5 shadow-sm min-h-[220px] flex flex-col">
+                            {aiTutorLoading ? (
+                              <div className="flex-1 flex flex-col items-center justify-center py-12 text-(--ws-muted)">
+                                <Loader2 size={28} className="animate-spin text-(--ws-accent) mb-3" />
+                                <p className="text-xs font-medium">AI đang suy nghĩ gợi ý cho bạn...</p>
+                              </div>
+                            ) : aiTutorResponse ? (
+                              <div>
+                                <div className="flex items-center justify-between pb-3 mb-4 border-b border-(--ws-border) text-xs">
+                                  <span className="font-bold flex items-center gap-1.5 text-(--ws-accent)">
+                                    <Sparkles size={14} /> Phản hồi từ AI Tutor
+                                  </span>
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard?.writeText(aiTutorResponse);
+                                      showToast('Đã sao chép phản hồi!', 'success');
+                                    }}
+                                    className="p-1 rounded hover:bg-(--ws-panel2) text-(--ws-muted) hover:text-(--ws-text)"
+                                    title="Sao chép"
+                                  >
+                                    <Copy size={13} />
+                                  </button>
+                                </div>
+                                <div className="prose prose-sm max-w-none text-(--ws-text) leading-relaxed">
+                                  <ReactMarkdown>{aiTutorResponse}</ReactMarkdown>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex-1 flex flex-col items-center justify-center py-10 text-center text-(--ws-muted)">
+                                <Sparkles size={32} className="text-(--ws-muted) opacity-50 mb-3" />
+                                <p className="text-xs font-semibold text-(--ws-text) mb-1">Cần gợi ý mà không bị lộ đáp án?</p>
+                                <p className="text-[11.5px] max-w-xs text-(--ws-muted)">
+                                  Chọn một mục ở trên để nhận hướng dẫn tư duy từng bước cho bài toán này.
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {leftTab === 'resources' && (
+                    <div className="p-6 max-w-3xl space-y-6">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <BookOpen size={20} className="text-emerald-600" />
+                          <h2 className="text-lg font-bold text-(--ws-text)">Tài liệu & Thư viện cho phép</h2>
+                        </div>
+                        <p className="text-xs text-(--ws-muted)">
+                          {contestId
+                            ? 'Tài liệu tra cứu hợp lệ trong kỳ thi. Bạn được phép tham khảo tại đây mà không vi phạm quy chế.'
+                            : 'Sổ tay tra cứu cú pháp và cấu trúc dữ liệu chuẩn cho C++, Python, Java.'}
+                        </p>
+                      </div>
+
+                      <div className="space-y-4">
+                        {ALLOWED_RESOURCES.map((res) => (
+                          <details
+                            key={res.id}
+                            className="group rounded-2xl border border-(--ws-border) bg-(--ws-panel) overflow-hidden transition-all open:ring-1 open:ring-(--ws-accent)"
+                            open={res.id === 'cpp_stl'}
+                          >
+                            <summary className="flex items-center justify-between p-4 cursor-pointer select-none font-semibold text-sm hover:bg-(--ws-panel2) transition-colors">
+                              <span className="flex items-center gap-2">
+                                <span className="text-xs font-bold px-2 py-0.5 rounded bg-(--ws-accent-soft) text-(--ws-accent) font-mono">
+                                  {res.lang}
+                                </span>
+                                <span>{res.title}</span>
+                              </span>
+                              <ChevronDown size={16} className="text-(--ws-muted) group-open:rotate-180 transition-transform" />
+                            </summary>
+                            <div className="p-5 border-t border-(--ws-border) bg-(--ws-bg) prose prose-sm max-w-none text-xs">
+                              <ReactMarkdown>{res.content}</ReactMarkdown>
+                            </div>
+                          </details>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </section>
             )}
@@ -1171,28 +1634,33 @@ export default function ProblemSolve() {
               >
               {/* editor toolbar */}
               <div className="flex items-center gap-2 px-3 py-2 border-b border-(--ws-border) flex-wrap">
-                <div className="flex items-center rounded-lg border border-(--ws-border) overflow-hidden text-[12.5px] font-semibold">
-                  <button className="px-3 py-1.5 bg-(--ws-accent-soft) text-(--ws-accent)">{t('problemSolve.writeCode')}</button>
-                  <label className="px-3 py-1.5 text-(--ws-muted) hover:text-(--ws-text) cursor-pointer">
-                    {t('problemSolve.uploadFile')}
-                    <input type="file" accept=".cpp,.py,.java,.txt" className="hidden" onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0])} />
-                  </label>
+                <div className="flex items-center gap-1.5">
+                  <select
+                    value={selectedLangId}
+                    onChange={(e) => setSelectedLangId(e.target.value)}
+                    className="px-2.5 py-1.5 bg-(--ws-panel2) border border-(--ws-border) rounded-lg text-[12.5px] font-semibold text-(--ws-text) focus:outline-none focus:border-(--ws-accent) cursor-pointer"
+                  >
+                    {allowedLangConfigs.map((l) => (
+                      <option key={l.id} value={l.id}>
+                        {l.name} — {l.compiler}
+                      </option>
+                    ))}
+                  </select>
+                  {apiProblem?.allowed_languages && apiProblem.allowed_languages.length > 0 && (
+                    <span
+                      className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/25 text-amber-500 text-[11px] font-medium"
+                      title="Bài tập này có cấu hình giới hạn ngôn ngữ được phép"
+                    >
+                      <Lock size={11} /> Giới hạn {allowedLangConfigs.length} ngôn ngữ
+                    </span>
+                  )}
                 </div>
-                <select
-                  value={lang}
-                  onChange={(e) => setLang(e.target.value as Lang)}
-                  className="px-2.5 py-1.5 bg-(--ws-panel2) border border-(--ws-border) rounded-lg text-[12.5px] font-medium focus:outline-none focus:border-(--ws-accent)"
-                >
-                  {(Object.keys(LANG_LABELS) as Lang[]).map((l) => (
-                    <option key={l} value={l}>{LANG_LABELS[l]}</option>
-                  ))}
-                </select>
                 <label className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] text-(--ws-muted) cursor-pointer hover:text-(--ws-text)">
                   <input type="checkbox" checked={wrap} onChange={(e) => setWrap(e.target.checked)} className="accent-(--ws-accent)" />
                   {t('problemSolve.wordWrap')}
                 </label>
                 <button
-                  onClick={() => onCodeChange(detail.templates[lang])}
+                  onClick={() => onCodeChange(currentLangConfig.template)}
                   className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] text-(--ws-muted) hover:text-(--ws-text) transition-colors"
                 >
                   <RotateCcw size={13} /> {t('problemSolve.resetCode')}
@@ -1209,9 +1677,9 @@ export default function ProblemSolve() {
                 <button onClick={pasteIntoEditor} className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] font-semibold text-(--ws-accent) hover:bg-(--ws-accent-soft) transition-colors">
                   <ClipboardPaste size={13} /> {t('problemSolve.pasteIn')}
                 </button>
-                <label className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] font-semibold text-(--ws-accent) hover:bg-(--ws-accent-soft) transition-colors cursor-pointer">
+                <label className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] font-semibold text-(--ws-accent) bg-(--ws-accent-soft)/30 border border-(--ws-accent)/25 hover:bg-(--ws-accent-soft) transition-colors cursor-pointer">
                   <Upload size={13} /> {t('problemSolve.uploadBtn')}
-                  <input type="file" accept=".cpp,.py,.java,.txt" className="hidden" onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0])} />
+                  <input type="file" accept={allowedLangConfigs.map((l) => l.extension).join(',') + ',.txt'} className="hidden" onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0])} />
                 </label>
                 <span className={`text-[11.5px] ${saveState === 'saved' ? 'text-(--ws-faint)' : 'text-(--ws-warn)'}`}>
                   {saveState === 'saved' ? t('problemSolve.saved') : saveState === 'saving' ? t('problemSolve.saving') : t('problemSolve.unsaved')}
@@ -1231,7 +1699,7 @@ export default function ProblemSolve() {
                 </label>
                 {intelli && (
                   <span className="text-[11px] text-(--ws-faint) hidden sm:block">
-                    {t('problemSolve.lineCount', { count: lineCount })} • {t('problemSolve.charCount', { count: code.length })} • {LANG_LABELS[lang]}
+                    {t('problemSolve.lineCount', { count: lineCount })} • {t('problemSolve.charCount', { count: code.length })} • {currentLangConfig.name}
                   </span>
                 )}
               </div>
@@ -1596,7 +2064,7 @@ export default function ProblemSolve() {
                 <Clock size={13} /> {detail.timeLimit}
                 <Zap size={13} className="ml-3" /> {detail.memoryLimit}
               </div>
-              <pre className="ws-dark bg-[#0b1210] border border-(--ws-border) rounded-xl p-4 overflow-x-auto font-mono text-[12.5px] leading-6 text-[#e4ece8]" dangerouslySetInnerHTML={{ __html: highlight(detail.solutions[lang], lang) }} />
+              <pre className="ws-dark bg-[#0b1210] border border-(--ws-border) rounded-xl p-4 overflow-x-auto font-mono text-[12.5px] leading-6 text-[#e4ece8]" dangerouslySetInnerHTML={{ __html: highlightCode(detail.solutions[lang] || currentLangConfig.template) }} />
             </div>
           </div>
         </div>
@@ -1626,6 +2094,30 @@ export default function ProblemSolve() {
               ))}
             </div>
           </div>
+        </div>
+      ), document.body)}
+
+      {/* ============ DISQUALIFIED FULLSCREEN OVERLAY ============ */}
+      {isDisqualified && hasDocument && createPortal((
+        <div className="fixed inset-0 z-9999 bg-red-950/95 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center text-white select-none">
+          <div className="w-20 h-20 rounded-full bg-red-900 border-2 border-red-500 flex items-center justify-center text-4xl mb-6 shadow-2xl animate-pulse">
+            🚫
+          </div>
+          <h1 className="text-3xl font-extrabold mb-3 text-red-100">
+            BÀI THI CỦA BẠN ĐÃ BỊ HỦY BỎ
+          </h1>
+          <p className="text-sm text-red-300 max-w-lg mb-6 leading-relaxed">
+            Hệ thống giám sát ghi nhận bạn đã vi phạm quy chế thi cử quá 3 lần (chuyển tab, rời cửa sổ hoặc thoát chế độ toàn màn hình F11). Quyền nộp bài đã bị vô hiệu hóa.
+          </p>
+          <div className="bg-red-900/60 border border-red-700/80 rounded-xl px-6 py-3 text-xs font-mono text-red-200 mb-8">
+            Số lần vi phạm: {cheatWarnings}/3 • Trạng thái: DISQUALIFIED
+          </div>
+          <button
+            onClick={() => navigate('/student/contest')}
+            className="px-6 py-3 bg-white text-red-900 font-bold rounded-xl shadow-lg hover:bg-red-100 transition-colors"
+          >
+            Quay về trang Kỳ thi
+          </button>
         </div>
       ), document.body)}
     </div>
