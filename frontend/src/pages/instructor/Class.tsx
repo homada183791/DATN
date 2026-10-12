@@ -24,10 +24,38 @@ import {
   Edit3,
 } from 'lucide-react';
 
+// Computes a sensible "current" semester label (e.g. "Học kỳ 1 - 2026/2027")
+// so the create-class form doesn't default to a permanently stale year.
+function getDefaultSemester(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1; // 1-12
+  if (month >= 9) return `Học kỳ 1 - ${year}/${year + 1}`;
+  if (month === 1) return `Học kỳ 1 - ${year - 1}/${year}`;
+  if (month >= 2 && month <= 6) return `Học kỳ 2 - ${year - 1}/${year}`;
+  return `Học kỳ 3 - ${year - 1}/${year}`;
+}
+
+// Builds a handful of ready-made suggestions (current + previous academic year)
+// offered via <datalist> while still letting the instructor type anything.
+function buildSemesterSuggestions(): string[] {
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const academicStartYear = month >= 9 ? now.getFullYear() : now.getFullYear() - 1;
+  const suggestions: string[] = [];
+  [academicStartYear - 1, academicStartYear].forEach((y) => {
+    suggestions.push(`Học kỳ 1 - ${y}/${y + 1}`);
+    suggestions.push(`Học kỳ 2 - ${y}/${y + 1}`);
+    suggestions.push(`Học kỳ 3 - ${y}/${y + 1}`);
+  });
+  return suggestions;
+}
+
 export default function InstructorClass() {
   const { t } = useTranslation();
   const { myClasses, createClass, updateClass, deleteClass, membersOf, removeMember } = useClass();
   const { homeworksOfClass, createHomework, refetch } = useHomework();
+  const semesterSuggestions = buildSemesterSuggestions();
 
   useEffect(() => {
     refetch();
@@ -43,11 +71,11 @@ export default function InstructorClass() {
 
   // Edit class state
   const [editingClass, setEditingClass] = useState<ClassInfo | null>(null);
-  const [editForm, setEditForm] = useState({ name: '', semester: 'Học kỳ 2 - 2024/2025', description: '' });
+  const [editForm, setEditForm] = useState({ name: '', semester: getDefaultSemester(), description: '' });
   const [editError, setEditError] = useState('');
   const [isUpdatingClass, setIsUpdatingClass] = useState(false);
 
-  const [form, setForm] = useState({ name: '', semester: 'Học kỳ 2 - 2024/2025', description: '' });
+  const [form, setForm] = useState({ name: '', semester: getDefaultSemester(), description: '' });
   const [formError, setFormError] = useState('');
 
   const [hwForm, setHwForm] = useState({ title: '', description: '', deadline: '' });
@@ -115,8 +143,8 @@ export default function InstructorClass() {
     setIsCreatingClass(true);
     setFormError('');
     try {
-      await createClass({ name: form.name.trim(), semester: form.semester, description: form.description.trim() });
-      setForm({ name: '', semester: 'Học kỳ 2 - 2024/2025', description: '' });
+      await createClass({ name: form.name.trim(), semester: form.semester.trim(), description: form.description.trim() });
+      setForm({ name: '', semester: getDefaultSemester(), description: '' });
       setShowCreate(false);
     } catch (e: any) {
       setFormError(e.message || t('instructorClass.errors.createClassFailed'));
@@ -146,7 +174,7 @@ export default function InstructorClass() {
     try {
       await updateClass(editingClass.id, {
         name: editForm.name.trim(),
-        semester: editForm.semester,
+        semester: editForm.semester.trim(),
         description: editForm.description.trim(),
       });
       setEditingClass(null);
@@ -423,15 +451,18 @@ export default function InstructorClass() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldSemester')}</label>
-                <select
+                <input
                   value={form.semester}
                   onChange={(e) => setForm({ ...form, semester: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
-                >
-                  <option>Học kỳ 1 - 2024/2025</option>
-                  <option>Học kỳ 2 - 2024/2025</option>
-                  <option>Học kỳ hè - 2024/2025</option>
-                </select>
+                  placeholder={t('instructorClass.fieldSemesterPlaceholder')}
+                  list="semester-suggestions-create"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                />
+                <datalist id="semester-suggestions-create">
+                  {semesterSuggestions.map((s) => (
+                    <option key={s} value={s} />
+                  ))}
+                </datalist>
               </div>
               <div>
                 <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldDescription')}</label>
@@ -494,15 +525,18 @@ export default function InstructorClass() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldSemester')}</label>
-                <select
+                <input
                   value={editForm.semester}
                   onChange={(e) => setEditForm({ ...editForm, semester: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
-                >
-                  <option>Học kỳ 1 - 2024/2025</option>
-                  <option>Học kỳ 2 - 2024/2025</option>
-                  <option>Học kỳ hè - 2024/2025</option>
-                </select>
+                  placeholder={t('instructorClass.fieldSemesterPlaceholder')}
+                  list="semester-suggestions-edit"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                />
+                <datalist id="semester-suggestions-edit">
+                  {semesterSuggestions.map((s) => (
+                    <option key={s} value={s} />
+                  ))}
+                </datalist>
               </div>
               <div>
                 <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldDescription')}</label>

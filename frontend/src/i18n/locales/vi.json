@@ -414,6 +414,8 @@
     "classCount": "{{count}} lớp trên hệ thống"
   },
   "submission": {
+    "instructorTitle": "Quản lý bài nộp & Chấm điểm",
+    "studentTitle": "Lịch sử nộp bài",
     "instructorSubtitle": "Theo dõi, chấm điểm thủ công và chấm lại các bài nộp của học viên",
     "studentSubtitle": "Theo dõi kết quả biên dịch và nhận xét từ giảng viên",
     "gradeValidationError": "Điểm số phải là số hợp lệ từ 0 đến 100 hoặc 0 đến 10.",

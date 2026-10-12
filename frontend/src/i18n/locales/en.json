@@ -414,6 +414,8 @@
     "classCount": "{{count}} classes on the system"
   },
   "submission": {
+    "instructorTitle": "Submissions & Grading",
+    "studentTitle": "Submission History",
     "instructorSubtitle": "Track, manually grade, and rejudge your students' submissions",
     "studentSubtitle": "Track compile results and feedback from your instructor",
     "gradeValidationError": "The score must be a valid number from 0 to 100 or 0 to 10.",
