@@ -17,6 +17,7 @@ import { ClassesModule } from './modules/classes/classes.module';
 import { PlagiarismModule } from './modules/plagiarism/plagiarism.module';
 import { HomeworksModule } from './modules/homeworks/homeworks.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { AiModule } from './modules/ai/ai.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     PlagiarismModule,
     HomeworksModule,
     NotificationsModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
