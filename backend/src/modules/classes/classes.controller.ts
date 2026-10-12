@@ -98,8 +98,12 @@ export class ClassesController {
 
   /** Tham gia lớp bằng ID */
   @Post(':id/join')
-  join(@Param('id') id: string, @Request() req: { user: { userId: string } }) {
-    return this.classesService.joinStudent(id, req.user.userId);
+  join(
+    @Param('id') id: string,
+    @Body() body: { code?: string },
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.classesService.joinStudent(id, req.user.userId, body?.code);
   }
 
   /** Tham gia lớp bằng mã mời */

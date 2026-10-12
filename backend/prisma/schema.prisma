@@ -178,6 +178,7 @@ model Class {
   description String?  @db.Text
   semester    String?
   invite_code String   @unique
+  is_public   Boolean  @default(false)
   admin_id    String
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt

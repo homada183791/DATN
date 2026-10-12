@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import { useClass } from '../../context/ClassContext';
+import { useClass, type ClassInfo } from '../../context/ClassContext';
 import { useHomework, deadlineProgress } from '../../context/HomeworkContext';
 import { formatVNFull } from '../../utils/dateTime';
 import { useContestsQuery } from '../../api/contests';
@@ -23,11 +23,13 @@ import {
   ClipboardList,
   ChevronRight,
   Play,
+  Lock,
+  Globe,
 } from 'lucide-react';
 
 export default function ClassPage() {
   const { t } = useTranslation();
-  const { allClasses, enrolledClasses, membersOf, joinByCode, leaveClass, isEnrolled } = useClass();
+  const { allClasses, enrolledClasses, membersOf, joinByCode, joinDirectly, leaveClass, isEnrolled } = useClass();
   const { homeworksOfClass, problemsOf } = useHomework();
   const { data: contestsData } = useContestsQuery();
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,6 +40,9 @@ export default function ClassPage() {
   const [expandedProblem, setExpandedProblem] = useState<string | null>(null);
   const [joinMsg, setJoinMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [leaveConfirmId, setLeaveConfirmId] = useState<string | null>(null);
+  const [privateJoinModal, setPrivateJoinModal] = useState<ClassInfo | null>(null);
+  const [privateCodeInput, setPrivateCodeInput] = useState('');
+  const [isJoining, setIsJoining] = useState(false);
   const hasDocument = typeof document !== 'undefined';
 
   /* banner khi vừa join qua link /join/CODE */
@@ -77,6 +82,32 @@ export default function ClassPage() {
     const res = await joinByCode(code);
     setJoinMsg({ ok: res.ok, text: res.message });
     if (res.ok) setCodeInput('');
+    setTimeout(() => setJoinMsg(null), 4000);
+  };
+
+  const handleJoinClassItem = async (cls: ClassInfo) => {
+    if (cls.is_public) {
+      setIsJoining(true);
+      const res = await joinDirectly(cls.id);
+      setIsJoining(false);
+      setJoinMsg({ ok: res.ok, text: res.message });
+      setTimeout(() => setJoinMsg(null), 4000);
+    } else {
+      setPrivateCodeInput('');
+      setPrivateJoinModal(cls);
+    }
+  };
+
+  const submitPrivateJoin = async () => {
+    if (!privateJoinModal || !privateCodeInput.trim()) return;
+    setIsJoining(true);
+    const res = await joinDirectly(privateJoinModal.id, privateCodeInput.trim());
+    setIsJoining(false);
+    setJoinMsg({ ok: res.ok, text: res.message });
+    if (res.ok) {
+      setPrivateJoinModal(null);
+      setPrivateCodeInput('');
+    }
     setTimeout(() => setJoinMsg(null), 4000);
   };
 
@@ -233,6 +264,14 @@ export default function ClassPage() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-semibold text-[#191919]">{cls.name}</p>
                     <span className="text-[10.5px] font-bold font-mono px-1.5 py-0.5 rounded bg-[#f0ebd9] border border-[#e5dac9] text-[#193a2b]">{cls.code}</span>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 ${
+                      cls.is_public
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]'
+                    }`}>
+                      {cls.is_public ? <Globe size={11} /> : <Lock size={11} />}
+                      {cls.is_public ? 'Công khai' : 'Riêng tư'}
+                    </span>
                   </div>
                   <p className="text-xs text-[#8a8073] mt-0.5">
                     {cls.instructor} • {cls.semester} • {t('instructorClass.memberCountSuffix', { count: membersOf(cls.id).length })}
@@ -246,10 +285,15 @@ export default function ClassPage() {
                     {t('studentClass.detailBtn')}
                   </button>
                   <button
-                    onClick={() => handleJoin(cls.code)}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-lg hover:bg-[#143022] shadow-sm"
+                    onClick={() => handleJoinClassItem(cls)}
+                    className={`flex items-center gap-1.5 px-3.5 py-1.5 text-white text-xs font-semibold rounded-lg shadow-sm transition-all ${
+                      cls.is_public
+                        ? 'bg-[#193a2b] hover:bg-[#143022]'
+                        : 'bg-[#5c5446] hover:bg-[#463f33]'
+                    }`}
                   >
-                    <UserPlus size={13} /> {t('studentClass.joinBtn')}
+                    {cls.is_public ? <UserPlus size={13} /> : <Lock size={13} />}
+                    {cls.is_public ? t('studentClass.joinBtn') : 'Nhập mã vào lớp'}
                   </button>
                 </div>
               </div>
@@ -399,14 +443,73 @@ export default function ClassPage() {
                   )
                 ) : (
                   <button
-                    onClick={() => { handleJoin(selectedClassData.code); setSelectedClass(null); }}
+                    onClick={() => {
+                      setSelectedClass(null);
+                      handleJoinClassItem(selectedClassData);
+                    }}
                     className="w-full py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md flex items-center justify-center gap-2"
                   >
-                    <UserPlus size={16} /> {t('studentClass.joinThisClass')}
+                    {selectedClassData.is_public ? <UserPlus size={16} /> : <Lock size={16} />}
+                    {selectedClassData.is_public ? 'Tham gia lớp công khai này' : 'Nhập mã để tham gia lớp riêng tư này'}
                   </button>
                 )}
               </div>
 
+            </div>
+          </div>
+        </div>
+      ), document.body)}
+
+      {/* ===== private class code input modal ===== */}
+      {privateJoinModal && hasDocument && createPortal((
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-95 flex items-center justify-center p-4" onClick={() => setPrivateJoinModal(null)}>
+          <div className="bg-[#f7f4eb] border border-[#e5dac9] rounded-2xl w-full max-w-md p-6 shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between pb-3 border-b border-[#e5dac9] mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                  <Lock size={16} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-[#191919]">{privateJoinModal.name}</h3>
+                  <p className="text-xs text-[#8a8073]">Lớp học riêng tư (Private)</p>
+                </div>
+              </div>
+              <button onClick={() => setPrivateJoinModal(null)} className="text-[#8a8073] hover:text-[#191919]"><X size={18} /></button>
+            </div>
+
+            <p className="text-xs text-[#5c5446] leading-relaxed mb-4">
+              Lớp học này yêu cầu <strong>Mã mời (Enrollment Code)</strong> do giảng viên cung cấp để tham gia. Vui lòng nhập mã bên dưới:
+            </p>
+
+            <div className="relative mb-4">
+              <Hash size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a8073]" />
+              <input
+                autoFocus
+                value={privateCodeInput}
+                onChange={(e) => setPrivateCodeInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && privateCodeInput.trim() && submitPrivateJoin()}
+                placeholder="Nhập mã mời lớp học (VD: INT4821)"
+                className="w-full pl-9 pr-3 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-sm font-mono text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setPrivateJoinModal(null)}
+                className="px-4 py-2 bg-[#f0ebd9] text-[#5c5446] text-xs font-semibold rounded-xl hover:bg-[#e5dac9] transition-colors"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={submitPrivateJoin}
+                disabled={!privateCodeInput.trim() || isJoining}
+                className="flex items-center gap-1.5 px-5 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-40 transition-colors"
+              >
+                {isJoining && <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                {t('studentClass.joinBtn')}
+              </button>
             </div>
           </div>
         </div>

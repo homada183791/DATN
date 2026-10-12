@@ -22,4 +22,12 @@ export class CreateClassDto {
   @IsString()
   @MaxLength(2000, { message: 'Mô tả không được vượt quá 2000 ký tự' })
   description?: string;
+
+  @ApiPropertyOptional({
+    description: 'Trạng thái công khai (true: ai cũng vào được, false: cần mã lớp hoặc mời)',
+    example: false,
+    default: false,
+  })
+  @IsOptional()
+  is_public?: boolean;
 }

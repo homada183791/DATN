@@ -22,6 +22,7 @@ export class ClassesService {
         description: createClassDto.description,
         semester: createClassDto.semester,
         invite_code: inviteCode,
+        is_public: createClassDto.is_public ?? false,
         admin_id: adminId,
       },
     });
@@ -171,8 +172,15 @@ export class ClassesService {
     });
   }
 
-  async joinStudent(classId: string, studentId: string) {
-    await this.findOne(classId);
+  async joinStudent(classId: string, studentId: string, code?: string) {
+    const cls = await this.findOne(classId);
+    if (!cls.is_public) {
+      if (!code || code.trim().toUpperCase() !== cls.invite_code.toUpperCase()) {
+        throw new ForbiddenException(
+          'Lớp học này ở chế độ Riêng tư (Private). Bạn cần nhập đúng Mã tham gia (Enrollment Code) để vào lớp hoặc được Giảng viên mời vào danh sách.',
+        );
+      }
+    }
     const existing = await this.prisma.classStudent.findUnique({
       where: { class_id_student_id: { class_id: classId, student_id: studentId } },
     });
@@ -188,7 +196,7 @@ export class ClassesService {
       where: { invite_code: inviteCode.trim().toUpperCase() },
     });
     if (!cls) throw new NotFoundException(`Không tìm thấy lớp với mã "${inviteCode}".`);
-    return this.joinStudent(cls.id, studentId);
+    return this.joinStudent(cls.id, studentId, inviteCode);
   }
 
   async getGradebook(classId: string, instructorId?: string) {

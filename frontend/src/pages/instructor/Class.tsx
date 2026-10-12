@@ -71,11 +71,11 @@ export default function InstructorClass() {
 
   // Edit class state
   const [editingClass, setEditingClass] = useState<ClassInfo | null>(null);
-  const [editForm, setEditForm] = useState({ name: '', semester: getDefaultSemester(), description: '' });
+  const [editForm, setEditForm] = useState({ name: '', semester: getDefaultSemester(), description: '', is_public: false });
   const [editError, setEditError] = useState('');
   const [isUpdatingClass, setIsUpdatingClass] = useState(false);
 
-  const [form, setForm] = useState({ name: '', semester: getDefaultSemester(), description: '' });
+  const [form, setForm] = useState({ name: '', semester: getDefaultSemester(), description: '', is_public: false });
   const [formError, setFormError] = useState('');
 
   const [hwForm, setHwForm] = useState({ title: '', description: '', deadline: '' });
@@ -143,8 +143,13 @@ export default function InstructorClass() {
     setIsCreatingClass(true);
     setFormError('');
     try {
-      await createClass({ name: form.name.trim(), semester: form.semester.trim(), description: form.description.trim() });
-      setForm({ name: '', semester: getDefaultSemester(), description: '' });
+      await createClass({
+        name: form.name.trim(),
+        semester: form.semester.trim(),
+        description: form.description.trim(),
+        is_public: form.is_public,
+      });
+      setForm({ name: '', semester: getDefaultSemester(), description: '', is_public: false });
       setShowCreate(false);
     } catch (e: any) {
       setFormError(e.message || t('instructorClass.errors.createClassFailed'));
@@ -159,6 +164,7 @@ export default function InstructorClass() {
       name: cls.name,
       semester: cls.semester,
       description: cls.description || '',
+      is_public: Boolean(cls.is_public),
     });
     setEditError('');
   };
@@ -176,6 +182,7 @@ export default function InstructorClass() {
         name: editForm.name.trim(),
         semester: editForm.semester.trim(),
         description: editForm.description.trim(),
+        is_public: editForm.is_public,
       });
       setEditingClass(null);
     } catch (e: any) {
@@ -260,9 +267,18 @@ export default function InstructorClass() {
                       </p>
                     </div>
                   </div>
-                  <span className="flex items-center gap-1 text-[11px] font-bold font-mono px-2 py-1 rounded-md bg-[#f0ebd9] border border-[#e5dac9] text-[#193a2b]">
-                    <Hash size={11} /> {cls.code}
-                  </span>
+                  <div className="flex flex-col items-end gap-1.5 shrink-0">
+                    <span className="flex items-center gap-1 text-[11px] font-bold font-mono px-2 py-1 rounded-md bg-[#f0ebd9] border border-[#e5dac9] text-[#193a2b]">
+                      <Hash size={11} /> {cls.code}
+                    </span>
+                    <span className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full border ${
+                      cls.is_public
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : 'bg-[#f7f4eb] text-[#8a8073] border-[#e5dac9]'
+                    }`}>
+                      {cls.is_public ? '🌐 Công khai' : '🔒 Riêng tư'}
+                    </span>
+                  </div>
                 </div>
 
                 <p className="text-sm text-[#5c5446] mb-4 leading-relaxed flex-1">
@@ -474,6 +490,45 @@ export default function InstructorClass() {
                   className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">Hình thức tham gia lớp</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, is_public: false })}
+                    className={`p-3 rounded-xl border text-left transition-all ${
+                      !form.is_public
+                        ? 'border-[#193a2b] bg-[#193a2b]/5 ring-1 ring-[#193a2b]'
+                        : 'border-(--ws-border) bg-(--ws-editor) hover:border-(--ws-accent)'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between font-semibold text-xs text-(--ws-text) mb-1">
+                      <span>🔒 Riêng tư</span>
+                      {!form.is_public && <span className="text-[10px] bg-[#193a2b] text-white px-1.5 py-0.5 rounded font-mono">Mặc định</span>}
+                    </div>
+                    <p className="text-[11px] text-(--ws-muted) leading-relaxed">
+                      Yêu cầu mã mời / link mời hoặc giảng viên thêm trực tiếp vào danh sách.
+                    </p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, is_public: true })}
+                    className={`p-3 rounded-xl border text-left transition-all ${
+                      form.is_public
+                        ? 'border-emerald-600 bg-emerald-50/50 ring-1 ring-emerald-600'
+                        : 'border-(--ws-border) bg-(--ws-editor) hover:border-(--ws-accent)'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between font-semibold text-xs text-emerald-800 mb-1">
+                      <span>🌐 Công khai</span>
+                      {form.is_public && <span className="text-[10px] bg-emerald-600 text-white px-1.5 py-0.5 rounded font-mono">Đã chọn</span>}
+                    </div>
+                    <p className="text-[11px] text-(--ws-muted) leading-relaxed">
+                      Bất kỳ sinh viên nào cũng có thể tự do tham gia ngay tại trang khám phá.
+                    </p>
+                  </button>
+                </div>
+              </div>
               {formError && <p className="text-xs text-red-600 font-medium">{formError}</p>}
               <p className="text-[11.5px] text-[#8a8073] bg-[#f0ebd9] border border-[#e5dac9] rounded-lg px-3 py-2">
                 💡 {t('instructorClass.createHint')}
@@ -547,6 +602,45 @@ export default function InstructorClass() {
                   placeholder={t('instructorClass.fieldDescriptionPlaceholder')}
                   className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">Hình thức tham gia lớp</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setEditForm({ ...editForm, is_public: false })}
+                    className={`p-3 rounded-xl border text-left transition-all ${
+                      !editForm.is_public
+                        ? 'border-[#193a2b] bg-[#193a2b]/5 ring-1 ring-[#193a2b]'
+                        : 'border-(--ws-border) bg-(--ws-editor) hover:border-(--ws-accent)'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between font-semibold text-xs text-(--ws-text) mb-1">
+                      <span>🔒 Riêng tư</span>
+                      {!editForm.is_public && <span className="text-[10px] bg-[#193a2b] text-white px-1.5 py-0.5 rounded font-mono">Mặc định</span>}
+                    </div>
+                    <p className="text-[11px] text-(--ws-muted) leading-relaxed">
+                      Yêu cầu mã mời / link mời hoặc giảng viên thêm trực tiếp vào danh sách.
+                    </p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditForm({ ...editForm, is_public: true })}
+                    className={`p-3 rounded-xl border text-left transition-all ${
+                      editForm.is_public
+                        ? 'border-emerald-600 bg-emerald-50/50 ring-1 ring-emerald-600'
+                        : 'border-(--ws-border) bg-(--ws-editor) hover:border-(--ws-accent)'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between font-semibold text-xs text-emerald-800 mb-1">
+                      <span>🌐 Công khai</span>
+                      {editForm.is_public && <span className="text-[10px] bg-emerald-600 text-white px-1.5 py-0.5 rounded font-mono">Đã chọn</span>}
+                    </div>
+                    <p className="text-[11px] text-(--ws-muted) leading-relaxed">
+                      Bất kỳ sinh viên nào cũng có thể tự do tham gia ngay tại trang khám phá.
+                    </p>
+                  </button>
+                </div>
               </div>
               {editError && <p className="text-xs text-red-600 font-medium">{editError}</p>}
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-(--ws-border)">

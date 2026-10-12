@@ -7,6 +7,7 @@ export interface ClassDto {
   description?: string | null;
   semester?: string | null;
   invite_code: string;
+  is_public?: boolean;
   admin?: { id: string; email: string; username?: string };
   students?: Array<{
     student: {
@@ -45,6 +46,7 @@ export interface ClassDetailDto {
   description?: string | null;
   semester?: string | null;
   invite_code: string;
+  is_public?: boolean;
   admin?: { id: string; email: string; username?: string };
   students?: ClassStudentItemDto[];
   homeworks?: Array<{
@@ -81,17 +83,24 @@ export function useClassDetailQuery(classId?: string) {
   });
 }
 
-export function createClass(data: { name: string; semester?: string; description?: string }) {
+export function createClass(data: { name: string; semester?: string; description?: string; is_public?: boolean }) {
   return apiFetch<ClassDto>('/api/v1/classes', {
     method: 'POST',
     body: JSON.stringify(data),
   });
 }
 
-export function updateClass(classId: string, data: { name?: string; semester?: string; description?: string }) {
+export function updateClass(classId: string, data: { name?: string; semester?: string; description?: string; is_public?: boolean }) {
   return apiFetch<ClassDto>(`/api/v1/classes/${classId}`, {
     method: 'PATCH',
     body: JSON.stringify(data),
+  });
+}
+
+export function joinClass(classId: string, code?: string) {
+  return apiFetch<{ success: boolean; class_id: string }>(`/api/v1/classes/${classId}/join`, {
+    method: 'POST',
+    body: JSON.stringify({ code: code?.trim() || undefined }),
   });
 }
 

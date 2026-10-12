@@ -15,6 +15,7 @@ export interface ClassInfo {
   homeworkCount: number;
   contestCount: number;
   description: string;
+  is_public: boolean;
 }
 
 export interface Member {
@@ -33,11 +34,12 @@ interface ClassContextType {
   enrolledClasses: ClassInfo[];    // sinh viên: lớp đã tham gia
   membersOf: (classId: string) => Member[];
   isEnrolled: (classId: string) => boolean;
-  createClass: (data: { name: string; semester: string; description: string }) => Promise<ClassInfo>;
-  updateClass: (classId: string, data: { name?: string; semester?: string; description?: string }) => Promise<void>;
+  createClass: (data: { name: string; semester: string; description: string; is_public?: boolean }) => Promise<ClassInfo>;
+  updateClass: (classId: string, data: { name?: string; semester?: string; description?: string; is_public?: boolean }) => Promise<void>;
   deleteClass: (classId: string) => Promise<void>;
   joinByCode: (code: string) => Promise<{ ok: boolean; message: string; classId?: string }>;
   joinByInviteCode: (code: string) => Promise<{ ok: boolean; message: string; classId?: string }>;
+  joinDirectly: (classId: string, code?: string) => Promise<{ ok: boolean; message: string; classId?: string }>;
   leaveClass: (classId: string) => Promise<void>;
   removeMember: (classId: string, username: string) => Promise<void>;
 }
@@ -60,6 +62,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
     homeworkCount: cls.homeworks?.length ?? 0,
     contestCount: cls.contests?.length ?? 0,
     description: cls.description ?? '',
+    is_public: Boolean(cls.is_public),
   })), [apiClasses]);
   const allClasses = serverClasses;
 
@@ -94,7 +97,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
   }, [allClasses, user, apiClasses]);
 
   const createClass: ClassContextType['createClass'] = async (data) => {
-    const created = await createClassApi({ name: data.name, semester: data.semester, description: data.description });
+    const created = await createClassApi({ name: data.name, semester: data.semester, description: data.description, is_public: data.is_public });
     await queryClient.invalidateQueries({ queryKey: ['classes'] });
     return {
       id: created.id,
@@ -106,6 +109,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
       homeworkCount: 0,
       contestCount: 0,
       description: created.description ?? '',
+      is_public: Boolean(created.is_public),
     };
   };
 
@@ -125,9 +129,30 @@ export function ClassProvider({ children }: { children: ReactNode }) {
     const cls = allClasses.find((c) => c.code.toLowerCase() === code.trim().toLowerCase());
     if (!cls) return { ok: false, message: `Không tìm thấy lớp với mã "${code}".` };
     if (isEnrolled(cls.id)) return { ok: false, message: `Bạn đã là thành viên của "${cls.name}".`, classId: cls.id };
-    await apiFetch(`/api/v1/classes/${cls.id}/join`, { method: 'POST' });
+    await apiFetch(`/api/v1/classes/${cls.id}/join`, {
+      method: 'POST',
+      body: JSON.stringify({ code: code.trim() }),
+    });
     await queryClient.invalidateQueries({ queryKey: ['classes'] });
     return { ok: true, message: `Đã tham gia lớp "${cls.name}".`, classId: cls.id };
+  };
+
+  const joinDirectly: ClassContextType['joinDirectly'] = async (classId, code) => {
+    if (!user) return { ok: false, message: 'Cần đăng nhập để tham gia lớp.' };
+    const cls = allClasses.find((c) => c.id === classId);
+    if (!cls) return { ok: false, message: 'Không tìm thấy thông tin lớp học.' };
+    if (isEnrolled(classId)) return { ok: false, message: `Bạn đã là thành viên của "${cls.name}".`, classId };
+
+    try {
+      await apiFetch(`/api/v1/classes/${classId}/join`, {
+        method: 'POST',
+        body: JSON.stringify({ code: code?.trim() || undefined }),
+      });
+      await queryClient.invalidateQueries({ queryKey: ['classes'] });
+      return { ok: true, message: `Đã tham gia lớp "${cls.name}" thành công!`, classId };
+    } catch (e: any) {
+      return { ok: false, message: e.message || 'Không thể tham gia lớp học.' };
+    }
   };
 
   /** Gọi thẳng API join-by-code — không phụ thuộc allClasses cache */
@@ -162,7 +187,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
 
   return (
     <ClassContext.Provider
-      value={{ allClasses, myClasses, enrolledClasses, membersOf, isEnrolled, createClass, updateClass, deleteClass, joinByCode, joinByInviteCode, leaveClass, removeMember }}
+      value={{ allClasses, myClasses, enrolledClasses, membersOf, isEnrolled, createClass, updateClass, deleteClass, joinByCode, joinByInviteCode, joinDirectly, leaveClass, removeMember }}
     >
       {children}
     </ClassContext.Provider>
