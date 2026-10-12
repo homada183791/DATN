@@ -6,6 +6,8 @@ const AMQP_URL = process.env.RABBITMQ_URL || 'amqp://root:rootpassword@localhost
 const QUEUE_NAME = process.env.QUEUE_NAME || 'judge_queue';
 const WEBHOOK_URL = process.env.WEBHOOK_URL || 'http://host.docker.internal:3000/api/v1/webhook/judge';
 
+const JUDGE_SECRET = process.env.JUDGE_SECRET || 'default-judge-secret-key';
+
 export class JudgeConsumer {
   static async start() {
     try {
@@ -37,9 +39,12 @@ export class JudgeConsumer {
   }
 
   private static async processJob(payload: any) {
+    const headers = { 'x-judge-secret': JUDGE_SECRET };
+
     if (payload.is_custom) {
       const customPayload: CustomRunPayload = {
         language: payload.language,
+        language_version: payload.language_version,
         source_code: payload.source_code,
         custom_input: payload.custom_input || '',
       };
@@ -54,11 +59,12 @@ export class JudgeConsumer {
         stderr: result.stderr,
         execution_time: result.execution_time,
         memory_used: result.memory_used,
-      }).catch(err => console.error(`[!] Webhook failed: ${err.message}`));
+      }, { headers }).catch(err => console.error(`[!] Webhook failed: ${err.message}`));
       
     } else {
       const submissionPayload: RunSubmissionPayload = {
         language: payload.language,
+        language_version: payload.language_version,
         source_code: payload.source_code,
         time_limit: payload.time_limit,
         memory_limit: payload.memory_limit,
@@ -74,7 +80,7 @@ export class JudgeConsumer {
         execution_time: result.test_results.reduce((acc, curr) => Math.max(acc, curr.execution_time || 0), 0),
         memory_used: result.test_results.reduce((acc, curr) => Math.max(acc, curr.memory_used || 0), 0),
         test_results: result.test_results,
-      }).catch(err => console.error(`[!] Webhook failed: ${err.message}`));
+      }, { headers }).catch(err => console.error(`[!] Webhook failed: ${err.message}`));
     }
   }
 }

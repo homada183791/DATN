@@ -14,6 +14,8 @@ import { RunCustomCodeDto } from './dto/run-custom-code.dto';
 import { GradeSubmissionDto } from './dto/grade-submission.dto';
 import { Role, SubmissionStatus } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
+import { LocalJudgeService } from './local-judge.service';
+import { WebhookService } from '../webhook/webhook.service';
 
 @Injectable()
 export class SubmissionsService {
@@ -24,6 +26,8 @@ export class SubmissionsService {
     private readonly queueService: QueueService,
     private readonly notificationsService: NotificationsService,
     private readonly eventsGateway: EventsGateway,
+    private readonly localJudgeService: LocalJudgeService,
+    private readonly webhookService: WebhookService,
   ) {}
 
   async findAll(userId: string, userRole: Role, problemId?: string) {
@@ -34,6 +38,7 @@ export class SubmissionsService {
       user_id: string;
       user: { id: string; email: string; username?: string | null };
       language: string;
+      language_version?: string | null;
       status: SubmissionStatus;
       score: number;
       instructor_score: number | null;
@@ -73,6 +78,7 @@ export class SubmissionsService {
       user_id: submission.user_id,
       username: submission.user.username ?? submission.user.email.split('@')[0],
       language: submission.language,
+      language_version: submission.language_version,
       status: submission.status as SubmissionStatus,
       score: submission.score,
       instructor_score: submission.instructor_score,
@@ -162,6 +168,7 @@ export class SubmissionsService {
       username: submission.user.username ?? submission.user.email.split('@')[0],
       email: submission.user.email,
       language: submission.language,
+      language_version: (submission as any).language_version,
       status: submission.status,
       score: submission.score,
       instructor_score: submission.instructor_score,
@@ -190,6 +197,7 @@ export class SubmissionsService {
     // B1: Kiểm tra problem_id có tồn tại
     type SubmissionProblem = {
       id: string;
+      allowed_languages: string[];
       contests: Array<{
         contest_id: string;
         contest: {
@@ -233,6 +241,22 @@ export class SubmissionsService {
 
     if (!problem) {
       throw new NotFoundException('Không tìm thấy bài tập với mã cung cấp.');
+    }
+
+    // KIỂM TRA NGÔN NGỮ ĐƯỢC PHÉP (Allowed Languages & Versions Validation)
+    if (problem.allowed_languages && problem.allowed_languages.length > 0) {
+      const candidate = (createSubmissionDto.language_version || language).toUpperCase();
+      const baseLang = language.toUpperCase();
+      const isAllowed = problem.allowed_languages.some((allowed) => {
+        const u = allowed.toUpperCase();
+        return u === candidate || u === baseLang || (candidate.startsWith(u) && u.length >= 2);
+      });
+
+      if (!isAllowed) {
+        throw new BadRequestException(
+          `Bài tập này không cho phép sử dụng ngôn ngữ / phiên bản "${createSubmissionDto.language_version || language}". Các ngôn ngữ được chấp nhận: ${problem.allowed_languages.join(', ')}`,
+        );
+      }
     }
 
     // RÀNG BUỘC KỲ THI: Chỉ áp dụng khi sinh viên nộp bài TRONG PHÒNG THI (có contest_id).
@@ -310,6 +334,7 @@ export class SubmissionsService {
         user_id: userId,
         problem_id: problem.id,
         language,
+        language_version: createSubmissionDto.language_version || null,
         source_code,
         status: 'PENDING' as SubmissionStatus,
       },
@@ -321,6 +346,7 @@ export class SubmissionsService {
       submission_id: submission.id,
       problem_id: problem.id,
       language,
+      language_version: createSubmissionDto.language_version || undefined,
       source_code,
       time_limit: problem.time_limit,
       memory_limit: problem.memory_limit,
@@ -328,8 +354,47 @@ export class SubmissionsService {
     };
 
     // B4: Gọi hàm publishJudgeJob của QueueService
-    // Dù gửi thành công hay thất bại (do RabbitMQ rớt mạng), ta vẫn lưu vào DB thành công ở B2.
-    this.queueService.publishJudgeJob(payload);
+    const dispatched = this.queueService.publishJudgeJob(payload);
+
+    // B4.1: Fallback Judge Engine:
+    // Đảm bảo không bao giờ bị kẹt ở PENDING:
+    // Nếu RabbitMQ offline hoặc Worker chưa phản hồi sau 2s,
+    // LocalJudgeService sẽ tự động thực thi và cập nhật kết quả tức thì!
+    setTimeout(async () => {
+      try {
+        const check = await this.prisma.submission.findUnique({
+          where: { id: submission.id },
+          select: { status: true },
+        });
+        if (check && (check.status === 'PENDING' || check.status === 'IN_QUEUE')) {
+          this.logger.log(
+            `[JudgeFallback] Submission ${submission.id} is still ${check.status}. Executing via LocalJudgeService...`,
+          );
+          const evalResult = await this.localJudgeService.evaluateSubmission({
+            language,
+            language_version: createSubmissionDto.language_version,
+            source_code,
+            time_limit: problem.time_limit,
+            memory_limit: problem.memory_limit,
+            test_cases: problem.test_cases,
+          });
+
+          await this.webhookService.processJudgeResult({
+            is_custom: false,
+            submission_id: submission.id,
+            status: evalResult.status as SubmissionStatus,
+            execution_time: evalResult.execution_time,
+            memory_used: evalResult.memory_used,
+            test_results: evalResult.test_results as any,
+          });
+        }
+      } catch (err: any) {
+        this.logger.error(
+          `[JudgeFallback] Failed to evaluate submission ${submission.id}: ${err.message}`,
+          err.stack,
+        );
+      }
+    }, dispatched ? 2000 : 100);
 
     // B5: Trả về cho frontend
     return {
@@ -353,11 +418,38 @@ export class SubmissionsService {
         session_id: sessionId, // Frontend join room custom_run_<session_id> để nhận kết quả
         user_id: userId,
         language,
+        language_version: dto.language_version,
         source_code,
         custom_input,
       };
 
       this.queueService.publishJudgeJob(payload);
+
+      // Chạy ngay local fallback để người dùng nhận kết quả chạy thử chỉ trong vài mili-giây
+      setTimeout(async () => {
+        try {
+          const evalResult = await this.localJudgeService.evaluateCustomRun({
+            language,
+            language_version: dto.language_version,
+            source_code,
+            custom_input,
+          });
+
+          await this.webhookService.processJudgeResult({
+            is_custom: true,
+            session_id: sessionId,
+            status: evalResult.status as SubmissionStatus,
+            stdout: evalResult.stdout,
+            stderr: evalResult.stderr,
+            execution_time: evalResult.execution_time,
+            memory_used: evalResult.memory_used,
+          });
+        } catch (err: any) {
+          this.logger.error(
+            `[CustomRunFallback] Failed session ${sessionId}: ${err.message}`,
+          );
+        }
+      }, 150);
 
       return {
         success: true,
@@ -450,8 +542,7 @@ export class SubmissionsService {
       where: { submission_id: id },
     });
 
-    // Đẩy job chấm lại vào RabbitMQ
-    this.queueService.publishJudgeJob({
+    const dispatched = this.queueService.publishJudgeJob({
       is_custom: false,
       submission_id: submission.id,
       problem_id: submission.problem_id,
@@ -461,6 +552,37 @@ export class SubmissionsService {
       memory_limit: submission.problem.memory_limit,
       test_cases: submission.problem.test_cases,
     });
+
+    // Fallback nếu worker không chấm:
+    setTimeout(async () => {
+      try {
+        const check = await this.prisma.submission.findUnique({
+          where: { id },
+          select: { status: true },
+        });
+        if (check && (check.status === 'PENDING' || check.status === 'IN_QUEUE')) {
+          this.logger.log(`[JudgeFallback] Rejudging submission ${id} locally...`);
+          const evalResult = await this.localJudgeService.evaluateSubmission({
+            language: submission.language,
+            source_code: submission.source_code,
+            time_limit: submission.problem.time_limit,
+            memory_limit: submission.problem.memory_limit,
+            test_cases: submission.problem.test_cases,
+          });
+
+          await this.webhookService.processJudgeResult({
+            is_custom: false,
+            submission_id: id,
+            status: evalResult.status as SubmissionStatus,
+            execution_time: evalResult.execution_time,
+            memory_used: evalResult.memory_used,
+            test_results: evalResult.test_results as any,
+          });
+        }
+      } catch (err: any) {
+        this.logger.error(`[JudgeFallback] Failed to rejudge ${id}: ${err.message}`);
+      }
+    }, dispatched ? 2000 : 100);
 
     // Phát socket update
     this.eventsGateway.emitSubmissionUpdate(id, {

@@ -10,6 +10,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
   imports: [PrismaModule, EventsModule, UsersModule, NotificationsModule],
   controllers: [WebhookController],
   providers: [WebhookService],
+  exports: [WebhookService],
 })
 export class WebhookModule {}
 
