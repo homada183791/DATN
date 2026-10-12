@@ -22,6 +22,14 @@ export class CreateSubmissionDto {
   @IsNotEmpty({ message: 'Ngôn ngữ lập trình không được để trống' })
   language: Language;
 
+  @ApiPropertyOptional({
+    description: 'Phiên bản ngôn ngữ cụ thể (ví dụ: CPP17, CPP20, PYTHON3_11, JAVA21, NODE20)',
+    example: 'CPP17',
+  })
+  @IsString()
+  @IsOptional()
+  language_version?: string;
+
   @ApiProperty({
     description: 'Mã nguồn (Source code)',
     example:

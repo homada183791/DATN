@@ -1,5 +1,5 @@
 import Docker from 'dockerode';
-import { compilers, Language } from '../compilers';
+import { getCompilerConfig, Language } from '../compilers';
 import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
@@ -22,6 +22,7 @@ export interface TestCase {
 
 export interface RunSubmissionPayload {
   language: Language;
+  language_version?: string;
   source_code: string;
   time_limit: number;
   memory_limit: number;
@@ -30,6 +31,7 @@ export interface RunSubmissionPayload {
 
 export interface CustomRunPayload {
   language: Language;
+  language_version?: string;
   source_code: string;
   custom_input: string;
 }
@@ -58,8 +60,8 @@ export class DockerRunner {
   }
 
   static async runSubmission(payload: RunSubmissionPayload): Promise<{ status: string; score: number; test_results: TestResultItem[] }> {
-    const { language, source_code, time_limit, memory_limit, test_cases } = payload;
-    const config = compilers[language];
+    const { language, language_version, source_code, time_limit, memory_limit, test_cases } = payload;
+    const config = getCompilerConfig(language, language_version);
     if (!config) throw new Error(`Unsupported language: ${language}`);
 
     const runId = randomUUID();
@@ -140,8 +142,8 @@ export class DockerRunner {
   }
 
   static async runCustom(payload: CustomRunPayload): Promise<{ status: string; stdout: string; stderr: string; execution_time: number; memory_used: number }> {
-    const { language, source_code, custom_input } = payload;
-    const config = compilers[language];
+    const { language, language_version, source_code, custom_input } = payload;
+    const config = getCompilerConfig(language, language_version);
     if (!config) throw new Error(`Unsupported language: ${language}`);
 
     const runId = randomUUID();

@@ -17,6 +17,7 @@ export interface SubmissionDto {
   user_id: string;
   username: string;
   language: string;
+  language_version?: string | null;
   status: SubmissionStatus;
   score?: number;
   instructor_score?: number | null;

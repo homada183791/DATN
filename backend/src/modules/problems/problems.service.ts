@@ -31,6 +31,7 @@ export class ProblemsService {
         difficulty: true,
         time_limit: true,
         memory_limit: true,
+        allowed_languages: true,
         created_at: true,
         updated_at: true,
       },

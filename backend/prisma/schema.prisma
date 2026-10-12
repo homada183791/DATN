@@ -51,14 +51,15 @@ enum Difficulty {
 }
 
 model Problem {
-  id           String     @id @default(uuid())
-  title        String
-  description  String     @db.Text
-  difficulty   Difficulty @default(MEDIUM)
-  time_limit   Int // ms
-  memory_limit Int // MB
-  created_at   DateTime   @default(now())
-  updated_at   DateTime   @updatedAt
+  id                String     @id @default(uuid())
+  title             String
+  description       String     @db.Text
+  difficulty        Difficulty @default(MEDIUM)
+  time_limit        Int // ms
+  memory_limit      Int // MB
+  allowed_languages String[]   @default([])
+  created_at        DateTime   @default(now())
+  updated_at        DateTime   @updatedAt
 
   test_cases         TestCase[]
   submissions        Submission[]
@@ -86,6 +87,7 @@ enum Language {
   PYTHON
   GO
   JAVA
+  NODE
 }
 
 enum SubmissionStatus {
@@ -99,11 +101,12 @@ enum SubmissionStatus {
 }
 
 model Submission {
-  id             String           @id @default(uuid())
-  user_id        String
-  problem_id     String
-  language       Language
-  source_code    String           @db.Text
+  id                  String           @id @default(uuid())
+  user_id             String
+  problem_id          String
+  language            Language
+  language_version    String?
+  source_code         String           @db.Text
   status         SubmissionStatus @default(PENDING)
   score               Float            @default(0)
   instructor_score    Float?

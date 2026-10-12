@@ -10,6 +10,7 @@ export interface ProblemDto {
   difficulty: ProblemDifficulty;
   time_limit: number;
   memory_limit: number;
+  allowed_languages?: string[];
   created_at: string;
   updated_at: string;
   test_cases?: Array<{
@@ -40,6 +41,7 @@ export interface CreateProblemDto {
   difficulty: ProblemDifficulty;
   time_limit: number;
   memory_limit: number;
+  allowed_languages?: string[];
   test_cases: CreateTestCaseDto[];
 }
 

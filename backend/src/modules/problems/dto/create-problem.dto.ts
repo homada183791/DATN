@@ -74,4 +74,14 @@ export class CreateProblemDto {
   @Type(() => TestCaseDto)
   @IsOptional()
   test_cases?: TestCaseDto[];
+
+  @ApiPropertyOptional({
+    type: [String],
+    description: 'Danh sách các ngôn ngữ & phiên bản được phép (để trống nếu cho phép tất cả)',
+    example: ['CPP17', 'CPP20', 'PYTHON3_11'],
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  allowed_languages?: string[];
 }
