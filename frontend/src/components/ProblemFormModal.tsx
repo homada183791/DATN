@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import {
   X, Plus, Trash2, Eye, EyeOff,
   Clock, HardDrive, AlignLeft, FlaskConical, Loader2,
-  AlertCircle, Upload, CheckCheck, FileCode, Sparkles, FileUp, FileText,
+  AlertCircle, Upload, CheckCheck, FileCode, Sparkles, FileUp,
 } from 'lucide-react';
 import { CreateProblemDto, ProblemDifficulty, ProblemDto } from '../api/problems';
 import { generateAiTestCases } from '../api/ai';
@@ -143,18 +143,95 @@ export default function ProblemFormModal({
     setTestCases(next);
   };
 
-  /* ── Xử lý Markdown: Tải lên tệp .md và chèn mẫu chuẩn (# TODO) ── */
+  /* ── Xử lý Markdown: Tải lên tệp .md/.json và chèn mẫu chuẩn (# TODO) ── */
   const handleUploadMarkdown = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = String(event.target?.result || '');
+      const trimmed = text.trim();
+
+      // Kiểm tra nếu là file JSON (như Hard_450.json hoặc JSON bài toán đơn)
+      if (
+        file.name.endsWith('.json') ||
+        (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+        (trimmed.startsWith('[') && trimmed.endsWith(']'))
+      ) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          const prob = Array.isArray(parsed) ? parsed[0] : parsed;
+          if (prob && typeof prob === 'object') {
+            if (prob.title) setTitle(String(prob.title));
+            if (prob.description) {
+              setDescription(String(prob.description));
+            } else if (prob.description_vi && prob.description_en) {
+              setDescription(`[Tiếng Việt]\n${prob.description_vi}\n\n----------\n\n[English]\n${prob.description_en}`);
+            } else if (prob.description_vi) {
+              setDescription(String(prob.description_vi));
+            }
+            if (prob.difficulty) {
+              const d = String(prob.difficulty).toUpperCase();
+              if (d === 'HARD') setDifficulty('HARD');
+              else if (d === 'MEDIUM') setDifficulty('MEDIUM');
+              else if (d === 'EASY') setDifficulty('EASY');
+            }
+            if (prob.time_limit) setTimeLimit(Number(prob.time_limit) || 1000);
+            if (prob.memory_limit) setMemoryLimit(Number(prob.memory_limit) || 256);
+            if (Array.isArray(prob.test_cases) && prob.test_cases.length > 0) {
+              setTestCases(
+                prob.test_cases.map((tc: any, idx: number) => ({
+                  input: typeof tc.input === 'string' ? tc.input : JSON.stringify(tc.input),
+                  expected_output:
+                    typeof tc.expected_output === 'string' ? tc.expected_output : JSON.stringify(tc.expected_output),
+                  is_hidden: typeof tc.is_hidden === 'boolean' ? tc.is_hidden : idx >= 2,
+                })),
+              );
+            }
+            setErrors({});
+            return;
+          }
+        } catch {
+          // Nếu không parse được JSON thì dùng làm description thông thường
+        }
+      }
+
       setDescription(text);
       setErrors((prev) => ({ ...prev, description: '' }));
     };
     reader.readAsText(file);
     e.target.value = '';
+  };
+
+  const handleInsertBilingualTemplate = () => {
+    const template = `[Tiếng Việt]
+### Mô tả bài toán
+# TODO: Nhập mô tả chi tiết bài toán bằng tiếng Việt...
+
+### Ví dụ 1:
+Đầu vào: nums = [1, 2, 3]
+Đầu ra: 6
+
+### Ràng buộc:
+- 1 <= nums.length <= 10^5
+- -10^6 <= nums[i] <= 10^6
+
+----------
+
+[English]
+### Problem Description
+# TODO: Enter detailed problem statement in English...
+
+### Example 1:
+Input: nums = [1, 2, 3]
+Output: 6
+
+### Constraints:
+- 1 <= nums.length <= 10^5
+- -10^6 <= nums[i] <= 10^6
+`;
+    setDescription(template);
+    setErrors((prev) => ({ ...prev, description: '' }));
   };
 
   const handleInsertTemplate = () => {
@@ -567,17 +644,26 @@ export default function ProblemFormModal({
                     <div className="flex items-center gap-2">
                       <label className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#e5dac9] bg-white text-[#5c5446] hover:text-[#191919] hover:bg-[#eee8d8] text-xs font-semibold cursor-pointer transition-colors shadow-2xs">
                         <FileUp size={13} className="text-[#193a2b]" />
-                        Tải lên tệp .md
-                        <input type="file" accept=".md,.markdown,.txt" onChange={handleUploadMarkdown} className="hidden" />
+                        Tải lên tệp (.md / .json)
+                        <input type="file" accept=".md,.markdown,.txt,.json" onChange={handleUploadMarkdown} className="hidden" />
                       </label>
+                      <button
+                        type="button"
+                        onClick={handleInsertBilingualTemplate}
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#193a2b]/30 bg-[#193a2b]/5 text-[#193a2b] hover:bg-[#193a2b]/10 text-xs font-semibold transition-colors shadow-2xs"
+                        title="Chèn mẫu song ngữ [Tiếng Việt] và [English] chuẩn Hard_450"
+                      >
+                        <FileCode size={13} className="text-[#193a2b]" />
+                        Mẫu song ngữ (VI / EN)
+                      </button>
                       <button
                         type="button"
                         onClick={handleInsertTemplate}
                         className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#e5dac9] bg-white text-[#5c5446] hover:text-[#191919] hover:bg-[#eee8d8] text-xs font-semibold transition-colors shadow-2xs"
                         title="Chèn mẫu khung mô tả bài toán có sẵn # TODO để điền nhanh"
                       >
-                        <FileCode size={13} className="text-[#193a2b]" />
-                        Chèn mẫu chuẩn (# TODO)
+                        <FileCode size={13} className="text-[#8a8073]" />
+                        Mẫu đơn (# TODO)
                       </button>
                     </div>
                   </div>

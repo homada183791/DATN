@@ -7,6 +7,7 @@ import { ApiError } from '../../api/http';
 import { useProblemsQuery, createProblem, updateProblem, deleteProblem, type ProblemDto, type CreateProblemDto } from '../../api/problems';
 import { useAuth } from '../../context/AuthContext';
 import ProblemFormModal from '../../components/ProblemFormModal';
+import { getLocalizedProblemTitle, getLocalizedProblemDescription } from '../../utils/problemTranslation';
 
 const difficultyStyles: Record<ProblemDto['difficulty'], string> = {
   EASY: 'text-emerald-800 bg-emerald-100 border-emerald-200',
@@ -27,7 +28,8 @@ const sortOptions: { value: SortKey; label: string }[] = [
 ];
 
 export default function ProblemList() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const currentLang = (i18n.resolvedLanguage || i18n.language || 'vi').toLowerCase();
   const { user } = useAuth();
   const isInstructor = user?.role === 'instructor';
   const queryClient = useQueryClient();
@@ -87,23 +89,41 @@ export default function ProblemList() {
   const filteredProblems = useMemo(() => {
     const search = query.trim().toLowerCase();
     let list = (data ?? []).filter((problem) => {
+      const locTitle = getLocalizedProblemTitle(problem.title, currentLang).toLowerCase();
+      const locDesc = getLocalizedProblemDescription(problem.description, currentLang).toLowerCase();
+      const rawTitle = (problem.title ?? '').toLowerCase();
+      const rawDesc = (problem.description ?? '').toLowerCase();
+      const rawId = (problem.id ?? '').toLowerCase();
+
       const matchesSearch =
         !search ||
-        (problem.title ?? '').toLowerCase().includes(search) ||
-        (problem.id ?? '').toLowerCase().includes(search) ||
-        (problem.description ?? '').toLowerCase().includes(search);
+        locTitle.includes(search) ||
+        rawTitle.includes(search) ||
+        locDesc.includes(search) ||
+        rawDesc.includes(search) ||
+        rawId.includes(search);
+
       const matchesDifficulty = difficulty === 'all' || problem.difficulty === difficulty;
       return matchesSearch && matchesDifficulty;
     });
 
     // Sắp xếp
-    if (sortKey === 'title_asc') list = [...list].sort((a, b) => a.title.localeCompare(b.title, 'vi'));
-    else if (sortKey === 'title_desc') list = [...list].sort((a, b) => b.title.localeCompare(a.title, 'vi'));
-    else if (sortKey === 'diff_asc') list = [...list].sort((a, b) => difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]);
-    else if (sortKey === 'diff_desc') list = [...list].sort((a, b) => difficultyOrder[b.difficulty] - difficultyOrder[a.difficulty]);
+    if (sortKey === 'title_asc') {
+      list = [...list].sort((a, b) =>
+        getLocalizedProblemTitle(a.title, currentLang).localeCompare(getLocalizedProblemTitle(b.title, currentLang), currentLang),
+      );
+    } else if (sortKey === 'title_desc') {
+      list = [...list].sort((a, b) =>
+        getLocalizedProblemTitle(b.title, currentLang).localeCompare(getLocalizedProblemTitle(a.title, currentLang), currentLang),
+      );
+    } else if (sortKey === 'diff_asc') {
+      list = [...list].sort((a, b) => difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]);
+    } else if (sortKey === 'diff_desc') {
+      list = [...list].sort((a, b) => difficultyOrder[b.difficulty] - difficultyOrder[a.difficulty]);
+    }
 
     return list;
-  }, [data, difficulty, query, sortKey]);
+  }, [data, difficulty, query, sortKey, currentLang]);
 
   const handleOpenCreateModal = () => {
     setEditingProblem(null);
@@ -248,21 +268,24 @@ export default function ProblemList() {
 
       {/* Problem list */}
       <div className="space-y-2.5">
-        {filteredProblems.map((problem) => (
-          <Link
-            key={problem.id}
-            to={isInstructor ? `/instructor/problem/${problem.id}` : `/student/problem/${problem.id}`}
-            className="group flex flex-col gap-3 rounded-2xl border border-[#e5dac9] bg-white px-5 py-4 shadow-sm transition-all hover:border-[#193a2b]/40 hover:shadow-md sm:flex-row sm:items-center"
-          >
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-[15px] font-semibold text-[#191919] group-hover:text-[#193a2b]">{problem.title}</h3>
-                <span className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${difficultyStyles[problem.difficulty]}`}>
-                  {difficultyLabels[problem.difficulty]}
-                </span>
+        {filteredProblems.map((problem) => {
+          const locTitle = getLocalizedProblemTitle(problem.title, currentLang);
+          const locDesc = getLocalizedProblemDescription(problem.description, currentLang);
+          return (
+            <Link
+              key={problem.id}
+              to={isInstructor ? `/instructor/problem/${problem.id}` : `/student/problem/${problem.id}`}
+              className="group flex flex-col gap-3 rounded-2xl border border-[#e5dac9] bg-white px-5 py-4 shadow-sm transition-all hover:border-[#193a2b]/40 hover:shadow-md sm:flex-row sm:items-center"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-[15px] font-semibold text-[#191919] group-hover:text-[#193a2b]">{locTitle}</h3>
+                  <span className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${difficultyStyles[problem.difficulty]}`}>
+                    {difficultyLabels[problem.difficulty]}
+                  </span>
+                </div>
+                <p className="mt-1 line-clamp-2 text-sm text-[#8a8073]">{locDesc}</p>
               </div>
-              <p className="mt-1 line-clamp-2 text-sm text-[#8a8073]">{problem.description}</p>
-            </div>
             <div className="flex items-center gap-4 text-sm text-[#8a8073] shrink-0">
               <div className="flex flex-col items-end gap-0.5">
                 <span className="text-xs font-semibold text-[#5c5446]">{problem.time_limit} ms</span>
@@ -297,7 +320,8 @@ export default function ProblemList() {
               <ChevronRight size={18} className="text-[#d8cfbe] group-hover:text-[#193a2b] transition-colors" />
             </div>
           </Link>
-        ))}
+          );
+        })}
 
         {filteredProblems.length === 0 && (
           <div className="rounded-2xl border border-[#e5dac9] bg-white p-12 text-center shadow-sm">
