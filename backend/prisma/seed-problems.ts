@@ -47,9 +47,12 @@ async function main() {
   const dataDir = path.join(__dirname, 'data');
   const mediumPath = path.join(dataDir, 'Medium.json');
   const hardPath = path.join(dataDir, 'Hard.json');
+  const hard450RootPath = path.join(__dirname, '..', '..', 'Hard_450.json');
+  const hard450DataPath = path.join(dataDir, 'Hard_450.json');
 
   let mediumList: RawProblem[] = [];
   let hardList: RawProblem[] = [];
+  let hard450List: RawProblem[] = [];
 
   if (fs.existsSync(mediumPath)) {
     const raw = fs.readFileSync(mediumPath, 'utf-8');
@@ -57,6 +60,18 @@ async function main() {
     console.log(`Đã đọc Medium.json: ${mediumList.length} bài toán.`);
   } else {
     console.warn(`Không tìm thấy file ${mediumPath}`);
+  }
+
+  const actualHard450Path = fs.existsSync(hard450DataPath)
+    ? hard450DataPath
+    : fs.existsSync(hard450RootPath)
+    ? hard450RootPath
+    : null;
+
+  if (actualHard450Path) {
+    const raw = fs.readFileSync(actualHard450Path, 'utf-8');
+    hard450List = JSON.parse(raw);
+    console.log(`Đã đọc Hard_450.json: ${hard450List.length} bài toán song ngữ [Tiếng Việt] & [English].`);
   }
 
   if (fs.existsSync(hardPath)) {
@@ -67,7 +82,8 @@ async function main() {
     console.warn(`Không tìm thấy file ${hardPath}`);
   }
 
-  const allProblems: RawProblem[] = [...mediumList, ...hardList];
+  // Ưu tiên Hard_450.json trước Hard.json để lấy bản mô tả song ngữ đầy đủ
+  const allProblems: RawProblem[] = [...mediumList, ...hard450List, ...hardList];
   console.log(`Tổng cộng cần xử lý: ${allProblems.length} bài toán.\n`);
 
   // Lấy danh sách tiêu đề các bài toán đã tồn tại trong DB để tránh trùng lặp
@@ -95,6 +111,23 @@ async function main() {
       const titleKey = cleanTitle.toLowerCase();
 
       if (existingTitleMap.has(titleKey)) {
+        const existingId = existingTitleMap.get(titleKey);
+        // Nếu bài trong DB đã có nhưng file hiện tại có mô tả song ngữ chuẩn [Tiếng Việt] & [English]
+        if (
+          existingId &&
+          existingId !== 'created' &&
+          rawProb.description &&
+          rawProb.description.includes('[Tiếng Việt]')
+        ) {
+          try {
+            await prisma.problem.update({
+              where: { id: existingId },
+              data: { description: rawProb.description.trim() },
+            });
+          } catch {
+            // bỏ qua nếu lỗi
+          }
+        }
         skippedProblems++;
         continue;
       }

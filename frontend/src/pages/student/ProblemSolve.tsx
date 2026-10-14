@@ -4,16 +4,14 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import { useQueryClient } from '@tanstack/react-query';
-import { getDetail, LANG_LABELS, Lang, ProblemDetail } from '../../data/problemDetails';
+import { getDetail, Lang, ProblemDetail } from '../../data/problemDetails';
 import { ApiError, apiFetch } from '../../api/http';
 import { useProblemQuery } from '../../api/problems';
 import { useProblemSubmissionsQuery, type SubmissionDto } from '../../api/submissions';
 import {
-  SUPPORTED_LANGUAGES,
   getAllowedLanguagesList,
   getLanguageConfig,
   mapVersionToApi,
-  LanguageVersionConfig,
 } from '../../config/languages';
 
 function highlightCode(raw: string): string {
@@ -60,9 +58,9 @@ import {
   ChevronUp,
   Sparkles,
   BookOpen,
-  ShieldAlert,
   Monitor,
   Lock,
+  Languages,
 } from 'lucide-react';
 import { getLocalizedProblemTitle, getLocalizedProblemDescription } from '../../utils/problemTranslation';
 import { getAiTutorHint, explainSubmissionError } from '../../api/ai';
@@ -203,7 +201,11 @@ const BOTTOM_RESIZE_HANDLE_HEIGHT = 6;
 
 export default function ProblemSolve() {
   const { t, i18n } = useTranslation();
-  const currentLang = i18n.language || 'vi';
+  const currentLang = (i18n.resolvedLanguage || i18n.language || 'vi').toLowerCase();
+  const isEnglish = currentLang.startsWith('en');
+  const toggleLanguage = () => {
+    void i18n.changeLanguage(isEnglish ? 'vi' : 'en');
+  };
   // Hỗ trợ các URL pattern:
   // - /student/problem/:id  (cũ)
   // - /student/class/:classId/homework/:homeworkId/problem/:problemId  (homework)
@@ -681,8 +683,6 @@ export default function ProblemSolve() {
   };
 
   /* -------- real custom run via API + Socket -------- */
-  const LANG_API: Record<Lang, string> = { cpp: 'CPP', python: 'PYTHON', java: 'JAVA' };
-
   const runOneSample = (
     socket: Socket,
     sessionId: string,
@@ -933,11 +933,12 @@ export default function ProblemSolve() {
     const text = detail.sections
       .map((s) => `${s.heading ? `## ${s.heading}\n` : ''}${(s.paragraphs ?? []).join('\n')}${(s.bullets ?? []).map((b) => `\n- ${b}`).join('')}`)
       .join('\n\n');
-    const markdown = problemDescription ? `${problemDescription}\n\n${text}` : text;
-    const blob = new Blob([`# ${problemTitle} (${detail.code})\n\n${markdown}`], { type: 'text/markdown' });
+    const statementDesc = localizedDescription || problemDescription;
+    const markdown = statementDesc ? `${statementDesc}\n\n${text}` : text;
+    const blob = new Blob([`# ${localizedTitle || problemTitle} (${detail.code})\n\n${markdown}`], { type: 'text/markdown' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `${detail.code}.md`;
+    a.download = `${detail.code}_${isEnglish ? 'EN' : 'VI'}.md`;
     a.click();
     URL.revokeObjectURL(a.href);
   };
@@ -1085,6 +1086,18 @@ export default function ProblemSolve() {
             </span>
           )}
           <div className="flex-1" />
+          {/* Nút chuyển đổi ngôn ngữ gộp đồng bộ Đề bài & Giao diện (VI / EN) */}
+          <button
+            onClick={toggleLanguage}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-(--ws-border) bg-(--ws-panel2) hover:border-(--ws-accent) hover:text-(--ws-accent) text-[12px] font-semibold transition-all shadow-xs"
+            title={isEnglish ? 'Chuyển toàn bộ Giao diện và Đề bài sang Tiếng Việt (VI)' : 'Switch entire UI and Problem statement to English (EN)'}
+            aria-label="Toggle UI & Problem Language"
+          >
+            <Languages size={14} className="text-(--ws-accent)" />
+            <span className={!isEnglish ? 'text-(--ws-accent) font-bold' : 'text-(--ws-muted)'}>VI</span>
+            <span className="text-(--ws-border)">/</span>
+            <span className={isEnglish ? 'text-(--ws-accent) font-bold' : 'text-(--ws-muted)'}>EN</span>
+          </button>
           <button
             onClick={() => setShowGuide(true)}
             className="p-2 rounded-lg border border-(--ws-border) text-(--ws-muted) hover:text-(--ws-accent) hover:border-(--ws-accent) transition-colors"
@@ -1218,12 +1231,41 @@ export default function ProblemSolve() {
                         </div>
                       </div>
 
-                      <button
-                        onClick={downloadStatement}
-                        className="mt-5 flex items-center gap-1.5 text-[13px] font-medium text-(--ws-accent) hover:underline"
-                      >
-                        <Download size={14} /> {t('problemSolve.downloadOriginal')}
-                      </button>
+                      <div className="mt-5 flex items-center justify-between flex-wrap gap-3">
+                        <button
+                          onClick={downloadStatement}
+                          className="flex items-center gap-1.5 text-[13px] font-medium text-(--ws-accent) hover:underline"
+                        >
+                          <Download size={14} /> {t('problemSolve.downloadOriginal')}
+                        </button>
+
+                        {/* Nút chuyển đổi đồng bộ ngôn ngữ Đề bài & UI */}
+                        <div className="flex items-center gap-1 bg-(--ws-panel2) border border-(--ws-border) rounded-lg p-1 text-xs">
+                          <Languages size={13} className="text-(--ws-accent) ml-1 mr-0.5" />
+                          <button
+                            onClick={() => void i18n.changeLanguage('vi')}
+                            className={`px-2.5 py-1 rounded-md text-[11.5px] font-semibold transition-all ${
+                              !isEnglish
+                                ? 'bg-(--ws-accent) text-white shadow-xs'
+                                : 'text-(--ws-muted) hover:text-(--ws-text)'
+                            }`}
+                            title="Chuyển toàn bộ Giao diện và Đề bài sang Tiếng Việt"
+                          >
+                            Tiếng Việt
+                          </button>
+                          <button
+                            onClick={() => void i18n.changeLanguage('en')}
+                            className={`px-2.5 py-1 rounded-md text-[11.5px] font-semibold transition-all ${
+                              isEnglish
+                                ? 'bg-(--ws-accent) text-white shadow-xs'
+                                : 'text-(--ws-muted) hover:text-(--ws-text)'
+                            }`}
+                            title="Switch entire UI and Problem statement to English"
+                          >
+                            English
+                          </button>
+                        </div>
+                      </div>
 
                       <h2 className="mt-6 mb-5 text-[26px] font-extrabold leading-tight">{localizedTitle}</h2>
 

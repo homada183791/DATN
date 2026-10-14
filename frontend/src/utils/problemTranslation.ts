@@ -109,14 +109,92 @@ const TITLE_TRANSLATIONS: Record<string, string> = {
   'Course Schedule': 'Lập lịch các khóa học (Phát hiện chu trình đồ thị)',
 };
 
+// Tạo từ điển đảo ngược để dịch ngược từ Tiếng Việt sang Tiếng Anh khi cần
+const TITLE_TRANSLATIONS_REVERSE: Record<string, string> = Object.entries(TITLE_TRANSLATIONS).reduce(
+  (acc, [en, vi]) => {
+    acc[vi.trim().toLowerCase()] = en;
+    // Bỏ phần chú thích trong ngoặc nếu có để match tốt hơn
+    const plainVi = vi.replace(/\s*\([^)]*\)/g, '').trim().toLowerCase();
+    if (plainVi && !acc[plainVi]) {
+      acc[plainVi] = en;
+    }
+    return acc;
+  },
+  {} as Record<string, string>,
+);
+
 /**
- * Trả về tiêu đề bài toán theo ngôn ngữ lựa chọn
+ * Phân tích và trích xuất nội dung song ngữ [Tiếng Việt] và [English]
+ * từ mô tả bài toán (chuẩn cấu trúc Hard_450.json / Medium / Custom upload).
+ */
+export function parseBilingualDescription(raw: string | undefined | null): {
+  vi: string;
+  en: string;
+  isBilingual: boolean;
+} {
+  if (!raw) return { vi: '', en: '', isBilingual: false };
+
+  // Nhận diện các thẻ phân tách ngôn ngữ
+  const viHeaderRegex = /\[(?:Tiếng Việt|Vietnamese|VI)\]/i;
+  const enHeaderRegex = /\[(?:English|Tiếng Anh|EN)\]/i;
+
+  const viMatch = viHeaderRegex.exec(raw);
+  const enMatch = enHeaderRegex.exec(raw);
+
+  if (viMatch && enMatch) {
+    if (viMatch.index < enMatch.index) {
+      // Cấu trúc: [Tiếng Việt] ... ---------- ... [English] ...
+      let viPart = raw.slice(viMatch.index + viMatch[0].length, enMatch.index);
+      let enPart = raw.slice(enMatch.index + enMatch[0].length);
+
+      // Làm sạch các dòng phân cách như ---------- hoặc ===
+      viPart = viPart.replace(/\n\s*[-=_]{3,}\s*\n/g, '\n').trim();
+      enPart = enPart.replace(/^\s*[-=_]{3,}\s*\n/g, '').trim();
+
+      return { vi: viPart, en: enPart, isBilingual: true };
+    } else {
+      // Cấu trúc: [English] ... ---------- ... [Tiếng Việt] ...
+      let enPart = raw.slice(enMatch.index + enMatch[0].length, viMatch.index);
+      let viPart = raw.slice(viMatch.index + viMatch[0].length);
+
+      enPart = enPart.replace(/\n\s*[-=_]{3,}\s*\n/g, '\n').trim();
+      viPart = viPart.replace(/^\s*[-=_]{3,}\s*\n/g, '').trim();
+
+      return { vi: viPart, en: enPart, isBilingual: true };
+    }
+  }
+
+  // Kiểm tra comment HTML: <!-- vi --> ... <!-- en -->
+  const htmlViMatch = /<!--\s*vi\s*-->([\s\S]*?)(?:<!--\s*en\s*-->|$)/i.exec(raw);
+  const htmlEnMatch = /<!--\s*en\s*-->([\s\S]*?)(?:<!--\s*vi\s*-->|$)/i.exec(raw);
+  if (htmlViMatch && htmlEnMatch) {
+    return {
+      vi: htmlViMatch[1].trim(),
+      en: htmlEnMatch[1].trim(),
+      isBilingual: true,
+    };
+  }
+
+  return { vi: raw, en: raw, isBilingual: false };
+}
+
+/**
+ * Trả về tiêu đề bài toán theo ngôn ngữ lựa chọn (VI hoặc EN)
  */
 export function getLocalizedProblemTitle(title: string | undefined | null, lang: string): string {
   if (!title) return '';
-  if (lang !== 'vi') return title;
+  const isEn = (lang || 'vi').toLowerCase().startsWith('en');
 
-  // Tra trong từ điển dịch
+  // Nếu giao diện chọn English (EN)
+  if (isEn) {
+    const key = title.trim().toLowerCase();
+    if (TITLE_TRANSLATIONS_REVERSE[key]) {
+      return TITLE_TRANSLATIONS_REVERSE[key];
+    }
+    return title;
+  }
+
+  // Nếu giao diện chọn Tiếng Việt (VI)
   if (TITLE_TRANSLATIONS[title]) {
     return TITLE_TRANSLATIONS[title];
   }
@@ -145,12 +223,28 @@ export function getLocalizedProblemTitle(title: string | undefined | null, lang:
 }
 
 /**
- * Dịch nội dung mô tả bài toán (Markdown) sang Tiếng Việt nếu chọn 'vi'
+ * Dịch và trích xuất nội dung mô tả bài toán (Markdown) theo ngôn ngữ lựa chọn (VI hoặc EN).
+ * - Nếu đề bài có cấu trúc song ngữ [Tiếng Việt] ... [English] (như Hard_450.json):
+ *   -> Tự động trích xuất đúng phần Tiếng Việt hoặc Tiếng Anh tương ứng với ngôn ngữ UI.
+ * - Nếu đề bài chỉ có 1 ngôn ngữ đơn:
+ *   -> Tự động chuyển đổi các đề mục / từ khóa Markdown theo ngôn ngữ UI.
  */
 export function getLocalizedProblemDescription(desc: string | undefined | null, lang: string): string {
   if (!desc) return '';
-  if (lang !== 'vi') return desc;
+  const isEn = (lang || 'vi').toLowerCase().startsWith('en');
 
+  // Bước 1: Kiểm tra xem đề bài có phần song ngữ [Tiếng Việt] và [English] không
+  const bilingual = parseBilingualDescription(desc);
+  if (bilingual.isBilingual) {
+    return isEn ? bilingual.en : bilingual.vi;
+  }
+
+  // Bước 2: Nếu là tiếng Anh và không có bản song ngữ -> giữ nguyên bản gốc tiếng Anh
+  if (isEn) {
+    return desc;
+  }
+
+  // Bước 3: Nếu là tiếng Việt và đề gốc là tiếng Anh đơn ngữ -> dịch các thẻ Markdown & mẫu câu
   let localized = desc;
 
   // Dịch các tiêu đề đề mục chuẩn Markdown
