@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } fro
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { type Components } from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useQueryClient } from '@tanstack/react-query';
 import { getDetail, LANG_LABELS, Lang, ProblemDetail } from '../../data/problemDetails';
 import { ApiError, apiFetch } from '../../api/http';
@@ -17,7 +18,6 @@ import { createSocket } from '../../api/socket';
 import {
   HelpCircle,
   Send,
-  Eye,
   Columns,
   FileText,
   Code,
@@ -25,14 +25,12 @@ import {
   Play,
   Copy,
   RotateCcw,
-  Upload,
   ClipboardPaste,
   RefreshCw,
   X,
   CheckCircle2,
   XCircle,
   Clock,
-  Zap,
   Terminal,
   Bug,
   FlaskConical,
@@ -40,6 +38,7 @@ import {
   MessageCircle,
   ChevronDown,
   ChevronUp,
+  Languages,
 } from 'lucide-react';
 
 /* ---------------- syntax highlighting ---------------- */
@@ -87,6 +86,598 @@ function highlight(code: string, lang: Lang): string {
   });
 }
 
+/* ---------------- markdown (problem statement) styling ---------------- */
+
+const markdownComponents: Components = {
+  h1: ({ children }) => <h2 className="mt-5 mb-3 text-[21px] font-extrabold text-(--ws-text)">{children}</h2>,
+  h2: ({ children }) => <h3 className="mt-5 mb-2.5 text-[18px] font-bold text-(--ws-text)">{children}</h3>,
+  h3: ({ children }) => <h4 className="mt-4 mb-2 text-[15.5px] font-bold text-(--ws-text)">{children}</h4>,
+  h4: ({ children }) => <h5 className="mt-3 mb-2 text-[14.5px] font-bold text-(--ws-text)">{children}</h5>,
+  p: ({ children }) => <p className="text-[14.5px] leading-7 text-(--ws-text)/90 mb-3">{children}</p>,
+  strong: ({ children }) => <strong className="font-bold text-(--ws-text)">{children}</strong>,
+  em: ({ children }) => <em className="italic">{children}</em>,
+  a: ({ children, href }) => (
+    <a href={href} target="_blank" rel="noreferrer" className="text-(--ws-accent) underline underline-offset-2 hover:no-underline">
+      {children}
+    </a>
+  ),
+  ul: ({ children }) => <ul className="space-y-1.5 ml-1 mb-3">{children}</ul>,
+  ol: ({ children }) => <ol className="space-y-1.5 ml-5 mb-3 list-decimal text-[14.5px] leading-7 text-(--ws-text)/90">{children}</ol>,
+  li: ({ children, ...props }) => {
+    const ordered = (props as { ordered?: boolean }).ordered;
+    if (ordered) return <li className="pl-1">{children}</li>;
+    return (
+      <li className="flex gap-2.5 text-[14.5px] leading-7 text-(--ws-text)/90">
+        <span className="mt-[11px] w-1.5 h-1.5 rounded-full bg-(--ws-accent) shrink-0" />
+        <span>{children}</span>
+      </li>
+    );
+  },
+  blockquote: ({ children }) => (
+    <blockquote className="my-3 rounded-r-lg border-l-4 border-(--ws-accent) bg-(--ws-panel2)/60 py-2.5 px-4 text-[14px] leading-7 text-(--ws-text)/90 [&_p]:mb-1.5 [&_p:last-child]:mb-0">
+      {children}
+    </blockquote>
+  ),
+  hr: () => <hr className="my-5 border-(--ws-border)" />,
+  img: ({ src, alt }) => <img src={src} alt={alt} className="my-3 max-w-full rounded-lg border border-(--ws-border)" />,
+  code: ({ children, node: _node, ...props }) => (
+    <code className="px-1.5 py-0.5 rounded bg-(--ws-panel2) font-mono text-[13px] text-(--ws-accent) whitespace-pre-wrap wrap-anywhere [box-decoration-break:clone]" {...props}>
+      {children}
+    </code>
+  ),
+  pre: ({ children, node: _node, ...props }) => (
+    <pre
+      className="my-3 rounded-xl border border-(--ws-border) bg-(--ws-editor) p-4 overflow-x-auto font-mono text-[13px] leading-6 text-(--ws-text) [&_code]:bg-transparent [&_code]:p-0 [&_code]:text-inherit [&_code]:rounded-none [&_code]:whitespace-pre [&_code]:wrap-normal"
+      {...props}
+    >
+      {children}
+    </pre>
+  ),
+  table: ({ children }) => (
+    <div className="my-3 overflow-hidden rounded-lg border border-(--ws-border)">
+      <table className="w-full text-[13.5px]">{children}</table>
+    </div>
+  ),
+  thead: ({ children }) => <thead className="bg-(--ws-panel2)">{children}</thead>,
+  th: ({ children }) => <th className="text-left px-4 py-2.5 font-bold text-(--ws-text)">{children}</th>,
+  td: ({ children }) => <td className="px-4 py-2.5 border-t border-(--ws-border) text-(--ws-text)/90">{children}</td>,
+};
+
+// Nhiều đề bài được dán nguyên văn từ LeetCode (hoặc gõ tay theo cùng bố cục)
+// dưới dạng text thuần, không có cú pháp markdown: "Example 1:" + các dòng
+// "Input: ...", "Output: ...", "Explanation: ...", và "Constraints:" + danh
+// sách điều kiện bên dưới. Hàm này nhận diện các khối đó và chuyển thành
+// markdown chuẩn (tiêu đề in đậm, blockquote/list, code inline cho giá trị)
+// để hiển thị đẹp như trên LeetCode, mà không đụng tới nội dung đã có sẵn
+// cú pháp markdown riêng.
+const SECTION_HEADER_RE = /^\s*(?:\*\*)?(?:Example|Ví dụ)\s+\d+\s*:?\s*(?:\*\*)?\s*$|^\s*(?:\*\*)?(?:Constraints|Ràng buộc)\s*:?\s*(?:\*\*)?\s*$/i;
+const FIELD_LABEL_RE = /^\s*(?:\*\*)?(Input|Output|Explanation|Đầu vào|Đầu ra|Giải thích)(?:\*\*)?\s*:\s*(.*)$/i;
+
+// các dòng đã là cú pháp markdown chủ đích (heading, list, blockquote, bảng,
+// code fence, hr...) thì giữ nguyên, không gộp vào đoạn văn / không tô code
+const MARKDOWN_STRUCTURAL_RE = /^\s*(#{1,6}\s|[-*+]\s|\d+[.)]\s|>|\|.*\||```|~~~|-{3,}\s*$|={3,}\s*$)/;
+
+// những từ nối câu phổ biến — nếu một "mảnh" bị ngắt dòng có chứa các từ này
+// thì đó là văn bản thường (được bọc trong thẻ in nghiêng/nhấn mạnh ở bản gốc),
+// không phải tên biến/biểu thức code, nên không tô nền code cho nó.
+const PROSE_STOPWORDS_RE =
+  /\b(a|an|the|of|and|or|is|are|was|were|be|to|in|on|at|for|with|by|from|that|this|these|those|you|your|we|our|it|its|as|if|then|else|return|given|find|each|all|any|such|which|who|whom|where|when|why|how|but|not|no|yes|can|could|should|would|will|shall|may|might|must|do|does|did|has|have|had|into|onto|than|also|only|both|either|neither|more|most|least|same|other|another|some|many|much|few|several|first|second|third|last|new|old|valid|invalid|possible|impossible|exactly|approximately|respectively|consisting|consists|consist|contain|contains|containing|represents?|represent|denotes?|denote|means?|mean|called|named|described|defined|following|above|below|output|answer|result|value|values|array|arrays|string|strings|integer|integers|number|numbers|element|elements|index|indices|length|size|case|cases|example|examples|input|inputs|note|notes)\b/i;
+
+// nhận diện 1 "mảnh" trông giống tên biến/biểu thức/code (bị bọc trong thẻ
+// <code> ở bản gốc rồi xuống dòng khi được bóc tách thành text thuần) để tô
+// thành code inline, giống cách LeetCode in đậm các biến trong đoạn mô tả.
+function looksLikeCodeToken(segment: string): boolean {
+  const s = segment.trim();
+  if (!s || PROSE_STOPWORDS_RE.test(s)) return false;
+  // 1 từ tiếng Anh thuần, khá dài → nhiều khả năng là chữ nhấn mạnh, không phải code
+  if (/^[A-Za-z]+$/.test(s) && s.length > 12) return false;
+  // định danh thuần (biến/hàm): chữ/số/gạch dưới, không khoảng trắng
+  if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(s)) return true;
+  // số nguyên/thập phân (kể cả âm)
+  if (/^-?\d+(\.\d+)?$/.test(s)) return true;
+  // 1 token liền (không khoảng trắng) có ký tự đặc trưng của code: nums1[i], Node.val, a-b...
+  // (bỏ dấu câu cuối câu trước khi xét, để "table." không bị coi là code)
+  const core = s.replace(/[.,;:!?]+$/, '');
+  if (!/\s/.test(core) && /[.\-_[\]()]/.test(core) && /[A-Za-z0-9]/.test(core)) return true;
+  // biểu thức toán/so sánh có thể có khoảng trắng bên trong dấu ngoặc: O(log (m+n)), 1 <= n <= 100
+  if (/^[\w\s()[\]{}.,+\-*/^<>=:'"|]+$/.test(s) && /[\d()[\]{}^_<>=]/.test(s)) return true;
+  return false;
+}
+
+// Bảng dạng ASCII (đề SQL: "+----+----+", "| id | name |") bị CommonMark gộp
+// thành 1 đoạn văn nếu để nguyên → bọc các dòng bảng liên tiếp vào code fence để
+// giữ nguyên căn lề cột, hiển thị bằng font monospace và cuộn ngang khi quá rộng.
+const ASCII_TABLE_LINE_RE = /^\s*(\+[-=+]*\+|\|.*\|)\s*$/;
+function fenceAsciiTables(src: string[]): string[] {
+  const res: string[] = [];
+  let inFence: boolean = false;
+  let i = 0;
+  while (i < src.length) {
+    if (/^\s*```/.test(src[i])) {
+      // fence có sẵn do người soạn viết: không đụng vào
+      const isClosing: boolean = inFence && /^\s*```\s*$/.test(src[i]);
+      inFence = !isClosing;
+      res.push(src[i]);
+      i++;
+      continue;
+    }
+    if (!inFence && ASCII_TABLE_LINE_RE.test(src[i])) {
+      let j = i;
+      while (j < src.length && ASCII_TABLE_LINE_RE.test(src[j])) j++;
+      if (j - i >= 2) {
+        res.push('```', ...src.slice(i, j).map((l) => l.trimEnd()), '```');
+        i = j;
+        continue;
+      }
+    }
+    res.push(src[i]);
+    i++;
+  }
+  return res;
+}
+
+// Bản gốc (LeetCode) có danh sách <ul>/<li> nhưng khi bóc thành text thì mất dấu
+// đầu dòng: mỗi mục chỉ còn là 1 đoạn riêng, còn danh sách lồng nhau để lại 1 dòng
+// chỉ có ký tự TAB. Hàm này đoán lại cấu trúc danh sách ở phần mô tả phía trên
+// Example và đánh dấu dòng đầu mỗi mục bằng ký tự điều khiển (LIST_TOP / LIST_SUB),
+// để formatLeetCodeStyleExamples xuất ra "- mục" / "  - mục lồng".
+const LIST_TOP = '\u0001';
+const LIST_SUB = '\u0002';
+const TAB_ONLY_RE = /^[\t ]*\t[\t ]*$/;
+const LIST_CLOSING_RE =
+  /^(?:Given|Return|Implement|Write|Find|Note|Notes|Follow|You (?:must|are given|need|have|will)|Bạn (?:phải|được cho|cần)|Cho|Trả về|Hãy)\b/;
+function markIntroLists(src: string[]): string[] {
+  type Para = { start: number; end: number; text: string; tabAfter: boolean };
+  const paras: Para[] = [];
+  let cur: Para | null = null;
+  let stop = src.length;
+  for (let i = 0; i < src.length; i++) {
+    const l = src[i];
+    if (/^\s*(?:\*\*)?(?:Example|Ví dụ)\s+\d+|^\s*(?:\*\*)?(?:Constraints|Ràng buộc)\s*:?\s*(?:\*\*)?\s*$/i.test(l) || /^\s*```/.test(l)) {
+      stop = i;
+      break;
+    }
+    if (TAB_ONLY_RE.test(l)) {
+      if (cur) {
+        cur.tabAfter = true;
+        paras.push(cur);
+        cur = null;
+      } else if (paras.length > 0) {
+        paras[paras.length - 1].tabAfter = true;
+      }
+      continue;
+    }
+    if (l.trim() === '') {
+      if (cur) {
+        paras.push(cur);
+        cur = null;
+      }
+      continue;
+    }
+    if (!cur) cur = { start: i, end: i, text: l.trim(), tabAfter: false };
+    else {
+      cur.end = i;
+      cur.text += ` ${l.trim()}`;
+    }
+  }
+  if (cur) paras.push(cur);
+  if (paras.length === 0) return src;
+
+  const level: number[] = new Array(paras.length).fill(0);
+  const structural = (t: string) => MARKDOWN_STRUCTURAL_RE.test(t);
+  let i = 0;
+  while (i < paras.length) {
+    if (!paras[i].tabAfter || level[i] !== 0 || structural(paras[i].text)) {
+      i++;
+      continue;
+    }
+    // lùi lại lấy các mục anh em ngắn đứng ngay trước (dừng ở câu dẫn kết thúc bằng ":")
+    let s = i;
+    let steps = 0;
+    while (s > 0 && steps < 6) {
+      const prev = paras[s - 1].text;
+      if (/[:：]\s*$/.test(prev) || prev.length > 150 || structural(prev) || level[s - 1] !== 0) break;
+      s--;
+      steps++;
+    }
+    // tiến tới khi gặp đoạn kết ("Given ...", "Return ...") hoặc hết phần mô tả
+    let e = i + 1;
+    while (e < paras.length && !LIST_CLOSING_RE.test(paras[e].text) && !structural(paras[e].text)) e++;
+    // phần sau mỗi dấu TAB là mục lồng; nếu mục đó mở đầu bằng "For example" thì chỉ lồng 1 mục
+    let nested = false;
+    let nestedLeft = 0;
+    for (let k = s; k < e; k++) {
+      if (nested && paras[k].tabAfter) nested = false; // mục này tự là cha của 1 danh sách lồng mới
+      if (nestedLeft > 0) {
+        level[k] = 2;
+        nestedLeft--;
+        if (nestedLeft === 0) nested = false;
+      } else {
+        level[k] = nested ? 2 : 1;
+      }
+      if (paras[k].tabAfter && k + 1 < e) {
+        if (/^(?:For example|e\.g\.|i\.e\.|Ví dụ)/i.test(paras[k + 1].text)) nestedLeft = 1;
+        else nested = true;
+      }
+    }
+    i = e;
+  }
+
+  const out = src.slice();
+  paras.forEach((pp, idx) => {
+    if (level[idx] === 0 || pp.start >= stop) return;
+    out[pp.start] = (level[idx] === 1 ? LIST_TOP : LIST_SUB) + out[pp.start];
+  });
+  return out;
+}
+
+function formatLeetCodeStyleExamples(text: string): string {
+  const lines = markIntroLists(fenceAsciiTables(text.split('\n')));
+  const out: string[] = [];
+  // 'none' = văn bản thường, 'example' = trong khối Example (blockquote),
+  // 'constraints' = trong khối Constraints (danh sách)
+  let mode: 'none' | 'example' | 'constraints' = 'none';
+  let constraintItemAdded = false;
+  let constraintsBlankRun = 0;
+
+  // mỗi điều kiện trong Constraints cũng có thể bị bóc tách HTML làm rớt
+  // xuống nhiều dòng (phổ biến nhất: số mũ dạng "10^6" bị tách thành dòng
+  // "10" rồi dòng "6" riêng do thẻ <sup> gốc) — gom các dòng liên tiếp
+  // (không có dòng trống xen giữa) thành 1 điều kiện duy nhất thay vì mỗi
+  // dòng con lại thành 1 gạch đầu dòng riêng biệt.
+  let constraintBuffer: string[] = [];
+  const flushConstraint = () => {
+    if (constraintBuffer.length === 0) return;
+    let merged = constraintBuffer[0];
+    for (let k = 1; k < constraintBuffer.length; k++) {
+      const part = constraintBuffer[k];
+      // mảnh hiện tại chỉ là số thuần, nối tiếp ngay sau 1 số khác => đó là
+      // số mũ bị tách dòng (vd. "10" + "6" => "10^6"), nối bằng dấu "^" và
+      // không có khoảng trắng; các trường hợp còn lại nối bằng dấu cách.
+      if (/\d$/.test(merged) && /^\d+$/.test(part)) {
+        merged += `^${part}`;
+      } else {
+        merged += ` ${part}`;
+      }
+    }
+    merged = merged.replace(/\s+([.,;:!?])/g, '$1').replace(/[ \t]{2,}/g, ' ').trim();
+    out.push(`- \`${merged.replace(/`/g, "'")}\``);
+    constraintBuffer = [];
+  };
+
+  // văn bản thường (phần nội dung chính phía trên "Example") thường bị ngắt
+  // dòng rải rác ở bản gốc (mỗi biến/code nằm riêng 1 dòng do bóc tách từ thẻ
+  // <code>) — gom các dòng liên tiếp (không trống) lại thành 1 đoạn liền mạch,
+  // đồng thời tô code inline cho các mảnh trông giống biến/biểu thức.
+  let paragraphBuffer: string[] = [];
+  let listPrefix = '';
+  const flushParagraph = () => {
+    if (paragraphBuffer.length === 0) return;
+    const merged = paragraphBuffer
+      .join(' ')
+      .replace(/\s+([.,;:!?])/g, '$1')
+      .replace(/[ \t]{2,}/g, ' ')
+      .trim()
+      // đề SQL: "id is the primary key...", "departmentId is a foreign key..." — tên
+      // cột đứng đầu câu nằm cùng dòng (không bị ngắt dòng) nên cũng cần tô code
+      .replace(
+        /(^|[.!?]\s+)(\([A-Za-z_]\w*(?:, [A-Za-z_]\w*)*\)|[A-Za-z_]\w*(?:, [A-Za-z_]\w*)*(?: and [A-Za-z_]\w*)?)(?= (?:is|are) (?:the |a |an )?(?:primary|foreign|unique)\b)/g,
+        '$1`$2`',
+      );
+    if (merged) out.push(listPrefix + merged);
+    listPrefix = '';
+    paragraphBuffer = [];
+  };
+
+  // hỗ trợ cả tiêu đề tiếng Anh (Example/Constraints/Input/Output/Explanation)
+  // lẫn tiếng Việt (Ví dụ/Ràng buộc/Đầu vào/Đầu ra/Giải thích), vì đề bài có
+  // thể được hiển thị ở 1 trong 2 ngôn ngữ tuỳ lựa chọn của người dùng.
+  for (let idx = 0; idx < lines.length; idx++) {
+    let line = lines[idx];
+    // dấu hiệu mục danh sách do markIntroLists gắn vào đầu dòng
+    let itemLevel = 0;
+    if (line.startsWith(LIST_TOP) || line.startsWith(LIST_SUB)) {
+      itemLevel = line.startsWith(LIST_TOP) ? 1 : 2;
+      line = line.slice(1);
+    }
+
+    // code block / bảng ASCII đã bọc fence: giữ nguyên từng dòng, không gộp
+    if (/^\s*```/.test(line)) {
+      const fenceLines: string[] = [];
+      let k = idx + 1;
+      while (k < lines.length && !/^\s*```\s*$/.test(lines[k])) {
+        fenceLines.push(lines[k]);
+        k++;
+      }
+      flushParagraph();
+      flushConstraint();
+      if (mode === 'constraints') mode = 'none';
+      const prefix = mode === 'example' ? '> ' : '';
+      if (!prefix && out.length > 0 && out[out.length - 1] !== '') out.push('');
+      out.push(`${prefix}${line.trim()}`, ...fenceLines.map((l) => prefix + l), `${prefix}\`\`\``);
+      if (!prefix) out.push('');
+      idx = k;
+      continue;
+    }
+
+    const exampleMatch =line.match(/^\s*(?:\*\*)?(?:Example|Ví dụ)\s+(\d+)\s*:?\s*(?:\*\*)?\s*$/i);
+    if (exampleMatch) {
+      flushParagraph();
+      flushConstraint();
+      out.push(`**${/ví/i.test(line) ? 'Ví dụ' : 'Example'} ${exampleMatch[1]}:**`);
+      mode = 'example';
+      continue;
+    }
+
+    const constraintsMatch = line.match(/^\s*(?:\*\*)?(?:Constraints|Ràng buộc)\s*:?\s*(?:\*\*)?\s*$/i);
+    if (constraintsMatch) {
+      flushParagraph();
+      flushConstraint();
+      out.push(`**${/ràng/i.test(line) ? 'Ràng buộc' : 'Constraints'}:**`);
+      mode = 'constraints';
+      constraintItemAdded = false;
+      constraintsBlankRun = 0;
+      continue;
+    }
+
+    const fieldMatch = line.match(FIELD_LABEL_RE);
+    if (fieldMatch) {
+      flushParagraph();
+      flushConstraint();
+      const rawLabel = fieldMatch[1];
+      const label = rawLabel.charAt(0).toUpperCase() + rawLabel.slice(1).toLowerCase();
+      const normalized = rawLabel.toLowerCase();
+      const isExplanation = normalized === 'explanation' || normalized === 'giải thích';
+      let rawValue = fieldMatch[2].trim();
+
+      // một số đề (vd. xuất từ LeetCode) để giá trị xuống (các) dòng kế tiếp
+      // thay vì ngay sau dấu ":" — gom các dòng đó lại cho tới khi gặp dòng
+      // trống hoặc một tiêu đề/field khác
+      type FieldChunk = { kind: 'text'; text: string } | { kind: 'fence'; open: string; lines: string[] };
+      let fieldChunks: FieldChunk[] | null = null;
+      if (!rawValue) {
+        let j = idx + 1;
+        // bỏ qua dòng trống ngay sau nhãn (vd. "Input:\n \nEmployee table:...")
+        while (j < lines.length && lines[j].trim() === '') j++;
+        const chunks: FieldChunk[] = [];
+        while (
+          j < lines.length &&
+          lines[j].trim() !== '' &&
+          !SECTION_HEADER_RE.test(lines[j]) &&
+          !FIELD_LABEL_RE.test(lines[j])
+        ) {
+          if (/^\s*```/.test(lines[j])) {
+            // bảng ASCII (đã được bọc fence ở bước tiền xử lý) nằm trong giá trị field
+            const open = lines[j].trim();
+            const fenceLines: string[] = [];
+            j++;
+            while (j < lines.length && !/^\s*```\s*$/.test(lines[j])) {
+              fenceLines.push(lines[j]);
+              j++;
+            }
+            j++; // bỏ dòng đóng fence
+            chunks.push({ kind: 'fence', open, lines: fenceLines });
+          } else {
+            const last = chunks[chunks.length - 1];
+            if (last && last.kind === 'text') last.text += ` ${lines[j].trim()}`;
+            else chunks.push({ kind: 'text', text: lines[j].trim() });
+            j++;
+          }
+        }
+        if (chunks.length > 0) {
+          idx = j - 1;
+          if (chunks.length === 1 && chunks[0].kind === 'text') rawValue = chunks[0].text;
+          else fieldChunks = chunks;
+        }
+      }
+
+      if (fieldChunks) {
+        // giá trị gồm bảng ASCII: hiển thị chữ mô tả + bảng (code block) trong cùng khung
+        out.push(`> **${label}:**`);
+        for (const c of fieldChunks) {
+          out.push('>');
+          if (c.kind === 'text') {
+            out.push(`> ${isExplanation ? c.text.replace(/"([^"]*)"/g, '`"$1"`') : c.text}`);
+          } else {
+            out.push(`> ${c.open}`, ...c.lines.map((l) => `> ${l}`), '> ```');
+          }
+        }
+        mode = 'example';
+        continue;
+      }
+
+      const value = isExplanation
+        ? rawValue.replace(/"([^"]*)"/g, '`"$1"`')
+        : rawValue
+          ? `\`${rawValue.replace(/`/g, "'")}\``
+          : '';
+      out.push(`> **${label}:** ${value}`);
+      mode = 'example';
+      continue;
+    }
+
+    const trimmed = line.trim();
+
+    if (mode === 'constraints') {
+      if (trimmed === '') {
+        constraintsBlankRun++;
+        // 1 dòng trống = kết thúc điều kiện hiện tại (gộp các dòng con vừa
+        // gom được thành 1 gạch đầu dòng); 2 dòng trống liên tiếp trở lên mới
+        // thực sự thoát khỏi khối Constraints (khớp với dữ liệu thực tế, nơi
+        // phần sau Constraints — nếu có — luôn cách ra bằng nhiều hơn 1 dòng
+        // trống, còn giữa 2 điều kiện chỉ cách đúng 1 dòng trống)
+        flushConstraint();
+        if (constraintItemAdded && constraintsBlankRun >= 2) mode = 'none';
+      } else {
+        constraintsBlankRun = 0;
+        // bỏ dấu đầu dòng có sẵn (-, *, •, 1.) nếu người soạn đã gõ sẵn bullet —
+        // yêu cầu có khoảng trắng theo sau để không cắt nhầm dấu "-" trong biểu
+        // thức như "-2^31 <= target <= 2^31"
+        const bulletContent = trimmed.replace(/^(?:[-*•]|\d+[.)])\s+/, '');
+        constraintBuffer.push(bulletContent);
+        constraintItemAdded = true;
+      }
+      continue;
+    }
+
+    if (mode === 'example') {
+      if (trimmed === '') {
+        mode = 'none';
+      } else {
+        // dòng tiếp nối (vd. giải thích dài xuống dòng) vẫn giữ trong cùng khối blockquote
+        out.push(`> ${trimmed}`);
+        continue;
+      }
+    }
+
+    // mode === 'none': văn bản thường phía trên khối Example đầu tiên (hoặc
+    // giữa 2 khối) — gom thành đoạn văn liền mạch, tô code cho các mảnh giống
+    // biến/biểu thức, giữ nguyên các dòng đã là cú pháp markdown chủ đích.
+    if (trimmed === '') {
+      flushParagraph();
+      if (out.length > 0 && out[out.length - 1] !== '') {
+        // giữa 2 mục danh sách liên tiếp không chèn dòng trống (giữ danh sách "chặt")
+        let nx = idx + 1;
+        while (nx < lines.length && lines[nx].trim() === '') nx++;
+        const nextIsItem = nx < lines.length && (lines[nx].startsWith(LIST_TOP) || lines[nx].startsWith(LIST_SUB));
+        if (!(nextIsItem && /^\s*- /.test(out[out.length - 1]))) out.push('');
+      }
+      continue;
+    }
+
+    if (MARKDOWN_STRUCTURAL_RE.test(line)) {
+      flushParagraph();
+      out.push(line);
+      continue;
+    }
+
+    // nhãn phần phụ như "Follow-up:" / "Note:" → in đậm (không phải code) và mở
+    // đầu 1 đoạn mới, nội dung theo sau nối liền ngay sau nhãn
+    const noteLabel = trimmed.match(/^(?:\*\*)?(Follow[- ]?up|Note|Notes|Hint)\s*:\s*(?:\*\*)?$/i);
+    if (noteLabel) {
+      flushParagraph();
+      paragraphBuffer.push(`**${noteLabel[1]}:**`);
+      continue;
+    }
+
+    if (itemLevel > 0) {
+      flushParagraph();
+      listPrefix = itemLevel === 1 ? '- ' : '  - ';
+    }
+    paragraphBuffer.push(looksLikeCodeToken(trimmed) ? `\`${trimmed.replace(/`/g, "'")}\`` : trimmed);
+  }
+  flushParagraph();
+  flushConstraint();
+
+  return out.join('\n');
+}
+
+// Đề bài có thể được nhập theo dạng song ngữ trong cùng một trường "description":
+//   [Tiếng Việt]
+//   ...nội dung tiếng Việt...
+//   ----------
+//   [English]
+//   ...nội dung tiếng Anh...
+// Hàm này tách nội dung thành 2 phần riêng để hiển thị theo ngôn ngữ người dùng chọn.
+// Nếu không khớp định dạng song ngữ (đề chỉ có 1 ngôn ngữ), trả về null — khi đó
+// UI sẽ hiển thị nguyên văn toàn bộ nội dung như cũ, không có nút chuyển đổi.
+function splitBilingualDescription(text: string): { vi: string; en: string } | null {
+  const match = text.match(
+    /\[\s*Tiếng\s*Việt\s*\]\s*\n([\s\S]*?)\n-{3,}\s*\n\s*\[\s*English\s*\]\s*\n([\s\S]*)$/i,
+  );
+  if (!match) return null;
+  return { vi: match[1].trim(), en: match[2].trim() };
+}
+
+// Làm gọn dữ liệu test mẫu: thống nhất xuống dòng, bỏ khoảng trắng thừa cuối
+// mỗi dòng (kể cả NBSP) và dòng trống đầu/cuối — giữ nguyên khoảng trắng đầu
+// dòng để bảng ASCII (đề SQL) vẫn thẳng cột.
+function tidySampleText(s: string): string {
+  return s
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .map((l) => l.replace(/[ \t ]+$/, ''))
+    .join('\n')
+    .replace(/^\n+|\n+$/g, '');
+}
+
+// Test case của đề SQL được lưu dưới dạng JSON {"headers": {...}, "rows": {...}}.
+// Chuyển thành bảng ASCII giống phần ví dụ trong đề để dễ đọc. Chỉ dùng để HIỂN
+// THỊ — dữ liệu gốc (JSON) vẫn là thứ được gửi đi khi chạy. Trả về null nếu
+// input không đúng định dạng này.
+function sqlJsonToTables(raw: string): string | null {
+  let obj: unknown;
+  try {
+    obj = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return null;
+  const { headers, rows } = obj as { headers?: unknown; rows?: unknown };
+  if (!headers || typeof headers !== 'object' || Array.isArray(headers)) return null;
+  if (!rows || typeof rows !== 'object' || Array.isArray(rows)) return null;
+
+  const fmt = (v: unknown): string => {
+    if (v === null || v === undefined) return 'NULL';
+    if (typeof v === 'object') return JSON.stringify(v);
+    return String(v);
+  };
+
+  const blocks: string[] = [];
+  for (const [name, cols] of Object.entries(headers as Record<string, unknown>)) {
+    if (!Array.isArray(cols)) return null;
+    const data = (rows as Record<string, unknown>)[name];
+    const header = cols.map(fmt);
+    const body: string[][] = (Array.isArray(data) ? data : []).map((r) =>
+      Array.isArray(r) ? r.map(fmt) : [fmt(r)],
+    );
+    const widths = header.map((h, c) => Math.max(h.length, ...body.map((r) => (r[c] ?? '').length)));
+    const border = `+${widths.map((w) => '-'.repeat(w + 2)).join('+')}+`;
+    const line = (cells: string[]) =>
+      `| ${widths.map((w, c) => (cells[c] ?? '').padEnd(w)).join(' | ')} |`;
+    blocks.push([`${name} table:`, border, line(header), border, ...body.map(line), border].join('\n'));
+  }
+  return blocks.length > 0 ? blocks.join('\n\n') : null;
+}
+
+// Output của đề SQL được lưu dưới dạng bảng ASCII ("+----+", "| id | name |").
+// Chuyển sang JSON {"columns": [...], "rows": [[...]]} để HIỂN THỊ đồng nhất với
+// Input (JSON). Chỉ dùng cho phần hiển thị — output gốc dùng để so sánh vẫn giữ
+// nguyên. Trả về null nếu không phải bảng ASCII hợp lệ.
+function asciiTableToJson(text: string): string | null {
+  const toValue = (cell: string): string | number | null => {
+    if (cell === 'NULL') return null;
+    if (/^-?(0|[1-9]\d*)(\.\d+)?$/.test(cell)) return Number(cell);
+    return cell;
+  };
+  const sepMatch = text.match(/\+(?:-+\+)+/);
+  if (!sepMatch) return null;
+  const ncols = sepMatch[0].split('+').length - 2;
+  if (ncols < 1) return null;
+  // bỏ các dòng ngăn "+----+----+", rồi tách theo dấu "|"
+  const parts = text
+    .replace(/\+(?:-+\+)+/g, ' ')
+    .split('|')
+    .map((x) => x.trim());
+  parts.shift();
+  parts.pop();
+  let rows: string[][];
+  if (text.includes('\n')) {
+    rows = text
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l.startsWith('|') && l.endsWith('|'))
+      .map((l) => l.slice(1, -1).split('|').map((cell) => cell.trim()));
+  } else {
+    // output bị mất xuống dòng: các hàng liền nhau, cách nhau bởi 1 ô rỗng
+    rows = [];
+    for (let i = 0; i < parts.length; i += ncols + 1) rows.push(parts.slice(i, i + ncols));
+  }
+  if (rows.length === 0) return null;
+  const [header, ...body] = rows;
+  return JSON.stringify({ columns: header, rows: body.map((r) => r.map(toValue)) });
+}
+
 /* ---------------- types ---------------- */
 
 type LayoutMode = 'split' | 'statement' | 'editor';
@@ -108,7 +699,7 @@ const COLLAPSED_BOTTOM_PANEL_HEIGHT = 48;
 const BOTTOM_RESIZE_HANDLE_HEIGHT = 6;
 
 export default function ProblemSolve() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   // Hỗ trợ các URL pattern:
   // - /student/problem/:id  (cũ)
   // - /student/class/:classId/homework/:homeworkId/problem/:problemId  (homework)
@@ -137,6 +728,11 @@ export default function ProblemSolve() {
   const problemTitle = apiProblem?.title ?? t('problemSolve.fallbackProblemTitle');
   const problemDifficulty = apiProblem?.difficulty ?? 'MEDIUM';
   const problemDescription = apiProblem?.description ?? '';
+  const bilingualDescription = useMemo(() => splitBilingualDescription(problemDescription), [problemDescription]);
+  const [descLang, setDescLang] = useState<'vi' | 'en'>(() => (i18n.language?.startsWith('en') ? 'en' : 'vi'));
+  const displayedDescription = bilingualDescription
+    ? (descLang === 'vi' ? bilingualDescription.vi : bilingualDescription.en)
+    : problemDescription;
   const problemPoints = useMemo(() => {
     if (problemDifficulty === 'EASY') return 100;
     if (problemDifficulty === 'HARD') return 300;
@@ -154,8 +750,8 @@ export default function ProblemSolve() {
       if (visible.length > 0) {
         return visible.map((tc, idx) => ({
           id: idx + 1,
-          input: tc.input,
-          output: tc.expected_output,
+          input: tidySampleText(tc.input),
+          output: tidySampleText(tc.expected_output),
           explanation: '',
         }));
       }
@@ -188,8 +784,8 @@ export default function ProblemSolve() {
 
   const [layout, setLayout] = useState<LayoutMode>('split');
   const [mobilePane, setMobilePane] = useState<'statement' | 'editor'>('statement');
-  const [showSolution, setShowSolution] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [uploadPreview, setUploadPreview] = useState<{ fileName: string; content: string } | null>(null);
   const hasDocument = typeof document !== 'undefined';
 
   /* editor state */
@@ -261,6 +857,9 @@ export default function ProblemSolve() {
   }, []);
 
   const [samples, setSamples] = useState(() => getInitialSamples());
+  // test của đề SQL (input là JSON) → hiển thị output cũng dạng JSON cho đồng nhất
+  const displayOutput = (s: { input: string; output: string }) =>
+    (sqlJsonToTables(s.input) !== null ? asciiTableToJson(s.output) : null) ?? s.output;
   const [sampleOutputs, setSampleOutputs] = useState<Record<number, { actual: string; ok: boolean; time?: number }>>({});
   const [consoleLines, setConsoleLines] = useState<ConsoleLine[]>([]);
   const [running, setRunning] = useState(false);
@@ -662,19 +1261,22 @@ export default function ProblemSolve() {
     }
   };
 
-  const pasteIntoEditor = async () => {
-    try {
-      const text = await navigator.clipboard.readText();
-      if (text) onCodeChange(code + text);
-    } catch {
-      pushConsole(t('problemSolve.consoleClipboardError'), 'err');
-    }
-  };
-
   const uploadFile = (file: File) => {
     const reader = new FileReader();
-    reader.onload = () => onCodeChange(String(reader.result ?? ''));
+    reader.onload = () => {
+      // Chuẩn hoá line ending (CRLF/CR -> LF): trình duyệt tự quy LF khi render
+      // HTML, nhưng việc đếm dòng ở gutter dựa trên split('\n') nên nếu không
+      // chuẩn hoá trước, các dòng kết thúc bằng \r đơn lẻ sẽ không được đánh số.
+      const normalized = String(reader.result ?? '').replace(/\r\n?/g, '\n');
+      setUploadPreview({ fileName: file.name, content: normalized });
+    };
     reader.readAsText(file);
+  };
+
+  const confirmUploadPreview = () => {
+    if (!uploadPreview) return;
+    onCodeChange(uploadPreview.content);
+    setUploadPreview(null);
   };
 
   const downloadStatement = () => {
@@ -797,9 +1399,6 @@ export default function ProblemSolve() {
               ← {t('studentContest.back')}
             </button>
           )}
-          <span className="text-[11px] font-bold tracking-wider px-2.5 py-1 rounded-md bg-(--ws-accent-soft) text-(--ws-accent)">
-            {detail.code}
-          </span>
           <h1 className="text-[17px] font-bold">{problemTitle}</h1>
           <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-md ${diffChip}`}>{problemDifficulty === 'EASY' ? t('problemForm.easy') : problemDifficulty === 'MEDIUM' ? t('problemForm.medium') : t('problemForm.hard')}</span>
           {contestId && (
@@ -825,12 +1424,6 @@ export default function ProblemSolve() {
             title={t("problemSolve.usageGuide")}
           >
             <HelpCircle size={15} />
-          </button>
-          <button
-            onClick={() => setShowSolution(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] font-medium text-(--ws-muted) hover:text-(--ws-text) hover:border-(--ws-accent) transition-colors"
-          >
-            <Eye size={14} /> {t('problemSolve.viewSolution')}
           </button>
           <div className="flex items-center rounded-lg border border-(--ws-border) overflow-hidden">
             {([['split', <Columns size={14} key="c" />], ['statement', <FileText size={14} key="f" />], ['editor', <Code size={14} key="e" />]] as [LayoutMode, React.ReactNode][]).map(([mode, icon]) => (
@@ -878,7 +1471,7 @@ export default function ProblemSolve() {
                 }`}
               >
                 {/* Left Pane Navigation Tabs */}
-                <div className="flex items-center gap-1 px-4 border-b border-(--ws-border) bg-(--ws-panel) shrink-0">
+                <div className="flex items-stretch gap-1 px-4 min-h-[52px] border-b border-(--ws-border) bg-(--ws-panel) shrink-0">
                   <button
                     onClick={() => setLeftTab('statement')}
                     className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all ${
@@ -937,9 +1530,41 @@ export default function ProblemSolve() {
 
                       <h2 className="mt-6 mb-5 text-[26px] font-extrabold leading-tight">{problemTitle}</h2>
 
-                      {problemDescription && (
-                        <div className="mb-7 rounded-xl border border-(--ws-border) bg-(--ws-panel) p-5">
-                          <ReactMarkdown>{problemDescription}</ReactMarkdown>
+                      {bilingualDescription && (
+                        <div className="flex items-center gap-2 mb-4">
+                          <Languages size={14} className="text-(--ws-muted)" />
+                          <div className="flex items-center gap-1 p-1 rounded-lg bg-(--ws-panel2) border border-(--ws-border)">
+                            <button
+                              type="button"
+                              onClick={() => setDescLang('vi')}
+                              className={`px-3 py-1 text-[12px] font-semibold rounded-md transition-colors ${
+                                descLang === 'vi'
+                                  ? 'bg-(--ws-accent-soft) text-(--ws-accent)'
+                                  : 'text-(--ws-muted) hover:text-(--ws-text)'
+                              }`}
+                            >
+                              Tiếng Việt
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDescLang('en')}
+                              className={`px-3 py-1 text-[12px] font-semibold rounded-md transition-colors ${
+                                descLang === 'en'
+                                  ? 'bg-(--ws-accent-soft) text-(--ws-accent)'
+                                  : 'text-(--ws-muted) hover:text-(--ws-text)'
+                              }`}
+                            >
+                              English
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {displayedDescription && (
+                        <div className="mb-7 rounded-xl border border-(--ws-border) bg-(--ws-panel) p-6">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                            {formatLeetCodeStyleExamples(displayedDescription)}
+                          </ReactMarkdown>
                         </div>
                       )}
 
@@ -983,20 +1608,6 @@ export default function ProblemSolve() {
                         </div>
                       ))}
 
-                      {/* samples in statement */}
-                      <h3 className="text-[19px] font-bold mb-3">{t('problemSolve.examplesTitle')}</h3>
-                      {detail.samples.map((s, i) => (
-                        <div key={i} className="mb-4 grid grid-cols-2 gap-3">
-                          <div className="rounded-lg border border-(--ws-border) bg-(--ws-panel) overflow-hidden">
-                            <p className="px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-widest text-(--ws-faint) bg-(--ws-panel2)">Input</p>
-                            <pre className="px-3 py-2.5 text-[13px] font-mono whitespace-pre-wrap">{s.input}</pre>
-                          </div>
-                          <div className="rounded-lg border border-(--ws-border) bg-(--ws-panel) overflow-hidden">
-                            <p className="px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-widest text-(--ws-faint) bg-(--ws-panel2)">Output</p>
-                            <pre className="px-3 py-2.5 text-[13px] font-mono whitespace-pre-wrap">{s.output}</pre>
-                          </div>
-                        </div>
-                      ))}
                     </div>
                   ) : (
                     /* ---- submissions tab content ---- */
@@ -1170,12 +1781,20 @@ export default function ProblemSolve() {
                 }`}
               >
               {/* editor toolbar */}
-              <div className="flex items-center gap-2 px-3 py-2 border-b border-(--ws-border) flex-wrap">
+              <div className="flex items-center gap-2 px-3 py-2 min-h-[52px] border-b border-(--ws-border) flex-wrap">
                 <div className="flex items-center rounded-lg border border-(--ws-border) overflow-hidden text-[12.5px] font-semibold">
                   <button className="px-3 py-1.5 bg-(--ws-accent-soft) text-(--ws-accent)">{t('problemSolve.writeCode')}</button>
                   <label className="px-3 py-1.5 text-(--ws-muted) hover:text-(--ws-text) cursor-pointer">
                     {t('problemSolve.uploadFile')}
-                    <input type="file" accept=".cpp,.py,.java,.txt" className="hidden" onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0])} />
+                    <input
+                      type="file"
+                      accept=".cpp,.py,.java,.txt"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) uploadFile(e.target.files[0]);
+                        e.target.value = '';
+                      }}
+                    />
                   </label>
                 </div>
                 <select
@@ -1206,13 +1825,6 @@ export default function ProblemSolve() {
                 </select>
 
                 <div className="flex-1" />
-                <button onClick={pasteIntoEditor} className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] font-semibold text-(--ws-accent) hover:bg-(--ws-accent-soft) transition-colors">
-                  <ClipboardPaste size={13} /> {t('problemSolve.pasteIn')}
-                </button>
-                <label className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] font-semibold text-(--ws-accent) hover:bg-(--ws-accent-soft) transition-colors cursor-pointer">
-                  <Upload size={13} /> {t('problemSolve.uploadBtn')}
-                  <input type="file" accept=".cpp,.py,.java,.txt" className="hidden" onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0])} />
-                </label>
                 <span className={`text-[11.5px] ${saveState === 'saved' ? 'text-(--ws-faint)' : 'text-(--ws-warn)'}`}>
                   {saveState === 'saved' ? t('problemSolve.saved') : saveState === 'saving' ? t('problemSolve.saving') : t('problemSolve.unsaved')}
                 </span>
@@ -1292,7 +1904,7 @@ export default function ProblemSolve() {
                 style={{ height: bottomPanelOpen ? bottomHeight : COLLAPSED_BOTTOM_PANEL_HEIGHT }}
               >
                 <div className={`flex items-center gap-1 px-3 ${bottomPanelOpen ? 'pt-2 border-b border-(--ws-border-soft)' : 'h-12'}`}>
-                  {bottomPanelOpen && ([
+                  {([
                     ['tests', t('problemSolve.tabSamples'), <FlaskConical size={13} key="i" />],
                     ['console', t('problemSolve.consoleTab'), <Terminal size={13} key="i" />],
                     ['results', t('problemSolve.tabResults'), <CheckCircle2 size={13} key="i" />],
@@ -1300,7 +1912,13 @@ export default function ProblemSolve() {
                   ] as [BottomTab, string, React.ReactNode][]).map(([tab, label, icon]) => (
                     <button
                       key={tab}
-                      onClick={() => setBottomTab(tab)}
+                      onClick={() => {
+                        setBottomTab(tab);
+                        if (!bottomPanelOpen) {
+                          setBottomHeight(DEFAULT_BOTTOM_PANEL_HEIGHT);
+                          setBottomPanelOpen(true);
+                        }
+                      }}
                       className={`flex items-center gap-1.5 px-3 py-2 text-[12.5px] font-semibold border-b-2 -mb-px transition-colors ${
                         bottomTab === tab
                           ? 'text-(--ws-accent) border-(--ws-accent)'
@@ -1374,7 +1992,11 @@ export default function ProblemSolve() {
                                 value={s.input}
                                 onChange={(e) => setSamples(samples.map((x, j) => (j === i ? { ...x, input: e.target.value } : x)))}
                                 spellCheck={false}
-                                className="w-full h-24 px-3 py-2.5 bg-transparent font-mono text-[12.5px] leading-5 resize-none outline-none text-(--ws-text)"
+                                wrap="off"
+                                // test của đề SQL (JSON {headers, rows}) chỉ để xem, không cho sửa
+                                readOnly={sqlJsonToTables(s.input) !== null}
+                                rows={Math.min(12, Math.max(3, s.input.split('\n').length))}
+                                className="block w-full px-3 py-2.5 bg-transparent font-mono text-[12.5px] leading-5 resize-none outline-none whitespace-pre overflow-auto text-(--ws-text)"
                               />
                               <button
                                 id={`copy-in-${i}`}
@@ -1385,10 +2007,10 @@ export default function ProblemSolve() {
                               </button>
                             </div>
                             <div className="relative rounded-lg border border-(--ws-border) bg-(--ws-editor) overflow-hidden group">
-                              <pre className="px-3 py-2.5 font-mono text-[12.5px] leading-5 whitespace-pre-wrap text-(--ws-text)">{s.output}</pre>
+                              <pre className="px-3 py-2.5 font-mono text-[12.5px] leading-5 whitespace-pre overflow-x-auto max-h-60 overflow-y-auto text-(--ws-text)">{displayOutput(s)}</pre>
                               <button
                                 id={`copy-out-${i}`}
-                                onClick={() => copyText(s.output, `copy-out-${i}`)}
+                                onClick={() => copyText(displayOutput(s), `copy-out-${i}`)}
                                 className="absolute top-2 right-2 p-1.5 rounded-md bg-(--ws-panel2) text-(--ws-muted) opacity-0 group-hover:opacity-100 transition-opacity"
                               >
                                 <Copy size={12} />
@@ -1583,25 +2205,6 @@ export default function ProblemSolve() {
         </div>
       )}
 
-      {/* ============ SOLUTION MODAL ============ */}
-      {showSolution && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setShowSolution(false)}>
-          <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
-              <h3 className="font-bold text-[15px]">{t('problemSolve.referenceSolutionTitle', { title: problemTitle })}</h3>
-              <button onClick={() => setShowSolution(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
-            </div>
-            <div className="p-6 overflow-y-auto max-h-[calc(80vh-64px)]">
-              <div className="flex items-center gap-2 mb-3 text-[12px] text-(--ws-muted)">
-                <Clock size={13} /> {detail.timeLimit}
-                <Zap size={13} className="ml-3" /> {detail.memoryLimit}
-              </div>
-              <pre className="ws-dark bg-[#0b1210] border border-(--ws-border) rounded-xl p-4 overflow-x-auto font-mono text-[12.5px] leading-6 text-[#e4ece8]" dangerouslySetInnerHTML={{ __html: highlight(detail.solutions[lang], lang) }} />
-            </div>
-          </div>
-        </div>
-      ), document.body)}
-
       {/* ============ GUIDE MODAL ============ */}
       {showGuide && hasDocument && createPortal((
         <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setShowGuide(false)}>
@@ -1624,6 +2227,52 @@ export default function ProblemSolve() {
                   <span>{v}</span>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      ), document.body)}
+
+      {/* ============ UPLOAD PREVIEW MODAL ============ */}
+      {uploadPreview && hasDocument && createPortal((
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setUploadPreview(null)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
+              <div>
+                <h3 className="font-bold text-[15px] text-(--ws-text)">{t('problemSolve.uploadPreviewTitle')}</h3>
+                <p className="text-xs text-(--ws-muted) mt-0.5">{uploadPreview.fileName}</p>
+              </div>
+              <button onClick={() => setUploadPreview(null)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
+            </div>
+            <div className="p-6 flex-1 min-h-0 flex flex-col">
+              <div className="flex-1 min-h-0 overflow-auto ws-editor-scroll rounded-xl border border-(--ws-border) bg-(--ws-editor)">
+                <div className="flex font-mono text-[13px] leading-6">
+                  <div className="shrink-0 w-12 py-3 pr-3 text-right select-none text-(--ws-gutter)" aria-hidden>
+                    {uploadPreview.content.split('\n').map((_, i) => (
+                      <div key={i}>{i + 1}</div>
+                    ))}
+                  </div>
+                  <pre
+                    className="flex-1 m-0 py-3 pr-4 whitespace-pre text-(--ws-text)"
+                    dangerouslySetInnerHTML={{ __html: highlight(uploadPreview.content, lang) }}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-(--ws-border)">
+              <button
+                type="button"
+                onClick={() => setUploadPreview(null)}
+                className="px-5 py-2.5 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={confirmUploadPreview}
+                className="flex items-center gap-1.5 px-5 py-2.5 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-accent) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors"
+              >
+                <ClipboardPaste size={13} /> {t('problemSolve.uploadPreviewConfirm')}
+              </button>
             </div>
           </div>
         </div>
