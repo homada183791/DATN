@@ -1020,6 +1020,8 @@
     "modeEditorOnly": "Chỉ editor",
     "hideAssistant": "Ẩn trợ lý",
     "openAssistant": "Mở trợ lý",
+    "prevProblem": "Bài trước",
+    "nextProblem": "Bài sau",
     "statementTab": "Đề bài",
     "backToProblems": "Bài tập",
     "consoleTab": "Console",
@@ -1072,7 +1074,7 @@
     "guideRun": "Thực thi code với các test mẫu ở bảng dưới editor.",
     "guideSubmit": "Gửi code lên máy chấm với 8 test bí mật.",
     "guideReset": "Khôi phục template mặc định của ngôn ngữ đang chọn.",
-    "guideUploadPasteLabel": "Tải lên / Dán vào",
+    "guideUploadPasteLabel": "Tải file / Dán vào",
     "guideUploadPaste": "Nạp code từ file hoặc clipboard vào editor.",
     "guideModeLabel": "3 nút góc phải",
     "guideMode": "Chuyển giữa chế độ chia đôi / chỉ đề / chỉ code."

@@ -4,13 +4,13 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getDetail, LANG_LABELS, Lang, ProblemDetail } from '../../data/problemDetails';
 import { ApiError, apiFetch } from '../../api/http';
 import { useProblemQuery } from '../../api/problems';
 import { useProblemSubmissionsQuery, type SubmissionDto } from '../../api/submissions';
 import { formatVNFull } from '../../utils/dateTime';
-import { joinContest } from '../../api/contests';
+import { joinContest, fetchContestDetail } from '../../api/contests';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { type Socket } from 'socket.io-client';
@@ -39,6 +39,8 @@ import {
   ChevronDown,
   ChevronUp,
   Languages,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 /* ---------------- syntax highlighting ---------------- */
@@ -723,6 +725,19 @@ export default function ProblemSolve() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const { data: apiProblem, isLoading, error } = useProblemQuery(resolvedId);
+
+  // danh sách đề của kỳ thi → nút chuyển bài trước / bài kế tiếp ngay trên màn hình làm bài
+  const { data: contestDetail } = useQuery({
+    queryKey: ['contests', contestId, 'detail'],
+    queryFn: () => fetchContestDetail(contestId ?? ''),
+    enabled: !!contestId,
+  });
+  const contestProblems = contestDetail?.problems ?? [];
+  const contestIndex = contestProblems.findIndex((cp) => cp.problem_id === resolvedId);
+  const prevContestProblem = contestIndex > 0 ? contestProblems[contestIndex - 1] : null;
+  const nextContestProblem =
+    contestIndex >= 0 && contestIndex < contestProblems.length - 1 ? contestProblems[contestIndex + 1] : null;
+  const goToContestProblem = (targetId: string) => navigate(`/student/contest/${contestId}/problem/${targetId}`);
 
   const problemId = apiProblem?.id ?? resolvedId ?? 'unknown-problem';
   const problemTitle = apiProblem?.title ?? t('problemSolve.fallbackProblemTitle');
@@ -1418,6 +1433,29 @@ export default function ProblemSolve() {
             </span>
           )}
           <div className="flex-1" />
+          {contestId && contestIndex >= 0 && contestProblems.length > 1 && (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => prevContestProblem && goToContestProblem(prevContestProblem.problem_id)}
+                disabled={!prevContestProblem}
+                title={prevContestProblem ? `${t('problemSolve.prevProblem')}: ${prevContestProblem.problem.title}` : t('problemSolve.prevProblem')}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] font-medium text-(--ws-muted) hover:text-(--ws-accent) hover:border-(--ws-accent) transition-colors disabled:opacity-40 disabled:pointer-events-none"
+              >
+                <ChevronLeft size={14} /> {t('problemSolve.prevProblem')}
+              </button>
+              <span className="px-1.5 text-[12.5px] font-semibold text-(--ws-muted) tabular-nums">
+                {contestIndex + 1}/{contestProblems.length}
+              </span>
+              <button
+                onClick={() => nextContestProblem && goToContestProblem(nextContestProblem.problem_id)}
+                disabled={!nextContestProblem}
+                title={nextContestProblem ? `${t('problemSolve.nextProblem')}: ${nextContestProblem.problem.title}` : t('problemSolve.nextProblem')}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] font-medium text-(--ws-muted) hover:text-(--ws-accent) hover:border-(--ws-accent) transition-colors disabled:opacity-40 disabled:pointer-events-none"
+              >
+                {t('problemSolve.nextProblem')} <ChevronRight size={14} />
+              </button>
+            </div>
+          )}
           <button
             onClick={() => setShowGuide(true)}
             className="p-2 rounded-lg border border-(--ws-border) text-(--ws-muted) hover:text-(--ws-accent) hover:border-(--ws-accent) transition-colors"
@@ -1437,12 +1475,15 @@ export default function ProblemSolve() {
               </button>
             ))}
           </div>
-          <button
-            onClick={() => setShowAssistant((v) => !v)}
-            className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[12.5px] font-medium transition-colors ${showAssistant ? 'border-(--ws-accent) text-(--ws-accent) bg-(--ws-accent-soft)' : 'border-(--ws-border) text-(--ws-muted) hover:text-(--ws-text) hover:border-(--ws-accent)'}`}
-          >
-            <MessageCircle size={14} /> {showAssistant ? t('problemSolve.hideAssistant') : t('problemSolve.openAssistant')}
-          </button>
+          {/* trong kỳ thi không có trợ lý: ẩn nút "Mở trợ lý" */}
+          {!contestId && (
+            <button
+              onClick={() => setShowAssistant((v) => !v)}
+              className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[12.5px] font-medium transition-colors ${showAssistant ? 'border-(--ws-accent) text-(--ws-accent) bg-(--ws-accent-soft)' : 'border-(--ws-border) text-(--ws-muted) hover:text-(--ws-text) hover:border-(--ws-accent)'}`}
+            >
+              <MessageCircle size={14} /> {showAssistant ? t('problemSolve.hideAssistant') : t('problemSolve.openAssistant')}
+            </button>
+          )}
         </div>
 
         {/* mobile pane switch */}
@@ -1568,13 +1609,22 @@ export default function ProblemSolve() {
                         </div>
                       )}
 
-                      {detail.sections.map((sec, i) => (
+                      {/* bảng "Ràng buộc" (thời gian/bộ nhớ…) đã được hiển thị ở phần đầu trang nên không lặp lại */}
+                      {detail.sections.filter((sec) => !sec.table).map((sec, i) => (
                         <div key={i} className="mb-7">
                           {sec.heading && <h3 className="text-[19px] font-bold mb-3">{sec.heading}</h3>}
                           {sec.paragraphs?.map((p, j) => (
                             <p key={j} className="text-[14.5px] leading-7 text-(--ws-text)/90 mb-2">{p}</p>
                           ))}
-                          {sec.bullets && (
+                          {sec.bullets && /^(?:Đầu vào|Input)$/i.test(sec.heading ?? '') && (
+                            // phần "Đầu vào": hiển thị như đoạn văn thường, không dấu chấm tròn / thụt lề
+                            <>
+                              {sec.bullets.map((b, j) => (
+                                <p key={j} className="text-[14.5px] leading-7 text-(--ws-text)/90 mb-2">{b}</p>
+                              ))}
+                            </>
+                          )}
+                          {sec.bullets && !/^(?:Đầu vào|Input)$/i.test(sec.heading ?? '') && (
                             <ul className="space-y-2 ml-1">
                               {sec.bullets.map((b, j) => (
                                 <li key={j} className="flex gap-2.5 text-[14.5px] leading-7">
@@ -1782,21 +1832,24 @@ export default function ProblemSolve() {
               >
               {/* editor toolbar */}
               <div className="flex items-center gap-2 px-3 py-2 min-h-[52px] border-b border-(--ws-border) flex-wrap">
-                <div className="flex items-center rounded-lg border border-(--ws-border) overflow-hidden text-[12.5px] font-semibold">
-                  <button className="px-3 py-1.5 bg-(--ws-accent-soft) text-(--ws-accent)">{t('problemSolve.writeCode')}</button>
-                  <label className="px-3 py-1.5 text-(--ws-muted) hover:text-(--ws-text) cursor-pointer">
-                    {t('problemSolve.uploadFile')}
-                    <input
-                      type="file"
-                      accept=".cpp,.py,.java,.txt"
-                      className="hidden"
-                      onChange={(e) => {
-                        if (e.target.files?.[0]) uploadFile(e.target.files[0]);
-                        e.target.value = '';
-                      }}
-                    />
-                  </label>
-                </div>
+                {/* trong kỳ thi không cho tải file lên: ẩn nhóm "Viết code / Tải file" */}
+                {!contestId && (
+                  <div className="flex items-center rounded-lg border border-(--ws-border) overflow-hidden text-[12.5px] font-semibold">
+                    <button className="px-3 py-1.5 bg-(--ws-accent-soft) text-(--ws-accent)">{t('problemSolve.writeCode')}</button>
+                    <label className="px-3 py-1.5 text-(--ws-muted) hover:text-(--ws-text) cursor-pointer">
+                      {t('problemSolve.uploadFile')}
+                      <input
+                        type="file"
+                        accept=".cpp,.py,.java,.txt"
+                        className="hidden"
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) uploadFile(e.target.files[0]);
+                          e.target.value = '';
+                        }}
+                      />
+                    </label>
+                  </div>
+                )}
                 <select
                   value={lang}
                   onChange={(e) => setLang(e.target.value as Lang)}
@@ -2210,16 +2263,22 @@ export default function ProblemSolve() {
         <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setShowGuide(false)}>
           <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl w-full max-w-lg shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
-              <h3 className="font-bold text-[15px]">{t('problemSolve.usageGuide')}</h3>
+              <h3 className="flex items-center gap-2.5 text-[18px] font-extrabold tracking-tight text-(--ws-text)">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-(--ws-accent-soft) text-(--ws-accent)">
+                  <HelpCircle size={17} />
+                </span>
+                {t('problemSolve.usageGuide')}
+              </h3>
               <button onClick={() => setShowGuide(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
             <div className="p-6 space-y-3 text-[13.5px] leading-6 text-(--ws-muted)">
               {[
-                ['⌘K', t('problemSolve.guideSearch')],
+                // trong kỳ thi bỏ dòng ⌘K (tìm kiếm) và "Tải lên / Dán vào"
+                ...(contestId ? [] : [['⌘K', t('problemSolve.guideSearch')]]),
                 [t('problemSolve.runBtn'), t('problemSolve.guideRun')],
                 [t('problemSolve.submitBtn'), t('problemSolve.guideSubmit')],
                 [t('problemSolve.resetCode'), t('problemSolve.guideReset')],
-                [t('problemSolve.guideUploadPasteLabel'), t('problemSolve.guideUploadPaste')],
+                ...(contestId ? [] : [[t('problemSolve.guideUploadPasteLabel'), t('problemSolve.guideUploadPaste')]]),
                 [t('problemSolve.guideModeLabel'), t('problemSolve.guideMode')],
               ].map(([k, v], i) => (
                 <div key={i} className="flex gap-3">

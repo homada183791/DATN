@@ -1020,6 +1020,8 @@
     "modeEditorOnly": "Editor only",
     "hideAssistant": "Hide Assistant",
     "openAssistant": "Open Assistant",
+    "prevProblem": "Previous",
+    "nextProblem": "Next",
     "statementTab": "Statement",
     "backToProblems": "Problems",
     "consoleTab": "Console",
