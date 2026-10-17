@@ -26,8 +26,11 @@ judge-runner/dist/
 .env.production
 .env.test
 frontend/.env*
+!frontend/.env.example
 backend/.env*
+!backend/.env.example
 judge-runner/.env*
+!judge-runner/.env.example
 
 # ===== Judge runtime (KHÔNG commit thư mục chạy code người dùng) =====
 tmp-run/
