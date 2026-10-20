@@ -1,190 +1,184 @@
-# JudgeHub
+# ⚡ JudgeHub - Online Judge & Learning Platform
 
-Hệ thống online judge gồm frontend React/Vite, backend NestJS/Prisma, PostgreSQL, Redis, RabbitMQ và judge runner.
+<p align="center">
+  <strong>Nền tảng Online Judge & Quản lý Đào tạo Lập trình Trực tuyến Hiện đại</strong><br>
+  Tích hợp Sandbox Container an toàn, Trợ lý Sư phạm AI, Real-time WebSockets và Chống gian lận kỳ thi.
+</p>
 
-## Yêu cầu
+<p align="center">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 19" />
+  <img src="https://img.shields.io/badge/NestJS-11-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS 11" />
+  <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS v4" />
+  <img src="https://img.shields.io/badge/PostgreSQL-15-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Docker-Sandbox-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/RabbitMQ-3-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white" alt="RabbitMQ" />
+</p>
 
-- Node.js 20+ và npm 10+
-- Docker Desktop đang chạy
-- Docker Compose v2
+---
 
-## Clone dự án
+## 🌟 Điểm nổi bật (Key Features)
+
+- 💻 **Trình giải bài trực tuyến:** Bộ soạn thảo code đa tính năng hỗ trợ 6 ngôn ngữ (**C, C++, Python, Java, Go, Node.js**), chế độ chạy thử với Custom Input và cơ chế bảo mật che giấu Testcase ẩn.
+- 🎓 **Cổng Sinh viên (Student Portal):** Hệ thống xếp hạng ELO, chuỗi Streak học tập, biểu đồ Activity Heatmap 365 ngày (dạng GitHub), tham gia lớp học qua Invite Code và làm bài tập theo kỳ hạn.
+- 👨‍🏫 **Cổng Giảng viên (Instructor Portal):** Quản trị kho đề thi (Markdown/LaTeX), quản lý lớp học & xuất sổ điểm CSV, giao bài tập về nhà và **chấm điểm mã nguồn thủ công kèm lời phê**.
+- 🏆 **Đấu trường Kỳ thi & Anti-Cheat:** Bảng xếp hạng Live Leaderboard cập nhật tức thì qua WebSockets, tự động phát hiện chuyển tab (quy tắc 3 lần cảnh báo truất quyền thi) và công cụ **quét đạo văn mã nguồn (Winnowing Algorithm)**.
+- 🤖 **Trợ lý Sư phạm AI:** Gợi ý độ phức tạp, bắt lỗi biên, định hướng tư duy giải thuật mà **không đưa code giải trực tiếp**, phân tích nguyên nhân lỗi nộp bài và tự động khóa AI trong giờ thi.
+- 🛡️ **Sandbox Chấm bài Cách ly:** Microservice Judge Runner thực thi code trong Docker container cô lập (`cap_drop: ALL`, `network_mode: none`, `read_only: true`, giới hạn CPU/RAM/PIDs).
+
+---
+
+## 🏗️ Kiến trúc & Công nghệ (Tech Stack)
+
+```mermaid
+flowchart LR
+    Frontend["Frontend Client\n(React 19 + Tailwind v4)"] <-->|REST API & WebSockets| Backend["Backend Gateway\n(NestJS 11 + Prisma)"]
+    Backend -->|Message Queue| RabbitMQ["RabbitMQ Broker"]
+    Backend --> Postgres[("PostgreSQL 15")]
+    Backend --> Redis[("Redis 7 Cache")]
+    RabbitMQ --> Runner["Judge Runner Worker"]
+    Runner --> Sandbox["Docker Sandbox Container\n(C / C++ / Python / Java / Go / Node)"]
+    Runner -->|POST Webhook Results| Backend
+```
+
+| Tầng | Công nghệ chính |
+|---|---|
+| **Frontend** | React 19, Vite 7, TypeScript, Tailwind CSS v4, TanStack Query v5, Socket.IO Client, Lucide Icons, React-Markdown. |
+| **Backend** | NestJS 11, Prisma ORM 7 (`@prisma/adapter-pg`), Passport JWT & Google OAuth 2.0, Socket.IO Gateway, Nodemailer, Swagger. |
+| **Hạ tầng & Queue** | PostgreSQL 15, Redis 7, RabbitMQ 3 (Management). |
+| **Judge Engine** | Node.js, Dockerode, Docker Sandbox (`judgehub-sandbox` Ubuntu 22.04), Webhook Security (`x-judge-secret`). |
+
+---
+
+## ⚡ Khởi chạy Nhanh (Quick Start)
+
+### Yêu cầu tiên quyết
+- **Node.js 20+** & **npm 10+**
+- **Docker Desktop** đang chạy (đã bật Linux Containers)
+
+### 1. Clone & Cài đặt
 
 ```bash
 git clone <repo-url> DATN
 cd DATN
+
+# Cài đặt dependencies cho cả 3 phân hệ
+cd backend && npm install && npx prisma generate && cd ..
+cd frontend && npm install && cd ..
+cd judge-runner && npm install && cd ..
 ```
 
-## Cấu hình biến môi trường
+### 2. Thiết lập Biến môi trường
 
-Khi chạy backend local, tạo `backend/.env` và không commit file này:
-
-```env
-DATABASE_URL=postgresql://root:rootpassword@localhost:5433/online_judge_db?schema=public
-RABBITMQ_URL=amqp://root:rootpassword@localhost:5672
-REDIS_URL=redis://localhost:6379
-PORT=3000
-JWT_SECRET=thay_bang_chuoi_bi_mat_cua_ban
-```
-
-Frontend dùng `frontend/.env`:
-
-```env
-VITE_API_BASE_URL=http://localhost:3000
-VITE_SOCKET_URL=http://localhost:3000
-```
-
-## Chạy local để phát triển
-
-### 1. Cài dependencies
+Sao chép các file mẫu `.env.example` thành `.env` (file `.env` thật đã được chặn trong `.gitignore`):
 
 ```bash
-cd backend
-npm install
-npx prisma generate
+# Trên Linux/macOS
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
 
-cd ../frontend
-npm install
-
-cd ../judge-runner
-npm install
+# Trên Windows PowerShell
+Copy-Item backend/.env.example backend/.env
+Copy-Item frontend/.env.example frontend/.env
 ```
 
-### 2. Khởi động hạ tầng
-
-Từ thư mục gốc dự án:
+### 3. Khởi động Cụm Hạ tầng & Database
 
 ```bash
+# 1. Bật PostgreSQL, Redis, RabbitMQ
 docker compose up -d postgres redis rabbitmq
-docker compose ps
-```
 
-Các cổng hạ tầng:
-
-- PostgreSQL: `localhost:5433`
-- Redis: `localhost:6379`
-- RabbitMQ: `localhost:5672`
-- RabbitMQ Management: `http://localhost:15672` (`root` / `rootpassword`)
-
-### 3. Chạy migration
-
-```bash
+# 2. Chạy migration cơ sở dữ liệu
 cd backend
 npx prisma migrate deploy
+
+# 3. Nạp dữ liệu mẫu (Users, Class, Problems, Contest)
+npm run seed:users
+npm run seed:problems
+cd ..
 ```
 
-### 4. Chạy backend
-
-Mở terminal riêng:
+### 4. Build Sandbox Image cho Judge Runner
 
 ```bash
-cd backend
-npm run start:dev
+cd judge-runner
+docker build -t judgehub-sandbox -f Dockerfile.sandbox .
+cd ..
 ```
 
-Backend API chạy tại `http://localhost:3000`.
+### 5. Chạy Ứng dụng (Mở 3 Terminal)
 
-### 5. Chạy frontend
+| Phân hệ | Lệnh thực thi | Địa chỉ truy cập |
+|---|---|---|
+| **Backend API** | `cd backend && npm run start:dev` | `http://localhost:3000` (Swagger: `/api/docs`) |
+| **Frontend App**| `cd frontend && npm run dev` | `http://localhost:5173` |
+| **Judge Runner**| `cd judge-runner && npm run dev` | `http://localhost:4000` |
 
-Mở terminal riêng:
+> 💡 **Mẹo:** Bạn cũng có thể dựng toàn bộ hệ thống bằng 1 lệnh duy nhất qua Docker Compose: `docker compose up --build -d`.
 
-```bash
-cd frontend
-npm run dev
-```
+---
 
-Mở ứng dụng tại `http://localhost:5173`.
+## 🔑 Tài khoản Thử nghiệm Mẫu (Demo Accounts)
 
-Frontend dùng các biến trong `frontend/.env`:
+Sau khi chạy lệnh `npm run seed:users`, bạn có thể đăng nhập ngay với các tài khoản sau:
 
-```env
-VITE_API_BASE_URL=http://localhost:3000
-VITE_SOCKET_URL=http://localhost:3000
-```
+| Vai trò | Tài khoản (Email / Username) | Mật khẩu | Quyền hạn & Dữ liệu có sẵn |
+|---|---|---|---|
+| **Giảng viên** *(Instructor)* | `instructor@example.com` / `instructor` | `Password123@` | Quản trị lớp `CODE2026`, giao bài tập, chấm điểm thủ công, quản lý kỳ thi & soi đạo văn. |
+| **Sinh viên** *(Student)* | `student@example.com` / `student` | `Password123@` | Đã tham gia lớp `CODE2026`, ELO 1250, streak 3 ngày, nộp bài & làm bài tập về nhà. |
 
-## Build
+> **Mã mời tham gia lớp học mẫu:** `CODE2026`
 
-```bash
-cd frontend
-npm run build
+---
 
-cd ../backend
-npm run build
-```
-
-## Chạy hạ tầng bằng Docker
-
-Lệnh trên khởi động PostgreSQL, Redis và RabbitMQ để chạy frontend/backend local. Xem trạng thái:
-
-```bash
-docker compose ps
-```
-
-Sau đó chạy backend và frontend bằng các lệnh ở phần trên. Khi thay đổi cách chạy bằng Docker cho application services, cần kiểm tra lại port publish và biến môi trường trong `docker-compose.yml`.
-
-## API chính
-
-- `POST /api/v1/auth/login`
-- `POST /api/v1/auth/register`
-- `GET /api/v1/auth/profile`
-- `GET /api/v1/problems`
-- `GET /api/v1/problems/:id`
-- `POST /api/v1/submissions`
-- `GET /api/v1/submissions`
-- `GET /api/v1/contests`
-- `GET /api/v1/contests/:id/leaderboard`
-
-Payload submission:
-
-```json
-{
-  "problem_id": "problem-uuid",
-  "language": "CPP",
-  "source_code": "..."
-}
-```
-
-Role backend là `STUDENT` và `INSTRUCTOR`; frontend chuyển tương ứng thành `student` và `instructor`.
-
-## Dừng dịch vụ
-
-```bash
-docker compose down
-```
-
-Xóa cả dữ liệu database và queue:
-
-```bash
-docker compose down -v
-```
-
-Không commit `node_modules`, `dist`, file `.env` hoặc secrets lên Git.
-
-## Cấu trúc thư mục
+## 📂 Cấu trúc Thư mục (Repository Structure)
 
 ```text
 DATN/
-├── frontend/        # React/Vite frontend
-├── backend/         # NestJS API và Prisma
-├── judge-runner/    # Service compile/chạy code trong sandbox
-├── docker-compose.yml
-└── README.md
+├── frontend/             # Giao diện người dùng SPA (React 19, Vite, Tailwind v4)
+├── backend/              # RESTful API, Prisma ORM, Socket.IO & RabbitMQ Gateway (NestJS 11)
+├── judge-runner/         # Dịch vụ Worker biên dịch và thực thi code trong Docker sandbox
+├── docs/                 # Tài liệu đặc tả kỹ thuật chuyên sâu
+│   └── TECHNICAL_REPORT.md  # Báo cáo kiến trúc, ERD, Sequence Diagrams & RBAC Matrix
+├── docker-compose.yml    # File cấu hình điều phối toàn bộ cụm dịch vụ Docker
+└── README.md             # Hướng dẫn tổng quan dự án
 ```
 
-## Xử lý lỗi thường gặp
+---
 
-| Lỗi | Nguyên nhân thường gặp | Cách xử lý |
-|---|---|---|
-| Không kết nối được server | Backend chưa chạy hoặc sai port | Kiểm tra log có `Nest application successfully started`, sau đó mở port `3000` |
-| Backend không kết nối PostgreSQL | Container database chưa chạy hoặc sai port | Chạy `docker compose up -d postgres`, kiểm tra `DATABASE_URL` dùng port `5433` |
-| RMQ package missing | Dependencies backend chưa được cài | Chạy `cd backend && npm install` |
-| Prisma thiếu model/type | Prisma Client chưa được generate | Chạy `npx prisma generate` |
-| Nộp bài bị treo | RabbitMQ hoặc judge-runner chưa chạy | Kiểm tra `docker compose ps` và log các service liên quan |
-| Port đã được sử dụng | Có service khác đang chiếm port | Dừng service đó hoặc đổi port trong cấu hình local |
+## 📚 Tài liệu Chi tiết & API Reference
 
-## Ghi chú bảo mật
+- 📄 **Báo cáo Kỹ thuật & Đặc tả Kiến trúc:** Xem chi tiết sơ đồ ERD, Sequence Diagrams và Ma trận phân quyền RBAC tại [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md).
+- 📡 **Tài liệu API tương tác (Swagger UI):** Khởi động backend và truy cập `http://localhost:3000/api/docs`.
+- 🐰 **RabbitMQ Management Dashboard:** `http://localhost:15672` (Tài khoản: `root` / `rootpassword`).
 
-- Không commit `backend/.env`, `frontend/.env` hoặc bất kỳ secret nào lên Git.
-- Không đưa JWT secret, mật khẩu database hay RabbitMQ credentials vào mã nguồn.
-- Judge runner cần giữ các giới hạn tài nguyên và sandbox trong `docker-compose.yml`.
-- Không tự ý bỏ `cap_drop`, `read_only`, giới hạn CPU/RAM/PID hoặc thư mục tạm riêng khi debug judge runner.
+---
+
+## 🛠️ Xử lý Sự cố Nhanh (FAQ)
+
+<details>
+<summary><b>1. Nộp bài bị treo vĩnh viễn ở trạng thái PENDING?</b></summary>
+Kiểm tra xem <code>judge-runner</code> đã được bật chưa (<code>cd judge-runner && npm run dev</code>) và đảm bảo RabbitMQ container đang chạy (<code>docker compose ps rabbitmq</code>).
+</details>
+
+<details>
+<summary><b>2. Judge Runner báo lỗi "Sandbox image judgehub-sandbox not found"?</b></summary>
+Bạn chưa build image môi trường chấm. Chạy lệnh: <code>cd judge-runner && docker build -t judgehub-sandbox -f Dockerfile.sandbox .</code>
+</details>
+
+<details>
+<summary><b>3. Backend không kết nối được PostgreSQL?</b></summary>
+Lưu ý port PostgreSQL bên ngoài máy host là <b>5433</b> (được ánh xạ từ 5432 trong container). Kiểm tra <code>DATABASE_URL</code> trong <code>backend/.env</code> đã dùng đúng port 5433 chưa.
+</details>
+
+<details>
+<summary><b>4. Prisma thiếu types hoặc models mới?</b></summary>
+Chạy lệnh tạo lại Prisma Client: <code>cd backend && npx prisma generate</code>.
+</details>
+
+---
+
+## 📄 License & Credits
+
+Dự án Đồ Án Tốt Nghiệp (DATN) - Nền tảng JudgeHub.  
+Phát triển bởi nhóm sinh viên thực hiện đồ án. Mọi đóng góp xin vui lòng tạo Pull Request hoặc Issue.

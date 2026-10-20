@@ -63,9 +63,9 @@ services:
       - CORS_ORIGIN=http://localhost:5173,http://localhost:5174,http://localhost:3000
       - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
       - SMTP_PORT=${SMTP_PORT:-587}
-      - SMTP_USER=${SMTP_USER:-dhuy2017@gmail.com}
-      - SMTP_PASS=${SMTP_PASS:-yuhc iyow bdhh bamf}
-      - SMTP_FROM=${SMTP_FROM:-dhuy2017@gmail.com}
+      - SMTP_USER=${SMTP_USER:-your_email@gmail.com}
+      - SMTP_PASS=${SMTP_PASS:-your_app_password}
+      - SMTP_FROM=${SMTP_FROM:-your_email@gmail.com}
     depends_on:
       - postgres
       - redis
