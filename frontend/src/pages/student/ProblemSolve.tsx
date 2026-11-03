@@ -26,7 +26,6 @@ import {
   Play,
   Copy,
   RotateCcw,
-  Upload,
   ClipboardPaste,
   RefreshCw,
   X,
@@ -840,9 +839,6 @@ export default function ProblemSolve() {
   const { t, i18n } = useTranslation();
   const currentLang = (i18n.resolvedLanguage || i18n.language || 'vi').toLowerCase();
   const isEnglish = currentLang.startsWith('en');
-  const toggleLanguage = () => {
-    void i18n.changeLanguage(isEnglish ? 'vi' : 'en');
-  };
   // Hỗ trợ các URL pattern:
   // - /student/problem/:id  (cũ)
   // - /student/class/:classId/homework/:homeworkId/problem/:problemId  (homework)
@@ -914,8 +910,8 @@ export default function ProblemSolve() {
   }, [problemDifficulty]);
 
   const detail: ProblemDetail = useMemo(
-    () => getDetail(problemId, localizedTitle, problemPoints),
-    [problemId, localizedTitle, problemPoints],
+    () => getDetail(problemId, localizedTitle, problemPoints, isEnglish ? 'en' : 'vi'),
+    [problemId, localizedTitle, problemPoints, isEnglish],
   );
 
   const problemTimeLimit = apiProblem?.time_limit ? `${apiProblem.time_limit} ms` : detail.timeLimit;
@@ -1342,27 +1338,6 @@ export default function ProblemSolve() {
     }
   };
 
-  const pasteIntoEditor = async () => {
-    try {
-      const text = await navigator.clipboard.readText();
-      if (!text) {
-        showToast('Clipboard is empty.', 'info');
-        return;
-      }
-
-      const textarea = taRef.current;
-      const start = textarea?.selectionStart ?? code.length;
-      const end = textarea?.selectionEnd ?? code.length;
-      onCodeChange(`${code.slice(0, start)}${text}${code.slice(end)}`);
-      requestAnimationFrame(() => {
-        textarea?.focus();
-        textarea?.setSelectionRange(start + text.length, start + text.length);
-      });
-    } catch {
-      showToast('Unable to access the clipboard. Please grant permission and try again.', 'error');
-    }
-  };
-
   /* -------- real custom run via API + Socket -------- */
   const runOneSample = (
     socket: Socket,
@@ -1729,9 +1704,6 @@ export default function ProblemSolve() {
               ← {t('studentContest.back')}
             </button>
           )}
-          <span className="text-[11px] font-bold tracking-wider px-2.5 py-1 rounded-md bg-(--ws-accent-soft) text-(--ws-accent)">
-            {detail.code}
-          </span>
           <h1 className="text-[17px] font-bold">{localizedTitle}</h1>
           <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-md ${diffChip}`}>{problemDifficulty === 'EASY' ? t('problemForm.easy') : problemDifficulty === 'MEDIUM' ? t('problemForm.medium') : t('problemForm.hard')}</span>
           {contestId && (
@@ -1764,20 +1736,10 @@ export default function ProblemSolve() {
               <CheckCircle2 size={14} /> {t('studentHomework.completed')}
             </span>
           )}
-          <div className="flex-1" />
-          {/* Nút chuyển đổi ngôn ngữ gộp đồng bộ Đề bài & Giao diện (VI / EN) */}
-          <button
-            onClick={toggleLanguage}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-(--ws-border) bg-(--ws-panel2) hover:border-(--ws-accent) hover:text-(--ws-accent) text-[12px] font-semibold transition-all shadow-xs"
-            title={isEnglish ? 'Chuyển toàn bộ Giao diện và Đề bài sang Tiếng Việt (VI)' : 'Switch entire UI and Problem statement to English (EN)'}
-            aria-label="Toggle UI & Problem Language"
-          >
-            <Languages size={14} className="text-(--ws-accent)" />
-            <span className={!isEnglish ? 'text-(--ws-accent) font-bold' : 'text-(--ws-muted)'}>VI</span>
-            <span className="text-(--ws-border)">/</span>
-            <span className={isEnglish ? 'text-(--ws-accent) font-bold' : 'text-(--ws-muted)'}>EN</span>
-          </button>
-
+          {/* cụm nút bên phải luôn đi cùng nhau: [Bài trước/sau] [?] [3 nút bố cục].
+              Dùng ml-auto (thay vì thẻ đệm flex-1) để khi thanh tiêu đề bị tràn xuống
+              hàng thứ 2 (huy hiệu dài lúc mới vào phòng thi) cụm nút vẫn dạt về mép phải. */}
+          <div className="ml-auto flex items-center gap-3 shrink-0">
           {contestId && contestIndex >= 0 && contestProblems.length > 1 && (
             <div className="flex items-center gap-1">
               <button
@@ -1808,12 +1770,15 @@ export default function ProblemSolve() {
           >
             <HelpCircle size={15} />
           </button>
-          <button
-            onClick={() => setShowSolution(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] font-medium text-(--ws-muted) hover:text-(--ws-text) hover:border-(--ws-accent) transition-colors"
-          >
-            <Eye size={14} /> {t('problemSolve.viewSolution')}
-          </button>
+          {/* trong kỳ thi không cho xem lời giải: ẩn nút */}
+          {!contestId && (
+            <button
+              onClick={() => setShowSolution(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] font-medium text-(--ws-muted) hover:text-(--ws-text) hover:border-(--ws-accent) transition-colors"
+            >
+              <Eye size={14} /> {t('problemSolve.viewSolution')}
+            </button>
+          )}
           <div className="flex items-center rounded-lg border border-(--ws-border) overflow-hidden">
             {([['split', <Columns size={14} key="c" />], ['statement', <FileText size={14} key="f" />], ['editor', <Code size={14} key="e" />]] as [LayoutMode, React.ReactNode][]).map(([mode, icon]) => (
               <button
@@ -1826,15 +1791,7 @@ export default function ProblemSolve() {
               </button>
             ))}
           </div>
-          {/* trong kỳ thi không có trợ lý: ẩn nút "Mở trợ lý" */}
-          {!contestId && (
-            <button
-              onClick={() => setShowAssistant((v) => !v)}
-              className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[12.5px] font-medium transition-colors ${showAssistant ? 'border-(--ws-accent) text-(--ws-accent) bg-(--ws-accent-soft)' : 'border-(--ws-border) text-(--ws-muted) hover:text-(--ws-text) hover:border-(--ws-accent)'}`}
-            >
-              <MessageCircle size={14} /> {showAssistant ? t('problemSolve.hideAssistant') : t('problemSolve.openAssistant')}
-            </button>
-          )}
+          </div>
         </div>
 
         {/* mobile pane switch */}
@@ -2466,25 +2423,6 @@ export default function ProblemSolve() {
                 </select>
 
                 <div className="flex-1" />
-                {!contestId && (
-                  <>
-                    <button onClick={pasteIntoEditor} className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] font-semibold text-(--ws-accent) hover:bg-(--ws-accent-soft) transition-colors">
-                      <ClipboardPaste size={13} /> {t('problemSolve.pasteIn')}
-                    </button>
-                    <label className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] font-semibold text-(--ws-accent) bg-(--ws-accent-soft)/30 border border-(--ws-accent)/25 hover:bg-(--ws-accent-soft) transition-colors cursor-pointer">
-                      <Upload size={13} /> {t('problemSolve.uploadBtn')}
-                      <input
-                        type="file"
-                        accept={allowedLangConfigs.map((language) => language.extension).join(',') + ',.txt'}
-                        className="hidden"
-                        onChange={(e) => {
-                          if (e.target.files?.[0]) uploadFile(e.target.files[0]);
-                          e.target.value = '';
-                        }}
-                      />
-                    </label>
-                  </>
-                )}
                 <span className={`text-[11.5px] ${saveState === 'saved' ? 'text-(--ws-faint)' : 'text-(--ws-warn)'}`}>
                   {saveState === 'saved' ? t('problemSolve.saved') : saveState === 'saving' ? t('problemSolve.saving') : t('problemSolve.unsaved')}
                 </span>

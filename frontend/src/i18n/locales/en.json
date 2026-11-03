@@ -981,7 +981,7 @@
     "backToListTitle": "Back to the list",
     "cheatDisqualifiedBadge": "DISQUALIFIED",
     "cheatWarningBadge": "Violation warning: {{count}}/3",
-    "onlineExamBadge": "Online exam room (Anti-cheat monitoring)",
+    "onlineExamBadge": "Online exam room (monitored)",
     "submissionHistoryHeading": "Submission History",
     "submissionHistorySubtitle": "List of your code submissions for this problem",
     "refreshListTitle": "Refresh the list",

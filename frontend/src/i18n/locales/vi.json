@@ -981,7 +981,7 @@
     "backToListTitle": "Quay lại danh sách",
     "cheatDisqualifiedBadge": "ĐÃ BỊ TRUẤT QUYỀN THI",
     "cheatWarningBadge": "Cảnh báo vi phạm: {{count}}/3",
-    "onlineExamBadge": "Phòng thi trực tuyến (Giám sát chống gian lận)",
+    "onlineExamBadge": "Phòng thi trực tuyến (có giám sát)",
     "submissionHistoryHeading": "Lịch sử nộp bài",
     "submissionHistorySubtitle": "Danh sách các lần nộp mã nguồn của bạn cho bài toán này",
     "refreshListTitle": "Làm mới danh sách",
