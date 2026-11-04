@@ -444,7 +444,7 @@ Output: 6
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-[2px] p-4"
+      className="fixed inset-0 z-200 flex items-center justify-center bg-black/60 backdrop-blur-[2px] p-4"
       onClick={onClose}
     >
       {/* ─── Modal shell — Warm cream, same as Homework modal ─── */}
@@ -760,13 +760,6 @@ Output: 6
                       className="px-3 py-1 rounded-lg text-xs font-medium bg-white border border-[#e5dac9] text-[#4d4439] hover:border-amber-400 hover:text-amber-700 hover:bg-amber-50 transition-all"
                     >
                       ☕ Chỉ Java ({SUPPORTED_LANGUAGES.filter(l => l.category === 'JAVA').length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAllowedLanguages(SUPPORTED_LANGUAGES.filter(l => l.category === 'NODE').map(l => l.id))}
-                      className="px-3 py-1 rounded-lg text-xs font-medium bg-white border border-[#e5dac9] text-[#4d4439] hover:border-yellow-400 hover:text-yellow-700 hover:bg-yellow-50 transition-all"
-                    >
-                      🌐 Chỉ Node.js ({SUPPORTED_LANGUAGES.filter(l => l.category === 'NODE').length})
                     </button>
                     {allowedLanguages.length > 0 && (
                       <button
@@ -1129,7 +1122,7 @@ Output: 6
       {/* ─── BULK TESTCASE IMPORT MODAL ─── */}
       {showBulkModal && (
         <div
-          className="fixed inset-0 z-[250] flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-in fade-in"
+          className="fixed inset-0 z-250 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-in fade-in"
           onClick={() => setShowBulkModal(false)}
         >
           <div
@@ -1222,7 +1215,7 @@ Output: 6
       {/* ─── AI TESTCASE GENERATOR MODAL ─── */}
       {showAiModal && (
         <div
-          className="fixed inset-0 z-[260] flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-in fade-in"
+          className="fixed inset-0 z-260 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-in fade-in"
           onClick={() => !isAiGenerating && setShowAiModal(false)}
         >
           <div

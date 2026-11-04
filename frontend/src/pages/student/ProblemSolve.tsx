@@ -50,6 +50,7 @@ import {
 } from 'lucide-react';
 import {
   getAllowedLanguagesList,
+  getLanguageLabel,
   getLanguageConfig,
   mapVersionToApi,
 } from '../../config/languages';
@@ -1128,7 +1129,7 @@ export default function ProblemSolve() {
 
   const requestAiHint = async (type: 'HINT' | 'COMPLEXITY' | 'EDGE_CASE' | 'EXPLAIN_LOGIC' = 'HINT') => {
     if (contestId) {
-      showToast('AI Tutor bị vô hiệu hóa trong phòng thi để đảm bảo tính công bằng!', 'error');
+      showToast(t('problemSolve.aiTutorDisabledToast'), 'error');
       return;
     }
     setAiTutorLoading(true);
@@ -1144,7 +1145,7 @@ export default function ProblemSolve() {
       });
       setAiTutorResponse(res.response);
     } catch (e: any) {
-      showToast(e.message || 'Không thể lấy gợi ý từ AI.', 'error');
+      showToast(e.message || t('problemSolve.aiTutorHintError'), 'error');
     } finally {
       setAiTutorLoading(false);
     }
@@ -1155,9 +1156,9 @@ export default function ProblemSolve() {
     setLeftTab('ai_tutor');
     try {
       const res = await explainSubmissionError({ submission_id: submissionId });
-      setAiTutorResponse(`### 🔍 Phân tích lỗi bài nộp (#${submissionId.slice(0, 8)} - ${res.status})\n\n${res.analysis}`);
+      setAiTutorResponse(`### 🔍 ${t('problemSolve.aiTutorExplainTitle')} (#${submissionId.slice(0, 8)} - ${res.status})\n\n${res.analysis}`);
     } catch (e: any) {
-      showToast(e.message || 'Không thể phân tích lỗi bài nộp.', 'error');
+      showToast(e.message || t('problemSolve.aiTutorExplainError'), 'error');
     } finally {
       setAiTutorLoading(false);
     }
@@ -1858,7 +1859,7 @@ export default function ProblemSolve() {
                   >
                     <Sparkles size={14} />
                     <span>AI Tutor</span>
-                    {contestId && <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-bold">Khóa khi thi</span>}
+                    {contestId && <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-bold">{t('problemSolve.aiTutorLockedBadge')}</span>}
                   </button>
                   <button
                     onClick={() => setLeftTab('resources')}
@@ -1869,8 +1870,8 @@ export default function ProblemSolve() {
                     }`}
                   >
                     <BookOpen size={14} />
-                    <span>Tài liệu cho phép</span>
-                    {contestId && <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold">Hợp lệ</span>}
+                    <span>{t('problemSolve.allowedResourcesTab')}</span>
+                    {contestId && <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold">{t('problemSolve.allowedBadge')}</span>}
                   </button>
                 </div>
 
@@ -2198,12 +2199,12 @@ export default function ProblemSolve() {
                           <div className="w-16 h-16 rounded-full bg-amber-200/80 flex items-center justify-center mx-auto mb-4 text-2xl">
                             🛡️
                           </div>
-                          <h3 className="font-bold text-lg mb-2">AI Tutor bị vô hiệu hóa trong phòng thi</h3>
+                          <h3 className="font-bold text-lg mb-2">{t('problemSolve.aiTutorDisabledTitle')}</h3>
                           <p className="text-xs text-amber-800/90 max-w-md mx-auto leading-relaxed mb-4">
-                            Để đảm bảo tính nghiêm túc và công bằng của kỳ thi trực tuyến, toàn bộ tính năng trợ lý AI đã được tự động khóa đối với bài toán này.
+                            {t('problemSolve.aiTutorDisabledDesc')}
                           </p>
                           <p className="text-xs font-semibold text-amber-900">
-                            Vui lòng chuyển qua tab <strong>"Đề bài"</strong> hoặc <strong>"Tài liệu cho phép"</strong> để làm bài.
+                            {t('problemSolve.aiTutorDisabledHintPre')}<strong>"{t('problemSolve.statement', 'Đề bài')}"</strong>{t('problemSolve.aiTutorDisabledHintOr')}<strong>"{t('problemSolve.allowedResourcesTab')}"</strong>{t('problemSolve.aiTutorDisabledHintPost')}
                           </p>
                         </div>
                       ) : (
@@ -2211,10 +2212,10 @@ export default function ProblemSolve() {
                           <div>
                             <div className="flex items-center gap-2 mb-1">
                               <Sparkles size={20} className="text-(--ws-accent)" />
-                              <h2 className="text-lg font-bold text-(--ws-text)">AI Tutor & Trợ lý học tập</h2>
+                              <h2 className="text-lg font-bold text-(--ws-text)">{t('problemSolve.aiTutorHeading')}</h2>
                             </div>
                             <p className="text-xs text-(--ws-muted)">
-                              Gợi ý tư duy thuật toán, phân tích độ phức tạp và hỗ trợ gỡ lỗi mà không làm hộ bài giải.
+                              {t('problemSolve.aiTutorSubtitle')}
                             </p>
                           </div>
 
@@ -2229,8 +2230,8 @@ export default function ProblemSolve() {
                                   : 'border-(--ws-border) bg-(--ws-panel) hover:border-(--ws-accent) text-(--ws-text)'
                               }`}
                             >
-                              <p className="text-xs font-bold mb-0.5">💡 Gợi ý tư duy</p>
-                              <p className="text-[11px] text-(--ws-muted)">Hướng tiếp cận</p>
+                              <p className="text-xs font-bold mb-0.5">💡 {t('problemSolve.aiTutorHintTitle')}</p>
+                              <p className="text-[11px] text-(--ws-muted)">{t('problemSolve.aiTutorHintSub')}</p>
                             </button>
                             <button
                               onClick={() => requestAiHint('COMPLEXITY')}
@@ -2241,8 +2242,8 @@ export default function ProblemSolve() {
                                   : 'border-(--ws-border) bg-(--ws-panel) hover:border-(--ws-accent) text-(--ws-text)'
                               }`}
                             >
-                              <p className="text-xs font-bold mb-0.5">⏱️ Độ phức tạp</p>
-                              <p className="text-[11px] text-(--ws-muted)">Thời gian & Bộ nhớ</p>
+                              <p className="text-xs font-bold mb-0.5">⏱️ {t('problemSolve.aiTutorComplexityTitle')}</p>
+                              <p className="text-[11px] text-(--ws-muted)">{t('problemSolve.aiTutorComplexitySub')}</p>
                             </button>
                             <button
                               onClick={() => requestAiHint('EDGE_CASE')}
@@ -2253,8 +2254,8 @@ export default function ProblemSolve() {
                                   : 'border-(--ws-border) bg-(--ws-panel) hover:border-(--ws-accent) text-(--ws-text)'
                               }`}
                             >
-                              <p className="text-xs font-bold mb-0.5">⚠️ Edge Cases</p>
-                              <p className="text-[11px] text-(--ws-muted)">Trường hợp đặc biệt</p>
+                              <p className="text-xs font-bold mb-0.5">⚠️ {t('problemSolve.aiTutorEdgeTitle')}</p>
+                              <p className="text-[11px] text-(--ws-muted)">{t('problemSolve.aiTutorEdgeSub')}</p>
                             </button>
                             <button
                               onClick={() => requestAiHint('EXPLAIN_LOGIC')}
@@ -2265,8 +2266,8 @@ export default function ProblemSolve() {
                                   : 'border-(--ws-border) bg-(--ws-panel) hover:border-(--ws-accent) text-(--ws-text)'
                               }`}
                             >
-                              <p className="text-xs font-bold mb-0.5">🧠 Logic bài toán</p>
-                              <p className="text-[11px] text-(--ws-muted)">Giải thích đề</p>
+                              <p className="text-xs font-bold mb-0.5">🧠 {t('problemSolve.aiTutorLogicTitle')}</p>
+                              <p className="text-[11px] text-(--ws-muted)">{t('problemSolve.aiTutorLogicSub')}</p>
                             </button>
                           </div>
 
@@ -2275,21 +2276,21 @@ export default function ProblemSolve() {
                             {aiTutorLoading ? (
                               <div className="flex-1 flex flex-col items-center justify-center py-12 text-(--ws-muted)">
                                 <Loader2 size={28} className="animate-spin text-(--ws-accent) mb-3" />
-                                <p className="text-xs font-medium">AI đang suy nghĩ gợi ý cho bạn...</p>
+                                <p className="text-xs font-medium">{t('problemSolve.aiTutorThinking')}</p>
                               </div>
                             ) : aiTutorResponse ? (
                               <div>
                                 <div className="flex items-center justify-between pb-3 mb-4 border-b border-(--ws-border) text-xs">
                                   <span className="font-bold flex items-center gap-1.5 text-(--ws-accent)">
-                                    <Sparkles size={14} /> Phản hồi từ AI Tutor
+                                    <Sparkles size={14} /> {t('problemSolve.aiTutorResponseTitle')}
                                   </span>
                                   <button
                                     onClick={() => {
                                       navigator.clipboard?.writeText(aiTutorResponse);
-                                      showToast('Đã sao chép phản hồi!', 'success');
+                                      showToast(t('problemSolve.aiTutorCopied'), 'success');
                                     }}
                                     className="p-1 rounded hover:bg-(--ws-panel2) text-(--ws-muted) hover:text-(--ws-text)"
-                                    title="Sao chép"
+                                    title={t('problemSolve.aiTutorCopy')}
                                   >
                                     <Copy size={13} />
                                   </button>
@@ -2301,9 +2302,9 @@ export default function ProblemSolve() {
                             ) : (
                               <div className="flex-1 flex flex-col items-center justify-center py-10 text-center text-(--ws-muted)">
                                 <Sparkles size={32} className="text-(--ws-muted) opacity-50 mb-3" />
-                                <p className="text-xs font-semibold text-(--ws-text) mb-1">Cần gợi ý mà không bị lộ đáp án?</p>
+                                <p className="text-xs font-semibold text-(--ws-text) mb-1">{t('problemSolve.aiTutorEmptyTitle')}</p>
                                 <p className="text-[11.5px] max-w-xs text-(--ws-muted)">
-                                  Chọn một mục ở trên để nhận hướng dẫn tư duy từng bước cho bài toán này.
+                                  {t('problemSolve.aiTutorEmptyDesc')}
                                 </p>
                               </div>
                             )}
@@ -2391,7 +2392,7 @@ export default function ProblemSolve() {
                   >
                     {allowedLangConfigs.map((language) => (
                       <option key={language.id} value={language.id}>
-                        {language.name} - {language.compiler}
+                        {getLanguageLabel(language)}
                       </option>
                     ))}
                   </select>
@@ -2441,7 +2442,7 @@ export default function ProblemSolve() {
                 </label>
                 {intelli && (
                   <span className="text-[11px] text-(--ws-faint) hidden sm:block">
-                    {t('problemSolve.lineCount', { count: lineCount })} • {t('problemSolve.charCount', { count: code.length })} • {currentLangConfig.name}
+                    {t('problemSolve.lineCount', { count: lineCount })} • {t('problemSolve.charCount', { count: code.length })} • {getLanguageLabel(currentLangConfig)}
                   </span>
                 )}
               </div>

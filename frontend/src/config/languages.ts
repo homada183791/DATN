@@ -235,26 +235,6 @@ if __name__ == '__main__':
     main()
 `,
   },
-  {
-    id: 'PYPY3',
-    name: 'PyPy 3.10',
-    category: 'PYTHON',
-    categoryLabel: 'Python',
-    compiler: 'PyPy 7.3 JIT',
-    description: 'JIT Compiler tối ưu siêu tốc cho bài giải thuật Python (3-10x tốc độ)',
-    extension: '.py',
-    monacoLang: 'python',
-    badgeColor: 'bg-green-500/10 text-green-600 border-green-500/20',
-    template: `import sys
-
-def main():
-    input = sys.stdin.readline
-    # TODO: Đọc dữ liệu và giải thuật toán tại đây
-
-if __name__ == '__main__':
-    main()
-`,
-  },
 
   // Java
   {
@@ -396,58 +376,14 @@ func main() {
 `,
   },
 
-  // JavaScript / Node.js
-  {
-    id: 'NODE18',
-    name: 'Node.js 18 LTS',
-    category: 'NODE',
-    categoryLabel: 'JavaScript / Node.js',
-    compiler: 'Node.js v18.x LTS (V8 Engine)',
-    description: 'JavaScript ES2022 trên nền Node 18',
-    extension: '.js',
-    monacoLang: 'javascript',
-    badgeColor: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
-    template: `const fs = require('fs');
-
-function main() {
-    const input = fs.readFileSync(0, 'utf-8').trim();
-    if (!input) return;
-    // TODO: Đọc dữ liệu và giải thuật toán tại đây
-}
-
-main();
-`,
-  },
-  {
-    id: 'NODE20',
-    name: 'Node.js 20 LTS',
-    category: 'NODE',
-    categoryLabel: 'JavaScript / Node.js',
-    compiler: 'Node.js v20.x LTS',
-    description: 'JavaScript ES2023 hiện đại, tối ưu tốc độ V8',
-    extension: '.js',
-    monacoLang: 'javascript',
-    badgeColor: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
-    template: `const fs = require('fs');
-
-function main() {
-    const input = fs.readFileSync(0, 'utf-8').trim();
-    if (!input) return;
-    // TODO: Đọc dữ liệu và giải thuật toán tại đây
-}
-
-main();
-`,
-  },
 ];
 
 export const LANGUAGE_CATEGORIES = [
   { key: 'CPP', label: 'C++', icon: '🔵', desc: 'C++11, C++14, C++17, C++20' },
-  { key: 'PYTHON', label: 'Python', icon: '🐍', desc: 'Python 3.8, 3.10, 3.11, 3.12, PyPy 3.10' },
+  { key: 'PYTHON', label: 'Python', icon: '🐍', desc: 'Python 3.8, 3.10, 3.11, 3.12' },
   { key: 'JAVA', label: 'Java', icon: '☕', desc: 'Java 8, 11, 17, 21 LTS' },
   { key: 'C', label: 'C', icon: '⚙️', desc: 'C99, C11' },
   { key: 'GO', label: 'Go', icon: '🦫', desc: 'Go 1.20, Go 1.22' },
-  { key: 'NODE', label: 'Node.js', icon: '🌐', desc: 'Node.js 18, 20 LTS' },
 ] as const;
 
 export function getLanguageConfig(idOrCategory: string): LanguageVersionConfig {
@@ -461,9 +397,8 @@ export function getLanguageConfig(idOrCategory: string): LanguageVersionConfig {
   if (upper === 'JAVA') return SUPPORTED_LANGUAGES.find((l) => l.id === 'JAVA21')!;
   if (upper === 'C') return SUPPORTED_LANGUAGES.find((l) => l.id === 'C11')!;
   if (upper === 'GO') return SUPPORTED_LANGUAGES.find((l) => l.id === 'GO1_22')!;
-  if (upper === 'NODE' || upper === 'JS' || upper === 'JAVASCRIPT') return SUPPORTED_LANGUAGES.find((l) => l.id === 'NODE20')!;
 
-  return SUPPORTED_LANGUAGES[2]; // Default C++17
+  return SUPPORTED_LANGUAGES.find((l) => l.id === 'CPP17') ?? SUPPORTED_LANGUAGES[0]; // Default C++17
 }
 
 export function getAllowedLanguagesList(allowed?: string[]): LanguageVersionConfig[] {
@@ -471,9 +406,16 @@ export function getAllowedLanguagesList(allowed?: string[]): LanguageVersionConf
     return SUPPORTED_LANGUAGES;
   }
   const set = new Set(allowed.map((s) => s.toUpperCase()));
-  return SUPPORTED_LANGUAGES.filter(
+  const filtered = SUPPORTED_LANGUAGES.filter(
     (l) => set.has(l.id.toUpperCase()) || set.has(l.category.toUpperCase()),
   );
+  // đề cũ có thể chỉ cho phép ngôn ngữ đã bị gỡ (PyPy, Node.js) → mở lại toàn bộ để không bị trống
+  return filtered.length > 0 ? filtered : SUPPORTED_LANGUAGES;
+}
+
+// Nhãn ngắn gọn cho ô chọn ngôn ngữ: "C++ 17", "C99", "Python 3.10", "Java 8" (bỏ trình biên dịch / "LTS")
+export function getLanguageLabel(cfg: LanguageVersionConfig): string {
+  return cfg.name.replace(/\s+LTS$/i, '').replace(/^C\+\+(\d+)$/, 'C++ $1');
 }
 
 export function mapVersionToApi(id: string): {
