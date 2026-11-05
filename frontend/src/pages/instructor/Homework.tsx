@@ -51,8 +51,8 @@ export default function InstructorHomework() {
 
   const activeCount = myHomeworks.filter((h) => h.status === 'active').length;
   const overdueSoon = myHomeworks.filter((h) => {
-    const p = deadlineProgress(h.deadline);
-    return !p.overdue && p.daysLeft <= 3 && h.status === 'active';
+    const p = deadlineProgress(h.deadline, h.createdAt);
+    return !p.overdue && p.hoursLeft <= 24 && h.status === 'active';
   }).length;
 
   const openCreate = () => {
@@ -213,8 +213,7 @@ export default function InstructorHomework() {
       ) : (
         <div className="space-y-4">
           {filtered.map((hw) => {
-            const p = deadlineProgress(hw.deadline);
-            const submitPct = hw.totalStudents ? Math.round((hw.submittedStudents / hw.totalStudents) * 100) : 0;
+            const p = deadlineProgress(hw.deadline, hw.createdAt);
             return (
               <div key={hw.id} className="bg-white border border-[#e5dac9] rounded-xl p-6 hover:shadow-md transition-all shadow-sm">
                 <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
@@ -258,24 +257,17 @@ export default function InstructorHomework() {
                     <span className="flex items-center gap-1.5 text-[#8a8073]">
                       <span className="flex items-center gap-1"><Clock size={14} /> {t('instructorHomework.deadlineInlineLabel')} <span className="font-medium text-[#5c5446]">{formatVNFull(hw.deadline)}</span></span>
                     </span>
-                    <span className={`font-semibold ${p.overdue ? 'text-[#cc5a37]' : p.daysLeft <= 3 ? 'text-yellow-700' : 'text-emerald-700'}`}>
+                    <span className={`font-semibold ${p.overdue ? 'text-[#cc5a37]' : p.hoursLeft <= 24 ? 'text-yellow-700' : 'text-emerald-700'}`}>
                       {p.label}
                     </span>
                   </div>
                   <div className="w-full h-2 bg-[#f0ebd9] rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${
-                        p.overdue ? 'bg-[#cc5a37]' : p.daysLeft <= 3 ? 'bg-linear-to-r from-yellow-500 to-[#cc5a37]' : 'bg-linear-to-r from-[#193a2b] to-emerald-500'
+                        p.overdue ? 'bg-[#cc5a37]' : p.hoursLeft <= 24 ? 'bg-linear-to-r from-yellow-500 to-[#cc5a37]' : 'bg-linear-to-r from-[#193a2b] to-emerald-500'
                       }`}
                       style={{ width: `${p.overdue ? 100 : p.pct}%` }}
                     />
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-[#8a8073] mt-2">
-                    <span>{t('instructorHomework.classProgress')}</span>
-                    <span className="font-semibold text-[#193a2b]">{submitPct}%</span>
-                  </div>
-                  <div className="w-full h-1.5 bg-[#f0ebd9] rounded-full overflow-hidden mt-1">
-                    <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${submitPct}%` }} />
                   </div>
                 </div>
               </div>

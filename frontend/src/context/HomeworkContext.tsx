@@ -8,6 +8,7 @@ export interface Homework {
   title: string;
   description: string;
   deadline: string;
+  createdAt?: string;
   status: 'active' | 'closed' | 'upcoming';
   problemCount: number;
   completedCount: number;
@@ -53,6 +54,7 @@ function normalizeHomework(item: {
   title: string;
   description?: string | null;
   deadline: string;
+  created_at?: string | null;
   class_id: string;
   tasks?: HomeworkProblem[] | null;
   class?: { id?: string; name: string; students?: Array<{ student_id: string }> };
@@ -63,6 +65,7 @@ function normalizeHomework(item: {
     title: item.title,
     description: item.description ?? '',
     deadline: item.deadline,
+    createdAt: item.created_at ?? undefined,
     status: computeStatus(item.deadline),
     problemCount: tasks.length,
     completedCount: 0,
@@ -119,13 +122,16 @@ export function useHomework() {
   return context;
 }
 
-export function deadlineProgress(deadline: string, createdWindowDays = 14) {
+export function deadlineProgress(deadline: string, createdAt?: string | null, createdWindowDays = 14) {
   const timestamp = new Date(deadline.replace(' ', 'T')).getTime();
-  if (Number.isNaN(timestamp)) return { pct: 0, daysLeft: 0, overdue: false, label: '—' };
+  if (Number.isNaN(timestamp)) return { pct: 0, daysLeft: 0, hoursLeft: Infinity, overdue: false, label: '—' };
   const now = Date.now();
-  const start = timestamp - createdWindowDays * 86400000;
+  const createdTs = createdAt ? new Date(createdAt.replace(' ', 'T')).getTime() : NaN;
+  // Mốc bắt đầu = thời điểm giao bài; nếu không có thì mới dùng cửa sổ mặc định
+  const start = !Number.isNaN(createdTs) && createdTs < timestamp ? createdTs : timestamp - createdWindowDays * 86400000;
   const pct = Math.max(0, Math.min(100, ((now - start) / (timestamp - start)) * 100));
   const daysLeft = Math.ceil((timestamp - now) / 86400000);
+  const hoursLeft = (timestamp - now) / 3600000;
   const overdue = timestamp < now;
   const label = overdue
     ? i18n.t('common.deadlineProgress.overdue')
@@ -134,5 +140,5 @@ export function deadlineProgress(deadline: string, createdWindowDays = 14) {
     : daysLeft === 1
     ? i18n.t('common.deadlineProgress.oneDayLeft')
     : i18n.t('common.deadlineProgress.daysLeft', { count: daysLeft });
-  return { pct, daysLeft, overdue, label };
+  return { pct, daysLeft, hoursLeft, overdue, label };
 }

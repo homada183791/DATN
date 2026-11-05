@@ -184,7 +184,7 @@ export default function StudentHomework() {
       ) : (
         <div className="space-y-3">
           {filtered.map((hw) => {
-            const p = deadlineProgress(hw.deadline);
+            const p = deadlineProgress(hw.deadline, hw.createdAt);
             const tasks = problemsOf(hw.id);
             const hasLinkable = tasks.some((t) => !!t.problem_id);
             return (
@@ -269,7 +269,7 @@ export default function StudentHomework() {
             <div className="p-6 space-y-5">
               {/* Deadline tracking */}
               {(() => {
-                const p = deadlineProgress(selectedHw.deadline);
+                const p = deadlineProgress(selectedHw.deadline, selectedHw.createdAt);
                 return (
                   <div className="p-4 bg-white rounded-xl border border-[#e5dac9]">
                     <div className="flex items-center justify-between text-xs mb-2">

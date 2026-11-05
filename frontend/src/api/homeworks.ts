@@ -18,6 +18,7 @@ export interface HomeworkDto {
   title: string;
   description?: string | null;
   deadline: string;
+  created_at?: string | null;
   class_id: string;
   tasks: HomeworkTaskDto[];
   class?: {

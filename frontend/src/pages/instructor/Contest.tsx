@@ -410,9 +410,6 @@ export default function InstructorContest() {
                     {t('instructorContest.finalizeEloBtn')}
                   </button>
                 )}
-                <button onClick={() => { removeContest(selectedContestData.id); }} className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 border border-red-200 text-sm font-medium rounded-xl hover:bg-red-100 transition-colors">
-                  <Trash2 size={14} /> {t('common.delete')}
-                </button>
               </div>
             </div>
           </div>
