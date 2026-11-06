@@ -26,6 +26,7 @@ import {
   Play,
   Copy,
   RotateCcw,
+  Upload,
   ClipboardPaste,
   RefreshCw,
   X,
@@ -50,7 +51,6 @@ import {
 } from 'lucide-react';
 import {
   getAllowedLanguagesList,
-  getLanguageLabel,
   getLanguageConfig,
   mapVersionToApi,
 } from '../../config/languages';
@@ -840,6 +840,9 @@ export default function ProblemSolve() {
   const { t, i18n } = useTranslation();
   const currentLang = (i18n.resolvedLanguage || i18n.language || 'vi').toLowerCase();
   const isEnglish = currentLang.startsWith('en');
+  const toggleLanguage = () => {
+    void i18n.changeLanguage(isEnglish ? 'vi' : 'en');
+  };
   // Hỗ trợ các URL pattern:
   // - /student/problem/:id  (cũ)
   // - /student/class/:classId/homework/:homeworkId/problem/:problemId  (homework)
@@ -911,8 +914,8 @@ export default function ProblemSolve() {
   }, [problemDifficulty]);
 
   const detail: ProblemDetail = useMemo(
-    () => getDetail(problemId, localizedTitle, problemPoints, isEnglish ? 'en' : 'vi'),
-    [problemId, localizedTitle, problemPoints, isEnglish],
+    () => getDetail(problemId, localizedTitle, problemPoints),
+    [problemId, localizedTitle, problemPoints],
   );
 
   const problemTimeLimit = apiProblem?.time_limit ? `${apiProblem.time_limit} ms` : detail.timeLimit;
@@ -1129,7 +1132,7 @@ export default function ProblemSolve() {
 
   const requestAiHint = async (type: 'HINT' | 'COMPLEXITY' | 'EDGE_CASE' | 'EXPLAIN_LOGIC' = 'HINT') => {
     if (contestId) {
-      showToast(t('problemSolve.aiTutorDisabledToast'), 'error');
+      showToast('AI Tutor bị vô hiệu hóa trong phòng thi để đảm bảo tính công bằng!', 'error');
       return;
     }
     setAiTutorLoading(true);
@@ -1145,7 +1148,7 @@ export default function ProblemSolve() {
       });
       setAiTutorResponse(res.response);
     } catch (e: any) {
-      showToast(e.message || t('problemSolve.aiTutorHintError'), 'error');
+      showToast(e.message || 'Không thể lấy gợi ý từ AI.', 'error');
     } finally {
       setAiTutorLoading(false);
     }
@@ -1156,9 +1159,9 @@ export default function ProblemSolve() {
     setLeftTab('ai_tutor');
     try {
       const res = await explainSubmissionError({ submission_id: submissionId });
-      setAiTutorResponse(`### 🔍 ${t('problemSolve.aiTutorExplainTitle')} (#${submissionId.slice(0, 8)} - ${res.status})\n\n${res.analysis}`);
+      setAiTutorResponse(`### 🔍 Phân tích lỗi bài nộp (#${submissionId.slice(0, 8)} - ${res.status})\n\n${res.analysis}`);
     } catch (e: any) {
-      showToast(e.message || t('problemSolve.aiTutorExplainError'), 'error');
+      showToast(e.message || 'Không thể phân tích lỗi bài nộp.', 'error');
     } finally {
       setAiTutorLoading(false);
     }
@@ -1336,6 +1339,27 @@ export default function ProblemSolve() {
       requestAnimationFrame(() => {
         ta.selectionStart = ta.selectionEnd = s + 4;
       });
+    }
+  };
+
+  const pasteIntoEditor = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text) {
+        showToast('Clipboard is empty.', 'info');
+        return;
+      }
+
+      const textarea = taRef.current;
+      const start = textarea?.selectionStart ?? code.length;
+      const end = textarea?.selectionEnd ?? code.length;
+      onCodeChange(`${code.slice(0, start)}${text}${code.slice(end)}`);
+      requestAnimationFrame(() => {
+        textarea?.focus();
+        textarea?.setSelectionRange(start + text.length, start + text.length);
+      });
+    } catch {
+      showToast('Unable to access the clipboard. Please grant permission and try again.', 'error');
     }
   };
 
@@ -1705,6 +1729,9 @@ export default function ProblemSolve() {
               ← {t('studentContest.back')}
             </button>
           )}
+          <span className="text-[11px] font-bold tracking-wider px-2.5 py-1 rounded-md bg-(--ws-accent-soft) text-(--ws-accent)">
+            {detail.code}
+          </span>
           <h1 className="text-[17px] font-bold">{localizedTitle}</h1>
           <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-md ${diffChip}`}>{problemDifficulty === 'EASY' ? t('problemForm.easy') : problemDifficulty === 'MEDIUM' ? t('problemForm.medium') : t('problemForm.hard')}</span>
           {contestId && (
@@ -1737,10 +1764,20 @@ export default function ProblemSolve() {
               <CheckCircle2 size={14} /> {t('studentHomework.completed')}
             </span>
           )}
-          {/* cụm nút bên phải luôn đi cùng nhau: [Bài trước/sau] [?] [3 nút bố cục].
-              Dùng ml-auto (thay vì thẻ đệm flex-1) để khi thanh tiêu đề bị tràn xuống
-              hàng thứ 2 (huy hiệu dài lúc mới vào phòng thi) cụm nút vẫn dạt về mép phải. */}
-          <div className="ml-auto flex items-center gap-3 shrink-0">
+          <div className="flex-1" />
+          {/* Nút chuyển đổi ngôn ngữ gộp đồng bộ Đề bài & Giao diện (VI / EN) */}
+          <button
+            onClick={toggleLanguage}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-(--ws-border) bg-(--ws-panel2) hover:border-(--ws-accent) hover:text-(--ws-accent) text-[12px] font-semibold transition-all shadow-xs"
+            title={isEnglish ? 'Chuyển toàn bộ Giao diện và Đề bài sang Tiếng Việt (VI)' : 'Switch entire UI and Problem statement to English (EN)'}
+            aria-label="Toggle UI & Problem Language"
+          >
+            <Languages size={14} className="text-(--ws-accent)" />
+            <span className={!isEnglish ? 'text-(--ws-accent) font-bold' : 'text-(--ws-muted)'}>VI</span>
+            <span className="text-(--ws-border)">/</span>
+            <span className={isEnglish ? 'text-(--ws-accent) font-bold' : 'text-(--ws-muted)'}>EN</span>
+          </button>
+
           {contestId && contestIndex >= 0 && contestProblems.length > 1 && (
             <div className="flex items-center gap-1">
               <button
@@ -1771,15 +1808,12 @@ export default function ProblemSolve() {
           >
             <HelpCircle size={15} />
           </button>
-          {/* trong kỳ thi không cho xem lời giải: ẩn nút */}
-          {!contestId && (
-            <button
-              onClick={() => setShowSolution(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] font-medium text-(--ws-muted) hover:text-(--ws-text) hover:border-(--ws-accent) transition-colors"
-            >
-              <Eye size={14} /> {t('problemSolve.viewSolution')}
-            </button>
-          )}
+          <button
+            onClick={() => setShowSolution(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] font-medium text-(--ws-muted) hover:text-(--ws-text) hover:border-(--ws-accent) transition-colors"
+          >
+            <Eye size={14} /> {t('problemSolve.viewSolution')}
+          </button>
           <div className="flex items-center rounded-lg border border-(--ws-border) overflow-hidden">
             {([['split', <Columns size={14} key="c" />], ['statement', <FileText size={14} key="f" />], ['editor', <Code size={14} key="e" />]] as [LayoutMode, React.ReactNode][]).map(([mode, icon]) => (
               <button
@@ -1792,7 +1826,15 @@ export default function ProblemSolve() {
               </button>
             ))}
           </div>
-          </div>
+          {/* trong kỳ thi không có trợ lý: ẩn nút "Mở trợ lý" */}
+          {!contestId && (
+            <button
+              onClick={() => setShowAssistant((v) => !v)}
+              className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[12.5px] font-medium transition-colors ${showAssistant ? 'border-(--ws-accent) text-(--ws-accent) bg-(--ws-accent-soft)' : 'border-(--ws-border) text-(--ws-muted) hover:text-(--ws-text) hover:border-(--ws-accent)'}`}
+            >
+              <MessageCircle size={14} /> {showAssistant ? t('problemSolve.hideAssistant') : t('problemSolve.openAssistant')}
+            </button>
+          )}
         </div>
 
         {/* mobile pane switch */}
@@ -1859,7 +1901,7 @@ export default function ProblemSolve() {
                   >
                     <Sparkles size={14} />
                     <span>AI Tutor</span>
-                    {contestId && <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-bold">{t('problemSolve.aiTutorLockedBadge')}</span>}
+                    {contestId && <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-bold">Khóa khi thi</span>}
                   </button>
                   <button
                     onClick={() => setLeftTab('resources')}
@@ -1870,8 +1912,8 @@ export default function ProblemSolve() {
                     }`}
                   >
                     <BookOpen size={14} />
-                    <span>{t('problemSolve.allowedResourcesTab')}</span>
-                    {contestId && <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold">{t('problemSolve.allowedBadge')}</span>}
+                    <span>Tài liệu cho phép</span>
+                    {contestId && <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold">Hợp lệ</span>}
                   </button>
                 </div>
 
@@ -2199,12 +2241,12 @@ export default function ProblemSolve() {
                           <div className="w-16 h-16 rounded-full bg-amber-200/80 flex items-center justify-center mx-auto mb-4 text-2xl">
                             🛡️
                           </div>
-                          <h3 className="font-bold text-lg mb-2">{t('problemSolve.aiTutorDisabledTitle')}</h3>
+                          <h3 className="font-bold text-lg mb-2">AI Tutor bị vô hiệu hóa trong phòng thi</h3>
                           <p className="text-xs text-amber-800/90 max-w-md mx-auto leading-relaxed mb-4">
-                            {t('problemSolve.aiTutorDisabledDesc')}
+                            Để đảm bảo tính nghiêm túc và công bằng của kỳ thi trực tuyến, toàn bộ tính năng trợ lý AI đã được tự động khóa đối với bài tập này.
                           </p>
                           <p className="text-xs font-semibold text-amber-900">
-                            {t('problemSolve.aiTutorDisabledHintPre')}<strong>"{t('problemSolve.statement', 'Đề bài')}"</strong>{t('problemSolve.aiTutorDisabledHintOr')}<strong>"{t('problemSolve.allowedResourcesTab')}"</strong>{t('problemSolve.aiTutorDisabledHintPost')}
+                            Vui lòng chuyển qua tab <strong>"Đề bài"</strong> hoặc <strong>"Tài liệu cho phép"</strong> để làm bài.
                           </p>
                         </div>
                       ) : (
@@ -2212,10 +2254,10 @@ export default function ProblemSolve() {
                           <div>
                             <div className="flex items-center gap-2 mb-1">
                               <Sparkles size={20} className="text-(--ws-accent)" />
-                              <h2 className="text-lg font-bold text-(--ws-text)">{t('problemSolve.aiTutorHeading')}</h2>
+                              <h2 className="text-lg font-bold text-(--ws-text)">AI Tutor & Trợ lý học tập</h2>
                             </div>
                             <p className="text-xs text-(--ws-muted)">
-                              {t('problemSolve.aiTutorSubtitle')}
+                              Gợi ý tư duy thuật toán, phân tích độ phức tạp và hỗ trợ gỡ lỗi mà không làm hộ bài giải.
                             </p>
                           </div>
 
@@ -2230,8 +2272,8 @@ export default function ProblemSolve() {
                                   : 'border-(--ws-border) bg-(--ws-panel) hover:border-(--ws-accent) text-(--ws-text)'
                               }`}
                             >
-                              <p className="text-xs font-bold mb-0.5">💡 {t('problemSolve.aiTutorHintTitle')}</p>
-                              <p className="text-[11px] text-(--ws-muted)">{t('problemSolve.aiTutorHintSub')}</p>
+                              <p className="text-xs font-bold mb-0.5">💡 Gợi ý tư duy</p>
+                              <p className="text-[11px] text-(--ws-muted)">Hướng tiếp cận</p>
                             </button>
                             <button
                               onClick={() => requestAiHint('COMPLEXITY')}
@@ -2242,8 +2284,8 @@ export default function ProblemSolve() {
                                   : 'border-(--ws-border) bg-(--ws-panel) hover:border-(--ws-accent) text-(--ws-text)'
                               }`}
                             >
-                              <p className="text-xs font-bold mb-0.5">⏱️ {t('problemSolve.aiTutorComplexityTitle')}</p>
-                              <p className="text-[11px] text-(--ws-muted)">{t('problemSolve.aiTutorComplexitySub')}</p>
+                              <p className="text-xs font-bold mb-0.5">⏱️ Độ phức tạp</p>
+                              <p className="text-[11px] text-(--ws-muted)">Thời gian & Bộ nhớ</p>
                             </button>
                             <button
                               onClick={() => requestAiHint('EDGE_CASE')}
@@ -2254,8 +2296,8 @@ export default function ProblemSolve() {
                                   : 'border-(--ws-border) bg-(--ws-panel) hover:border-(--ws-accent) text-(--ws-text)'
                               }`}
                             >
-                              <p className="text-xs font-bold mb-0.5">⚠️ {t('problemSolve.aiTutorEdgeTitle')}</p>
-                              <p className="text-[11px] text-(--ws-muted)">{t('problemSolve.aiTutorEdgeSub')}</p>
+                              <p className="text-xs font-bold mb-0.5">⚠️ Edge Cases</p>
+                              <p className="text-[11px] text-(--ws-muted)">Trường hợp đặc biệt</p>
                             </button>
                             <button
                               onClick={() => requestAiHint('EXPLAIN_LOGIC')}
@@ -2266,8 +2308,8 @@ export default function ProblemSolve() {
                                   : 'border-(--ws-border) bg-(--ws-panel) hover:border-(--ws-accent) text-(--ws-text)'
                               }`}
                             >
-                              <p className="text-xs font-bold mb-0.5">🧠 {t('problemSolve.aiTutorLogicTitle')}</p>
-                              <p className="text-[11px] text-(--ws-muted)">{t('problemSolve.aiTutorLogicSub')}</p>
+                              <p className="text-xs font-bold mb-0.5">🧠 Logic bài tập</p>
+                              <p className="text-[11px] text-(--ws-muted)">Giải thích đề</p>
                             </button>
                           </div>
 
@@ -2276,21 +2318,21 @@ export default function ProblemSolve() {
                             {aiTutorLoading ? (
                               <div className="flex-1 flex flex-col items-center justify-center py-12 text-(--ws-muted)">
                                 <Loader2 size={28} className="animate-spin text-(--ws-accent) mb-3" />
-                                <p className="text-xs font-medium">{t('problemSolve.aiTutorThinking')}</p>
+                                <p className="text-xs font-medium">AI đang suy nghĩ gợi ý cho bạn...</p>
                               </div>
                             ) : aiTutorResponse ? (
                               <div>
                                 <div className="flex items-center justify-between pb-3 mb-4 border-b border-(--ws-border) text-xs">
                                   <span className="font-bold flex items-center gap-1.5 text-(--ws-accent)">
-                                    <Sparkles size={14} /> {t('problemSolve.aiTutorResponseTitle')}
+                                    <Sparkles size={14} /> Phản hồi từ AI Tutor
                                   </span>
                                   <button
                                     onClick={() => {
                                       navigator.clipboard?.writeText(aiTutorResponse);
-                                      showToast(t('problemSolve.aiTutorCopied'), 'success');
+                                      showToast('Đã sao chép phản hồi!', 'success');
                                     }}
                                     className="p-1 rounded hover:bg-(--ws-panel2) text-(--ws-muted) hover:text-(--ws-text)"
-                                    title={t('problemSolve.aiTutorCopy')}
+                                    title="Sao chép"
                                   >
                                     <Copy size={13} />
                                   </button>
@@ -2302,9 +2344,9 @@ export default function ProblemSolve() {
                             ) : (
                               <div className="flex-1 flex flex-col items-center justify-center py-10 text-center text-(--ws-muted)">
                                 <Sparkles size={32} className="text-(--ws-muted) opacity-50 mb-3" />
-                                <p className="text-xs font-semibold text-(--ws-text) mb-1">{t('problemSolve.aiTutorEmptyTitle')}</p>
+                                <p className="text-xs font-semibold text-(--ws-text) mb-1">Cần gợi ý mà không bị lộ đáp án?</p>
                                 <p className="text-[11.5px] max-w-xs text-(--ws-muted)">
-                                  {t('problemSolve.aiTutorEmptyDesc')}
+                                  Chọn một mục ở trên để nhận hướng dẫn tư duy từng bước cho bài tập này.
                                 </p>
                               </div>
                             )}
@@ -2392,7 +2434,7 @@ export default function ProblemSolve() {
                   >
                     {allowedLangConfigs.map((language) => (
                       <option key={language.id} value={language.id}>
-                        {getLanguageLabel(language)}
+                        {language.name} - {language.compiler}
                       </option>
                     ))}
                   </select>
@@ -2424,6 +2466,25 @@ export default function ProblemSolve() {
                 </select>
 
                 <div className="flex-1" />
+                {!contestId && (
+                  <>
+                    <button onClick={pasteIntoEditor} className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] font-semibold text-(--ws-accent) hover:bg-(--ws-accent-soft) transition-colors">
+                      <ClipboardPaste size={13} /> {t('problemSolve.pasteIn')}
+                    </button>
+                    <label className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] font-semibold text-(--ws-accent) bg-(--ws-accent-soft)/30 border border-(--ws-accent)/25 hover:bg-(--ws-accent-soft) transition-colors cursor-pointer">
+                      <Upload size={13} /> {t('problemSolve.uploadBtn')}
+                      <input
+                        type="file"
+                        accept={allowedLangConfigs.map((language) => language.extension).join(',') + ',.txt'}
+                        className="hidden"
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) uploadFile(e.target.files[0]);
+                          e.target.value = '';
+                        }}
+                      />
+                    </label>
+                  </>
+                )}
                 <span className={`text-[11.5px] ${saveState === 'saved' ? 'text-(--ws-faint)' : 'text-(--ws-warn)'}`}>
                   {saveState === 'saved' ? t('problemSolve.saved') : saveState === 'saving' ? t('problemSolve.saving') : t('problemSolve.unsaved')}
                 </span>
@@ -2442,7 +2503,7 @@ export default function ProblemSolve() {
                 </label>
                 {intelli && (
                   <span className="text-[11px] text-(--ws-faint) hidden sm:block">
-                    {t('problemSolve.lineCount', { count: lineCount })} • {t('problemSolve.charCount', { count: code.length })} • {getLanguageLabel(currentLangConfig)}
+                    {t('problemSolve.lineCount', { count: lineCount })} • {t('problemSolve.charCount', { count: code.length })} • {currentLangConfig.name}
                   </span>
                 )}
               </div>

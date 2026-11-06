@@ -166,7 +166,7 @@ export default function Homework() {
                           ) : (
                             <span
                               className="p-1.5 bg-[#f0ebd9] rounded-lg text-[#bfae99] cursor-not-allowed"
-                              title="Bài này chỉ có đề mô tả, chưa có bài toán để nộp code"
+                              title="Bài này chỉ có đề mô tả, chưa có bài tập để nộp code"
                             >
                               <Play size={14} />
                             </span>

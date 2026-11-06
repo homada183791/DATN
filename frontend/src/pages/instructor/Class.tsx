@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { useClass, ClassInfo, Member } from '../../context/ClassContext';
-import { useHomework, deadlineProgress, HomeworkProblem } from '../../context/HomeworkContext';
-import ProblemManager from '../../components/ProblemManager';
+import { useClass, Member } from '../../context/ClassContext';
+import { useHomework } from '../../context/HomeworkContext';
 import {
   GraduationCap,
   Users,
@@ -20,8 +19,6 @@ import {
   UserMinus,
   Calendar,
   ClipboardList,
-  Clock,
-  Edit3,
 } from 'lucide-react';
 
 // Computes a sensible "current" semester label (e.g. "Học kỳ 1 - 2026/2027")
@@ -53,8 +50,8 @@ function buildSemesterSuggestions(): string[] {
 
 export default function InstructorClass() {
   const { t } = useTranslation();
-  const { myClasses, createClass, updateClass, deleteClass, membersOf, removeMember } = useClass();
-  const { homeworksOfClass, createHomework, refetch } = useHomework();
+  const { myClasses, createClass, deleteClass, membersOf, removeMember } = useClass();
+  const { homeworksOfClass, refetch } = useHomework();
   const semesterSuggestions = buildSemesterSuggestions();
 
   useEffect(() => {
@@ -62,60 +59,16 @@ export default function InstructorClass() {
   }, [refetch]);
   const [showCreate, setShowCreate] = useState(false);
   const [rosterId, setRosterId] = useState<string | null>(null);
-  const [hwClassId, setHwClassId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [isCreatingClass, setIsCreatingClass] = useState(false);
-  const [isSavingHw, setIsSavingHw] = useState(false);
   const [confirmKickId, setConfirmKickId] = useState<string | null>(null);
 
-  // Edit class state
-  const [editingClass, setEditingClass] = useState<ClassInfo | null>(null);
-  const [editForm, setEditForm] = useState({ name: '', semester: getDefaultSemester(), description: '', is_public: false });
-  const [editError, setEditError] = useState('');
-  const [isUpdatingClass, setIsUpdatingClass] = useState(false);
 
   const [form, setForm] = useState({ name: '', semester: getDefaultSemester(), description: '', is_public: false });
   const [formError, setFormError] = useState('');
 
-  const [hwForm, setHwForm] = useState({ title: '', description: '', deadline: '' });
-  const [hwProblems, setHwProblems] = useState<HomeworkProblem[]>([]);
-  const [hwError, setHwError] = useState('');
   const hasDocument = typeof document !== 'undefined';
-  const hwClass = myClasses.find((c) => c.id === hwClassId);
-
-  const openHwModal = (classId: string) => {
-    setHwForm({ title: '', description: '', deadline: '' });
-    setHwProblems([]);
-    setHwError('');
-    setHwClassId(classId);
-  };
-
-  const saveHomework = async () => {
-    if (!hwClass) return;
-    if (hwForm.title.trim().length < 3) return setHwError(t('instructorClass.errors.titleTooShort'));
-    if (!hwForm.deadline) return setHwError(t('instructorClass.errors.deadlineRequired'));
-    if (hwProblems.length === 0) return setHwError(t('instructorClass.errors.problemsRequired'));
-    setIsSavingHw(true);
-    setHwError('');
-    try {
-      await createHomework({
-        title: hwForm.title.trim(),
-        description: hwForm.description.trim(),
-        deadline: hwForm.deadline.replace('T', ' '),
-        problems: hwProblems,
-        classId: hwClass.id,
-        className: `${hwClass.name} - ${hwClass.code}`,
-        totalStudents: membersOf(hwClass.id).length,
-      });
-      await refetch();
-      setHwClassId(null);
-    } catch (e: any) {
-      setHwError(e.message || t('instructorClass.errors.assignHomeworkFailed'));
-    } finally {
-      setIsSavingHw(false);
-    }
-  };
 
   const rosterClass = myClasses.find((c) => c.id === rosterId);
   const roster: Member[] = rosterClass ? membersOf(rosterClass.id) : [];
@@ -155,40 +108,6 @@ export default function InstructorClass() {
       setFormError(e.message || t('instructorClass.errors.createClassFailed'));
     } finally {
       setIsCreatingClass(false);
-    }
-  };
-
-  const openEditClass = (cls: ClassInfo) => {
-    setEditingClass(cls);
-    setEditForm({
-      name: cls.name,
-      semester: cls.semester,
-      description: cls.description || '',
-      is_public: Boolean(cls.is_public),
-    });
-    setEditError('');
-  };
-
-  const handleUpdateClass = async () => {
-    if (!editingClass) return;
-    if (editForm.name.trim().length < 3) {
-      setEditError(t('instructorClass.errors.nameTooShort'));
-      return;
-    }
-    setIsUpdatingClass(true);
-    setEditError('');
-    try {
-      await updateClass(editingClass.id, {
-        name: editForm.name.trim(),
-        semester: editForm.semester.trim(),
-        description: editForm.description.trim(),
-        is_public: editForm.is_public,
-      });
-      setEditingClass(null);
-    } catch (e: any) {
-      setEditError(e.message || t('instructorClass.errors.updateClassFailed'));
-    } finally {
-      setIsUpdatingClass(false);
     }
   };
 
@@ -321,79 +240,6 @@ export default function InstructorClass() {
                   </div>
                 </div>
 
-                {/* homework preview list (nằm giữa link join và các nút) */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between text-xs font-bold text-[#5c5446] mb-2">
-                    <span className="flex items-center gap-1.5">
-                      <ClipboardList size={14} className="text-[#193a2b]" />
-                      {t('instructorClass.homeworkCountLabel', { count: homeworksOfClass(cls.id).length })}
-                    </span>
-                    {homeworksOfClass(cls.id).length > 0 && (
-                      <Link
-                        to="/instructor/homework"
-                        className="text-[11px] text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
-                      >
-                        {t('instructorClass.viewAllShort')} &rarr;
-                      </Link>
-                    )}
-                  </div>
-
-                  {homeworksOfClass(cls.id).length === 0 ? (
-                    <div className="px-3 py-2.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-center">
-                      <p className="text-xs text-[#8a8073]">{t('instructorClass.noHomeworkAssigned')}</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-1.5">
-                      {homeworksOfClass(cls.id).slice(0, 3).map((hw) => {
-                        const p = deadlineProgress(hw.deadline);
-                        return (
-                          <div
-                            key={hw.id}
-                            className="p-2.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl hover:border-[#193a2b]/30 transition-all"
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-xs font-semibold text-[#191919] truncate max-w-[65%]" title={hw.title}>
-                                {hw.title}
-                              </span>
-                              <span
-                                className={`text-[10px] font-semibold flex items-center gap-0.5 px-2 py-0.5 rounded-full border ${
-                                  p.overdue
-                                    ? 'bg-red-50 text-red-700 border-red-200'
-                                    : p.daysLeft <= 3
-                                    ? 'bg-yellow-50 text-yellow-800 border-yellow-200'
-                                    : 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                                }`}
-                              >
-                                <Clock size={10} /> {p.label}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between text-[11px] text-[#8a8073] mb-1">
-                              <span>{t('instructorClass.problemsCountSuffix', { count: hw.problemCount })}</span>
-                              <span>{t('instructorClass.submittedOfTotal', { submitted: hw.submittedStudents, total: members.length })}</span>
-                            </div>
-                            <div className="w-full h-1.5 bg-[#e5dac9] rounded-full overflow-hidden">
-                              <div
-                                className={`h-full rounded-full transition-all ${
-                                  p.overdue ? 'bg-[#cc5a37]' : p.daysLeft <= 3 ? 'bg-yellow-500' : 'bg-[#193a2b]'
-                                }`}
-                                style={{ width: `${p.overdue ? 100 : p.pct}%` }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                      {homeworksOfClass(cls.id).length > 3 && (
-                        <Link
-                          to="/instructor/homework"
-                          className="block text-center text-[11px] text-[#8a8073] hover:text-[#193a2b] font-medium py-1 hover:underline"
-                        >
-                          {t('instructorClass.moreHomeworkAndViewAll', { count: homeworksOfClass(cls.id).length - 3 })}
-                        </Link>
-                      )}
-                    </div>
-                  )}
-                </div>
-
                 {/* actions */}
                 <div className="flex items-center gap-2">
                   <Link
@@ -402,19 +248,6 @@ export default function InstructorClass() {
                   >
                     {t('instructorClass.classDetailsLink')} &rarr;
                   </Link>
-                  <button
-                    onClick={() => openHwModal(cls.id)}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-[#f0ebd9] text-[#191919] text-xs font-semibold rounded-lg hover:bg-[#e5dac9] transition-colors"
-                  >
-                    <Plus size={13} /> {t('instructorClass.assignSubmit')}
-                  </button>
-                  <button
-                    onClick={() => openEditClass(cls)}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-[#f0ebd9] text-[#191919] text-xs font-semibold rounded-lg hover:bg-[#e5dac9] transition-colors"
-                    title={t('instructorClass.editClassTooltip')}
-                  >
-                    <Edit3 size={13} /> {t('common.edit')}
-                  </button>
                   {confirmDelete === cls.id ? (
                     <div className="flex items-center gap-1.5 ml-auto">
                       <span className="text-[11px] text-red-600 font-medium">{t('instructorClass.confirmDeleteQuestion')}</span>
@@ -450,8 +283,8 @@ export default function InstructorClass() {
       {/* ===== create modal ===== */}
       {showCreate && hasDocument && createPortal((
         <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-80 flex items-center justify-center p-4" onClick={() => setShowCreate(false)}>
-          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-lg shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border) sticky top-0 z-10 bg-(--ws-panel)">
               <h3 className="font-bold font-serif text-[16px]">{t('instructorClass.modalCreateTitle')}</h3>
               <button onClick={() => setShowCreate(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
@@ -557,116 +390,6 @@ export default function InstructorClass() {
         </div>
       ), document.body)}
 
-      {/* ===== edit modal ===== */}
-      {editingClass && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-80 flex items-center justify-center p-4" onClick={() => setEditingClass(null)}>
-          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-lg shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
-              <div>
-                <h3 className="font-bold font-serif text-[16px]">{t('instructorClass.editModalTitle')}</h3>
-                <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorClass.editModalCode', { code: editingClass.code })}</p>
-              </div>
-              <button onClick={() => setEditingClass(null)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldClassName')}</label>
-                <input
-                  value={editForm.name}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  placeholder={t('instructorClass.fieldClassNamePlaceholder')}
-                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldSemester')}</label>
-                <input
-                  value={editForm.semester}
-                  onChange={(e) => setEditForm({ ...editForm, semester: e.target.value })}
-                  placeholder={t('instructorClass.fieldSemesterPlaceholder')}
-                  list="semester-suggestions-edit"
-                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
-                />
-                <datalist id="semester-suggestions-edit">
-                  {semesterSuggestions.map((s) => (
-                    <option key={s} value={s} />
-                  ))}
-                </datalist>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldDescription')}</label>
-                <textarea
-                  value={editForm.description}
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                  rows={3}
-                  placeholder={t('instructorClass.fieldDescriptionPlaceholder')}
-                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">Hình thức tham gia lớp</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setEditForm({ ...editForm, is_public: false })}
-                    className={`p-3 rounded-xl border text-left transition-all ${
-                      !editForm.is_public
-                        ? 'border-[#193a2b] bg-[#193a2b]/5 ring-1 ring-[#193a2b]'
-                        : 'border-(--ws-border) bg-(--ws-editor) hover:border-(--ws-accent)'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between font-semibold text-xs text-(--ws-text) mb-1">
-                      <span>🔒 Riêng tư</span>
-                      {!editForm.is_public && <span className="text-[10px] bg-[#193a2b] text-white px-1.5 py-0.5 rounded font-mono">Mặc định</span>}
-                    </div>
-                    <p className="text-[11px] text-(--ws-muted) leading-relaxed">
-                      Yêu cầu mã mời / link mời hoặc giảng viên thêm trực tiếp vào danh sách.
-                    </p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditForm({ ...editForm, is_public: true })}
-                    className={`p-3 rounded-xl border text-left transition-all ${
-                      editForm.is_public
-                        ? 'border-emerald-600 bg-emerald-50/50 ring-1 ring-emerald-600'
-                        : 'border-(--ws-border) bg-(--ws-editor) hover:border-(--ws-accent)'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between font-semibold text-xs text-emerald-800 mb-1">
-                      <span>🌐 Công khai</span>
-                      {editForm.is_public && <span className="text-[10px] bg-emerald-600 text-white px-1.5 py-0.5 rounded font-mono">Đã chọn</span>}
-                    </div>
-                    <p className="text-[11px] text-(--ws-muted) leading-relaxed">
-                      Bất kỳ sinh viên nào cũng có thể tự do tham gia ngay tại trang khám phá.
-                    </p>
-                  </button>
-                </div>
-              </div>
-              {editError && <p className="text-xs text-red-600 font-medium">{editError}</p>}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-(--ws-border)">
-                <button
-                  type="button"
-                  onClick={() => setEditingClass(null)}
-                  disabled={isUpdatingClass}
-                  className="px-5 py-2.5 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors disabled:opacity-50"
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleUpdateClass}
-                  disabled={isUpdatingClass}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
-                >
-                  {isUpdatingClass && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                  {t('instructorClass.saveChanges')}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ), document.body)}
-
       {/* ===== roster modal ===== */}
       {rosterClass && hasDocument && createPortal((
         <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-80 flex items-center justify-center p-4" onClick={() => setRosterId(null)}>
@@ -740,63 +463,6 @@ export default function InstructorClass() {
         </div>
       ), document.body)}
 
-      {/* ===== create homework modal ===== */}
-      {hwClass && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-85 flex items-center justify-center p-4" onClick={() => setHwClassId(null)}>
-          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border) sticky top-0 bg-(--ws-panel) z-10">
-              <div>
-                <h3 className="font-bold font-serif text-[16px]">{t('instructorClass.assignHomework')}</h3>
-                <p className="text-xs text-(--ws-muted) mt-0.5 flex items-center gap-1">
-                  <GraduationCap size={12} /> {hwClass.name} ({hwClass.code}) • {t('instructorClass.memberCountSuffix', { count: membersOf(hwClass.id).length })}
-                </p>
-              </div>
-              <button onClick={() => setHwClassId(null)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldTitle')}</label>
-                <input value={hwForm.title} onChange={(e) => setHwForm({ ...hwForm, title: e.target.value })} placeholder={t('instructorClass.fieldTitlePlaceholder')} className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldDeadline')}</label>
-                <input type="datetime-local" value={hwForm.deadline} onChange={(e) => setHwForm({ ...hwForm, deadline: e.target.value })} className="w-full px-3 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldDescription')}</label>
-                <textarea value={hwForm.description} onChange={(e) => setHwForm({ ...hwForm, description: e.target.value })} rows={2} placeholder={t('instructorClass.fieldHwDescriptionPlaceholder')} className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none" />
-              </div>
-
-              {/* Problem manager */}
-              <ProblemManager problems={hwProblems} onChange={setHwProblems} />
-
-              {hwError && <p className="text-xs text-red-600 font-medium">{hwError}</p>}
-              <p className="text-[11.5px] text-[#8a8073] bg-[#f0ebd9] border border-[#e5dac9] rounded-lg px-3 py-2">
-                🔒 {t('instructorClass.hwVisibilityHint', { count: membersOf(hwClass.id).length })}
-              </p>
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-(--ws-border)">
-                <button
-                  type="button"
-                  onClick={() => setHwClassId(null)}
-                  disabled={isSavingHw}
-                  className="px-5 py-2.5 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors disabled:opacity-50"
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  type="button"
-                  onClick={saveHomework}
-                  disabled={isSavingHw}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
-                >
-                  {isSavingHw && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                  {t('instructorClass.saveAndAssign')}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ), document.body)}
     </div>
   );
 }

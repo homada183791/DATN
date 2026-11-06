@@ -385,8 +385,9 @@ export default function InstructorHomework() {
                       Medium: t('instructorHomework.difficultyMedium'),
                       Hard: t('instructorHomework.difficultyHard'),
                     };
+                    const Wrapper: any = p.problem_id ? Link : 'div';
                     return (
-                      <div key={p.id} className="flex items-center gap-3 px-3.5 py-2.5">
+                      <Wrapper key={p.id} {...(p.problem_id ? { to: `/instructor/problem/${p.problem_id}`, title: p.title } : {})} className={`flex items-center gap-3 px-3.5 py-2.5 ${p.problem_id ? 'hover:bg-(--ws-hover) cursor-pointer transition-colors' : ''}`}>
                         <span className="text-xs text-(--ws-muted) font-mono w-5">{i + 1}.</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-(--ws-text) truncate">{p.title}</p>
@@ -394,7 +395,7 @@ export default function InstructorHomework() {
                         </div>
                         <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${dc[p.difficulty]}`}>{dl[p.difficulty]}</span>
                         <span className="text-[11px] text-(--ws-muted) w-9 text-right">{p.points}{t('instructorHomework.pointsSuffix')}</span>
-                      </div>
+                      </Wrapper>
                     );
                   })}
                 </div>

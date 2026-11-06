@@ -99,6 +99,15 @@ function getMSSV(email: string, username?: string | null, id?: string): string {
   return `SV${(id || email.split('@')[0]).slice(0, 6).toUpperCase()}`;
 }
 
+// Hiển thị học kỳ kèm năm học; nếu dữ liệu cũ chưa có năm (vd "Học kỳ 1") thì bổ sung năm học hiện tại.
+function formatSemesterWithYear(semester: string): string {
+  if (/\d{4}\s*[/-]\s*\d{4}/.test(semester)) return semester;
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const start = month >= 9 ? now.getFullYear() : now.getFullYear() - 1;
+  return `${semester} - ${start}/${start + 1}`;
+}
+
 // Computes a sensible "current" semester label (e.g. "Học kỳ 1 - 2026/2027")
 // so the edit-class form doesn't default to a permanently stale year.
 function getDefaultSemester(): string {
@@ -501,7 +510,7 @@ export default function InstructorClassDetail() {
               <div className="flex flex-wrap items-center gap-2 mb-1">
                 <h1 className="text-2xl font-bold font-serif text-[#191919]">{classData.name}</h1>
                 <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-[#f0ebd9] text-[#193a2b] border border-[#e5dac9]">
-                  {classData.semester || t('instructorClassDetail.defaultSemesterLabel')}
+                  {formatSemesterWithYear(classData.semester || t('instructorClassDetail.defaultSemesterLabel'))}
                 </span>
               </div>
               <p className="text-sm text-[#5c5446] max-w-2xl leading-relaxed">
@@ -718,17 +727,6 @@ export default function InstructorClassDetail() {
                         <span className="flex items-center gap-1">
                           <Users size={13} className="text-[#193a2b]" /> {t('instructorClassDetail.progressLabel', { submitted: submittedCount, total: rawMembers.length })}
                         </span>
-                      </div>
-
-                      <div className="w-full max-w-md h-1.5 bg-[#f0ebd9] rounded-full overflow-hidden mt-2.5">
-                        <div
-                          className={`h-full rounded-full transition-all ${
-                            p.overdue ? 'bg-red-600' : p.daysLeft <= 3 ? 'bg-yellow-500' : 'bg-[#193a2b]'
-                          }`}
-                          style={{
-                            width: `${rawMembers.length > 0 ? Math.min(100, (submittedCount / rawMembers.length) * 100) : 0}%`,
-                          }}
-                        />
                       </div>
                     </div>
 
@@ -1111,67 +1109,70 @@ export default function InstructorClassDetail() {
 
       {/* ================= MODAL: GIAO BÀI TẬP MỚI ================= */}
       {showCreateHw && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setShowCreateHw(false)}>
-          <div className="bg-white border border-[#e5dac9] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5dac9]">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setShowCreateHw(false)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border) sticky top-0 z-10 bg-(--ws-panel)">
               <div>
-                <h3 className="font-bold font-serif text-[16px] text-[#191919]">{t('instructorClassDetail.createHwBtn')}</h3>
-                <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorClassDetail.createHwModalClassLabel', { name: classData.name, code: classData.invite_code })}</p>
+                <h3 className="font-bold font-serif text-[16px]">{t('instructorClassDetail.createHwBtn')}</h3>
+                <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorClassDetail.createHwModalClassLabel', { name: classData.name, code: classData.invite_code })}</p>
               </div>
-              <button onClick={() => setShowCreateHw(false)} className="text-[#8a8073] hover:text-[#191919]"><X size={18} /></button>
+              <button onClick={() => setShowCreateHw(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#5c5446] mb-1.5">{t('instructorClassDetail.fieldHwTitle')}</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClassDetail.fieldHwTitle')}</label>
                 <input
                   value={hwForm.title}
                   onChange={(e) => setHwForm({ ...hwForm, title: e.target.value })}
                   placeholder={t('instructorClassDetail.fieldHwTitlePlaceholder')}
-                  className="w-full px-4 py-2.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-sm text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#5c5446] mb-1.5">{t('instructorClassDetail.fieldHwDeadline')}</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClassDetail.fieldHwDeadline')}</label>
                 <input
                   type="datetime-local"
                   value={hwForm.deadline}
                   onChange={(e) => setHwForm({ ...hwForm, deadline: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-sm text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#5c5446] mb-1.5">{t('instructorClassDetail.fieldHwDescriptionLabel')}</label>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClassDetail.fieldHwDescriptionLabel')}</label>
                 <textarea
                   value={hwForm.description}
                   onChange={(e) => setHwForm({ ...hwForm, description: e.target.value })}
                   rows={2}
                   placeholder={t('instructorClassDetail.fieldHwDescriptionPlaceholder')}
-                  className="w-full px-4 py-2.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-sm text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
                 />
               </div>
 
               {/* Problem Manager */}
-              <div className="pt-2">
-                <ProblemManager problems={hwProblems} onChange={setHwProblems} />
-              </div>
+              <ProblemManager problems={hwProblems} onChange={setHwProblems} />
 
               {hwError && <p className="text-xs text-red-600 font-medium">{hwError}</p>}
+              <p className="text-[11.5px] text-[#8a8073] bg-[#f0ebd9] border border-[#e5dac9] rounded-lg px-3 py-2">
+                🔒 {t('instructorHomework.visibilityHint')}
+              </p>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e5dac9]">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-(--ws-border)">
                 <button
+                  type="button"
                   onClick={() => setShowCreateHw(false)}
                   disabled={isSavingHw}
-                  className="px-5 py-2.5 border border-[#e5dac9] text-[#5c5446] text-xs font-semibold rounded-xl hover:bg-[#f0ebd9] transition-colors"
+                  className="px-5 py-2.5 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-muted) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors disabled:opacity-50"
                 >
                   {t('common.cancel')}
                 </button>
                 <button
+                  type="button"
                   onClick={handleSaveHomework}
                   disabled={isSavingHw}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
                 >
                   {isSavingHw && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                   {t('instructorClassDetail.saveAndAssignHw')}
@@ -1185,26 +1186,45 @@ export default function InstructorClassDetail() {
       {/* ================= MODAL: XEM CHI TIẾT BÀI TẬP ================= */}
       {viewHw && hasDocument && createPortal((
         <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setViewHw(null)}>
-          <div className="bg-white border border-[#e5dac9] rounded-2xl w-full max-w-lg shadow-2xl p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-[#e5dac9] pb-3">
-              <h3 className="font-bold font-serif text-base text-[#191919]">{viewHw.title}</h3>
-              <button onClick={() => setViewHw(null)} className="text-[#8a8073] hover:text-[#191919]"><X size={16} /></button>
+          <div className="bg-white border border-[#e5dac9] rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl p-8 space-y-6 text-[#191919]" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-[#e5dac9] pb-4">
+              <h3 className="font-bold font-serif text-xl text-[#191919]">{viewHw.title}</h3>
+              <button onClick={() => setViewHw(null)} className="text-[#8a8073] hover:text-[#191919]"><X size={20} /></button>
             </div>
-            <p className="text-sm text-[#5c5446]">{viewHw.description || t('instructorClassDetail.viewHwModalNoDescription')}</p>
-            <div className="p-3 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-xs space-y-1">
-              <p><strong className="text-[#191919]">{t('instructorClassDetail.deadlineInlineLabel')}</strong> {formatVNFull(viewHw.deadline)}</p>
-              <p><strong className="text-[#191919]">{t('instructorClassDetail.problemCountFieldLabel')}</strong> {Array.isArray(viewHw.tasks) ? viewHw.tasks.length : viewHw.problemCount ?? 0}</p>
+            <p className="text-base text-[#5c5446] leading-relaxed">{viewHw.description || t('instructorClassDetail.viewHwModalNoDescription')}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#8a8073] mb-1">{t('instructorClassDetail.deadlineInlineLabel')}</p>
+                <p className="text-lg font-bold font-serif text-[#191919]">{formatVNFull(viewHw.deadline)}</p>
+              </div>
+              <div className="p-4 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#8a8073] mb-1">{t('instructorClassDetail.problemCountFieldLabel')}</p>
+                <p className="text-lg font-bold font-serif text-[#191919]">{Array.isArray(viewHw.tasks) ? viewHw.tasks.length : viewHw.problemCount ?? 0}</p>
+              </div>
             </div>
 
             {Array.isArray(viewHw.tasks) && viewHw.tasks.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-bold text-[#5c5446] uppercase">{t('instructorClassDetail.problemListLabel')}</p>
-                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+              <div className="space-y-3">
+                <p className="text-sm font-bold text-[#5c5446] uppercase tracking-wider">{t('instructorClassDetail.problemListLabel')}</p>
+                <div className="space-y-2 max-h-72 overflow-y-auto">
                   {viewHw.tasks.map((task: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between p-2 bg-[#f7f4eb] rounded-lg text-xs">
-                      <span className="font-semibold text-[#191919] truncate">{i + 1}. {task.title}</span>
-                      <span className="text-[#193a2b] font-bold">{task.points ?? 100} {t('instructorClassDetail.pointsSuffix')}</span>
-                    </div>
+                    task.problem_id ? (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => navigate(`/instructor/problem/${task.problem_id}`)}
+                        className="w-full flex items-center justify-between p-3 bg-[#f7f4eb] rounded-lg text-sm text-left cursor-pointer hover:bg-[#ece5d2] hover:ring-1 hover:ring-[#193a2b]/30 transition-all"
+                        title={task.title}
+                      >
+                        <span className="font-semibold text-[#191919] truncate hover:underline">{i + 1}. {task.title}</span>
+                        <span className="text-[#193a2b] font-bold shrink-0 ml-3">{task.points ?? 100} {t('instructorClassDetail.pointsSuffix')} &rarr;</span>
+                      </button>
+                    ) : (
+                      <div key={i} className="flex items-center justify-between p-3 bg-[#f7f4eb] rounded-lg text-sm">
+                        <span className="font-semibold text-[#191919] truncate">{i + 1}. {task.title}</span>
+                        <span className="text-[#193a2b] font-bold">{task.points ?? 100} {t('instructorClassDetail.pointsSuffix')}</span>
+                      </div>
+                    )
                   ))}
                 </div>
               </div>
@@ -1212,7 +1232,7 @@ export default function InstructorClassDetail() {
 
             <button
               onClick={() => setViewHw(null)}
-              className="w-full py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022]"
+              className="w-full py-3 bg-[#193a2b] text-white text-sm font-semibold rounded-xl hover:bg-[#143022]"
             >
               {t('instructorClassDetail.closeBtn')}
             </button>

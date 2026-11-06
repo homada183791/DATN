@@ -620,7 +620,7 @@ export default function Submission() {
                   ID
                 </th>
                 <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">
-                  {t('submission.colProblem', 'Bài toán')}
+                  {t('submission.colProblem', 'Bài tập')}
                 </th>
                 {isInstructor && (
                   <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">

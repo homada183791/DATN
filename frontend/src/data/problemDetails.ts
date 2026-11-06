@@ -283,9 +283,8 @@ public class Main {
   },
 };
 
-export function getDetail(problemId: string, title: string, points: number, lang: 'vi' | 'en' = 'vi'): ProblemDetail {
+export function getDetail(problemId: string, title: string, points: number): ProblemDetail {
   if (problemDetails[problemId]) return problemDetails[problemId];
-  const en = lang === 'en';
   return {
     code: problemId.replace('P', 'PROB-'),
     timeLimit: '1.0 s',
@@ -294,33 +293,25 @@ export function getDetail(problemId: string, title: string, points: number, lang
     sections: [
       {
         paragraphs: [
-          en
-            ? `Problem "${title}". Read the requirements carefully, design a suitable algorithm and implement it in one of the supported languages.`
-            : `Bài toán "${title}". Hãy đọc kỹ yêu cầu, thiết kế thuật toán phù hợp và cài đặt bằng một trong các ngôn ngữ được hỗ trợ.`,
-          en
-            ? 'This problem is part of the JudgeHub system — judging results are returned automatically within a few seconds.'
-            : 'Bài tập này thuộc hệ thống JudgeHub — kết quả chấm được trả về tự động trong vòng vài giây.',
+          `Bài tập "${title}". Hãy đọc kỹ yêu cầu, thiết kế thuật toán phù hợp và cài đặt bằng một trong các ngôn ngữ được hỗ trợ.`,
+          'Bài tập này thuộc hệ thống JudgeHub — kết quả chấm được trả về tự động trong vòng vài giây.',
         ],
       },
       {
-        heading: en ? 'Input' : 'Đầu vào',
-        bullets: [
-          en
-            ? 'Input is read from the keyboard (stdin), on multiple lines in the format described in the original statement.'
-            : 'Dữ liệu vào từ bàn phím (stdin), gồm nhiều dòng theo định dạng mô tả trong đề gốc.',
-        ],
+        heading: 'Đầu vào',
+        bullets: ['Dữ liệu vào từ bàn phím (stdin), gồm nhiều dòng theo định dạng mô tả trong đề gốc.'],
       },
       {
-        heading: en ? 'Output' : 'Đầu ra',
-        paragraphs: [en ? 'Print the result to the screen (stdout) in the required format.' : 'In kết quả ra màn hình (stdout) theo đúng định dạng yêu cầu.'],
+        heading: 'Đầu ra',
+        paragraphs: ['In kết quả ra màn hình (stdout) theo đúng định dạng yêu cầu.'],
       },
       {
-        heading: en ? 'Constraints' : 'Ràng buộc',
+        heading: 'Ràng buộc',
         table: {
-          head: en ? ['Quantity', 'Limit'] : ['Đại lượng', 'Giới hạn'],
+          head: ['Đại lượng', 'Giới hạn'],
           rows: [
-            [en ? 'Time' : 'Thời gian', '1.0 s'],
-            [en ? 'Memory' : 'Bộ nhớ', '256 MB'],
+            ['Thời gian', '1.0 s'],
+            ['Bộ nhớ', '256 MB'],
           ],
         },
       },

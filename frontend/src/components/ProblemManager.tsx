@@ -57,7 +57,7 @@ export default function ProblemManager({ problems, onChange }: Props) {
   // ── Link từ ngân hàng ────────────────────────────────────────────────────
   const linkFromBank = async (bankId: string) => {
     const bank = bankProblems.find((p) => p.id === bankId);
-    if (!bank) return;
+    if (!bank || linkingId) return;
     if (problems.some((p) => p.problem_id === bankId)) {
       setLinkErr(t('problemManager.duplicate'));
       return;
@@ -79,7 +79,6 @@ export default function ProblemManager({ problems, onChange }: Props) {
         sampleOutput: sampleTc?.expected_output ?? '',
       };
       onChange([...problems, task]);
-      setModalType(null);
     } catch {
       // Fallback an toàn nếu có lỗi kết nối
       const task: HomeworkProblem = {
@@ -93,7 +92,6 @@ export default function ProblemManager({ problems, onChange }: Props) {
         sampleOutput: '',
       };
       onChange([...problems, task]);
-      setModalType(null);
     } finally {
       setLinkingId(null);
     }
@@ -309,8 +307,8 @@ export default function ProblemManager({ problems, onChange }: Props) {
 
                       <button
                         type="button"
-                        onClick={() => !alreadyAdded && !isLinking && linkFromBank(bp.id)}
-                        disabled={alreadyAdded || isLinking}
+                        onClick={() => !alreadyAdded && !linkingId && linkFromBank(bp.id)}
+                        disabled={alreadyAdded || !!linkingId}
                         className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all ${
                           alreadyAdded
                             ? 'bg-emerald-100 text-emerald-800 cursor-not-allowed border border-emerald-200'
