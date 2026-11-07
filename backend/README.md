@@ -37,7 +37,7 @@ Authorized JavaScript origins.
 Từ thư mục gốc:
 
 ```bash
-docker compose up -d postgres redis rabbitmq
+docker compose up -d postgres redis rabbitmq judge_runner
 ```
 
 ## Prisma

@@ -1,6 +1,7 @@
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { WebhookService } from './webhook.service';
 import { JudgeResultDto } from './dto/judge-result.dto';
+import { JudgeProgressDto } from './dto/judge-progress.dto';
 import { JudgeSecretGuard } from '../../common/guards/judge-secret.guard';
 import { ApiTags, ApiOperation, ApiResponse, ApiHeader } from '@nestjs/swagger';
 
@@ -21,5 +22,17 @@ export class WebhookController {
   @ApiResponse({ status: 403, description: 'Sai Secret Key' })
   handleJudgeResult(@Body() judgeResultDto: JudgeResultDto) {
     return this.webhookService.processJudgeResult(judgeResultDto);
+  }
+
+  @Post('judge/progress')
+  @UseGuards(JudgeSecretGuard)
+  @ApiOperation({ summary: 'Webhook cập nhật tiến độ từng testcase' })
+  @ApiHeader({
+    name: 'x-judge-secret',
+    description: 'Secret key để xác thực Judge Server',
+    required: true,
+  })
+  handleJudgeProgress(@Body() progress: JudgeProgressDto) {
+    return this.webhookService.processJudgeProgress(progress);
   }
 }

@@ -887,6 +887,11 @@ interface SubmissionStatusPayload {
   execution_time?: number | null;
   memory_used?: number | null;
 }
+interface SubmissionProgressPayload {
+  submission_id: string;
+  completed_tests: number;
+  total_tests: number;
+}
 
 const now = () => new Date().toLocaleTimeString('en-GB', { hour12: false });
 const MIN_BOTTOM_PANEL_HEIGHT = 44;
@@ -983,7 +988,8 @@ export default function ProblemSolve() {
 
   const getInitialSamples = useCallback(() => {
     if (apiProblem?.test_cases && apiProblem.test_cases.length > 0) {
-      const visible = apiProblem.test_cases.filter((tc) => !tc.is_hidden);
+      // Test mẫu (dùng cho "Chạy"): chỉ lấy 2 test case đầu tiên không bị ẩn
+      const visible = apiProblem.test_cases.filter((tc) => !tc.is_hidden).slice(0, 2);
       if (visible.length > 0) {
         return visible.map((tc, idx) => ({
           id: idx + 1,
@@ -1011,7 +1017,7 @@ export default function ProblemSolve() {
     [apiProblem?.allowed_languages],
   );
 
-  const [selectedLangId, setSelectedLangId] = useState<string>('CPP17');
+  const [selectedLangId, setSelectedLangId] = useState<string>('CPP11');
 
   const currentLangConfig = useMemo(
     () => getLanguageConfig(selectedLangId),
@@ -1126,6 +1132,8 @@ export default function ProblemSolve() {
   const [running, setRunning] = useState(false);
   const [judging, setJudging] = useState(false);
   const [judgeProgress, setJudgeProgress] = useState(0);
+  const [completedTests, setCompletedTests] = useState(0);
+  const [totalTests, setTotalTests] = useState(0);
   const [testVerdicts, setTestVerdicts] = useState<TestVerdict[]>([]);
   const [finalVerdict, setFinalVerdict] = useState<string | null>(null);
   const [cooldownUntil, setCooldownUntil] = useState(0);
@@ -1415,8 +1423,19 @@ export default function ProblemSolve() {
         if (payload.session_id !== sessionId) return;
         window.clearTimeout(timeout);
         socket.off('custom_run_result', handler);
-        // webhook emits 'stdout', fallback to 'output' then 'stderr'
-        const raw = (payload.stdout ?? payload.output ?? payload.stderr ?? '(no output)').trim();
+        // Ưu tiên stdout; nếu rỗng (lỗi biên dịch / lỗi chạy) thì hiện stderr kèm trạng thái
+        // để người dùng thấy nguyên nhân thay vì "Got:" trống.
+        const out = (payload.stdout ?? payload.output ?? '').trim();
+        const err = (payload.stderr ?? '').trim();
+        const failed = !!payload.status && payload.status !== 'OK' && payload.status !== 'ACCEPTED';
+        const raw =
+          out !== ''
+            ? out
+            : err !== ''
+              ? `${failed ? `[${payload.status}] ` : ''}${err}`
+              : failed
+                ? `[${payload.status}]`
+                : '(no output)';
         resolve({ output: raw, time: payload.execution_time ?? undefined, ok: payload.status === 'OK' || payload.status === 'ACCEPTED' });
       };
       socket.on('custom_run_result', handler);
@@ -1477,7 +1496,8 @@ export default function ProblemSolve() {
         } else {
           pushConsole(`Test ${i + 1}: WRONG ANSWER`, 'err');
           pushConsole(`  Expected: ${expected.slice(0, 100)}${expected.length > 100 ? '…' : ''}`, 'info');
-          pushConsole(`  Got:      ${result.output.slice(0, 100)}${result.output.length > 100 ? '…' : ''}`, 'err');
+          const gotLimit = /^\[[A-Z_]+\]/.test(result.output) ? 800 : 100; // thông báo lỗi biên dịch/chạy cần dài hơn
+          pushConsole(`  Got:      ${result.output.slice(0, gotLimit)}${result.output.length > gotLimit ? '…' : ''}`, 'err');
         }
       } catch (err) {
         const msg = err instanceof ApiError ? err.message : t('problemSolve.unknownError');
@@ -1504,12 +1524,15 @@ export default function ProblemSolve() {
     setFinalVerdict(null);
     setTestVerdicts([]);
     setJudgeProgress(0);
+    setCompletedTests(0);
+    setTotalTests(0);
     pushConsole(`$ judge --submit ${detail.code} --lang ${currentLangConfig.name} (${currentLangConfig.compiler})`, 'sys');
     pushConsole(t('problemSolve.consoleSubmitting'), 'info');
     let submissionId: string;
+    let totalTestCases = 0;
     try {
       const apiLang = mapVersionToApi(selectedLangId);
-      const response = await apiFetch<{ submission_id: string }>('/api/v1/submissions', {
+      const response = await apiFetch<{ submission_id: string; total_test_cases: number }>('/api/v1/submissions', {
         method: 'POST',
         body: JSON.stringify({
           problem_id: problemId,
@@ -1520,6 +1543,8 @@ export default function ProblemSolve() {
         }),
       });
       submissionId = response.submission_id;
+      totalTestCases = response.total_test_cases;
+      setTotalTests(totalTestCases);
       if (!submissionId) {
         throw new Error(t('problemSolve.submissionIdMissingError'));
       }
@@ -1575,11 +1600,12 @@ export default function ProblemSolve() {
     socket.on('submission_status_changed', (payload: SubmissionStatusPayload) => {
       const status = payload.status.toUpperCase();
       const verdict = terminalVerdicts[status];
-      setJudgeProgress(verdict ? 100 : status === 'IN_QUEUE' ? 35 : 15);
       pushConsole(t('problemSolve.consoleSubmissionStatus', { status }), verdict === 'AC' ? 'ok' : verdict ? 'err' : 'info');
 
       if (!verdict) return;
 
+      setJudgeProgress(100);
+      setCompletedTests((current) => Math.max(current, totalTestCases));
       queryClient.invalidateQueries({ queryKey: ['submissions', 'problem', problemId] });
       queryClient.invalidateQueries({ queryKey: ['submissions'] });
 
@@ -1589,6 +1615,21 @@ export default function ProblemSolve() {
       setJudging(false);
       socket.disconnect();
       submissionSocketRef.current = null;
+    });
+
+    socket.on('submission_progress', (payload: SubmissionProgressPayload) => {
+      if (payload.submission_id !== submissionId) return;
+      const completed = Math.min(payload.completed_tests, payload.total_tests);
+      const percent = payload.total_tests > 0
+        ? Math.round((completed / payload.total_tests) * 100)
+        : 0;
+      setCompletedTests(completed);
+      setTotalTests(payload.total_tests);
+      setJudgeProgress(percent);
+      pushConsole(
+        `Judge progress: ${completed}/${payload.total_tests} tests (${percent}%)`,
+        'info',
+      );
     });
 
     socket.on('connect_error', (err) => {
@@ -2604,7 +2645,7 @@ export default function ProblemSolve() {
                     <div className="mb-4">
                       <div className="flex items-center justify-between text-[11.5px] text-(--ws-muted) mb-1.5">
                         <span>{t('problemSolve.judging', { percent: Math.round(judgeProgress) })}</span>
-                        <span>{Math.round((judgeProgress / 100) * 8)}/8 tests</span>
+                        <span>{completedTests}/{totalTests} tests</span>
                       </div>
                       <div className="h-1.5 bg-(--ws-panel2) rounded-full overflow-hidden">
                         <div className="h-full bg-(--ws-accent) transition-all duration-300" style={{ width: `${judgeProgress}%` }} />

@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JudgeResultDto } from './dto/judge-result.dto';
+import { JudgeProgressDto } from './dto/judge-progress.dto';
 import { EventsGateway } from '../../events/events.gateway';
 import { UsersService } from '../users/users.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -78,6 +79,19 @@ export class WebhookService {
     private readonly usersService: UsersService,
     private readonly notificationsService: NotificationsService,
   ) {}
+
+  processJudgeProgress(progress: JudgeProgressDto) {
+    this.logger.log(
+      `[Judge progress] Submission ${progress.submission_id}: ${progress.completed_tests}/${progress.total_tests} tests`,
+    );
+    this.eventsGateway.emitSubmissionProgress(progress.submission_id, {
+      completed_tests: Math.min(progress.completed_tests, progress.total_tests),
+      total_tests: progress.total_tests,
+      testcase_index: progress.testcase_index,
+    });
+
+    return { success: true };
+  }
 
   async processJudgeResult(judgeResultDto: JudgeResultDto) {
     const {

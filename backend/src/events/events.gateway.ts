@@ -18,10 +18,26 @@ import { JoinAdminDashboardDto } from './dto/join-admin-dashboard.dto';
 export class EventsGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
+  private static readonly SUBMISSION_SNAPSHOT_TTL_MS = 5 * 60 * 1000;
+  private static readonly MAX_SUBMISSION_SNAPSHOTS = 1000;
+
   @WebSocketServer()
   server: Server;
 
   private readonly logger = new Logger(EventsGateway.name);
+  private readonly submissionSnapshots = new Map<
+    string,
+    {
+      progress?: {
+        submission_id: string;
+        completed_tests: number;
+        total_tests: number;
+        testcase_index: number;
+      };
+      status?: Record<string, unknown>;
+      expiresAt: number;
+    }
+  >();
 
   afterInit(server: Server) {
     this.logger.log('Websocket Gateway Initialized');
@@ -38,16 +54,26 @@ export class EventsGateway
   // ─── Submission room ────────────────────────────────────────────────────────
 
   @SubscribeMessage('join_submission')
-  handleJoinSubmission(
+  async handleJoinSubmission(
     @ConnectedSocket() client: Socket,
     @MessageBody() joinSubmissionRoomDto: JoinSubmissionRoomDto,
   ) {
     try {
-      const roomName = `submission_${joinSubmissionRoomDto.submission_id}`;
-      client.join(roomName);
+      const { submission_id } = joinSubmissionRoomDto;
+      const roomName = `submission_${submission_id}`;
+      await client.join(roomName);
       this.logger.log(
         `[EventsGateway] Client ${client.id} joined room ${roomName}`,
       );
+
+      const snapshot = this.getSubmissionSnapshot(submission_id);
+      if (snapshot?.progress) {
+        client.emit('submission_progress', snapshot.progress);
+      }
+      if (snapshot?.status) {
+        client.emit('submission_status_changed', snapshot.status);
+      }
+
       return { success: true, event: 'joined', room: roomName };
     } catch (error: any) {
       this.logger.error(`[EventsGateway] Error joining room: ${error.message}`);
@@ -131,6 +157,7 @@ export class EventsGateway
 
   public emitSubmissionUpdate(submission_id: string, payload: any) {
     try {
+      this.updateSubmissionSnapshot(submission_id, { status: payload });
       const roomName = `submission_${submission_id}`;
       this.server.to(roomName).emit('submission_status_changed', payload);
       this.logger.log(
@@ -140,6 +167,62 @@ export class EventsGateway
       this.logger.error(
         `[EventsGateway] Error emitting update: ${error.message}`,
       );
+    }
+  }
+
+  public emitSubmissionProgress(
+    submission_id: string,
+    payload: { completed_tests: number; total_tests: number; testcase_index: number },
+  ) {
+    try {
+      this.updateSubmissionSnapshot(submission_id, {
+        progress: { submission_id, ...payload },
+      });
+      this.server
+        .to(`submission_${submission_id}`)
+        .emit('submission_progress', { submission_id, ...payload });
+    } catch (error: any) {
+      this.logger.error(
+        `[EventsGateway] Error emitting submission progress: ${error.message}`,
+      );
+    }
+  }
+
+  private getSubmissionSnapshot(submission_id: string) {
+    const snapshot = this.submissionSnapshots.get(submission_id);
+    if (snapshot && snapshot.expiresAt <= Date.now()) {
+      this.submissionSnapshots.delete(submission_id);
+      return undefined;
+    }
+    return snapshot;
+  }
+
+  private updateSubmissionSnapshot(
+    submission_id: string,
+    update: {
+      progress?: {
+        submission_id: string;
+        completed_tests: number;
+        total_tests: number;
+        testcase_index: number;
+      };
+      status?: Record<string, unknown>;
+    },
+  ) {
+    const previous = this.getSubmissionSnapshot(submission_id);
+    this.submissionSnapshots.delete(submission_id);
+    this.submissionSnapshots.set(submission_id, {
+      ...previous,
+      ...update,
+      expiresAt: Date.now() + EventsGateway.SUBMISSION_SNAPSHOT_TTL_MS,
+    });
+
+    while (
+      this.submissionSnapshots.size > EventsGateway.MAX_SUBMISSION_SNAPSHOTS
+    ) {
+      const oldestSubmissionId = this.submissionSnapshots.keys().next().value;
+      if (!oldestSubmissionId) break;
+      this.submissionSnapshots.delete(oldestSubmissionId);
     }
   }
 

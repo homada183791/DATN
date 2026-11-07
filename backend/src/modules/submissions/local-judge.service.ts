@@ -279,7 +279,11 @@ export class LocalJudgeService {
     time_limit: number;
     memory_limit: number;
     test_cases: Array<{ id?: string; input: string; expected_output: string; is_hidden?: boolean }>;
-  }): Promise<SubmissionEvaluationResult> {
+  }, onTestCaseComplete?: (progress: {
+    completed_tests: number;
+    total_tests: number;
+    testcase_index: number;
+  }) => void): Promise<SubmissionEvaluationResult> {
     const { language, language_version, source_code, time_limit = 1000, memory_limit = 256, test_cases = [] } = payload;
     const tempDir = path.join(os.tmpdir(), `datn_judge_${randomUUID()}`);
     fs.mkdirSync(tempDir, { recursive: true });
@@ -351,6 +355,12 @@ export class LocalJudgeService {
           execution_time: res.executionTime,
           memory_used: 12,
           actual_output: res.stdout.slice(0, 1000),
+        });
+
+        onTestCaseComplete?.({
+          completed_tests: results.length,
+          total_tests: test_cases.length,
+          testcase_index: i,
         });
 
         if (status !== 'ACCEPTED' && finalStatus === 'ACCEPTED') {

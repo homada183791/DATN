@@ -354,52 +354,53 @@ export class SubmissionsService {
     };
 
     // B4: Gọi hàm publishJudgeJob của QueueService
-    const dispatched = this.queueService.publishJudgeJob(payload);
+    const dispatched = await this.queueService.publishJudgeJob(payload);
 
-    // B4.1: Fallback Judge Engine:
-    // Đảm bảo không bao giờ bị kẹt ở PENDING:
-    // Nếu RabbitMQ offline hoặc Worker chưa phản hồi sau 2s,
-    // LocalJudgeService sẽ tự động thực thi và cập nhật kết quả tức thì!
-    setTimeout(async () => {
-      try {
-        const check = await this.prisma.submission.findUnique({
-          where: { id: submission.id },
-          select: { status: true },
-        });
-        if (check && (check.status === 'PENDING' || check.status === 'IN_QUEUE')) {
-          this.logger.log(
-            `[JudgeFallback] Submission ${submission.id} is still ${check.status}. Executing via LocalJudgeService...`,
+    if (!dispatched) {
+      setTimeout(async () => {
+        try {
+          const check = await this.prisma.submission.findUnique({
+            where: { id: submission.id },
+            select: { status: true },
+          });
+          if (check && (check.status === 'PENDING' || check.status === 'IN_QUEUE')) {
+            this.logger.log(
+              `[JudgeFallback] Queue publish failed for ${submission.id}. Executing via LocalJudgeService...`,
+            );
+            const evalResult = await this.localJudgeService.evaluateSubmission({
+              language,
+              language_version: createSubmissionDto.language_version,
+              source_code,
+              time_limit: problem.time_limit,
+              memory_limit: problem.memory_limit,
+              test_cases: problem.test_cases,
+            }, (progress) => {
+              this.eventsGateway.emitSubmissionProgress(submission.id, progress);
+            });
+
+            await this.webhookService.processJudgeResult({
+              is_custom: false,
+              submission_id: submission.id,
+              status: evalResult.status as SubmissionStatus,
+              execution_time: evalResult.execution_time,
+              memory_used: evalResult.memory_used,
+              test_results: evalResult.test_results as any,
+            });
+          }
+        } catch (err: any) {
+          this.logger.error(
+            `[JudgeFallback] Failed to evaluate submission ${submission.id}: ${err.message}`,
+            err.stack,
           );
-          const evalResult = await this.localJudgeService.evaluateSubmission({
-            language,
-            language_version: createSubmissionDto.language_version,
-            source_code,
-            time_limit: problem.time_limit,
-            memory_limit: problem.memory_limit,
-            test_cases: problem.test_cases,
-          });
-
-          await this.webhookService.processJudgeResult({
-            is_custom: false,
-            submission_id: submission.id,
-            status: evalResult.status as SubmissionStatus,
-            execution_time: evalResult.execution_time,
-            memory_used: evalResult.memory_used,
-            test_results: evalResult.test_results as any,
-          });
         }
-      } catch (err: any) {
-        this.logger.error(
-          `[JudgeFallback] Failed to evaluate submission ${submission.id}: ${err.message}`,
-          err.stack,
-        );
-      }
-    }, dispatched ? 2000 : 100);
+      }, 100);
+    }
 
     // B5: Trả về cho frontend
     return {
       success: true,
       submission_id: submission.id,
+      total_test_cases: problem.test_cases.length,
       message: 'Code has been submitted and is pending execution.',
     };
   }
@@ -423,33 +424,34 @@ export class SubmissionsService {
         custom_input,
       };
 
-      this.queueService.publishJudgeJob(payload);
+      const dispatched = await this.queueService.publishJudgeJob(payload);
 
-      // Chạy ngay local fallback để người dùng nhận kết quả chạy thử chỉ trong vài mili-giây
-      setTimeout(async () => {
-        try {
-          const evalResult = await this.localJudgeService.evaluateCustomRun({
-            language,
-            language_version: dto.language_version,
-            source_code,
-            custom_input,
-          });
+      if (!dispatched) {
+        setTimeout(async () => {
+          try {
+            const evalResult = await this.localJudgeService.evaluateCustomRun({
+              language,
+              language_version: dto.language_version,
+              source_code,
+              custom_input,
+            });
 
-          await this.webhookService.processJudgeResult({
-            is_custom: true,
-            session_id: sessionId,
-            status: evalResult.status as SubmissionStatus,
-            stdout: evalResult.stdout,
-            stderr: evalResult.stderr,
-            execution_time: evalResult.execution_time,
-            memory_used: evalResult.memory_used,
-          });
-        } catch (err: any) {
-          this.logger.error(
-            `[CustomRunFallback] Failed session ${sessionId}: ${err.message}`,
-          );
-        }
-      }, 150);
+            await this.webhookService.processJudgeResult({
+              is_custom: true,
+              session_id: sessionId,
+              status: evalResult.status as SubmissionStatus,
+              stdout: evalResult.stdout,
+              stderr: evalResult.stderr,
+              execution_time: evalResult.execution_time,
+              memory_used: evalResult.memory_used,
+            });
+          } catch (err: any) {
+            this.logger.error(
+              `[CustomRunFallback] Failed session ${sessionId}: ${err.message}`,
+            );
+          }
+        }, 100);
+      }
 
       return {
         success: true,
@@ -542,7 +544,7 @@ export class SubmissionsService {
       where: { submission_id: id },
     });
 
-    const dispatched = this.queueService.publishJudgeJob({
+    const dispatched = await this.queueService.publishJudgeJob({
       is_custom: false,
       submission_id: submission.id,
       problem_id: submission.problem_id,
@@ -553,36 +555,37 @@ export class SubmissionsService {
       test_cases: submission.problem.test_cases,
     });
 
-    // Fallback nếu worker không chấm:
-    setTimeout(async () => {
-      try {
-        const check = await this.prisma.submission.findUnique({
-          where: { id },
-          select: { status: true },
-        });
-        if (check && (check.status === 'PENDING' || check.status === 'IN_QUEUE')) {
-          this.logger.log(`[JudgeFallback] Rejudging submission ${id} locally...`);
-          const evalResult = await this.localJudgeService.evaluateSubmission({
-            language: submission.language,
-            source_code: submission.source_code,
-            time_limit: submission.problem.time_limit,
-            memory_limit: submission.problem.memory_limit,
-            test_cases: submission.problem.test_cases,
+    if (!dispatched) {
+      setTimeout(async () => {
+        try {
+          const check = await this.prisma.submission.findUnique({
+            where: { id },
+            select: { status: true },
           });
+          if (check && (check.status === 'PENDING' || check.status === 'IN_QUEUE')) {
+            this.logger.log(`[JudgeFallback] Queue publish failed; rejudging submission ${id} locally...`);
+            const evalResult = await this.localJudgeService.evaluateSubmission({
+              language: submission.language,
+              source_code: submission.source_code,
+              time_limit: submission.problem.time_limit,
+              memory_limit: submission.problem.memory_limit,
+              test_cases: submission.problem.test_cases,
+            });
 
-          await this.webhookService.processJudgeResult({
-            is_custom: false,
-            submission_id: id,
-            status: evalResult.status as SubmissionStatus,
-            execution_time: evalResult.execution_time,
-            memory_used: evalResult.memory_used,
-            test_results: evalResult.test_results as any,
-          });
+            await this.webhookService.processJudgeResult({
+              is_custom: false,
+              submission_id: id,
+              status: evalResult.status as SubmissionStatus,
+              execution_time: evalResult.execution_time,
+              memory_used: evalResult.memory_used,
+              test_results: evalResult.test_results as any,
+            });
+          }
+        } catch (err: any) {
+          this.logger.error(`[JudgeFallback] Failed to rejudge ${id}: ${err.message}`);
         }
-      } catch (err: any) {
-        this.logger.error(`[JudgeFallback] Failed to rejudge ${id}: ${err.message}`);
-      }
-    }, dispatched ? 2000 : 100);
+      }, 100);
+    }
 
     // Phát socket update
     this.eventsGateway.emitSubmissionUpdate(id, {

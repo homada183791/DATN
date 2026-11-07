@@ -8,6 +8,25 @@ const WEBHOOK_URL = process.env.WEBHOOK_URL || 'http://host.docker.internal:3000
 
 const JUDGE_SECRET = process.env.JUDGE_SECRET || 'default-judge-secret-key';
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function decodeJobMessage(content: Buffer): Record<string, unknown> {
+  const message: unknown = JSON.parse(content.toString());
+  if (!isRecord(message)) {
+    throw new Error('Invalid judge message: expected an object');
+  }
+
+  const payload =
+    'pattern' in message && 'data' in message ? message.data : message;
+  if (!isRecord(payload)) {
+    throw new Error('Invalid judge message: expected a job payload');
+  }
+
+  return payload;
+}
+
 export class JudgeConsumer {
   static async start() {
     try {
@@ -20,7 +39,7 @@ export class JudgeConsumer {
       ch.consume(QUEUE_NAME, async (msg) => {
         if (msg !== null) {
           try {
-            const payload = JSON.parse(msg.content.toString());
+            const payload = decodeJobMessage(msg.content);
             console.log(`[x] Received job for ${payload.is_custom ? 'custom run' : 'submission'} (ID: ${payload.submission_id || payload.session_id})`);
             
             await this.processJob(payload);
@@ -59,7 +78,7 @@ export class JudgeConsumer {
         stderr: result.stderr,
         execution_time: result.execution_time,
         memory_used: result.memory_used,
-      }, { headers }).catch(err => console.error(`[!] Webhook failed: ${err.message}`));
+      }, { headers });
       
     } else {
       const submissionPayload: RunSubmissionPayload = {
@@ -71,7 +90,30 @@ export class JudgeConsumer {
         test_cases: payload.test_cases || [],
       };
       
-      const result = await DockerRunner.runSubmission(submissionPayload);
+      const result = await DockerRunner.runSubmission(
+        submissionPayload,
+        async (progress) => {
+          try {
+            const response = await axios.post(
+              `${WEBHOOK_URL}/progress`,
+              { submission_id: payload.submission_id, ...progress },
+              { headers },
+            );
+            console.log(
+              `[Judge progress] Submission ${payload.submission_id}: ${progress.completed_tests}/${progress.total_tests} tests (HTTP ${response.status})`,
+            );
+          } catch (err: unknown) {
+            const message = axios.isAxiosError(err)
+              ? `${err.message}${err.response ? ` (HTTP ${err.response.status})` : ''}`
+              : err instanceof Error
+                ? err.message
+                : String(err);
+            console.error(
+              `[!] Judge progress webhook failed for submission ${payload.submission_id} at ${progress.completed_tests}/${progress.total_tests}: ${message}`,
+            );
+          }
+        },
+      );
       
       await axios.post(WEBHOOK_URL, {
         is_custom: false,
@@ -80,7 +122,7 @@ export class JudgeConsumer {
         execution_time: result.test_results.reduce((acc, curr) => Math.max(acc, curr.execution_time || 0), 0),
         memory_used: result.test_results.reduce((acc, curr) => Math.max(acc, curr.memory_used || 0), 0),
         test_results: result.test_results,
-      }, { headers }).catch(err => console.error(`[!] Webhook failed: ${err.message}`));
+      }, { headers });
     }
   }
 }
