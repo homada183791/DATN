@@ -173,29 +173,31 @@ export default function PersonalPage() {
             </div>
           )}
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white border border-[#e5dac9] rounded-xl p-5 text-center shadow-sm">
-              <CheckCircle2 size={24} className="text-[#193a2b] mx-auto mb-2" />
-              <p className="text-2xl font-bold font-serif text-[#191919]">{stats?.solved_count || 0}</p>
-              <p className="text-xs text-[#8a8073] mt-0.5">{t('personal.solvedCount')}</p>
+          {/* Stats Grid (ẩn với giảng viên) */}
+          {!isInstructor && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white border border-[#e5dac9] rounded-xl p-5 text-center shadow-sm">
+                <CheckCircle2 size={24} className="text-[#193a2b] mx-auto mb-2" />
+                <p className="text-2xl font-bold font-serif text-[#191919]">{stats?.solved_count || 0}</p>
+                <p className="text-xs text-[#8a8073] mt-0.5">{t('personal.solvedCount')}</p>
+              </div>
+              <div className="bg-white border border-[#e5dac9] rounded-xl p-5 text-center shadow-sm">
+                <Send size={24} className="text-blue-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold font-serif text-[#191919]">{stats?.total_submissions || 0}</p>
+                <p className="text-xs text-[#8a8073] mt-0.5">{t('personal.totalSubmissions')}</p>
+              </div>
+              <div className="bg-white border border-[#e5dac9] rounded-xl p-5 text-center shadow-sm">
+                <Award size={24} className="text-yellow-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold font-serif text-[#191919]">{user?.rating ?? 1200}</p>
+                <p className="text-xs text-[#8a8073] mt-0.5">{t('personal.ratingElo')}</p>
+              </div>
+              <div className="bg-white border border-[#e5dac9] rounded-xl p-5 text-center shadow-sm">
+                <TrendingUp size={24} className="text-purple-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold font-serif text-[#191919]">{stats?.ac_rate || 0}%</p>
+                <p className="text-xs text-[#8a8073] mt-0.5">{t('personal.acceptanceRate')}</p>
+              </div>
             </div>
-            <div className="bg-white border border-[#e5dac9] rounded-xl p-5 text-center shadow-sm">
-              <Send size={24} className="text-blue-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold font-serif text-[#191919]">{stats?.total_submissions || 0}</p>
-              <p className="text-xs text-[#8a8073] mt-0.5">{t('personal.totalSubmissions')}</p>
-            </div>
-            <div className="bg-white border border-[#e5dac9] rounded-xl p-5 text-center shadow-sm">
-              <Award size={24} className="text-yellow-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold font-serif text-[#191919]">{user?.rating ?? 1200}</p>
-              <p className="text-xs text-[#8a8073] mt-0.5">{t('personal.ratingElo')}</p>
-            </div>
-            <div className="bg-white border border-[#e5dac9] rounded-xl p-5 text-center shadow-sm">
-              <TrendingUp size={24} className="text-purple-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold font-serif text-[#191919]">{stats?.ac_rate || 0}%</p>
-              <p className="text-xs text-[#8a8073] mt-0.5">{t('personal.acceptanceRate')}</p>
-            </div>
-          </div>
+          )}
 
           {/* Activity Heatmap */}
           <ActivityHeatmap data={heatmap} />

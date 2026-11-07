@@ -24,8 +24,6 @@ export const SUPPORTED_LANGUAGES: LanguageVersionConfig[] = [
     monacoLang: 'cpp',
     badgeColor: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
     template: `#include <iostream>
-#include <vector>
-#include <algorithm>
 
 using namespace std;
 
@@ -50,8 +48,6 @@ int main() {
     monacoLang: 'cpp',
     badgeColor: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
     template: `#include <iostream>
-#include <vector>
-#include <algorithm>
 
 using namespace std;
 
@@ -409,11 +405,11 @@ export function getAllowedLanguagesList(allowed?: string[]): LanguageVersionConf
   const filtered = SUPPORTED_LANGUAGES.filter(
     (l) => set.has(l.id.toUpperCase()) || set.has(l.category.toUpperCase()),
   );
-  // đề cũ có thể chỉ cho phép ngôn ngữ đã bị gỡ (PyPy, Node.js) → mở lại toàn bộ để không bị trống
+  // Nếu đề chỉ cho phép các ngôn ngữ đã bị gỡ (PyPy, Node.js...) thì dùng toàn bộ danh sách
   return filtered.length > 0 ? filtered : SUPPORTED_LANGUAGES;
 }
 
-// Nhãn ngắn gọn cho ô chọn ngôn ngữ: "C++ 17", "C99", "Python 3.10", "Java 8" (bỏ trình biên dịch / "LTS")
+/** Nhãn gọn cho ô chọn ngôn ngữ: chỉ tên + phiên bản (vd "C++ 17", "Python 3.10", "Java 8", "C99"). */
 export function getLanguageLabel(cfg: LanguageVersionConfig): string {
   return cfg.name.replace(/\s+LTS$/i, '').replace(/^C\+\+(\d+)$/, 'C++ $1');
 }

@@ -193,7 +193,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
       {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-[#f0ebd9] border-r border-[#e5dac9] transition-all duration-300 lg:sticky lg:top-0 lg:h-screen lg:self-start lg:shrink-0 ${
-          sidebarOpen ? 'w-64' : 'w-20'
+          sidebarOpen ? 'w-52' : 'w-20'
         } ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         {/* Logo */}
@@ -524,15 +524,19 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
             )}
           </div>
 
-          {/* Stats chips */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[#f0ebd9] rounded-lg border border-[#e5dac9]">
-            <Trophy size={14} className="text-[#cc5a37]" />
-            <span className="text-sm text-[#cc5a37] font-semibold font-mono">{user?.rating}</span>
-          </div>
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[#f0ebd9] rounded-lg border border-[#e5dac9]">
-            <BookOpen size={14} className="text-[#193a2b]" />
-            <span className="text-sm text-[#193a2b] font-semibold font-mono">{user?.solvedCount}</span>
-          </div>
+          {/* Stats chips (ẩn với giảng viên) */}
+          {user?.role !== 'instructor' && (
+            <>
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[#f0ebd9] rounded-lg border border-[#e5dac9]">
+              <Trophy size={14} className="text-[#cc5a37]" />
+              <span className="text-sm text-[#cc5a37] font-semibold font-mono">{user?.rating}</span>
+            </div>
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[#f0ebd9] rounded-lg border border-[#e5dac9]">
+              <BookOpen size={14} className="text-[#193a2b]" />
+              <span className="text-sm text-[#193a2b] font-semibold font-mono">{user?.solvedCount}</span>
+            </div>
+            </>
+          )}
 
           {/* Avatar + dropdown */}
           <div className="relative pl-3 border-l border-[#e5dac9]">
@@ -570,14 +574,16 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                 </div>
 
                 {/* stats (mobile visibility) */}
-                <div className="flex md:hidden items-center gap-2 px-4 py-2.5 border-b border-[#e5dac9]/60">
-                  <span className="flex items-center gap-1 text-xs text-[#cc5a37] font-semibold">
-                    <Trophy size={13} /> {user?.rating}
-                  </span>
-                  <span className="flex items-center gap-1 text-xs text-[#193a2b] font-semibold">
-                    <BookOpen size={13} /> {user?.solvedCount}
-                  </span>
-                </div>
+                {user?.role !== 'instructor' && (
+                  <div className="flex md:hidden items-center gap-2 px-4 py-2.5 border-b border-[#e5dac9]/60">
+                    <span className="flex items-center gap-1 text-xs text-[#cc5a37] font-semibold">
+                      <Trophy size={13} /> {user?.rating}
+                    </span>
+                    <span className="flex items-center gap-1 text-xs text-[#193a2b] font-semibold">
+                      <BookOpen size={13} /> {user?.solvedCount}
+                    </span>
+                  </div>
+                )}
 
                 {/* menu */}
                 <div className="p-1.5">

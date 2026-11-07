@@ -9,6 +9,7 @@ import { CreateProblemDto, ProblemDifficulty, ProblemDto } from '../api/problems
 import { generateAiTestCases } from '../api/ai';
 import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LANGUAGES, LANGUAGE_CATEGORIES } from '../config/languages';
+import ProblemImportModal from './ProblemImportModal';
 
 interface ProblemFormModalProps {
   isOpen: boolean;
@@ -57,6 +58,7 @@ export default function ProblemFormModal({
   const [activeTab,        setActiveTab]        = useState<'desc' | 'languages' | 'cases'>('desc');
   const [errors,           setErrors]           = useState<Record<string, string>>({});
   const [showBulkModal, setShowBulkModal] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [bulkText,    setBulkText]    = useState('');
   const [bulkError,   setBulkError]   = useState('');
 
@@ -143,66 +145,7 @@ export default function ProblemFormModal({
     setTestCases(next);
   };
 
-  /* ── Xử lý Markdown: Tải lên tệp .md/.json và chèn mẫu chuẩn (# TODO) ── */
-  const handleUploadMarkdown = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = String(event.target?.result || '');
-      const trimmed = text.trim();
-
-      // Kiểm tra nếu là file JSON (như Hard_450.json hoặc JSON bài toán đơn)
-      if (
-        file.name.endsWith('.json') ||
-        (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
-        (trimmed.startsWith('[') && trimmed.endsWith(']'))
-      ) {
-        try {
-          const parsed = JSON.parse(trimmed);
-          const prob = Array.isArray(parsed) ? parsed[0] : parsed;
-          if (prob && typeof prob === 'object') {
-            if (prob.title) setTitle(String(prob.title));
-            if (prob.description) {
-              setDescription(String(prob.description));
-            } else if (prob.description_vi && prob.description_en) {
-              setDescription(`[Tiếng Việt]\n${prob.description_vi}\n\n----------\n\n[English]\n${prob.description_en}`);
-            } else if (prob.description_vi) {
-              setDescription(String(prob.description_vi));
-            }
-            if (prob.difficulty) {
-              const d = String(prob.difficulty).toUpperCase();
-              if (d === 'HARD') setDifficulty('HARD');
-              else if (d === 'MEDIUM') setDifficulty('MEDIUM');
-              else if (d === 'EASY') setDifficulty('EASY');
-            }
-            if (prob.time_limit) setTimeLimit(Number(prob.time_limit) || 1000);
-            if (prob.memory_limit) setMemoryLimit(Number(prob.memory_limit) || 256);
-            if (Array.isArray(prob.test_cases) && prob.test_cases.length > 0) {
-              setTestCases(
-                prob.test_cases.map((tc: any, idx: number) => ({
-                  input: typeof tc.input === 'string' ? tc.input : JSON.stringify(tc.input),
-                  expected_output:
-                    typeof tc.expected_output === 'string' ? tc.expected_output : JSON.stringify(tc.expected_output),
-                  is_hidden: typeof tc.is_hidden === 'boolean' ? tc.is_hidden : idx >= 2,
-                })),
-              );
-            }
-            setErrors({});
-            return;
-          }
-        } catch {
-          // Nếu không parse được JSON thì dùng làm description thông thường
-        }
-      }
-
-      setDescription(text);
-      setErrors((prev) => ({ ...prev, description: '' }));
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  };
-
+  /* ── Mẫu mô tả (song ngữ / đơn). Việc tải tệp đã tách sang ProblemImportModal ── */
   const handleInsertBilingualTemplate = () => {
     const template = `[Tiếng Việt]
 ### Mô tả bài toán
@@ -642,11 +585,6 @@ Output: 6
                       <span className="ml-2 text-xs font-normal text-[#8a8073]">{t('problemForm.markdown')}</span>
                     </label>
                     <div className="flex items-center gap-2">
-                      <label className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#e5dac9] bg-white text-[#5c5446] hover:text-[#191919] hover:bg-[#eee8d8] text-xs font-semibold cursor-pointer transition-colors shadow-2xs">
-                        <FileUp size={13} className="text-[#193a2b]" />
-                        Tải lên tệp (.md / .json)
-                        <input type="file" accept=".md,.markdown,.txt,.json" onChange={handleUploadMarkdown} className="hidden" />
-                      </label>
                       <button
                         type="button"
                         onClick={handleInsertBilingualTemplate}
@@ -664,6 +602,14 @@ Output: 6
                       >
                         <FileCode size={13} className="text-[#8a8073]" />
                         Mẫu đơn (# TODO)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowImport(true)}
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#e5dac9] bg-white text-[#5c5446] hover:text-[#191919] hover:bg-[#eee8d8] text-xs font-semibold cursor-pointer transition-colors shadow-2xs"
+                      >
+                        <FileUp size={13} className="text-[#193a2b]" />
+                        {t('problemImport.openButton')}
                       </button>
                     </div>
                   </div>
@@ -761,6 +707,7 @@ Output: 6
                     >
                       ☕ Chỉ Java ({SUPPORTED_LANGUAGES.filter(l => l.category === 'JAVA').length})
                     </button>
+                    
                     {allowedLanguages.length > 0 && (
                       <button
                         type="button"
@@ -1356,5 +1303,14 @@ Output: 6
     </div>
   );
 
-  return typeof document !== 'undefined' ? createPortal(modal, document.body) : null;
+  return typeof document !== 'undefined' ? (
+    <>
+      {createPortal(modal, document.body)}
+      <ProblemImportModal
+        isOpen={showImport}
+        onClose={() => setShowImport(false)}
+        onImported={onClose}
+      />
+    </>
+  ) : null;
 }
