@@ -58,6 +58,7 @@ model Problem {
   time_limit        Int // ms
   memory_limit      Int // MB
   allowed_languages String[]   @default([])
+  in_bank           Boolean    @default(true) // false = bài soạn riêng cho lớp, không hiện trong Ngân hàng bài tập
   created_at        DateTime   @default(now())
   updated_at        DateTime   @updatedAt
 

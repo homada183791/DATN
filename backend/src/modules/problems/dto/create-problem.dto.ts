@@ -77,11 +77,21 @@ export class CreateProblemDto {
 
   @ApiPropertyOptional({
     type: [String],
-    description: 'Danh sách các ngôn ngữ & phiên bản được phép (để trống nếu cho phép tất cả)',
+    description:
+      'Danh sách các ngôn ngữ & phiên bản được phép (để trống nếu cho phép tất cả)',
     example: ['CPP17', 'CPP20', 'PYTHON3_11'],
   })
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
   allowed_languages?: string[];
+
+  @ApiPropertyOptional({
+    description:
+      'false = bài soạn riêng cho lớp/bài tập về nhà, không đưa vào Ngân hàng bài tập (mặc định true)',
+    example: true,
+  })
+  @IsBoolean()
+  @IsOptional()
+  in_bank?: boolean;
 }

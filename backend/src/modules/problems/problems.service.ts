@@ -24,6 +24,7 @@ export class ProblemsService {
 
   async findAll() {
     return this.prisma.problem.findMany({
+      where: { in_bank: true },
       select: {
         id: true,
         title: true,

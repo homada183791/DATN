@@ -3,13 +3,17 @@ import { createPortal } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { X, FileUp, FileText, Trash2, Loader2, CheckCircle2, AlertCircle, UploadCloud } from 'lucide-react';
-import { createProblem, CreateProblemDto, ProblemDifficulty } from '../api/problems';
+import { createProblem, CreateProblemDto, ProblemDifficulty, type ProblemDto } from '../api/problems';
 
 interface ProblemImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   /** Gọi khi đóng cửa sổ sau khi đã tạo được ít nhất 1 bài */
   onImported?: () => void;
+  /** false = bài tạo ra chỉ thuộc lớp/bài tập, không đưa vào Ngân hàng bài tập (mặc định true) */
+  inBank?: boolean;
+  /** Trả về các bài đã tạo (kèm dữ liệu gốc) khi đóng cửa sổ — dùng để gắn thẳng vào bài tập */
+  onCreatedProblems?: (items: Array<{ created: ProblemDto; dto: CreateProblemDto }>) => void;
 }
 
 interface ImportFile {
@@ -91,11 +95,12 @@ async function parseFile(file: File): Promise<ImportFile> {
 
 const formatSize = (n: number) => (n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 
-export default function ProblemImportModal({ isOpen, onClose, onImported }: ProblemImportModalProps) {
+export default function ProblemImportModal({ isOpen, onClose, onImported, inBank = true, onCreatedProblems }: ProblemImportModalProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const cancelRef = useRef(false);
+  const createdListRef = useRef<Array<{ created: ProblemDto; dto: CreateProblemDto }>>([]);
   const [files, setFiles] = useState<ImportFile[]>([]);
   const [reading, setReading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -132,9 +137,12 @@ export default function ProblemImportModal({ isOpen, onClose, onImported }: Prob
   const handleClose = () => {
     if (running) return;
     const importedAny = created > 0;
-    if (importedAny) void queryClient.invalidateQueries({ queryKey: ['problems'] });
+    if (importedAny && inBank) void queryClient.invalidateQueries({ queryKey: ['problems'] });
+    const list = createdListRef.current;
+    createdListRef.current = [];
     reset();
     onClose();
+    if (list.length > 0) onCreatedProblems?.(list);
     if (importedAny) onImported?.();
   };
 
@@ -142,6 +150,7 @@ export default function ProblemImportModal({ isOpen, onClose, onImported }: Prob
     const queue = files.flatMap((f) => f.problems);
     if (queue.length === 0 || running) return;
     cancelRef.current = false;
+    createdListRef.current = [];
     setRunning(true);
     setFinished(false);
     setDone(0);
@@ -158,7 +167,8 @@ export default function ProblemImportModal({ isOpen, onClose, onImported }: Prob
         if (i >= queue.length) return;
         const p = queue[i];
         try {
-          await createProblem(p);
+          const res = await createProblem(inBank ? p : { ...p, in_bank: false });
+          createdListRef.current.push({ created: res, dto: p });
           ok++;
         } catch (e: any) {
           failed.push({ title: p.title, reason: e?.message || 'Error' });
@@ -172,7 +182,7 @@ export default function ProblemImportModal({ isOpen, onClose, onImported }: Prob
     setFailures(failed);
     setRunning(false);
     setFinished(true);
-    void queryClient.invalidateQueries({ queryKey: ['problems'] });
+    if (inBank) void queryClient.invalidateQueries({ queryKey: ['problems'] });
   };
 
   if (!isOpen) return null;

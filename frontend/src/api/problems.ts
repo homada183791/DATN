@@ -42,6 +42,8 @@ export interface CreateProblemDto {
   time_limit: number;
   memory_limit: number;
   allowed_languages?: string[];
+  /** false = bài soạn riêng cho lớp, không đưa vào Ngân hàng bài tập */
+  in_bank?: boolean;
   test_cases: CreateTestCaseDto[];
 }
 

@@ -9,7 +9,8 @@ import {
   calculateContestElo, fetchPlagiarismReports, type PlagiarismReportDto,
 } from '../../api/contests';
 import { useClassesQuery } from '../../api/classes';
-import { useProblemsQuery } from '../../api/problems';
+import { useProblemsQuery, createProblem, type CreateProblemDto, type ProblemDto } from '../../api/problems';
+import ProblemFormModal from '../../components/ProblemFormModal';
 import { ApiError } from '../../api/http';
 import { notifyGlobalToast } from '../../context/ToastContext';
 import { toDatetimeLocal, datetimeLocalToISO, formatVNFull } from '../../utils/dateTime';
@@ -44,6 +45,8 @@ export default function InstructorContest() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedContest, setSelectedContest] = useState<string | null>(null);
   const [showProblemManager, setShowProblemManager] = useState<string | null>(null);
+  const [showCompose, setShowCompose] = useState(false);
+  const [composeSaving, setComposeSaving] = useState(false);
   const [form, setForm] = useState<ContestForm>(emptyContestForm);
   const [editingContest, setEditingContest] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -113,6 +116,47 @@ export default function InstructorContest() {
     } finally {
       setAddingProblemId(null);
     }
+  };
+
+  // Soạn mới / tải tệp: bài chỉ thuộc kỳ thi (in_bank = false), không đưa vào Ngân hàng bài tập
+  const handleComposeSubmit = async (data: CreateProblemDto) => {
+    const contestId = showProblemManager;
+    if (!contestId) return;
+    setComposeSaving(true);
+    try {
+      const created = await createProblem({ ...data, in_bank: false });
+      await addProblemToContest(contestId, created.id);
+      const detail = await fetchContestDetail(contestId);
+      setContestProblems(detail.problems ?? []);
+      await queryClient.invalidateQueries({ queryKey: ['contests'] });
+      notifyGlobalToast(t('instructorContest.success.problemAdded'), 'success');
+      setShowCompose(false);
+    } catch (err) {
+      notifyGlobalToast(err instanceof ApiError ? err.message : t('instructorContest.errors.addProblemFailed'));
+    } finally {
+      setComposeSaving(false);
+    }
+  };
+
+  const handleImportedProblems = async (items: Array<{ created: ProblemDto; dto: CreateProblemDto }>) => {
+    const contestId = showProblemManager;
+    if (!contestId) return;
+    let failed = 0;
+    for (const { created } of items) {
+      try {
+        await addProblemToContest(contestId, created.id);
+      } catch {
+        failed++;
+      }
+    }
+    try {
+      const detail = await fetchContestDetail(contestId);
+      setContestProblems(detail.problems ?? []);
+      await queryClient.invalidateQueries({ queryKey: ['contests'] });
+    } catch { /* bỏ qua */ }
+    setShowCompose(false);
+    if (failed > 0) notifyGlobalToast(t('instructorContest.errors.addProblemFailed'));
+    else notifyGlobalToast(t('instructorContest.success.problemAdded'), 'success');
   };
 
   const handleRemoveProblem = async (contestId: string, problemId: string) => {
@@ -430,10 +474,20 @@ export default function InstructorContest() {
             <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)] space-y-6">
               {/* Current contest problems */}
               <div>
-                <h4 className="text-sm font-bold text-(--ws-text) mb-3 flex items-center gap-2">
-                  <CheckCircle2 size={16} className="text-emerald-600" />
-                  {t('instructorContest.currentProblemsHeading', { count: loadingContestProblems ? '...' : contestProblems.length })}
-                </h4>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <h4 className="text-sm font-bold text-(--ws-text) flex items-center gap-2">
+                    <CheckCircle2 size={16} className="text-emerald-600" />
+                    {t('instructorContest.currentProblemsHeading', { count: loadingContestProblems ? '...' : contestProblems.length })}
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => setShowCompose(true)}
+                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors"
+                  >
+                    <Plus size={12} />
+                    {t('instructorContest.composeNew')}
+                  </button>
+                </div>
                 {loadingContestProblems ? (
                   <div className="flex items-center justify-center h-16">
                     <div className="w-6 h-6 border-2 border-[#193a2b] border-t-transparent rounded-full animate-spin" />
@@ -532,6 +586,18 @@ export default function InstructorContest() {
           </div>
         </div>
       ), document.body)}
+
+      <ProblemFormModal
+        isOpen={showCompose}
+        onClose={() => !composeSaving && setShowCompose(false)}
+        onSubmit={handleComposeSubmit}
+        isLoading={composeSaving}
+        privateProblem
+        onImportedProblems={handleImportedProblems}
+        titleText={t('instructorContest.composeTitle')}
+        subtitleText={t('instructorContest.composeSubtitle')}
+        submitText={t('instructorContest.composeSubmit')}
+      />
 
       {/* ── Create / Edit Contest Modal ───────────────────────────────────── */}
       {showCreateModal && hasDocument && createPortal((

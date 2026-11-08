@@ -22,6 +22,10 @@ interface ProblemFormModalProps {
   titleText?: string;
   subtitleText?: string;
   submitText?: string;
+  /** Khi soạn bài cho lớp (showPoints): nhận các bài tải từ tệp để gắn thẳng vào bài tập */
+  /** true = bài tạo/tải từ tệp không đưa vào Ngân hàng bài tập (dùng cho kỳ thi, bài tập lớp) */
+  privateProblem?: boolean;
+  onImportedProblems?: (items: Array<{ created: ProblemDto; dto: CreateProblemDto }>) => void;
 }
 
 const DIFFICULTY_CONFIG = {
@@ -45,6 +49,8 @@ export default function ProblemFormModal({
   titleText,
   subtitleText,
   submitText,
+  onImportedProblems,
+  privateProblem = false,
 }: ProblemFormModalProps) {
   const { t } = useTranslation();
   const [title,            setTitle]            = useState('');
@@ -1310,6 +1316,8 @@ Output: 6
         isOpen={showImport}
         onClose={() => setShowImport(false)}
         onImported={onClose}
+        inBank={!(showPoints || privateProblem)}
+        onCreatedProblems={onImportedProblems}
       />
     </>
   ) : null;

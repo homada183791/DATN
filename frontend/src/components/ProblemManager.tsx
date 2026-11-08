@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { HomeworkProblem } from '../context/HomeworkContext';
-import { useProblemsQuery, createProblem, fetchProblem, type CreateProblemDto } from '../api/problems';
+import { useProblemsQuery, createProblem, fetchProblem, type CreateProblemDto, type ProblemDto } from '../api/problems';
 import ProblemFormModal from './ProblemFormModal';
 import {
   Plus,
@@ -42,7 +41,6 @@ type ModalType = 'link' | 'compose' | null;
 
 export default function ProblemManager({ problems, onChange }: Props) {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
   const [modalType, setModalType] = useState<ModalType>(null);
   const [linkSearch, setLinkSearch] = useState('');
   const [linkErr, setLinkErr] = useState('');
@@ -97,12 +95,12 @@ export default function ProblemManager({ problems, onChange }: Props) {
     }
   };
 
-  // ── Soạn bài mới → tạo Problem trong ngân hàng rồi link ─────────────────
+  // ── Soạn bài mới → tạo Problem riêng cho lớp (không vào ngân hàng) rồi gắn vào bài tập ─────────────────
   const handleComposeSubmit = async (data: CreateProblemDto, points = 100) => {
     setComposeSaving(true);
     try {
-      const created = await createProblem(data);
-      queryClient.invalidateQueries({ queryKey: ['problems'] });
+      // in_bank:false → bài chỉ thuộc lớp/bài tập, không hiện trong Ngân hàng bài tập
+      const created = await createProblem({ ...data, in_bank: false });
 
       const sampleTc = data.test_cases?.find((tc) => !tc.is_hidden) || data.test_cases?.[0];
       const task: HomeworkProblem = {
@@ -122,6 +120,28 @@ export default function ProblemManager({ problems, onChange }: Props) {
     } finally {
       setComposeSaving(false);
     }
+  };
+
+  // ── Tải tệp ngay trong bài tập → tạo bài riêng cho lớp (không vào ngân hàng) rồi gắn vào bài tập ──
+  const handleImportedProblems = (items: Array<{ created: ProblemDto; dto: CreateProblemDto }>) => {
+    const existing = new Set(problems.map((p) => p.problem_id));
+    const tasks: HomeworkProblem[] = items
+      .filter(({ created }) => !existing.has(created.id))
+      .map(({ created, dto }) => {
+        const sampleTc = dto.test_cases?.find((tc) => !tc.is_hidden) || dto.test_cases?.[0];
+        return {
+          id: `LINKED-${created.id}`,
+          problem_id: created.id,
+          title: created.title,
+          statement: created.description || '',
+          difficulty: diffMap[created.difficulty] ?? 'Easy',
+          points: 100,
+          sampleInput: sampleTc?.input ?? '',
+          sampleOutput: sampleTc?.expected_output ?? '',
+        };
+      });
+    if (tasks.length > 0) onChange([...problems, ...tasks]);
+    setModalType(null);
   };
 
   const remove = (id: string) => onChange(problems.filter((p) => p.id !== id));
@@ -359,6 +379,7 @@ export default function ProblemManager({ problems, onChange }: Props) {
         onClose={() => !composeSaving && setModalType(null)}
         onSubmit={handleComposeSubmit}
         isLoading={composeSaving}
+        onImportedProblems={handleImportedProblems}
         showPoints
         initialPoints={100}
         titleText={t('problemManager.createForHomework')}
