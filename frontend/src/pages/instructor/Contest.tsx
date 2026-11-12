@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -6,12 +6,13 @@ import {
   createContest, deleteContest, updateContest,
   useContestsQuery, useLeaderboardQuery,
   addProblemToContest, removeProblemFromContest, fetchContestDetail,
-  calculateContestElo, fetchPlagiarismReports, type PlagiarismReportDto,
+  calculateContestElo, fetchContestSessions, resetContestSession, type ContestSessionDto,
 } from '../../api/contests';
 import { useClassesQuery } from '../../api/classes';
 import { useProblemsQuery, createProblem, type CreateProblemDto, type ProblemDto } from '../../api/problems';
 import ProblemFormModal from '../../components/ProblemFormModal';
 import { ApiError } from '../../api/http';
+import { createSocket } from '../../api/socket';
 import { notifyGlobalToast } from '../../context/ToastContext';
 import { toDatetimeLocal, datetimeLocalToISO, formatVNFull } from '../../utils/dateTime';
 import {
@@ -62,10 +63,14 @@ export default function InstructorContest() {
   const [problemSearch, setProblemSearch] = useState('');
   const [addingProblemId, setAddingProblemId] = useState<string | null>(null);
 
-  // ── Plagiarism & ELO state ──────────────────────────────────────────────
-  const [showPlagiarismModal, setShowPlagiarismModal] = useState<string | null>(null);
-  const [plagiarismReports, setPlagiarismReports] = useState<PlagiarismReportDto[]>([]);
-  const [loadingPlagiarism, setLoadingPlagiarism] = useState(false);
+  // ── Giám sát kỳ thi & ELO state ─────────────────────────────────────────
+  const [showMonitorModal, setShowMonitorModal] = useState<string | null>(null);
+  const [monitorSessions, setMonitorSessions] = useState<ContestSessionDto[]>([]);
+  const [monitorMax, setMonitorMax] = useState(3);
+  const [loadingMonitor, setLoadingMonitor] = useState(false);
+  const [monitorLive, setMonitorLive] = useState(false);
+  const [resettingStudentId, setResettingStudentId] = useState<string | null>(null);
+  const monitorStatus = contests.find((c) => c.id === showMonitorModal)?.status;
   const [calculatingEloContestId, setCalculatingEloContestId] = useState<string | null>(null);
 
   const openCreate = () => {
@@ -185,19 +190,88 @@ export default function InstructorContest() {
     }
   };
 
-  const openPlagiarismModal = async (contestId: string) => {
-    setShowPlagiarismModal(contestId);
-    setLoadingPlagiarism(true);
+  const handleResetSession = async (studentId: string) => {
+    const contestId = showMonitorModal;
+    if (!contestId) return;
+    setResettingStudentId(studentId);
     try {
-      const reports = await fetchPlagiarismReports(contestId);
-      setPlagiarismReports(reports);
-    } catch (err: any) {
-      notifyGlobalToast(err instanceof ApiError ? err.message : t('instructorContest.errors.loadPlagiarismFailed'));
-      setPlagiarismReports([]);
+      await resetContestSession(contestId, studentId);
+      setMonitorSessions((prev) => prev.filter((x) => x.student_id !== studentId));
+      notifyGlobalToast(t('instructorContest.monitorResetSuccess'), 'success');
+    } catch (err) {
+      notifyGlobalToast(err instanceof ApiError ? err.message : t('instructorContest.monitorResetFailed'));
     } finally {
-      setLoadingPlagiarism(false);
+      setResettingStudentId(null);
     }
   };
+
+  const sortSessions = (list: ContestSessionDto[]) =>
+    [...list].sort(
+      (a, b) =>
+        Number(b.is_disqualified) - Number(a.is_disqualified) ||
+        b.cheat_warnings - a.cheat_warnings ||
+        a.username.localeCompare(b.username),
+    );
+
+  // Mở màn hình giám sát: tải danh sách + nhận cập nhật realtime qua socket
+  useEffect(() => {
+    const contestId = showMonitorModal;
+    if (!contestId) return;
+    let cancelled = false;
+    setLoadingMonitor(true);
+    setMonitorSessions([]);
+    fetchContestSessions(contestId)
+      .then((res) => {
+        if (cancelled) return;
+        setMonitorMax(res.max_warnings ?? 3);
+        setMonitorSessions(sortSessions(res.sessions.filter((x) => x.cheat_warnings > 0 || x.is_disqualified)));
+      })
+      .catch((err) => {
+        notifyGlobalToast(err instanceof ApiError ? err.message : t('instructorContest.loadMonitorFailed'));
+      })
+      .finally(() => { if (!cancelled) setLoadingMonitor(false); });
+
+    // Chỉ kết nối theo dõi trực tiếp khi cuộc thi đang diễn ra
+    if (monitorStatus !== 'running') {
+      return () => { cancelled = true; };
+    }
+
+    const socket = createSocket();
+    socket.on('connect', () => {
+      setMonitorLive(true);
+      socket.emit('join_admin_dashboard', { contest_id: contestId });
+    });
+    socket.on('disconnect', () => setMonitorLive(false));
+    // Sự kiện này cũng được dùng cho cập nhật bài nộp → chỉ xử lý payload cảnh báo
+    socket.on('admin_contest_update', (payload: Partial<ContestSessionDto> & { student_id?: string }) => {
+      if (!payload || !payload.student_id || typeof payload.cheat_warnings !== 'number') return;
+      // Được cấp lại quyền thi (0 cảnh báo, không bị loại) → gỡ khỏi danh sách giám sát
+      if (payload.cheat_warnings <= 0 && !payload.is_disqualified) {
+        setMonitorSessions((prev) => prev.filter((x) => x.student_id !== payload.student_id));
+        return;
+      }
+      setMonitorSessions((prev) => {
+        const idx = prev.findIndex((x) => x.student_id === payload.student_id);
+        const merged: ContestSessionDto = {
+          student_id: payload.student_id!,
+          username: payload.username ?? (idx >= 0 ? prev[idx].username : payload.student_id!),
+          email: payload.email ?? (idx >= 0 ? prev[idx].email : ''),
+          cheat_warnings: payload.cheat_warnings!,
+          is_disqualified: !!payload.is_disqualified,
+          updated_at: (payload as { at?: string }).at ?? new Date().toISOString(),
+        };
+        const next = idx >= 0 ? prev.map((x, k) => (k === idx ? merged : x)) : [...prev, merged];
+        return sortSessions(next);
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      setMonitorLive(false);
+      socket.disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showMonitorModal, monitorStatus]);
 
   const saveContest = async () => {
     if (!form.title.trim() || !form.startTime || !form.endTime) {
@@ -437,11 +511,11 @@ export default function InstructorContest() {
                   <BookOpen size={14} /> {t('instructorContest.manageProblems')}
                 </button>
                 <button
-                  onClick={() => openPlagiarismModal(selectedContestData.id)}
+                  onClick={() => setShowMonitorModal(selectedContestData.id)}
                   className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-800 border border-amber-200 text-sm font-medium rounded-xl hover:bg-amber-100 transition-colors shadow-sm"
-                  title={t('instructorContest.checkPlagiarismTooltip')}
+                  title={t('instructorContest.monitorTooltip')}
                 >
-                  <ShieldAlert size={14} /> {t('instructorContest.checkPlagiarismBtn')}
+                  <ShieldAlert size={14} /> {t('instructorContest.monitorBtn')}
                 </button>
                 {selectedContestData.status === 'ended' && (
                   <button
@@ -751,9 +825,9 @@ export default function InstructorContest() {
                       <BookOpen size={16} />
                     </button>
                     <button
-                      onClick={() => openPlagiarismModal(contest.id)}
+                      onClick={() => setShowMonitorModal(contest.id)}
                       className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-amber-600 hover:bg-[#f7f4eb] transition-colors"
-                      title={t('instructorContest.checkPlagiarismBtn')}
+                      title={t('instructorContest.monitorBtn')}
                     >
                       <ShieldAlert size={16} />
                     </button>
@@ -786,85 +860,97 @@ export default function InstructorContest() {
         </div>
       )}
 
-      {/* ── Plagiarism Report Modal ────────────────────────────────────────── */}
-      {showPlagiarismModal && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setShowPlagiarismModal(null)}>
-          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      {/* ── Giám sát kỳ thi ─────────────────────────────────────────────────── */}
+      {showMonitorModal && hasDocument && createPortal((
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setShowMonitorModal(null)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-(--ws-border)">
               <div>
                 <h3 className="text-lg font-serif font-bold text-(--ws-text) flex items-center gap-2">
-                  <ShieldAlert size={20} className="text-amber-600" /> {t('instructorContest.plagiarismModalTitle')}
+                  <ShieldAlert size={20} className="text-amber-600" /> {t('instructorContest.monitorModalTitle')}
                 </h3>
-                <p className="text-xs text-(--ws-muted) mt-0.5">
-                  {t('instructorContest.plagiarismModalSubtitle')}
+                <p className="text-xs text-(--ws-muted) mt-0.5 flex items-center gap-1.5">
+                  <span className={`inline-block w-2 h-2 rounded-full ${
+                    monitorStatus === 'running' ? (monitorLive ? 'bg-emerald-500' : 'bg-gray-400')
+                      : monitorStatus === 'upcoming' ? 'bg-amber-500' : 'bg-gray-400'
+                  }`} />
+                  {monitorStatus === 'upcoming'
+                    ? t('instructorContest.monitorNotStarted')
+                    : monitorStatus === 'ended'
+                      ? t('instructorContest.monitorEnded')
+                      : monitorLive ? t('instructorContest.monitorLive') : t('instructorContest.monitorOffline')}
+                  <span className="mx-1">·</span>
+                  {t('instructorContest.monitorSubtitle', { max: monitorMax })}
                 </p>
               </div>
-              <button onClick={() => setShowPlagiarismModal(null)} className="text-(--ws-muted) hover:text-(--ws-text)">
+              <button onClick={() => setShowMonitorModal(null)} className="text-(--ws-muted) hover:text-(--ws-text)">
                 <X size={20} />
               </button>
             </div>
-
-            <div className="p-6 overflow-y-auto max-h-[calc(85vh-90px)]">
-              {loadingPlagiarism ? (
-                <div className="flex flex-col items-center justify-center py-16 gap-3">
+            <div className="p-6 overflow-y-auto">
+              {loadingMonitor ? (
+                <div className="flex items-center justify-center py-12">
                   <Loader2 size={28} className="animate-spin text-[#193a2b]" />
-                  <p className="text-xs text-(--ws-muted)">{t('instructorContest.loadingPlagiarismText')}</p>
                 </div>
-              ) : plagiarismReports.length === 0 ? (
-                <div className="bg-(--ws-panel2) border border-(--ws-border) rounded-2xl p-12 text-center">
-                  <CheckCircle2 size={40} className="text-emerald-600 mx-auto mb-3" />
-                  <p className="font-bold text-(--ws-text)">{t('instructorContest.noPlagiarismTitle')}</p>
-                  <p className="text-xs text-(--ws-muted) mt-1">
-                    {t('instructorContest.noPlagiarismSubtitle')}
-                  </p>
+              ) : monitorSessions.length === 0 ? (
+                <div className="bg-(--ws-panel2) border border-(--ws-border) rounded-xl p-8 text-center text-sm text-(--ws-muted)">
+                  {t('instructorContest.monitorEmpty')}
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold text-(--ws-muted)">
-                      {t('instructorContest.foundPairsText', { count: plagiarismReports.length })}
-                    </p>
-                  </div>
-                  <div className="bg-(--ws-panel2) rounded-xl border border-(--ws-border) overflow-hidden shadow-xs">
-                    <table className="w-full text-left text-sm">
-                      <thead>
-                        <tr className="border-b border-(--ws-border) bg-(--ws-hover) text-xs text-(--ws-muted) uppercase tracking-wider">
-                          <th className="py-3 px-4">{t('instructorContest.colProblem')}</th>
-                          <th className="py-3 px-4">{t('instructorContest.colStudent1')}</th>
-                          <th className="py-3 px-4">{t('instructorContest.colStudent2')}</th>
-                          <th className="py-3 px-4 text-center">{t('instructorContest.colSimilarity')}</th>
-                          <th className="py-3 px-4 text-right">{t('instructorContest.colSubmittedAt')}</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-(--ws-border)">
-                        {plagiarismReports.map((report) => {
-                          const pct = Math.round(report.similarity_score * 100);
-                          const badgeColor = pct >= 80 ? 'bg-red-100 text-red-800 border-red-200' : pct >= 60 ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-yellow-50 text-yellow-800 border-yellow-200';
-                          return (
-                            <tr key={report.id} className="hover:bg-(--ws-hover) transition-colors">
-                              <td className="py-3 px-4 font-semibold text-(--ws-text)">
-                                {report.problem?.title ?? t('instructorContest.colProblem')}
+                <div className="bg-(--ws-panel2) rounded-xl border border-(--ws-border) overflow-hidden">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-(--ws-border) bg-(--ws-hover)">
+                        <th className="text-left text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colUser')}</th>
+                        <th className="text-center text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.monitorColWarnings')}</th>
+                        <th className="text-left text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.monitorColStatus')}</th>
+                        {monitorStatus !== 'ended' && <th className="py-2.5 px-3" />}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {monitorSessions.map((sess) => {
+                        const level = sess.is_disqualified || sess.cheat_warnings >= monitorMax
+                          ? 'bg-red-100 text-red-700'
+                          : sess.cheat_warnings > 0
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-emerald-100 text-emerald-700';
+                        return (
+                          <tr key={sess.student_id} className="border-b border-(--ws-border) last:border-b-0 hover:bg-(--ws-hover)">
+                            <td className="py-2.5 px-3">
+                              <p className="text-sm font-semibold text-(--ws-text)">{sess.username}</p>
+                            </td>
+                            <td className="py-2.5 px-3 text-center">
+                              <span className={`inline-block min-w-12 px-2.5 py-1 rounded-full text-xs font-bold ${level}`}>
+                                {sess.cheat_warnings}/{monitorMax}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-3 text-xs">
+                              {sess.is_disqualified ? (
+                                <span className="font-semibold text-red-700">{t('instructorContest.monitorDisqualified')}</span>
+                              ) : sess.cheat_warnings > 0 ? (
+                                <span className="text-amber-700">{t('instructorContest.monitorLeftScreen', { time: formatVNFull(sess.updated_at) })}</span>
+                              ) : (
+                                <span className="text-(--ws-muted)">{t('instructorContest.monitorOk')}</span>
+                              )}
+                            </td>
+                            {monitorStatus !== 'ended' && (
+                              <td className="py-2.5 px-3 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => handleResetSession(sess.student_id)}
+                                  disabled={resettingStudentId === sess.student_id}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors disabled:opacity-60 whitespace-nowrap"
+                                >
+                                  {resettingStudentId === sess.student_id && <Loader2 size={12} className="animate-spin" />}
+                                  {t('instructorContest.monitorResetBtn')}
+                                </button>
                               </td>
-                              <td className="py-3 px-4 text-(--ws-text)">
-                                {report.submission_1?.user?.email ?? t('instructorContest.colStudent1')}
-                              </td>
-                              <td className="py-3 px-4 text-(--ws-text)">
-                                {report.submission_2?.user?.email ?? t('instructorContest.colStudent2')}
-                              </td>
-                              <td className="py-3 px-4 text-center">
-                                <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold border ${badgeColor}`}>
-                                  {pct}%
-                                </span>
-                              </td>
-                              <td className="py-3 px-4 text-xs text-(--ws-muted) text-right font-mono">
-                                {report.created_at ? formatVNFull(report.created_at) : '—'}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+                            )}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>

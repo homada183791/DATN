@@ -105,7 +105,10 @@ export class ContestsController {
   @ApiOperation({ summary: 'Xóa bài tập khỏi kỳ thi' })
   @ApiResponse({ status: 200, description: 'Bài tập đã được xóa khỏi kỳ thi.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  @ApiResponse({ status: 404, description: 'Không tìm thấy kỳ thi hoặc bài tập.' })
+  @ApiResponse({
+    status: 404,
+    description: 'Không tìm thấy kỳ thi hoặc bài tập.',
+  })
   removeProblem(
     @Param('id') contestId: string,
     @Param('problemId') problemId: string,
@@ -116,7 +119,9 @@ export class ContestsController {
   @Post(':id/join')
   @Roles(Role.STUDENT)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Sinh viên đăng ký tham gia kỳ thi (tạo ContestSession)' })
+  @ApiOperation({
+    summary: 'Sinh viên đăng ký tham gia kỳ thi (tạo ContestSession)',
+  })
   @ApiResponse({ status: 201, description: 'Đăng ký kỳ thi thành công.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiResponse({ status: 404, description: 'Không tìm thấy kỳ thi.' })
@@ -125,6 +130,36 @@ export class ContestsController {
     @Request() req: { user: { userId: string } },
   ) {
     return this.contestsService.joinContest(contestId, req.user.userId);
+  }
+
+  @Get(':id/sessions')
+  @Roles(Role.INSTRUCTOR)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Giám sát kỳ thi: danh sách sinh viên và số lần rời màn hình',
+  })
+  @ApiResponse({ status: 200, description: 'Danh sách phiên thi.' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy kỳ thi.' })
+  getSessions(@Param('id') id: string) {
+    return this.contestsService.getSessions(id);
+  }
+
+  @Post(':id/sessions/:studentId/reset')
+  @Roles(Role.INSTRUCTOR)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Cấp lại quyền thi tiếp cho sinh viên (reset số lần rời màn hình về 0)',
+  })
+  @ApiResponse({ status: 201, description: 'Đã cấp lại quyền thi.' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy phiên thi.' })
+  resetCheatWarnings(
+    @Param('id') id: string,
+    @Param('studentId') studentId: string,
+  ) {
+    return this.contestsService.resetCheatWarnings(id, studentId);
   }
 
   @Post(':id/anti-cheat/warning')

@@ -15,6 +15,8 @@ export interface ContestDto {
   accessCode?: string;
   classId?: string;
   className?: string;
+  /** Sinh viên hiện tại đã đăng ký kỳ thi này (từ server) */
+  isRegistered?: boolean;
 }
 
 interface ContestApiResponse {
@@ -25,6 +27,7 @@ interface ContestApiResponse {
   end_time: string;
   is_private: boolean;
   class_id?: string | null;
+  is_registered?: boolean;
   _count?: {
     problems?: number;
     contest_sessions?: number;
@@ -69,6 +72,7 @@ export function fetchContests() {
         startTime: contest.start_time,
         endTime: contest.end_time,
         status,
+        isRegistered: contest.is_registered ?? false,
         participantCount: contest._count?.contest_sessions ?? 0,
         problemCount: contest._count?.problems ?? 0,
         type: 'ICPC',
@@ -158,6 +162,23 @@ export function calculateContestElo(contestId: string) {
   return apiFetch<any>(`/api/v1/contests/${contestId}/calculate-elo`, {
     method: 'POST',
   });
+}
+
+export interface ContestSessionDto {
+  student_id: string;
+  username: string;
+  email: string;
+  cheat_warnings: number;
+  is_disqualified: boolean;
+  updated_at: string;
+}
+
+export function resetContestSession(contestId: string, studentId: string) {
+  return apiFetch<{ success: boolean }>(`/api/v1/contests/${contestId}/sessions/${studentId}/reset`, { method: 'POST' });
+}
+
+export function fetchContestSessions(contestId: string) {
+  return apiFetch<{ max_warnings: number; sessions: ContestSessionDto[] }>(`/api/v1/contests/${contestId}/sessions`);
 }
 
 export function fetchPlagiarismReports(contestId: string) {

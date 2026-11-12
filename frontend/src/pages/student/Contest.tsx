@@ -7,6 +7,7 @@ import { Calendar, ChevronRight, Clock, Search, Trophy, Users, X, Lock, Globe, B
 import { ApiError } from '../../api/http';
 import { useContestsQuery, type ContestDto, fetchContestDetail, joinContest, useLeaderboardQuery } from '../../api/contests';
 import { formatVNFull } from '../../utils/dateTime';
+import { notifyGlobalToast } from '../../context/ToastContext';
 
 const statusColors: Record<NonNullable<ContestDto['status']>, string> = {
   upcoming: 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -62,7 +63,8 @@ export default function Contest() {
   const selectedContestData = contests.find((contest) => contest.id === selectedContest);
   const hasDocument = typeof document !== 'undefined';
 
-  const isRegistered = (contestId: string) => registeredContestIds.includes(contestId);
+  const isRegistered = (contestId: string) =>
+    registeredContestIds.includes(contestId) || !!contests.find((c) => c.id === contestId)?.isRegistered;
 
   const [modalTab, setModalTab] = useState<'info' | 'leaderboard'>('info');
   const { data: leaderboard = [], isLoading: loadingLeaderboard } = useLeaderboardQuery(selectedContest ?? undefined);
@@ -88,9 +90,9 @@ export default function Contest() {
       await joinContest(contest.id);
       setRegisteredContestIds((prev) => [...prev, contest.id]);
       await queryClient.invalidateQueries({ queryKey: ['contests'] });
-    } catch {
-      // Nếu API lỗi (vd: chưa login), fallback sang localStorage
-      setRegisteredContestIds((prev) => [...prev, contest.id]);
+    } catch (err) {
+      // Đăng ký thất bại thì không đánh dấu đã đăng ký (tránh hiển thị sai sau khi tải lại)
+      notifyGlobalToast(err instanceof ApiError ? err.message : t('studentContest.registerFailed'));
     }
   };
 
@@ -267,8 +269,8 @@ export default function Contest() {
                     </div>
                   ) : null}
 
-                  {/* Problem list (Visible if registered OR if contest has ended) */}
-                  {(isRegistered(selectedContestData.id) || selectedContestData.status === 'ended') && (
+                  {/* Problem list: chỉ hiện khi cuộc thi đang diễn ra (và đã đăng ký) hoặc đã kết thúc; chưa bắt đầu thì ẩn */}
+                  {((isRegistered(selectedContestData.id) && selectedContestData.status === 'running') || selectedContestData.status === 'ended') && (
                     <div className="mb-2">
                       <h4 className="text-sm font-bold font-serif text-[#191919] mb-3 flex items-center gap-2">
                         <BookOpen size={15} /> {t('studentContest.problemsInContest')}
@@ -346,31 +348,27 @@ export default function Contest() {
                       <p className="text-xs text-[#8a8073] mt-1">{t('studentContest.leaderboardUpdateHint')}</p>
                     </div>
                   ) : (
-                    <div className="overflow-x-auto border border-[#e5dac9] rounded-xl bg-white">
-                      <table className="w-full text-left text-xs">
+                    <div className="bg-(--ws-panel2) rounded-xl border border-(--ws-border) overflow-hidden shadow-xs">
+                      <table className="w-full">
                         <thead>
-                          <tr className="border-b border-[#e5dac9] bg-[#f7f4eb] text-[#5c5446]">
-                            <th className="py-2.5 px-3 font-bold w-12 text-center">#</th>
-                            <th className="py-2.5 px-3 font-bold">{t('studentContest.leaderboardColStudent')}</th>
-                            <th className="py-2.5 px-3 font-bold text-center">{t('studentContest.leaderboardColSolved')}</th>
-                            <th className="py-2.5 px-3 font-bold text-right">{t('studentContest.leaderboardColPenalty')}</th>
+                          <tr className="border-b border-(--ws-border) bg-(--ws-hover)">
+                            <th className="text-left text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">#</th>
+                            <th className="text-left text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colUser')}</th>
+                            <th className="text-right text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colSolved')}</th>
+                            <th className="text-right text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colScore')}</th>
+                            <th className="text-right text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colRuntime')}</th>
+                            <th className="text-right text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colPenalty')}</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#e5dac9]/60">
-                          {leaderboard.map((row: any, idx: number) => (
-                            <tr key={row.user_id ?? idx} className="hover:bg-[#f7f4eb]/60 transition-colors">
-                              <td className="py-2.5 px-3 text-center font-bold">
-                                {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
-                              </td>
-                              <td className="py-2.5 px-3 font-semibold text-[#191919]">
-                                {row.fullName || row.username || t('studentContest.contestantFallback')}
-                              </td>
-                              <td className="py-2.5 px-3 text-center font-bold text-emerald-700">
-                                {row.solvedCount ?? row.solved ?? 0}
-                              </td>
-                              <td className="py-2.5 px-3 text-right font-mono text-[#8a8073]">
-                                {row.penalty ?? 0}
-                              </td>
+                        <tbody>
+                          {leaderboard.map((s: any) => (
+                            <tr key={s.user_id ?? s.rank} className="border-b border-(--ws-border) hover:bg-(--ws-hover)">
+                              <td className="py-2.5 px-3 text-sm text-(--ws-muted)">{s.rank}</td>
+                              <td className="py-2.5 px-3 text-sm text-(--ws-text) font-semibold">{s.fullName ?? s.username ?? s.email}</td>
+                              <td className="py-2.5 px-3 text-sm text-emerald-700 font-bold text-right">{s.solvedCount ?? s.solved}/{selectedContestData.problemCount ?? 0}</td>
+                              <td className="py-2.5 px-3 text-sm text-(--ws-text) font-bold text-right">{s.score ?? 0}</td>
+                              <td className="py-2.5 px-3 text-sm text-(--ws-muted) text-right">{s.score ? `${s.runtime ?? 0} ms` : '—'}</td>
+                              <td className="py-2.5 px-3 text-sm text-(--ws-muted) text-right">{s.penalty ?? '—'}</td>
                             </tr>
                           ))}
                         </tbody>
