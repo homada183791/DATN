@@ -313,6 +313,8 @@
     "visibilityPublic": "Public",
     "standingsTitle": "ICPC Standings",
     "colPenalty": "Penalty",
+    "colScore": "Score",
+    "colRuntime": "Runtime",
     "noStandingsData": "No standings data yet",
     "manageProblems": "Manage Problems",
     "checkPlagiarismTooltip": "Check plagiarism report",

@@ -313,6 +313,8 @@
     "visibilityPublic": "Công khai",
     "standingsTitle": "Bảng xếp hạng ICPC",
     "colPenalty": "Penalty",
+    "colScore": "Điểm",
+    "colRuntime": "Runtime",
     "noStandingsData": "Chưa có dữ liệu bảng xếp hạng",
     "manageProblems": "Quản lý bài thi",
     "checkPlagiarismTooltip": "Kiểm tra báo cáo đạo văn",

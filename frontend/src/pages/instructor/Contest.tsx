@@ -390,19 +390,23 @@ export default function InstructorContest() {
                       <th className="text-left text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">#</th>
                       <th className="text-left text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colUser')}</th>
                       <th className="text-right text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colSolved')}</th>
+                      <th className="text-right text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colScore')}</th>
+                      <th className="text-right text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colRuntime')}</th>
                       <th className="text-right text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colPenalty')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {standings.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="py-6 text-center text-sm text-(--ws-muted)">{t('instructorContest.noStandingsData')}</td>
+                        <td colSpan={6} className="py-6 text-center text-sm text-(--ws-muted)">{t('instructorContest.noStandingsData')}</td>
                       </tr>
                     ) : standings.map((s) => (
                       <tr key={s.user_id ?? s.rank} className="border-b border-(--ws-border) hover:bg-(--ws-hover)">
                         <td className="py-2.5 px-3 text-sm text-(--ws-muted)">{s.rank}</td>
                         <td className="py-2.5 px-3 text-sm text-(--ws-text) font-semibold">{s.fullName ?? s.username ?? s.email}</td>
-                        <td className="py-2.5 px-3 text-sm text-emerald-700 font-bold text-right">{s.solvedCount ?? s.solved}</td>
+                        <td className="py-2.5 px-3 text-sm text-emerald-700 font-bold text-right">{s.solvedCount ?? s.solved}/{selectedContestData.problemCount}</td>
+                        <td className="py-2.5 px-3 text-sm text-(--ws-text) font-bold text-right">{s.score ?? 0}</td>
+                        <td className="py-2.5 px-3 text-sm text-(--ws-muted) text-right">{s.score ? `${s.runtime ?? 0} ms` : '—'}</td>
                         <td className="py-2.5 px-3 text-sm text-(--ws-muted) text-right">{s.penalty ?? '—'}</td>
                       </tr>
                     ))}

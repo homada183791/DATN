@@ -39,6 +39,10 @@ export interface LeaderboardEntryDto {
   solved: number;
   solvedCount: number;
   penalty: number;
+  /** Tổng điểm (điểm cao nhất mỗi bài) */
+  score?: number;
+  /** Tổng runtime (ms) của các bài nộp tốt nhất — dùng phá hòa khi bằng điểm */
+  runtime?: number;
   rating: number;
   user_id: string;
 }
