@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
@@ -32,7 +32,28 @@ export default function Contest() {
   const [loadingProblems, setLoadingProblems] = useState(false);
   const [registeredContestIds, setRegisteredContestIds] = useState<string[]>([]);
 
-  const contests = data ?? [];
+  // Trạng thái kỳ thi tính theo giờ hiện tại ở trình duyệt, tự cập nhật đúng thời điểm bắt đầu/kết thúc
+  // (không cần tải lại trang).
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const boundaries = (data ?? [])
+      .flatMap((c) => [new Date(c.startTime).getTime(), new Date(c.endTime).getTime()])
+      .filter((ts) => Number.isFinite(ts) && ts > now);
+    if (boundaries.length === 0) return;
+    const delay = Math.min(Math.min(...boundaries) - now + 200, 2147483000);
+    const timer = window.setTimeout(() => setNow(Date.now()), delay);
+    return () => window.clearTimeout(timer);
+  }, [data, now]);
+  const contests = useMemo(
+    () =>
+      (data ?? []).map((c): ContestDto => {
+        const start = new Date(c.startTime).getTime();
+        const end = new Date(c.endTime).getTime();
+        const status: ContestDto['status'] = now < start ? 'upcoming' : now <= end ? 'running' : 'ended';
+        return { ...c, status };
+      }),
+    [data, now],
+  );
   const statusLabels: Record<NonNullable<ContestDto['status']>, string> = {
     upcoming: t('instructorContest.statusUpcoming'),
     running: t('instructorContest.statusRunning'),

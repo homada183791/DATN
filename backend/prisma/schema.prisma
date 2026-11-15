@@ -152,6 +152,9 @@ model Contest {
   is_private            Boolean  @default(false)
   is_plagiarism_checked Boolean  @default(false)
   class_id              String?
+  max_cheat_warnings    Int      @default(3) // số lần được phép rời màn hình trước khi bị loại
+  lockdown_enabled      Boolean  @default(false) // bật chế độ lockdown (toàn màn hình) khi thi
+  lockdown_code         String? // mã giám thị để thoát lockdown sớm
   created_at            DateTime @default(now())
   updated_at            DateTime @updatedAt
 

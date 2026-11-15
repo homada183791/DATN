@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useProblemsQuery } from '../api/problems';
 import { useNotifications } from '../context/NotificationContext';
+import { useLockdownActive } from '../context/lockdownStore';
 import {
   LayoutDashboard,
   BookOpen,
@@ -111,6 +112,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
   const { data: problems = [] } = useProblemsQuery();
   const { notifications, unreadCount, markRead, markAllRead, removeNotification, loadMore, hasMore, loading } = useNotifications();
   const navigate = useNavigate();
+  const lockdown = useLockdownActive(); // đang thi ở chế độ Lockdown → ẩn sidebar và navbar
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -191,6 +193,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
       )}
 
       {/* Sidebar */}
+      {!lockdown && (
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-[#f0ebd9] border-r border-[#e5dac9] transition-all duration-300 lg:sticky lg:top-0 lg:h-screen lg:self-start lg:shrink-0 ${
           sidebarOpen ? 'w-52' : 'w-20'
@@ -265,10 +268,12 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
           </Link>
         </div>
       </aside>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Bar */}
+        {!lockdown && (
         <header className="sticky top-0 z-50 h-16 shrink-0 bg-[#f7f4eb]/80 backdrop-blur-xl border-b border-[#e5dac9] flex items-center px-4 lg:px-6 gap-3">
           <button
             onClick={() => {
@@ -616,6 +621,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
             )}
           </div>
         </header>
+        )}
 
         {/* Page Content */}
         {fullBleed ? (

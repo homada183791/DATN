@@ -56,8 +56,11 @@ export class ContestsController {
   @ApiOperation({ summary: 'Lấy thông tin chi tiết một kỳ thi' })
   @ApiResponse({ status: 200, description: 'Thông tin chi tiết của kỳ thi.' })
   @ApiResponse({ status: 404, description: 'Không tìm thấy kỳ thi.' })
-  findOne(@Param('id') id: string) {
-    return this.contestsService.findOne(id);
+  findOne(
+    @Param('id') id: string,
+    @Request() req: { user: { role?: string } },
+  ) {
+    return this.contestsService.findOne(id, req.user.role);
   }
 
   @Patch(':id')
@@ -160,6 +163,25 @@ export class ContestsController {
     @Param('studentId') studentId: string,
   ) {
     return this.contestsService.resetCheatWarnings(id, studentId);
+  }
+
+  @Post(':id/lockdown/verify')
+  @Roles(Role.STUDENT)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Sinh viên nhập mã giám thị để thoát chế độ lockdown sớm',
+  })
+  @ApiResponse({ status: 201, description: 'Kết quả kiểm tra mã.' })
+  verifyLockdownCode(
+    @Param('id') id: string,
+    @Body() body: { code?: string },
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.contestsService.verifyLockdownCode(
+      id,
+      req.user.userId,
+      body?.code ?? '',
+    );
   }
 
   @Post(':id/anti-cheat/warning')

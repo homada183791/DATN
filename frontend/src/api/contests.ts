@@ -17,6 +17,12 @@ export interface ContestDto {
   className?: string;
   /** Sinh viên hiện tại đã đăng ký kỳ thi này (từ server) */
   isRegistered?: boolean;
+  /** Số lần được phép rời màn hình trước khi bị loại */
+  maxCheatWarnings: number;
+  /** Bật chế độ lockdown (toàn màn hình) khi thi */
+  lockdownEnabled: boolean;
+  /** Mã giám thị thoát lockdown sớm (chỉ instructor nhận được) */
+  lockdownCode?: string;
 }
 
 interface ContestApiResponse {
@@ -28,6 +34,9 @@ interface ContestApiResponse {
   is_private: boolean;
   class_id?: string | null;
   is_registered?: boolean;
+  max_cheat_warnings?: number;
+  lockdown_enabled?: boolean;
+  lockdown_code?: string | null;
   _count?: {
     problems?: number;
     contest_sessions?: number;
@@ -73,6 +82,9 @@ export function fetchContests() {
         endTime: contest.end_time,
         status,
         isRegistered: contest.is_registered ?? false,
+        maxCheatWarnings: contest.max_cheat_warnings ?? 3,
+        lockdownEnabled: contest.lockdown_enabled ?? false,
+        lockdownCode: contest.lockdown_code ?? undefined,
         participantCount: contest._count?.contest_sessions ?? 0,
         problemCount: contest._count?.problems ?? 0,
         type: 'ICPC',
@@ -90,6 +102,9 @@ export function createContest(data: {
   end_time: string;
   is_private: boolean;
   class_id?: string;
+  max_cheat_warnings?: number;
+  lockdown_enabled?: boolean;
+  lockdown_code?: string;
 }) {
   return apiFetch<ContestApiResponse>('/api/v1/contests', {
     method: 'POST',
@@ -138,7 +153,18 @@ export function joinContest(contestId: string) {
     session_id: string;
     cheat_warnings?: number;
     is_disqualified?: boolean;
+    max_warnings?: number;
+    lockdown_enabled?: boolean;
+    end_time?: string;
   }>(`/api/v1/contests/${contestId}/join`, { method: 'POST' });
+}
+
+/** Sinh viên nhập mã giám thị để thoát lockdown sớm */
+export function verifyLockdownCode(contestId: string, code: string) {
+  return apiFetch<{ valid: boolean }>(`/api/v1/contests/${contestId}/lockdown/verify`, {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  });
 }
 
 export interface PlagiarismReportDto {

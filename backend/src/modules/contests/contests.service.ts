@@ -10,10 +10,37 @@ import { EventsGateway } from '../../events/events.gateway';
 import { CreateContestDto } from './dto/create-contest.dto';
 import { UpdateContestDto } from './dto/update-contest.dto';
 import { AddProblemDto } from './dto/add-problem.dto';
+import { randomInt } from 'crypto';
+
+const DEFAULT_MAX_CHEAT_WARNINGS = 3;
+const LOCKDOWN_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+/** Tạo mã giám thị ngẫu nhiên (6 ký tự, bỏ các ký tự dễ nhầm như 0/O, 1/I) */
+function generateLockdownCode(length = 6): string {
+  let code = '';
+  for (let i = 0; i < length; i++) {
+    code += LOCKDOWN_CODE_CHARS[randomInt(LOCKDOWN_CODE_CHARS.length)];
+  }
+  return code;
+}
+
+/** Ẩn mã lockdown khỏi dữ liệu trả cho sinh viên */
+function withoutLockdownCode<T extends { lockdown_code?: string | null }>(
+  contest: T,
+): Omit<T, 'lockdown_code'> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { lockdown_code, ...rest } = contest;
+  return rest;
+}
 
 @Injectable()
 export class ContestsService {
   private readonly logger = new Logger(ContestsService.name);
+  /** Chống dò mã lockdown: key = contest:student → số lần sai và thời điểm hết khóa */
+  private readonly lockdownAttempts = new Map<
+    string,
+    { count: number; lockedUntil: number }
+  >();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -29,6 +56,13 @@ export class ContestsService {
         end_time: new Date(createContestDto.end_time),
         is_private: createContestDto.is_private,
         class_id: createContestDto.class_id,
+        max_cheat_warnings:
+          createContestDto.max_cheat_warnings ?? DEFAULT_MAX_CHEAT_WARNINGS,
+        lockdown_enabled: createContestDto.lockdown_enabled ?? false,
+        lockdown_code: createContestDto.lockdown_enabled
+          ? (createContestDto.lockdown_code?.toUpperCase() ??
+            generateLockdownCode())
+          : null,
       },
     });
   }
@@ -72,20 +106,17 @@ export class ContestsService {
 
     // Đánh dấu kỳ thi mà sinh viên này đã đăng ký (có ContestSession) để giữ trạng thái sau khi tải lại trang
     const mySessions = await this.prisma.contestSession.findMany({
-      where: {
-        student_id: userId,
-        contest_id: { in: contests.map((c) => c.id) },
-      },
+      where: { student_id: userId, contest_id: { in: contests.map((c) => c.id) } },
       select: { contest_id: true },
     });
     const registeredIds = new Set(mySessions.map((s) => s.contest_id));
     return contests.map((c) => ({
-      ...c,
+      ...withoutLockdownCode(c),
       is_registered: registeredIds.has(c.id),
     }));
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, role?: string) {
     const contest = await this.prisma.contest.findUnique({
       where: { id },
       include: {
@@ -107,7 +138,8 @@ export class ContestsService {
       throw new NotFoundException('Không tìm thấy kỳ thi');
     }
 
-    return contest;
+    // Mã lockdown chỉ giảng viên được xem
+    return role === 'INSTRUCTOR' ? contest : withoutLockdownCode(contest);
   }
 
   async update(id: string, updateContestDto: UpdateContestDto) {
@@ -119,6 +151,18 @@ export class ContestsService {
       updateData.start_time = new Date(updateContestDto.start_time);
     if (updateContestDto.end_time)
       updateData.end_time = new Date(updateContestDto.end_time);
+
+    // Lockdown: tắt → xóa mã; bật → dùng mã được gửi lên, mã cũ, hoặc tự tạo mã mới
+    if (updateContestDto.lockdown_enabled === false) {
+      updateData.lockdown_code = null;
+    } else if (updateContestDto.lockdown_enabled === true) {
+      updateData.lockdown_code =
+        updateContestDto.lockdown_code?.toUpperCase() ??
+        contest.lockdown_code ??
+        generateLockdownCode();
+    } else {
+      delete updateData.lockdown_code;
+    }
 
     return this.prisma.contest.update({
       where: { id },
@@ -217,14 +261,62 @@ export class ContestsService {
       session_id: session.id,
       cheat_warnings: session.cheat_warnings,
       is_disqualified: session.is_disqualified,
+      max_warnings: contest.max_cheat_warnings,
+      lockdown_enabled: contest.lockdown_enabled,
+      end_time: contest.end_time,
     };
+  }
+
+  /** Sinh viên nhập mã giám thị để thoát lockdown sớm */
+  verifyLockdownCode(contestId: string, studentId: string, code: string) {
+    return this.checkLockdownCode(contestId, studentId, code);
+  }
+
+  private async checkLockdownCode(
+    contestId: string,
+    studentId: string,
+    code: string,
+  ) {
+    const contest = await this.prisma.contest.findUnique({
+      where: { id: contestId },
+      select: { lockdown_enabled: true, lockdown_code: true },
+    });
+    if (!contest) throw new NotFoundException('Không tìm thấy kỳ thi');
+    if (!contest.lockdown_enabled || !contest.lockdown_code) {
+      throw new BadRequestException('Kỳ thi này không bật chế độ lockdown');
+    }
+
+    const key = `${contestId}:${studentId}`;
+    const now = Date.now();
+    const attempt = this.lockdownAttempts.get(key);
+    if (attempt && attempt.lockedUntil > now) {
+      throw new BadRequestException(
+        'Nhập sai quá nhiều lần. Vui lòng thử lại sau ít phút.',
+      );
+    }
+
+    const valid =
+      (code ?? '').trim().toUpperCase() === contest.lockdown_code.toUpperCase();
+    if (valid) {
+      this.lockdownAttempts.delete(key);
+      return { valid: true };
+    }
+
+    const count = (attempt?.count ?? 0) + 1;
+    this.lockdownAttempts.set(
+      key,
+      count >= 5
+        ? { count: 0, lockedUntil: now + 2 * 60 * 1000 }
+        : { count, lockedUntil: 0 },
+    );
+    return { valid: false };
   }
 
   /** Danh sách sinh viên vi phạm (số lần cảnh báo rời màn hình) cho màn hình giám sát của giảng viên */
   async getSessions(contestId: string) {
     const contest = await this.prisma.contest.findUnique({
       where: { id: contestId },
-      select: { id: true },
+      select: { id: true, max_cheat_warnings: true },
     });
     if (!contest) throw new NotFoundException('Không tìm thấy kỳ thi');
 
@@ -241,7 +333,7 @@ export class ContestsService {
     });
 
     return {
-      max_warnings: 3,
+      max_warnings: contest.max_cheat_warnings,
       sessions: sessions.map((s) => ({
         student_id: s.student_id,
         username: s.student.username ?? s.student.email.split('@')[0],
@@ -289,6 +381,16 @@ export class ContestsService {
     });
     if (!contest) throw new NotFoundException('Không tìm thấy kỳ thi');
 
+    // Chế độ Lockdown không giám sát rời màn hình → bỏ qua cảnh báo
+    if (contest.lockdown_enabled) {
+      return {
+        success: true,
+        cheat_warnings: 0,
+        is_disqualified: false,
+        max_warnings: contest.max_cheat_warnings,
+      };
+    }
+
     const session = await this.prisma.contestSession.upsert({
       where: {
         contest_id_student_id: { contest_id: contestId, student_id: studentId },
@@ -304,7 +406,7 @@ export class ContestsService {
     });
 
     let isDisqualified = session.is_disqualified;
-    if (session.cheat_warnings >= 3 && !isDisqualified) {
+    if (session.cheat_warnings >= contest.max_cheat_warnings && !isDisqualified) {
       isDisqualified = true;
       await this.prisma.contestSession.update({
         where: { id: session.id },
@@ -325,6 +427,7 @@ export class ContestsService {
       success: true,
       cheat_warnings: session.cheat_warnings,
       is_disqualified: isDisqualified,
+      max_warnings: contest.max_cheat_warnings,
     };
   }
 

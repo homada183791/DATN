@@ -1,0 +1,4 @@
+ALTER TABLE "contests"
+  ADD COLUMN IF NOT EXISTS "max_cheat_warnings" INTEGER NOT NULL DEFAULT 3,
+  ADD COLUMN IF NOT EXISTS "lockdown_enabled" BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS "lockdown_code" TEXT;

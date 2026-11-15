@@ -17,7 +17,7 @@ import { notifyGlobalToast } from '../../context/ToastContext';
 import { toDatetimeLocal, datetimeLocalToISO, formatVNFull } from '../../utils/dateTime';
 import {
   Trophy, Users, Plus, Search, X, Calendar, Edit3, Trash2, Eye,
-  Lock, Globe, BookOpen, CheckCircle2, ShieldAlert, TrendingUp, Loader2,
+  Lock, Globe, BookOpen, CheckCircle2, ShieldAlert, TrendingUp, Loader2, RefreshCw, Minus,
 } from 'lucide-react';
 
 type ContestForm = {
@@ -27,6 +27,17 @@ type ContestForm = {
   endTime: string;
   visibility: 'public' | 'private';
   classId: string;
+  maxCheatWarnings: string;
+  lockdownEnabled: boolean;
+  lockdownCode: string;
+};
+
+/** Mã giám thị ngẫu nhiên (bỏ ký tự dễ nhầm 0/O, 1/I) */
+const generateLockdownCode = (length = 6) => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const bytes = new Uint32Array(length);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => chars[b % chars.length]).join('');
 };
 
 const emptyContestForm: ContestForm = {
@@ -36,6 +47,9 @@ const emptyContestForm: ContestForm = {
   endTime: '',
   visibility: 'public',
   classId: '',
+  maxCheatWarnings: '3',
+  lockdownEnabled: false,
+  lockdownCode: '',
 };
 
 export default function InstructorContest() {
@@ -89,6 +103,9 @@ export default function InstructorContest() {
       endTime: contest.endTime ? toDatetimeLocal(contest.endTime) : '',
       visibility: contest.visibility ?? 'public',
       classId: contest.classId ?? '',
+      maxCheatWarnings: String(contest.maxCheatWarnings ?? 3),
+      lockdownEnabled: contest.lockdownEnabled ?? false,
+      lockdownCode: contest.lockdownCode ?? '',
     });
     setShowCreateModal(true);
   };
@@ -287,6 +304,12 @@ export default function InstructorContest() {
       return;
     }
 
+    const maxWarnings = Number(form.maxCheatWarnings);
+    if (!Number.isInteger(maxWarnings) || maxWarnings < 1 || maxWarnings > 20) {
+      notifyGlobalToast(t('instructorContest.errors.maxWarningsInvalid'));
+      return;
+    }
+
     setIsSaving(true);
     try {
       const payload = {
@@ -296,6 +319,9 @@ export default function InstructorContest() {
         start_time: datetimeLocalToISO(form.startTime),
         end_time: datetimeLocalToISO(form.endTime),
         is_private: form.visibility === 'private',
+        max_cheat_warnings: maxWarnings,
+        lockdown_enabled: form.lockdownEnabled,
+        ...(form.lockdownEnabled ? { lockdown_code: form.lockdownCode || generateLockdownCode() } : {}),
         ...(form.visibility === 'private' ? { class_id: form.classId } : { class_id: undefined }),
       };
       if (editingContest) await updateContest(editingContest, payload);
@@ -455,6 +481,15 @@ export default function InstructorContest() {
                 </div>
               </div>
 
+              {selectedContestData.lockdownEnabled && selectedContestData.status !== 'ended' && (
+                <div className="mb-4 flex flex-wrap items-center gap-3 px-4 py-3 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-sm">
+                  <Lock size={14} />
+                  <span className="font-semibold">{t('instructorContest.lockdownOn')}</span>
+                  <span className="text-xs">{t('instructorContest.lockdownCodeLabel')}</span>
+                  <span className="font-mono font-bold tracking-[0.25em]">{selectedContestData.lockdownCode ?? '—'}</span>
+                </div>
+              )}
+
               {/* Standings */}
               <h4 className="text-sm font-bold font-serif text-(--ws-text) mb-3">{t('instructorContest.standingsTitle')}</h4>
               <div className="bg-(--ws-panel2) rounded-xl border border-(--ws-border) overflow-hidden shadow-xs mb-6">
@@ -510,13 +545,15 @@ export default function InstructorContest() {
                 >
                   <BookOpen size={14} /> {t('instructorContest.manageProblems')}
                 </button>
-                <button
-                  onClick={() => setShowMonitorModal(selectedContestData.id)}
-                  className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-800 border border-amber-200 text-sm font-medium rounded-xl hover:bg-amber-100 transition-colors shadow-sm"
-                  title={t('instructorContest.monitorTooltip')}
-                >
-                  <ShieldAlert size={14} /> {t('instructorContest.monitorBtn')}
-                </button>
+                {!selectedContestData.lockdownEnabled && (
+                  <button
+                    onClick={() => setShowMonitorModal(selectedContestData.id)}
+                    className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-800 border border-amber-200 text-sm font-medium rounded-xl hover:bg-amber-100 transition-colors shadow-sm"
+                    title={t('instructorContest.monitorTooltip')}
+                  >
+                    <ShieldAlert size={14} /> {t('instructorContest.monitorBtn')}
+                  </button>
+                )}
                 {selectedContestData.status === 'ended' && (
                   <button
                     onClick={() => handleCalculateElo(selectedContestData.id)}
@@ -736,6 +773,87 @@ export default function InstructorContest() {
                   {t('instructorContest.privateClassWarning')}
                 </p>
               )}
+
+              {/* Chế độ thi: Giám sát (rời màn hình) hoặc Lockdown (khóa toàn màn hình) */}
+              <div className="rounded-xl border border-(--ws-border) bg-(--ws-panel2) p-4 space-y-3">
+                <label className="block text-sm font-medium text-(--ws-muted)">{t('instructorContest.fieldExamMode')}</label>
+
+                <label className={`flex items-start gap-3 cursor-pointer rounded-xl border p-3 ${!form.lockdownEnabled ? 'border-[#193a2b] bg-(--ws-hover)' : 'border-(--ws-border)'}`}>
+                  <input
+                    type="radio"
+                    name="examMode"
+                    checked={!form.lockdownEnabled}
+                    onChange={() => setForm({ ...form, lockdownEnabled: false })}
+                    className="mt-0.5 w-4 h-4 accent-[#193a2b]"
+                  />
+                  <span className="flex-1">
+                    <span className="block text-sm font-semibold text-(--ws-text)">{t('instructorContest.modeMonitor')}</span>
+                    <span className="block text-xs text-(--ws-muted) mt-0.5">{t('instructorContest.modeMonitorHint')}</span>
+                    {!form.lockdownEnabled && (
+                      <span className="mt-3 flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-medium text-(--ws-muted)">{t('instructorContest.fieldMaxWarnings')}</span>
+                        <button
+                          type="button"
+                          onClick={() => setForm({ ...form, maxCheatWarnings: String(Math.max(1, (Number(form.maxCheatWarnings) || 3) - 1)) })}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg border border-(--ws-border) bg-(--ws-editor) text-(--ws-text) hover:bg-(--ws-hover)"
+                          aria-label="-"
+                        >
+                          <Minus size={14} />
+                        </button>
+                        <input
+                          type="number"
+                          min={1}
+                          max={20}
+                          step={1}
+                          value={form.maxCheatWarnings}
+                          onChange={(event) => setForm({ ...form, maxCheatWarnings: event.target.value })}
+                          className="w-16 px-2 py-1.5 text-center bg-(--ws-editor) border border-(--ws-border) rounded-lg text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setForm({ ...form, maxCheatWarnings: String(Math.min(20, (Number(form.maxCheatWarnings) || 3) + 1)) })}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg border border-(--ws-border) bg-(--ws-editor) text-(--ws-text) hover:bg-(--ws-hover)"
+                          aria-label="+"
+                        >
+                          <Plus size={14} />
+                        </button>
+                        <span className="text-xs text-(--ws-muted)">{t('instructorContest.fieldMaxWarningsHint')}</span>
+                      </span>
+                    )}
+                  </span>
+                </label>
+
+                <label className={`flex items-start gap-3 cursor-pointer rounded-xl border p-3 ${form.lockdownEnabled ? 'border-[#193a2b] bg-(--ws-hover)' : 'border-(--ws-border)'}`}>
+                  <input
+                    type="radio"
+                    name="examMode"
+                    checked={form.lockdownEnabled}
+                    onChange={() => setForm({ ...form, lockdownEnabled: true, lockdownCode: form.lockdownCode || generateLockdownCode() })}
+                    className="mt-0.5 w-4 h-4 accent-[#193a2b]"
+                  />
+                  <span className="flex-1">
+                    <span className="block text-sm font-semibold text-(--ws-text)">{t('instructorContest.modeLockdown')}</span>
+                    <span className="block text-xs text-(--ws-muted) mt-0.5">{t('instructorContest.modeLockdownHint')}</span>
+                    {form.lockdownEnabled && (
+                      <span className="mt-3 flex flex-wrap items-center gap-3">
+                        <span className="text-xs font-medium text-(--ws-muted)">{t('instructorContest.lockdownCodeLabel')}</span>
+                        <span className="px-3 py-1.5 rounded-lg bg-(--ws-editor) border border-(--ws-border) font-mono text-base font-bold tracking-[0.25em] text-(--ws-text)">
+                          {form.lockdownCode}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.preventDefault(); setForm({ ...form, lockdownCode: generateLockdownCode() }); }}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-(--ws-border) text-(--ws-text) hover:bg-(--ws-hover)"
+                        >
+                          <RefreshCw size={12} /> {t('instructorContest.lockdownCodeRegenerate')}
+                        </button>
+                        <span className="basis-full text-xs text-(--ws-muted)">{t('instructorContest.lockdownCodeHint')}</span>
+                      </span>
+                    )}
+                  </span>
+                </label>
+              </div>
+
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={saveContest}
@@ -824,13 +942,15 @@ export default function InstructorContest() {
                     >
                       <BookOpen size={16} />
                     </button>
-                    <button
-                      onClick={() => setShowMonitorModal(contest.id)}
-                      className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-amber-600 hover:bg-[#f7f4eb] transition-colors"
-                      title={t('instructorContest.monitorBtn')}
-                    >
-                      <ShieldAlert size={16} />
-                    </button>
+                    {!contest.lockdownEnabled && (
+                      <button
+                        onClick={() => setShowMonitorModal(contest.id)}
+                        className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-amber-600 hover:bg-[#f7f4eb] transition-colors"
+                        title={t('instructorContest.monitorBtn')}
+                      >
+                        <ShieldAlert size={16} />
+                      </button>
+                    )}
                     {contest.status === 'ended' && (
                       <button
                         onClick={() => handleCalculateElo(contest.id)}

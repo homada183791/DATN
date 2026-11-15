@@ -10,7 +10,8 @@ import { ApiError, apiFetch } from '../../api/http';
 import { useProblemQuery } from '../../api/problems';
 import { useProblemSubmissionsQuery, type SubmissionDto } from '../../api/submissions';
 import { formatVNFull } from '../../utils/dateTime';
-import { joinContest, fetchContestDetail } from '../../api/contests';
+import { joinContest, fetchContestDetail, verifyLockdownCode } from '../../api/contests';
+import { setLockdownActive } from '../../context/lockdownStore';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { type Socket } from 'socket.io-client';
@@ -42,7 +43,6 @@ import {
   ChevronUp,
   Sparkles,
   BookOpen,
-  Monitor,
   Lock,
   Languages,
   ChevronLeft,
@@ -920,7 +920,27 @@ export default function ProblemSolve() {
 
   const [cheatWarnings, setCheatWarnings] = useState(0);
   const [isDisqualified, setIsDisqualified] = useState(false);
-  const [isFullscreenLock, setIsFullscreenLock] = useState(false);
+  const [maxWarnings, setMaxWarnings] = useState(3);
+  // ── Lockdown (do giảng viên bật khi tạo kỳ thi) ──
+  const [lockdownEnabled, setLockdownEnabled] = useState(false);
+  const [contestModeReady, setContestModeReady] = useState(false); // đã biết kỳ thi là giám sát hay lockdown
+  const [contestEnded, setContestEnded] = useState(false);
+  const [contestEndTime, setContestEndTime] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [lockdownLeft, setLockdownLeft] = useState(false); // đã thoát toàn màn hình giữa chừng
+  const [lockdownCodeInput, setLockdownCodeInput] = useState('');
+  const [lockdownCodeError, setLockdownCodeError] = useState('');
+  const [verifyingCode, setVerifyingCode] = useState(false);
+  const releasedKey = contestId ? `lockdown_released:${contestId}` : '';
+  const [lockdownReleased, setLockdownReleased] = useState(() => {
+    try { return !!releasedKey && sessionStorage.getItem(releasedKey) === '1'; } catch { return false; }
+  });
+  const lockdownReleasedRef = useRef(lockdownReleased);
+  const wasFullscreenRef = useRef(false);
+  const lockdownActive =
+    !!contestId && user?.role === 'student' && lockdownEnabled && !lockdownReleased && !isDisqualified && !contestEnded;
+  const lockdownActiveRef = useRef(lockdownActive);
+  lockdownActiveRef.current = lockdownActive;
   const lastCheatReportTime = useRef(0);
   const reportCheatRef = useRef<((reason: string) => Promise<void>) | null>(null);
 
@@ -1174,27 +1194,102 @@ export default function ProblemSolve() {
     joinContest(contestId)
       .then((res) => {
         if (res.cheat_warnings !== undefined) setCheatWarnings(res.cheat_warnings);
+        if (res.max_warnings !== undefined) setMaxWarnings(res.max_warnings);
+        setLockdownEnabled(!!res.lockdown_enabled);
+        if (res.end_time) {
+          setContestEndTime(res.end_time);
+          if (Date.now() >= new Date(res.end_time).getTime()) setContestEnded(true);
+        }
         if (res.is_disqualified) {
           setIsDisqualified(true);
         }
       })
       .catch((err) => {
         console.error('Không thể kiểm tra trạng thái phòng thi:', err);
-      });
+      })
+      .finally(() => setContestModeReady(true));
   }, [contestId, user?.role]);
 
-  const toggleFullscreenLock = async () => {
+  // Đồng hồ đếm ngược thời gian còn lại của kỳ thi
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    if (!contestEndTime || contestEnded) return;
+    const id = window.setInterval(() => setNowMs(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [contestEndTime, contestEnded]);
+  const remainingSec = contestEndTime
+    ? contestEnded
+      ? 0
+      : Math.max(0, Math.ceil((new Date(contestEndTime).getTime() - nowMs) / 1000))
+    : null;
+  const [showTimeUp, setShowTimeUp] = useState(false);
+  const formatCountdown = (sec: number) => {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${pad(h)}:${pad(m)}:${pad(s)}`;
+  };
+
+  // Hết giờ thi → tự mở khóa lockdown
+  useEffect(() => {
+    if (!contestEndTime) return;
+    const remaining = new Date(contestEndTime).getTime() - Date.now();
+    if (remaining <= 0) { setContestEnded(true); return; }
+    // Hết giờ ngay khi đang làm bài: dừng đồng hồ ở 00:00:00 và hiện thông báo
+    const timer = window.setTimeout(() => {
+      setNowMs(Date.now());
+      setContestEnded(true);
+      setShowTimeUp(true);
+    }, Math.min(remaining, 2147483000));
+    return () => window.clearTimeout(timer);
+  }, [contestEndTime]);
+
+  // Báo cho Layout ẩn sidebar + navbar khi đang lockdown
+  useEffect(() => {
+    setLockdownActive(lockdownActive);
+    return () => setLockdownActive(false);
+  }, [lockdownActive]);
+
+  // Không còn lockdown (hết giờ / bị loại / được thoát bằng mã) → thoát toàn màn hình
+  useEffect(() => {
+    if (!lockdownActive) {
+      try { (navigator as any).keyboard?.unlock?.(); } catch { /* bỏ qua */ }
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
+    }
+  }, [lockdownActive]);
+
+  const enterLockdown = async () => {
     try {
-      if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen();
-        setIsFullscreenLock(true);
-        showToast('Đã kích hoạt chế độ toàn màn hình F11 (Phòng thi giám sát)!', 'success');
-      } else {
-        await document.exitFullscreen();
-        setIsFullscreenLock(false);
-      }
+      await document.documentElement.requestFullscreen();
+      // Khóa phím Esc/F11/F5/F12... để không thể thoát toàn màn hình bằng bàn phím (Chrome/Edge hỗ trợ Keyboard Lock)
+      try {
+        await (navigator as any).keyboard?.lock?.(['Escape', 'F11', 'F5', 'F12', 'MetaLeft', 'MetaRight']);
+      } catch { /* trình duyệt không hỗ trợ */ }
     } catch {
-      showToast('Trình duyệt chặn toàn màn hình. Vui lòng cho phép quyền toàn màn hình.', 'error');
+      showToast(t('problemSolve.lockdownBlocked'), 'error');
+    }
+  };
+
+  const submitLockdownCode = async () => {
+    if (!contestId || !lockdownCodeInput.trim()) return;
+    setVerifyingCode(true);
+    setLockdownCodeError('');
+    try {
+      const res = await verifyLockdownCode(contestId, lockdownCodeInput.trim());
+      if (res.valid) {
+        lockdownReleasedRef.current = true;
+        try { sessionStorage.setItem(releasedKey, '1'); } catch { /* bỏ qua */ }
+        setLockdownReleased(true);
+        setLockdownCodeInput('');
+        showToast(t('problemSolve.lockdownReleasedToast'), 'success');
+      } else {
+        setLockdownCodeError(t('problemSolve.lockdownCodeWrong'));
+      }
+    } catch (err) {
+      setLockdownCodeError(err instanceof Error ? err.message : t('problemSolve.lockdownCodeError'));
+    } finally {
+      setVerifyingCode(false);
     }
   };
 
@@ -1236,8 +1331,9 @@ export default function ProblemSolve() {
   };
 
   // ── Anti-cheat monitoring khi đang làm bài trong phòng thi ─────────────────────
+  // Chế độ Giám sát: ghi nhận rời màn hình/chuyển tab. Chế độ Lockdown: KHÔNG giám sát, chỉ khóa màn hình.
   useEffect(() => {
-    if (!contestId || user?.role !== 'student' || isDisqualified) return;
+    if (!contestId || user?.role !== 'student' || isDisqualified || !contestModeReady) return;
 
     const reportCheat = async (reason: string) => {
       const currentTime = Date.now();
@@ -1249,16 +1345,19 @@ export default function ProblemSolve() {
           success: boolean;
           cheat_warnings: number;
           is_disqualified: boolean;
+          max_warnings?: number;
         }>(`/api/v1/contests/${contestId}/anti-cheat/warning`, {
           method: 'POST',
         });
 
         setCheatWarnings(res.cheat_warnings);
+        const max = res.max_warnings ?? 3;
+        setMaxWarnings(max);
         if (res.is_disqualified) {
           setIsDisqualified(true);
-          showToast(t('problemSolve.disqualifiedToast'), 'error');
+          showToast(t('problemSolve.disqualifiedToast', { max }), 'error');
         } else {
-          showToast(t('problemSolve.cheatWarningToast', { reason, count: res.cheat_warnings }), 'error');
+          showToast(t('problemSolve.cheatWarningToast', { reason, count: res.cheat_warnings, max }), 'error');
         }
       } catch (err: any) {
         console.error('Không thể gửi cảnh báo gian lận:', err);
@@ -1277,6 +1376,12 @@ export default function ProblemSolve() {
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Lockdown: không cho phím Esc thoát toàn màn hình
+      if (lockdownActiveRef.current && e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
       // Chặn các phím chức năng F1 đến F12
       if (/^F([1-9]|1[0-2])$/.test(e.key)) {
         e.preventDefault();
@@ -1298,14 +1403,18 @@ export default function ProblemSolve() {
 
     const handleFullscreenChange = () => {
       const isNowFullscreen = !!document.fullscreenElement;
-      setIsFullscreenLock(isNowFullscreen);
-      if (!isNowFullscreen && isFullscreenLock) {
-        reportCheatRef.current?.('Thoát chế độ toàn màn hình F11');
+      setIsFullscreen(isNowFullscreen);
+      // Lockdown: nếu bị thoát toàn màn hình ngoài ý muốn thì khóa lại ngay bằng màn hình yêu cầu vào lại (không tính vi phạm)
+      if (!isNowFullscreen && wasFullscreenRef.current && lockdownActiveRef.current && !lockdownReleasedRef.current) {
+        setLockdownLeft(true);
       }
+      wasFullscreenRef.current = isNowFullscreen;
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('blur', handleBlur);
+    if (!lockdownEnabled) {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener('blur', handleBlur);
+    }
     window.addEventListener('keydown', handleKeyDown, { capture: true });
     window.addEventListener('contextmenu', handleContextMenu);
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -1317,7 +1426,7 @@ export default function ProblemSolve() {
       window.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
-  }, [contestId, user?.role, isDisqualified, showToast, isFullscreenLock]);
+  }, [contestId, user?.role, isDisqualified, showToast, contestModeReady, lockdownEnabled]);
 
   useEffect(() => {
     if (!cooldownUntil) {
@@ -1791,8 +1900,8 @@ export default function ProblemSolve() {
     <div className="flex-1 flex flex-col min-h-0 h-full text-(--ws-text)">
       {/* problem header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-(--ws-border) bg-(--ws-panel) flex-wrap">
-          {/* Back button */}
-          {classId && homeworkId ? (
+          {/* Back button (ẩn khi đang lockdown) */}
+          {!lockdownActive && (classId && homeworkId ? (
             <button
               onClick={() => navigate(`/student/class/${classId}/homework/${homeworkId}`)}
               className="flex items-center gap-1 text-[12px] text-(--ws-muted) hover:text-(--ws-text) transition-colors mr-1"
@@ -1808,11 +1917,37 @@ export default function ProblemSolve() {
             >
               ← {t('studentContest.back')}
             </button>
-          )}
+          ))}
           <h1 className="text-[17px] font-bold">{localizedTitle}</h1>
           <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-md ${diffChip}`}>{problemDifficulty === 'EASY' ? t('problemForm.easy') : problemDifficulty === 'MEDIUM' ? t('problemForm.medium') : t('problemForm.hard')}</span>
           {contestId && (
             <div className="flex items-center gap-2">
+              {contestModeReady && lockdownEnabled ? (
+                lockdownActive ? (
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      value={lockdownCodeInput}
+                      onChange={(e) => { setLockdownCodeInput(e.target.value.toUpperCase()); setLockdownCodeError(''); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') void submitLockdownCode(); }}
+                      maxLength={12}
+                      placeholder={t('problemSolve.lockdownCodePlaceholder')}
+                      className="w-32 px-2.5 py-1 rounded-md border border-(--ws-border) bg-(--ws-editor) text-center font-mono text-[12px] tracking-[0.2em] text-(--ws-text) placeholder:tracking-normal placeholder:text-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                    />
+                    <button
+                      onClick={() => void submitLockdownCode()}
+                      disabled={verifyingCode || !lockdownCodeInput.trim()}
+                      className="px-3 py-1 rounded-md bg-[#193a2b] text-white text-[12px] font-semibold hover:bg-[#143022] disabled:opacity-50 transition-colors"
+                    >
+                      {t('problemSolve.lockdownCodeSubmit')}
+                    </button>
+                    {lockdownCodeError && <span className="text-[11px] text-red-600">{lockdownCodeError}</span>}
+                  </div>
+                ) : (
+                  <span className="text-[11px] font-semibold px-2.5 py-1 rounded-md border bg-gray-100 text-gray-700 border-gray-300">
+                    🔓 {t('problemSolve.lockdownEndedBadge')}
+                  </span>
+                )
+              ) : contestModeReady && (
               <span className={`flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-md border ${
                 isDisqualified
                   ? 'bg-red-100 text-red-800 border-red-300'
@@ -1820,20 +1955,23 @@ export default function ProblemSolve() {
                   ? 'bg-amber-100 text-amber-800 border-amber-300 animate-pulse'
                   : 'bg-purple-100 text-purple-800 border-purple-200'
               }`}>
-                🛡️ {isDisqualified ? t('problemSolve.cheatDisqualifiedBadge') : cheatWarnings > 0 ? t('problemSolve.cheatWarningBadge', { count: cheatWarnings }) : t('problemSolve.onlineExamBadge')}
+                🛡️ {isDisqualified ? t('problemSolve.cheatDisqualifiedBadge') : cheatWarnings > 0 ? t('problemSolve.cheatWarningBadge', { count: cheatWarnings, max: maxWarnings }) : t('problemSolve.onlineExamBadge')}
               </span>
-              <button
-                onClick={toggleFullscreenLock}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold border transition-all ${
-                  isFullscreenLock
-                    ? 'bg-purple-900/30 text-purple-200 border-purple-500 shadow-sm animate-pulse'
-                    : 'bg-(--ws-panel2) text-(--ws-muted) border-(--ws-border) hover:border-purple-400 hover:text-(--ws-text)'
-                }`}
-                title="Chế độ toàn màn hình giám sát thi cử (F11 Lockdown)"
-              >
-                <Monitor size={12} />
-                {isFullscreenLock ? '🔒 Đang khóa F11' : '🖥️ Bật F11 Lockdown'}
-              </button>
+              )}
+              {remainingSec !== null && (
+                <span
+                  className={`flex items-center gap-1.5 text-[12px] font-mono font-bold px-2.5 py-1 rounded-md border tabular-nums ${
+                    remainingSec === 0
+                      ? 'bg-gray-200 text-gray-700 border-gray-300'
+                      : remainingSec <= 300
+                        ? 'bg-red-100 text-red-700 border-red-300 animate-pulse'
+                        : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                  }`}
+                  title={t('problemSolve.countdownTitle')}
+                >
+                  ⏱ {remainingSec === 0 ? t('problemSolve.countdownEnded') : formatCountdown(remainingSec)}
+                </span>
+              )}
             </div>
           )}
           {solved && (
@@ -2929,6 +3067,47 @@ export default function ProblemSolve() {
         </div>
       ), document.body)}
 
+      {/* ============ LOCKDOWN OVERLAY (bật bởi giảng viên) ============ */}
+      {lockdownActive && !isFullscreen && hasDocument && createPortal((
+        <div className="fixed inset-0 z-9998 bg-[#0f1f17] flex flex-col items-center justify-center p-8 text-center text-white select-none">
+          <div className="w-20 h-20 rounded-full bg-emerald-900/60 border-2 border-emerald-500 flex items-center justify-center text-4xl mb-6 shadow-2xl">
+            🔒
+          </div>
+          <h1 className="text-2xl font-extrabold mb-3">{t('problemSolve.lockdownTitle')}</h1>
+          <p className="text-sm text-emerald-100/80 max-w-lg mb-4 leading-relaxed">{t('problemSolve.lockdownDesc')}</p>
+          {lockdownLeft && (
+            <p className="text-xs text-amber-300 bg-amber-900/30 border border-amber-700/60 rounded-lg px-4 py-2 max-w-lg mb-4">
+              {t('problemSolve.lockdownLeftNote')}
+            </p>
+          )}
+          <button
+            onClick={enterLockdown}
+            className="px-6 py-3 bg-white text-emerald-950 font-bold rounded-xl shadow-lg hover:bg-emerald-100 transition-colors mb-8"
+          >
+            {lockdownLeft ? t('problemSolve.lockdownReenter') : t('problemSolve.lockdownEnter')}
+          </button>
+        </div>
+      ), document.body)}
+
+      {/* ============ TIME'S UP MODAL ============ */}
+      {showTimeUp && hasDocument && createPortal((
+        <div className="fixed inset-0 z-9999 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 select-none">
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-md p-8 text-center shadow-2xl">
+            <div className="w-16 h-16 mx-auto rounded-full bg-amber-100 border-2 border-amber-400 flex items-center justify-center text-3xl mb-4">
+              ⏰
+            </div>
+            <h2 className="text-xl font-extrabold mb-2">{t('problemSolve.timeUpTitle')}</h2>
+            <p className="text-sm text-(--ws-muted) leading-relaxed mb-6">{t('problemSolve.timeUpDesc')}</p>
+            <button
+              onClick={() => navigate('/student/contest')}
+              className="w-full px-6 py-3 bg-[#193a2b] text-white font-bold rounded-xl shadow-md hover:bg-[#143022] transition-colors"
+            >
+              {t('problemSolve.timeUpExit')}
+            </button>
+          </div>
+        </div>
+      ), document.body)}
+
       {/* ============ DISQUALIFIED FULLSCREEN OVERLAY ============ */}
       {isDisqualified && hasDocument && createPortal((
         <div className="fixed inset-0 z-9999 bg-red-950/95 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center text-white select-none">
@@ -2939,10 +3118,10 @@ export default function ProblemSolve() {
             BÀI THI CỦA BẠN ĐÃ BỊ HỦY BỎ
           </h1>
           <p className="text-sm text-red-300 max-w-lg mb-6 leading-relaxed">
-            Hệ thống giám sát ghi nhận bạn đã vi phạm quy chế thi cử quá 3 lần (chuyển tab, rời cửa sổ hoặc thoát chế độ toàn màn hình F11). Quyền nộp bài đã bị vô hiệu hóa.
+            Hệ thống giám sát ghi nhận bạn đã vi phạm quy chế thi cử quá {maxWarnings} lần (chuyển tab, rời cửa sổ hoặc thoát chế độ toàn màn hình). Quyền nộp bài đã bị vô hiệu hóa.
           </p>
           <div className="bg-red-900/60 border border-red-700/80 rounded-xl px-6 py-3 text-xs font-mono text-red-200 mb-8">
-            Số lần vi phạm: {cheatWarnings}/3 • Trạng thái: DISQUALIFIED
+            Số lần vi phạm: {cheatWarnings}/{maxWarnings} • Trạng thái: DISQUALIFIED
           </div>
           <button
             onClick={() => navigate('/student/contest')}
