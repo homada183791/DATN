@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
-import { Calendar as CalendarIcon, Loader2, Plus } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Calendar as CalendarIcon, Loader2 } from 'lucide-react';
 import { useContestsQuery } from '../../api/contests';
 import { useHomeworksQuery } from '../../api/homeworks';
 import { useClass } from '../../context/ClassContext';
@@ -100,17 +99,6 @@ export default function CalendarPage({ userRole = 'student' }: Props) {
             </h1>
           </div>
         </div>
-
-        {userRole === 'instructor' && (
-          <div className="flex items-center gap-2">
-            <Link
-              to="/instructor/classes"
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-(--ws-accent) text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-2xs"
-            >
-              <Plus size={13} /> {t('calendar.assignHomework')}
-            </Link>
-          </div>
-        )}
       </div>
 
       {/* Loading state */}

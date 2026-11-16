@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class GradeSubmissionDto {
@@ -10,10 +17,11 @@ export class GradeSubmissionDto {
   @Min(0, { message: 'Điểm số tối thiểu là 0' })
   @Max(100, { message: 'Điểm số tối đa là 100' })
   @IsNotEmpty({ message: 'Điểm số không được để trống' })
-  instructor_score: number;
+  instructor_score!: number;
 
   @ApiPropertyOptional({
-    description: 'Lời nhận xét, góp ý sư phạm hoặc nhận xét code của giảng viên',
+    description:
+      'Lời nhận xét, góp ý sư phạm hoặc nhận xét code của giảng viên',
     example: 'Thuật toán tối ưu, code sạch sẽ và có chú thích rõ ràng.',
   })
   @IsOptional()

@@ -88,8 +88,6 @@ export default function HomeworkDetail() {
   const dl = deadlineInfo(homework.deadline, t);
   const totalPoints = tasks.reduce((s, t) => s + (t.points ?? 0), 0);
   const solvableCount = tasks.filter((t) => !!t.problem_id).length;
-  const completedCount = tasks.filter((t) => t.problem_id && solvedProblemIds.has(t.problem_id)).length;
-  const progressPct = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0;
 
   return (
     <div className="space-y-6 text-[#191919]">
@@ -143,38 +141,6 @@ export default function HomeworkDetail() {
             <Clock size={14} /> {t('studentContest.deadlineLabel')}: {formatVNFull(homework.deadline)}
           </span>
         </div>
-      </div>
-
-      {/* Progress banner */}
-      <div className="bg-white border border-[#e5dac9] rounded-2xl p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-4 mb-2">
-          <div className="flex items-center gap-2">
-            <Trophy size={18} className="text-[#193a2b]" />
-            <span className="font-bold text-sm text-[#191919]">{t('studentContest.yourProgress')}</span>
-          </div>
-          <span className={`text-xs font-bold font-mono px-2.5 py-0.5 rounded-full border ${
-            progressPct === 100
-              ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-              : progressPct > 0
-              ? 'bg-amber-100 text-amber-800 border-amber-300'
-              : 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]'
-          }`}>
-            {t('studentContest.progressFraction', { completed: completedCount, total: tasks.length, percent: progressPct })}
-          </span>
-        </div>
-        <div className="w-full h-2.5 bg-[#f0ebd9] rounded-full overflow-hidden">
-          <div
-            className={`h-full transition-all duration-500 rounded-full ${
-              progressPct === 100 ? 'bg-emerald-600' : 'bg-linear-to-r from-emerald-500 to-[#193a2b]'
-            }`}
-            style={{ width: `${progressPct}%` }}
-          />
-        </div>
-        <p className="text-xs text-[#8a8073] mt-2">
-          {completedCount === tasks.length && tasks.length > 0
-            ? t('studentContest.allCompletedMsg')
-            : t('studentContest.progressMsg', { completed: completedCount, total: tasks.length })}
-        </p>
       </div>
 
       {/* Problem list */}
@@ -250,7 +216,11 @@ export default function HomeworkDetail() {
                         </span>
                       )
                     )}
-                    {canSolve ? (
+                    {canSolve && dl.closed ? (
+                      <span className="flex items-center gap-1 px-3.5 py-1.5 bg-[#f0ebd9] text-[#8a8073] text-xs rounded-xl cursor-not-allowed">
+                        <Lock size={11} /> {t('studentContest.closed')}
+                      </span>
+                    ) : canSolve ? (
                       <Link
                         to={solveUrl}
                         className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm"

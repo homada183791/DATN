@@ -51,17 +51,14 @@ export class SubmissionsService {
       created_at: Date;
     };
 
-    const where: any = {};
-    if (userRole !== ('INSTRUCTOR' as Role)) {
+    const where: { user_id?: string; problem_id?: string } = {};
+    if (userRole !== Role.INSTRUCTOR) {
       where.user_id = userId;
     }
     if (problemId) {
       where.problem_id = problemId;
     }
 
-    // The Prisma delegate may be unresolved when the generated client is not
-    // available to the type-aware linter.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const submissions = (await this.prisma.submission.findMany({
       where,
       orderBy: { created_at: 'desc' },
@@ -79,7 +76,7 @@ export class SubmissionsService {
       username: submission.user.username ?? submission.user.email.split('@')[0],
       language: submission.language,
       language_version: submission.language_version,
-      status: submission.status as SubmissionStatus,
+      status: submission.status,
       score: submission.score,
       instructor_score: submission.instructor_score,
       instructor_feedback: submission.instructor_feedback,
@@ -168,7 +165,7 @@ export class SubmissionsService {
       username: submission.user.username ?? submission.user.email.split('@')[0],
       email: submission.user.email,
       language: submission.language,
-      language_version: (submission as any).language_version,
+      language_version: submission.language_version,
       status: submission.status,
       score: submission.score,
       instructor_score: submission.instructor_score,
@@ -185,12 +182,14 @@ export class SubmissionsService {
   }
 
   async submitCode(userId: string, createSubmissionDto: CreateSubmissionDto) {
-    const { problem_id, language, source_code, contest_id }: CreateSubmissionDto =
-      createSubmissionDto;
+    const {
+      problem_id,
+      language,
+      source_code,
+      contest_id,
+      homework_id,
+    }: CreateSubmissionDto = createSubmissionDto;
 
-    // The Prisma delegate may be unresolved when the generated client is not
-    // available to the type-aware linter.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('Không tìm thấy người dùng');
 
@@ -218,7 +217,6 @@ export class SubmissionsService {
       }>;
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const problem = (await this.prisma.problem.findUnique({
       where: { id: problem_id },
       include: {
@@ -245,16 +243,35 @@ export class SubmissionsService {
 
     // KIỂM TRA NGÔN NGỮ ĐƯỢC PHÉP (Allowed Languages & Versions Validation)
     if (problem.allowed_languages && problem.allowed_languages.length > 0) {
-      const candidate = (createSubmissionDto.language_version || language).toUpperCase();
+      const candidate = (
+        createSubmissionDto.language_version || language
+      ).toUpperCase();
       const baseLang = language.toUpperCase();
       const isAllowed = problem.allowed_languages.some((allowed) => {
         const u = allowed.toUpperCase();
-        return u === candidate || u === baseLang || (candidate.startsWith(u) && u.length >= 2);
+        return (
+          u === candidate ||
+          u === baseLang ||
+          (candidate.startsWith(u) && u.length >= 2)
+        );
       });
 
       if (!isAllowed) {
         throw new BadRequestException(
           `Bài tập này không cho phép sử dụng ngôn ngữ / phiên bản "${createSubmissionDto.language_version || language}". Các ngôn ngữ được chấp nhận: ${problem.allowed_languages.join(', ')}`,
+        );
+      }
+    }
+
+    // RÀNG BUỘC BÀI TẬP LỚP: bài tập đã hết hạn thì sinh viên không được nộp nữa.
+    if (user.role === 'STUDENT' && homework_id) {
+      const homework = await this.prisma.homework.findUnique({
+        where: { id: homework_id },
+        select: { deadline: true },
+      });
+      if (homework && homework.deadline.getTime() < Date.now()) {
+        throw new ForbiddenException(
+          'Bài tập đã hết hạn và đã đóng, bạn không thể nộp bài nữa.',
         );
       }
     }
@@ -279,7 +296,6 @@ export class SubmissionsService {
 
       // 1. Kiểm tra Private Contest: sinh viên phải thuộc lớp liên kết
       if (contest.is_private && contest.class_id) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         const enrollment = await this.prisma.classStudent.findUnique({
           where: {
             class_id_student_id: {
@@ -302,13 +318,10 @@ export class SubmissionsService {
         );
       }
       if (now > contest.end_time) {
-        throw new BadRequestException(
-          'Kỳ thi đã kết thúc, không thể nộp bài.',
-        );
+        throw new BadRequestException('Kỳ thi đã kết thúc, không thể nộp bài.');
       }
 
       // 3. Kiểm tra cấm thi (Anti-cheat)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       const session = await this.prisma.contestSession.findUnique({
         where: {
           contest_id_student_id: {
@@ -317,9 +330,7 @@ export class SubmissionsService {
           },
         },
       });
-      const isDisqualified = (
-        session as unknown as { is_disqualified: boolean } | null
-      )?.is_disqualified;
+      const isDisqualified = session?.is_disqualified;
       if (isDisqualified) {
         throw new ForbiddenException(
           'Bạn đã bị truất quyền thi cử do vi phạm quy chế (gian lận).',
@@ -328,7 +339,6 @@ export class SubmissionsService {
     }
 
     // B2: Tạo bản ghi Submission mới với status mặc định PENDING
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const submission = await this.prisma.submission.create({
       data: {
         user_id: userId,
@@ -336,7 +346,7 @@ export class SubmissionsService {
         language,
         language_version: createSubmissionDto.language_version || null,
         source_code,
-        status: 'PENDING' as SubmissionStatus,
+        status: SubmissionStatus.PENDING,
       },
     });
 
@@ -357,42 +367,59 @@ export class SubmissionsService {
     const dispatched = await this.queueService.publishJudgeJob(payload);
 
     if (!dispatched) {
-      setTimeout(async () => {
-        try {
-          const check = await this.prisma.submission.findUnique({
-            where: { id: submission.id },
-            select: { status: true },
-          });
-          if (check && (check.status === 'PENDING' || check.status === 'IN_QUEUE')) {
-            this.logger.log(
-              `[JudgeFallback] Queue publish failed for ${submission.id}. Executing via LocalJudgeService...`,
-            );
-            const evalResult = await this.localJudgeService.evaluateSubmission({
-              language,
-              language_version: createSubmissionDto.language_version,
-              source_code,
-              time_limit: problem.time_limit,
-              memory_limit: problem.memory_limit,
-              test_cases: problem.test_cases,
-            }, (progress) => {
-              this.eventsGateway.emitSubmissionProgress(submission.id, progress);
+      setTimeout(() => {
+        void (async () => {
+          try {
+            const check = await this.prisma.submission.findUnique({
+              where: { id: submission.id },
+              select: { status: true },
             });
+            if (
+              check &&
+              (check.status === 'PENDING' || check.status === 'IN_QUEUE')
+            ) {
+              this.logger.log(
+                `[JudgeFallback] Queue publish failed for ${submission.id}. Executing via LocalJudgeService...`,
+              );
+              const evalResult =
+                await this.localJudgeService.evaluateSubmission(
+                  {
+                    language,
+                    language_version: createSubmissionDto.language_version,
+                    source_code,
+                    time_limit: problem.time_limit,
+                    memory_limit: problem.memory_limit,
+                    test_cases: problem.test_cases,
+                  },
+                  (progress) => {
+                    this.eventsGateway.emitSubmissionProgress(
+                      submission.id,
+                      progress,
+                    );
+                  },
+                );
 
-            await this.webhookService.processJudgeResult({
-              is_custom: false,
-              submission_id: submission.id,
-              status: evalResult.status as SubmissionStatus,
-              execution_time: evalResult.execution_time,
-              memory_used: evalResult.memory_used,
-              test_results: evalResult.test_results as any,
-            });
+              await this.webhookService.processJudgeResult({
+                is_custom: false,
+                submission_id: submission.id,
+                status: evalResult.status as SubmissionStatus,
+                execution_time: evalResult.execution_time,
+                memory_used: evalResult.memory_used,
+                test_results: evalResult.test_results.map((result) => ({
+                  ...result,
+                  status: result.status as SubmissionStatus,
+                })),
+              });
+            }
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            const stack = err instanceof Error ? err.stack : undefined;
+            this.logger.error(
+              `[JudgeFallback] Failed to evaluate submission ${submission.id}: ${message}`,
+              stack,
+            );
           }
-        } catch (err: any) {
-          this.logger.error(
-            `[JudgeFallback] Failed to evaluate submission ${submission.id}: ${err.message}`,
-            err.stack,
-          );
-        }
+        })();
       }, 100);
     }
 
@@ -427,29 +454,34 @@ export class SubmissionsService {
       const dispatched = await this.queueService.publishJudgeJob(payload);
 
       if (!dispatched) {
-        setTimeout(async () => {
-          try {
-            const evalResult = await this.localJudgeService.evaluateCustomRun({
-              language,
-              language_version: dto.language_version,
-              source_code,
-              custom_input,
-            });
+        setTimeout(() => {
+          void (async () => {
+            try {
+              const evalResult = await this.localJudgeService.evaluateCustomRun(
+                {
+                  language,
+                  language_version: dto.language_version,
+                  source_code,
+                  custom_input,
+                },
+              );
 
-            await this.webhookService.processJudgeResult({
-              is_custom: true,
-              session_id: sessionId,
-              status: evalResult.status as SubmissionStatus,
-              stdout: evalResult.stdout,
-              stderr: evalResult.stderr,
-              execution_time: evalResult.execution_time,
-              memory_used: evalResult.memory_used,
-            });
-          } catch (err: any) {
-            this.logger.error(
-              `[CustomRunFallback] Failed session ${sessionId}: ${err.message}`,
-            );
-          }
+              await this.webhookService.processJudgeResult({
+                is_custom: true,
+                session_id: sessionId,
+                status: evalResult.status as SubmissionStatus,
+                stdout: evalResult.stdout,
+                stderr: evalResult.stderr,
+                execution_time: evalResult.execution_time,
+                memory_used: evalResult.memory_used,
+              });
+            } catch (err: unknown) {
+              const message = err instanceof Error ? err.message : String(err);
+              this.logger.error(
+                `[CustomRunFallback] Failed session ${sessionId}: ${message}`,
+              );
+            }
+          })();
         }, 100);
       }
 
@@ -471,7 +503,11 @@ export class SubmissionsService {
     }
   }
 
-  async gradeSubmission(id: string, instructorId: string, dto: GradeSubmissionDto) {
+  async gradeSubmission(
+    id: string,
+    instructorId: string,
+    dto: GradeSubmissionDto,
+  ) {
     const submission = await this.prisma.submission.findUnique({
       where: { id },
       include: {
@@ -503,18 +539,21 @@ export class SubmissionsService {
     });
 
     // Bắn realtime websocket tới sinh viên
-    this.eventsGateway.server?.to(`user_${submission.user_id}`).emit('submission_graded', {
-      submission_id: id,
-      problem_id: submission.problem_id,
-      instructor_score: updated.instructor_score,
-      instructor_feedback: updated.instructor_feedback,
-      graded_at: updated.graded_at,
-    });
+    this.eventsGateway.server
+      ?.to(`user_${submission.user_id}`)
+      .emit('submission_graded', {
+        submission_id: id,
+        problem_id: submission.problem_id,
+        instructor_score: updated.instructor_score,
+        instructor_feedback: updated.instructor_feedback,
+        graded_at: updated.graded_at,
+      });
 
     return updated;
   }
 
   async rejudgeSubmission(id: string, _instructorId: string) {
+    void _instructorId;
     const submission = await this.prisma.submission.findUnique({
       where: { id },
       include: {
@@ -556,34 +595,48 @@ export class SubmissionsService {
     });
 
     if (!dispatched) {
-      setTimeout(async () => {
-        try {
-          const check = await this.prisma.submission.findUnique({
-            where: { id },
-            select: { status: true },
-          });
-          if (check && (check.status === 'PENDING' || check.status === 'IN_QUEUE')) {
-            this.logger.log(`[JudgeFallback] Queue publish failed; rejudging submission ${id} locally...`);
-            const evalResult = await this.localJudgeService.evaluateSubmission({
-              language: submission.language,
-              source_code: submission.source_code,
-              time_limit: submission.problem.time_limit,
-              memory_limit: submission.problem.memory_limit,
-              test_cases: submission.problem.test_cases,
+      setTimeout(() => {
+        void (async () => {
+          try {
+            const check = await this.prisma.submission.findUnique({
+              where: { id },
+              select: { status: true },
             });
+            if (
+              check &&
+              (check.status === 'PENDING' || check.status === 'IN_QUEUE')
+            ) {
+              this.logger.log(
+                `[JudgeFallback] Queue publish failed; rejudging submission ${id} locally...`,
+              );
+              const evalResult =
+                await this.localJudgeService.evaluateSubmission({
+                  language: submission.language,
+                  source_code: submission.source_code,
+                  time_limit: submission.problem.time_limit,
+                  memory_limit: submission.problem.memory_limit,
+                  test_cases: submission.problem.test_cases,
+                });
 
-            await this.webhookService.processJudgeResult({
-              is_custom: false,
-              submission_id: id,
-              status: evalResult.status as SubmissionStatus,
-              execution_time: evalResult.execution_time,
-              memory_used: evalResult.memory_used,
-              test_results: evalResult.test_results as any,
-            });
+              await this.webhookService.processJudgeResult({
+                is_custom: false,
+                submission_id: id,
+                status: evalResult.status as SubmissionStatus,
+                execution_time: evalResult.execution_time,
+                memory_used: evalResult.memory_used,
+                test_results: evalResult.test_results.map((result) => ({
+                  ...result,
+                  status: result.status as SubmissionStatus,
+                })),
+              });
+            }
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            this.logger.error(
+              `[JudgeFallback] Failed to rejudge ${id}: ${message}`,
+            );
           }
-        } catch (err: any) {
-          this.logger.error(`[JudgeFallback] Failed to rejudge ${id}: ${err.message}`);
-        }
+        })();
       }, 100);
     }
 

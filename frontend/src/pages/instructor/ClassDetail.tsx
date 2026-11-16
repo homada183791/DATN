@@ -83,22 +83,6 @@ function exportGradebookCsv(gradebook: ClassGradebookDto) {
   document.body.removeChild(link);
 }
 
-function getMSSV(email: string, username?: string | null, id?: string): string {
-  // Ưu tiên trích xuất chuỗi số sinh viên từ email (vd: 20120123@student...)
-  const emailMatch = email.match(/^(\d{6,10})/);
-  if (emailMatch) return emailMatch[1];
-
-  // Nếu username toàn số (vd: 20120123)
-  if (username && /^\d{6,10}$/.test(username)) return username;
-
-  // Nếu username chứa số
-  const userMatch = username?.match(/\d{6,10}/);
-  if (userMatch) return userMatch[0];
-
-  // Fallback định danh sinh viên
-  return `SV${(id || email.split('@')[0]).slice(0, 6).toUpperCase()}`;
-}
-
 // Hiển thị học kỳ kèm năm học; nếu dữ liệu cũ chưa có năm (vd "Học kỳ 1") thì bổ sung năm học hiện tại.
 function formatSemesterWithYear(semester: string): string {
   if (/\d{4}\s*[/-]\s*\d{4}/.test(semester)) return semester;
@@ -148,7 +132,7 @@ export default function InstructorClassDetail() {
   const [activeTab, setActiveTab] = useState<'homework' | 'members' | 'gradebook'>('homework');
   const { data: gradebookData, isLoading: isGradebookLoading, refetch: refetchGradebook } = useClassGradebookQuery(classId);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortKey, setSortKey] = useState<'stt' | 'name_asc' | 'name_desc' | 'mssv_asc' | 'mssv_desc' | 'rating_desc' | 'subs_desc'>('stt');
+  const [sortKey, setSortKey] = useState<'stt' | 'name_asc' | 'name_desc' | 'rating_desc' | 'subs_desc'>('stt');
   const [copied, setCopied] = useState<string | null>(null);
 
   // Homework search & filter state
@@ -269,15 +253,13 @@ export default function InstructorClassDetail() {
       .map((item, index) => {
         const student = item.student;
         const email = student.email || '';
-        const mssv = getMSSV(email, student.username, student.id);
-        const displayName = student.username || email.split('@')[0] || mssv;
+        const displayName = student.username || email.split('@')[0] || student.id;
         return {
           stt: index + 1,
           id: student.id,
           email,
-          username: student.username || email.split('@')[0] || mssv,
+          username: student.username || email.split('@')[0] || student.id,
           displayName,
-          mssv,
           rating: student.elo_rating ?? 1200,
           submissionsCount: student._count?.submissions ?? 0,
           joinedAt: item.joined_at,
@@ -294,7 +276,6 @@ export default function InstructorClassDetail() {
         (m) =>
           m.displayName.toLowerCase().includes(q) ||
           m.email.toLowerCase().includes(q) ||
-          m.mssv.toLowerCase().includes(q) ||
           m.username.toLowerCase().includes(q)
       );
     }
@@ -302,8 +283,6 @@ export default function InstructorClassDetail() {
     const sorted = [...result];
     if (sortKey === 'name_asc') sorted.sort((a, b) => a.displayName.localeCompare(b.displayName, 'vi'));
     else if (sortKey === 'name_desc') sorted.sort((a, b) => b.displayName.localeCompare(a.displayName, 'vi'));
-    else if (sortKey === 'mssv_asc') sorted.sort((a, b) => a.mssv.localeCompare(b.mssv));
-    else if (sortKey === 'mssv_desc') sorted.sort((a, b) => b.mssv.localeCompare(a.mssv));
     else if (sortKey === 'rating_desc') sorted.sort((a, b) => b.rating - a.rating);
     else if (sortKey === 'subs_desc') sorted.sort((a, b) => b.submissionsCount - a.submissionsCount);
     // 'stt' preserves original joined index
@@ -846,8 +825,6 @@ export default function InstructorClassDetail() {
                 <option value="stt">{t('instructorClassDetail.sortJoinOrder')}</option>
                 <option value="name_asc">{t('instructorClassDetail.sortNameAsc')}</option>
                 <option value="name_desc">{t('instructorClassDetail.sortNameDesc')}</option>
-                <option value="mssv_asc">{t('instructorClassDetail.sortMssvAsc')}</option>
-                <option value="mssv_desc">{t('instructorClassDetail.sortMssvDesc')}</option>
                 <option value="rating_desc">{t('instructorClassDetail.sortRatingDesc')}</option>
                 <option value="subs_desc">{t('instructorClassDetail.sortSubsDesc')}</option>
               </select>
@@ -883,7 +860,6 @@ export default function InstructorClassDetail() {
                   <thead>
                     <tr className="border-b border-[#e5dac9] bg-[#faf8f2] text-[11px] font-bold text-[#8a8073] uppercase tracking-wider">
                       <th className="py-3 px-4 w-12 text-center">{t('instructorClassDetail.colStt')}</th>
-                      <th className="py-3 px-4">{t('instructorClassDetail.colMssv')}</th>
                       <th className="py-3 px-4">{t('instructorClass.colStudent')}</th>
                       <th className="py-3 px-4">{t('instructorClassDetail.colEmail')}</th>
                       <th className="py-3 px-4 text-center">{t('instructorClassDetail.colSubmissions')}</th>
@@ -897,11 +873,6 @@ export default function InstructorClassDetail() {
                       <tr key={m.id} className="hover:bg-[#f7f4eb]/60 transition-colors">
                         <td className="py-3.5 px-4 text-center text-xs font-semibold text-[#8a8073]">
                           {idx + 1}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#f0ebd9] border border-[#e5dac9] text-xs font-mono font-bold text-[#193a2b]">
-                            {m.mssv}
-                          </span>
                         </td>
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-2.5">

@@ -11,7 +11,6 @@ import {
   Lock,
   GraduationCap,
   Search,
-  Trophy,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -53,23 +52,6 @@ export default function HomeworkList() {
     });
     return set;
   }, [submissions]);
-
-  const { totalEnrolledTasks, solvedEnrolledTasks, totalPct } = useMemo(() => {
-    let total = 0;
-    let solved = 0;
-    allHomeworks.forEach((hw) => {
-      if (enrolledIds.has(hw.class_id) && Array.isArray(hw.tasks)) {
-        hw.tasks.forEach((t: any) => {
-          total += 1;
-          if (t.problem_id && solvedProblemIds.has(t.problem_id)) {
-            solved += 1;
-          }
-        });
-      }
-    });
-    const pct = total > 0 ? Math.round((solved / total) * 100) : 0;
-    return { totalEnrolledTasks: total, solvedEnrolledTasks: solved, totalPct: pct };
-  }, [allHomeworks, enrolledIds, solvedProblemIds]);
 
   const filtered = useMemo(() => {
     let list = allHomeworks.filter((hw) => enrolledIds.has(hw.class_id));
@@ -150,42 +132,6 @@ export default function HomeworkList() {
           </div>
         ))}
       </div>
-
-      {/* Overall Progress Banner */}
-      {totalEnrolledTasks > 0 && (
-        <div className="bg-white border border-[#e5dac9] rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-4 mb-2">
-            <div className="flex items-center gap-2">
-              <Trophy size={18} className="text-[#193a2b]" />
-              <span className="font-bold text-sm text-[#191919]">{t('studentContest.overallProgressTitle')}</span>
-            </div>
-            <span
-              className={`text-xs font-bold font-mono px-2.5 py-0.5 rounded-full border ${
-                totalPct === 100
-                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                  : totalPct > 0
-                  ? 'bg-amber-100 text-amber-800 border-amber-300'
-                  : 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]'
-              }`}
-            >
-              {t('studentClass.classProgressFraction', { solved: solvedEnrolledTasks, total: totalEnrolledTasks, percent: totalPct })}
-            </span>
-          </div>
-          <div className="w-full h-2.5 bg-[#f0ebd9] rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all duration-500 rounded-full ${
-                totalPct === 100 ? 'bg-emerald-600' : 'bg-linear-to-r from-emerald-500 to-[#193a2b]'
-              }`}
-              style={{ width: `${totalPct}%` }}
-            />
-          </div>
-          <p className="text-xs text-[#8a8073] mt-2">
-            {totalPct === 100
-              ? t('studentContest.allHomeworkCompletedMsg')
-              : t('studentClass.classProgressMsg', { solved: solvedEnrolledTasks, total: totalEnrolledTasks })}
-          </p>
-        </div>
-      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">

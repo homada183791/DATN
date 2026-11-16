@@ -5,6 +5,10 @@ import * as path from 'path';
 import * as os from 'os';
 import { randomUUID } from 'crypto';
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export interface TestResultItem {
   testcase_index: number;
   status: string;
@@ -42,7 +46,13 @@ export class LocalJudgeService {
     isInterpreted: boolean,
     input: string,
     timeLimitMs: number,
-  ): Promise<{ stdout: string; stderr: string; executionTime: number; isTle: boolean; exitCode: number }> {
+  ): Promise<{
+    stdout: string;
+    stderr: string;
+    executionTime: number;
+    isTle: boolean;
+    exitCode: number;
+  }> {
     return new Promise((resolve) => {
       const startTime = Date.now();
       let stdout = '';
@@ -67,42 +77,45 @@ export class LocalJudgeService {
         args = [executablePath];
       }
 
-      let child: any = null;
+      let child: ReturnType<typeof spawn>;
       try {
         child = spawn(cmd, args, {
           cwd: path.dirname(executablePath),
           windowsHide: true,
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         return resolve({
           stdout: '',
-          stderr: String(err?.message || err),
+          stderr: getErrorMessage(err),
           executionTime: 0,
           isTle: false,
           exitCode: 1,
         });
       }
 
-      const timer = setTimeout(() => {
-        isTle = true;
-        try {
-          if (child && !child.killed) {
+      const timer = setTimeout(
+        () => {
+          isTle = true;
+          if (!child.killed) {
             child.kill('SIGKILL');
           }
-        } catch {}
-      }, Math.max(1000, timeLimitMs + 500));
+        },
+        Math.max(1000, timeLimitMs + 500),
+      );
 
-      if (child.stdin) {
-        try {
-          child.stdin.write(input || '');
-          child.stdin.end();
-        } catch {}
+      try {
+        child.stdin?.write(input || '');
+        child.stdin?.end();
+      } catch (err: unknown) {
+        this.logger.warn(
+          `Unable to send input to process: ${getErrorMessage(err)}`,
+        );
       }
 
       child.stdout?.on('data', (data: Buffer) => {
         stdout += data.toString();
         if (stdout.length > 50000) {
-          try { child.kill(); } catch {}
+          child.kill();
         }
       });
 
@@ -122,11 +135,11 @@ export class LocalJudgeService {
         });
       });
 
-      child.on('error', (err: any) => {
+      child.on('error', (err: Error) => {
         clearTimeout(timer);
         resolve({
           stdout,
-          stderr: stderr || String(err?.message || err),
+          stderr: stderr || getErrorMessage(err),
           executionTime: Date.now() - startTime,
           isTle: false,
           exitCode: 1,
@@ -148,12 +161,21 @@ export class LocalJudgeService {
     const upperVer = (languageVersion || '').toUpperCase();
     const sourceFilePath = path.join(tempDir, sourceFileName);
 
-    if (upperLang === 'PYTHON' || upperLang === 'NODE' || upperLang === 'JAVASCRIPT' || upperVer.includes('PYTHON') || upperVer.includes('NODE')) {
+    if (
+      upperLang === 'PYTHON' ||
+      upperLang === 'NODE' ||
+      upperLang === 'JAVASCRIPT' ||
+      upperVer.includes('PYTHON') ||
+      upperVer.includes('NODE')
+    ) {
       return { success: true, executablePath: sourceFilePath, stderr: '' };
     }
 
     const exeExtension = process.platform === 'win32' ? '.exe' : '';
-    const outExePath = path.join(tempDir, `program_${randomUUID().slice(0, 8)}${exeExtension}`);
+    const outExePath = path.join(
+      tempDir,
+      `program_${randomUUID().slice(0, 8)}${exeExtension}`,
+    );
 
     let compileCmd = '';
     let compileArgs: string[] = [];
@@ -185,20 +207,40 @@ export class LocalJudgeService {
     return new Promise((resolve) => {
       let stderr = '';
       try {
-        const child = spawn(compileCmd, compileArgs, { cwd: tempDir, windowsHide: true });
-        child.stderr?.on('data', (d: Buffer) => { stderr += d.toString(); });
+        const child = spawn(compileCmd, compileArgs, {
+          cwd: tempDir,
+          windowsHide: true,
+        });
+        child.stderr.on('data', (d: Buffer) => {
+          stderr += d.toString();
+        });
         child.on('close', (code: number) => {
           if (code === 0) {
-            resolve({ success: true, executablePath: (upperLang === 'JAVA' || upperVer.includes('JAVA')) ? sourceFilePath : outExePath, stderr: '' });
+            resolve({
+              success: true,
+              executablePath:
+                upperLang === 'JAVA' || upperVer.includes('JAVA')
+                  ? sourceFilePath
+                  : outExePath,
+              stderr: '',
+            });
           } else {
             resolve({ success: false, executablePath: '', stderr });
           }
         });
-        child.on('error', (err: any) => {
-          resolve({ success: false, executablePath: '', stderr: String(err?.message || err) });
+        child.on('error', (err: Error) => {
+          resolve({
+            success: false,
+            executablePath: '',
+            stderr: getErrorMessage(err),
+          });
         });
-      } catch (err: any) {
-        resolve({ success: false, executablePath: '', stderr: String(err?.message || err) });
+      } catch (err: unknown) {
+        resolve({
+          success: false,
+          executablePath: '',
+          stderr: getErrorMessage(err),
+        });
       }
     });
   }
@@ -213,7 +255,13 @@ export class LocalJudgeService {
     custom_input: string;
     time_limit?: number;
   }): Promise<CustomRunEvaluationResult> {
-    const { language, language_version, source_code, custom_input, time_limit = 2000 } = payload;
+    const {
+      language,
+      language_version,
+      source_code,
+      custom_input,
+      time_limit = 2000,
+    } = payload;
     const tempDir = path.join(os.tmpdir(), `datn_custom_${randomUUID()}`);
     fs.mkdirSync(tempDir, { recursive: true });
 
@@ -229,7 +277,12 @@ export class LocalJudgeService {
       const fileName = extMap[language.toUpperCase()] || 'main.py';
       fs.writeFileSync(path.join(tempDir, fileName), source_code, 'utf-8');
 
-      const compileResult = await this.compileCode(language, tempDir, fileName, language_version);
+      const compileResult = await this.compileCode(
+        language,
+        tempDir,
+        fileName,
+        language_version,
+      );
       if (!compileResult.success) {
         return {
           status: 'COMPILE_ERROR',
@@ -265,26 +318,44 @@ export class LocalJudgeService {
     } finally {
       try {
         fs.rmSync(tempDir, { recursive: true, force: true });
-      } catch {}
+      } catch (err: unknown) {
+        this.logger.warn(
+          `Unable to remove temporary directory: ${getErrorMessage(err)}`,
+        );
+      }
     }
   }
 
   /**
    * Chấm điểm bài nộp chính thức với toàn bộ test cases
    */
-  async evaluateSubmission(payload: {
-    language: string;
-    language_version?: string;
-    source_code: string;
-    time_limit: number;
-    memory_limit: number;
-    test_cases: Array<{ id?: string; input: string; expected_output: string; is_hidden?: boolean }>;
-  }, onTestCaseComplete?: (progress: {
-    completed_tests: number;
-    total_tests: number;
-    testcase_index: number;
-  }) => void): Promise<SubmissionEvaluationResult> {
-    const { language, language_version, source_code, time_limit = 1000, memory_limit = 256, test_cases = [] } = payload;
+  async evaluateSubmission(
+    payload: {
+      language: string;
+      language_version?: string;
+      source_code: string;
+      time_limit: number;
+      memory_limit: number;
+      test_cases: Array<{
+        id?: string;
+        input: string;
+        expected_output: string;
+        is_hidden?: boolean;
+      }>;
+    },
+    onTestCaseComplete?: (progress: {
+      completed_tests: number;
+      total_tests: number;
+      testcase_index: number;
+    }) => void,
+  ): Promise<SubmissionEvaluationResult> {
+    const {
+      language,
+      language_version,
+      source_code,
+      time_limit = 1000,
+      test_cases = [],
+    } = payload;
     const tempDir = path.join(os.tmpdir(), `datn_judge_${randomUUID()}`);
     fs.mkdirSync(tempDir, { recursive: true });
 
@@ -301,7 +372,12 @@ export class LocalJudgeService {
       fs.writeFileSync(path.join(tempDir, fileName), source_code, 'utf-8');
 
       // 1. Compile
-      const compileResult = await this.compileCode(language, tempDir, fileName, language_version);
+      const compileResult = await this.compileCode(
+        language,
+        tempDir,
+        fileName,
+        language_version,
+      );
       if (!compileResult.success) {
         const errorResults: TestResultItem[] = test_cases.map((_, idx) => ({
           testcase_index: idx,
@@ -342,7 +418,9 @@ export class LocalJudgeService {
         } else if (res.exitCode !== 0) {
           status = 'RUNTIME_ERROR';
         } else {
-          const expected = (tc.expected_output || '').trim().replace(/\r\n/g, '\n');
+          const expected = (tc.expected_output || '')
+            .trim()
+            .replace(/\r\n/g, '\n');
           const actual = res.stdout.trim().replace(/\r\n/g, '\n');
           if (actual !== expected) {
             status = 'WRONG_ANSWER';
@@ -369,7 +447,10 @@ export class LocalJudgeService {
       }
 
       const passedCount = results.filter((r) => r.status === 'ACCEPTED').length;
-      const score = test_cases.length > 0 ? Math.round((passedCount / test_cases.length) * 100) : 0;
+      const score =
+        test_cases.length > 0
+          ? Math.round((passedCount / test_cases.length) * 100)
+          : 0;
 
       return {
         status: finalStatus,
@@ -381,7 +462,11 @@ export class LocalJudgeService {
     } finally {
       try {
         fs.rmSync(tempDir, { recursive: true, force: true });
-      } catch {}
+      } catch (err: unknown) {
+        this.logger.warn(
+          `Unable to remove temporary directory: ${getErrorMessage(err)}`,
+        );
+      }
     }
   }
 }

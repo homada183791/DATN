@@ -8,6 +8,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getDetail, Lang, ProblemDetail } from '../../data/problemDetails';
 import { ApiError, apiFetch } from '../../api/http';
 import { useProblemQuery } from '../../api/problems';
+import { useClassHomeworkQuery } from '../../api/homeworks';
 import { useProblemSubmissionsQuery, type SubmissionDto } from '../../api/submissions';
 import { formatVNFull } from '../../utils/dateTime';
 import { joinContest, fetchContestDetail, verifyLockdownCode } from '../../api/contests';
@@ -953,6 +954,10 @@ export default function ProblemSolve() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const { data: apiProblem, isLoading, error } = useProblemQuery(resolvedId);
+  // bài tập lớp đã hết hạn → student không được vào làm nữa
+  const { data: homeworkInfo } = useClassHomeworkQuery(classId, homeworkId);
+  const homeworkClosed =
+    user?.role === 'student' && !!homeworkInfo?.deadline && new Date(homeworkInfo.deadline).getTime() < Date.now();
 
   // danh sách đề của kỳ thi → nút chuyển bài trước / bài kế tiếp ngay trên màn hình làm bài
   const { data: contestDetail } = useQuery({
@@ -1649,6 +1654,7 @@ export default function ProblemSolve() {
           language_version: apiLang.language_version,
           source_code: code,
           contest_id: contestId || undefined,
+          homework_id: homeworkId || undefined,
         }),
       });
       submissionId = response.submission_id;
@@ -1867,6 +1873,23 @@ export default function ProblemSolve() {
             <div className="h-112 rounded-2xl border border-(--ws-border) bg-(--ws-panel) animate-pulse" />
             <div className="h-112 rounded-2xl border border-(--ws-border) bg-(--ws-panel) animate-pulse" />
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (homeworkClosed) {
+    return (
+      <div className="flex-1 flex items-center justify-center h-full bg-(--ws-bg) text-(--ws-text) px-6">
+        <div className="max-w-lg w-full rounded-3xl border border-(--ws-border) bg-(--ws-panel) p-8 text-center shadow-sm">
+          <h1 className="text-2xl font-bold">{t('problemSolve.homeworkClosedTitle')}</h1>
+          <p className="mt-3 text-sm text-(--ws-muted)">{t('problemSolve.homeworkClosedSubtitle')}</p>
+          <button
+            onClick={() => navigate(`/student/class/${classId}/homework/${homeworkId}`)}
+            className="mt-6 px-5 py-2 rounded-xl bg-(--ws-accent) text-white text-sm font-semibold"
+          >
+            {t('problemSolve.homeworkClosedBack')}
+          </button>
         </div>
       </div>
     );

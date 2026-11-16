@@ -1,4 +1,10 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 import { Language } from '@prisma/client';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -23,7 +29,8 @@ export class CreateSubmissionDto {
   language: Language;
 
   @ApiPropertyOptional({
-    description: 'Phiên bản ngôn ngữ cụ thể (ví dụ: CPP17, CPP20, PYTHON3_11, JAVA21, NODE20)',
+    description:
+      'Phiên bản ngôn ngữ cụ thể (ví dụ: CPP17, CPP20, PYTHON3_11, JAVA21, NODE20)',
     example: 'CPP17',
   })
   @IsString()
@@ -49,4 +56,15 @@ export class CreateSubmissionDto {
     message: 'Mã kỳ thi (contest_id) không đúng định dạng UUID',
   })
   contest_id?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Mã bài tập của lớp (chỉ truyền khi nộp bài từ trang bài tập). Dùng để chặn nộp khi bài tập đã hết hạn.',
+    example: 'uuid-homework-1234',
+  })
+  @IsOptional()
+  @IsUUID(undefined, {
+    message: 'Mã bài tập lớp (homework_id) không đúng định dạng UUID',
+  })
+  homework_id?: string;
 }

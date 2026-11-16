@@ -27,7 +27,6 @@ import {
   AlertTriangle,
   CheckCircle2,
   Lock,
-  Trophy,
 } from 'lucide-react';
 
 export default function StudentClassDetail() {
@@ -54,23 +53,6 @@ export default function StudentClassDetail() {
     });
     return set;
   }, [submissions]);
-
-  const { totalClassTasks, solvedClassTasks, overallProgressPct } = useMemo(() => {
-    let total = 0;
-    let solved = 0;
-    homeworks.forEach((hw) => {
-      if (Array.isArray(hw.tasks)) {
-        hw.tasks.forEach((t: any) => {
-          total += 1;
-          if (t.problem_id && solvedProblemIds.has(t.problem_id)) {
-            solved += 1;
-          }
-        });
-      }
-    });
-    const pct = total > 0 ? Math.round((solved / total) * 100) : 0;
-    return { totalClassTasks: total, solvedClassTasks: solved, overallProgressPct: pct };
-  }, [homeworks, solvedProblemIds]);
 
   const activeCount = homeworks.filter((hw) => {
     const d = deadlineInfo(hw.deadline, t);
@@ -141,42 +123,6 @@ export default function StudentClassDetail() {
           </span>
         </div>
       </div>
-
-      {/* Overall Class Progress Banner */}
-      {totalClassTasks > 0 && (
-        <div className="bg-white border border-[#e5dac9] rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-4 mb-2">
-            <div className="flex items-center gap-2">
-              <Trophy size={18} className="text-[#193a2b]" />
-              <span className="font-bold text-sm text-[#191919]">{t('studentClass.classProgressTitle')}</span>
-            </div>
-            <span
-              className={`text-xs font-bold font-mono px-2.5 py-0.5 rounded-full border ${
-                overallProgressPct === 100
-                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                  : overallProgressPct > 0
-                  ? 'bg-amber-100 text-amber-800 border-amber-300'
-                  : 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]'
-              }`}
-            >
-              {t('studentClass.classProgressFraction', { solved: solvedClassTasks, total: totalClassTasks, percent: overallProgressPct })}
-            </span>
-          </div>
-          <div className="w-full h-2.5 bg-[#f0ebd9] rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all duration-500 rounded-full ${
-                overallProgressPct === 100 ? 'bg-emerald-600' : 'bg-linear-to-r from-emerald-500 to-[#193a2b]'
-              }`}
-              style={{ width: `${overallProgressPct}%` }}
-            />
-          </div>
-          <p className="text-xs text-[#8a8073] mt-2">
-            {overallProgressPct === 100
-              ? t('studentClass.allClassCompletedMsg')
-              : t('studentClass.classProgressMsg', { solved: solvedClassTasks, total: totalClassTasks })}
-          </p>
-        </div>
-      )}
 
       {/* Homework list */}
       <div>
