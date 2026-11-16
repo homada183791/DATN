@@ -11,13 +11,13 @@ import {
 import { useClassesQuery } from '../../api/classes';
 import { useProblemsQuery, createProblem, type CreateProblemDto, type ProblemDto } from '../../api/problems';
 import ProblemFormModal from '../../components/ProblemFormModal';
-import { ApiError } from '../../api/http';
+import { ApiError, apiFetch } from '../../api/http';
 import { createSocket } from '../../api/socket';
 import { notifyGlobalToast } from '../../context/ToastContext';
 import { toDatetimeLocal, datetimeLocalToISO, formatVNFull } from '../../utils/dateTime';
 import {
   Trophy, Users, Plus, Search, X, Calendar, Edit3, Trash2, Eye,
-  Lock, Globe, BookOpen, CheckCircle2, ShieldAlert, TrendingUp, Loader2, RefreshCw, Minus,
+  Lock, Globe, BookOpen, CheckCircle2, ShieldAlert, TrendingUp, Loader2, RefreshCw, Minus, Download, FileText,
 } from 'lucide-react';
 
 type ContestForm = {
@@ -30,6 +30,26 @@ type ContestForm = {
   maxCheatWarnings: string;
   lockdownEnabled: boolean;
   lockdownCode: string;
+};
+
+type ContestResultsDto = {
+  contest: {
+    id: string;
+    title: string;
+    start_time: string;
+    end_time: string;
+    lockdown_enabled: boolean;
+    max_cheat_warnings: number;
+  };
+  problems: Array<{ id: string; title: string }>;
+  results: Array<{
+    user_id: string;
+    username: string;
+    score: number;
+    cheat_warnings: number;
+    is_disqualified: boolean;
+    problems: Record<string, { attempts: number; score: number; solved: boolean; solved_at_minutes: number | null; runtime: number | null }>;
+  }>;
 };
 
 /** Mã giám thị ngẫu nhiên (bỏ ký tự dễ nhầm 0/O, 1/I) */
@@ -84,6 +104,9 @@ export default function InstructorContest() {
   const [loadingMonitor, setLoadingMonitor] = useState(false);
   const [monitorLive, setMonitorLive] = useState(false);
   const [resettingStudentId, setResettingStudentId] = useState<string | null>(null);
+  const [showResultsModal, setShowResultsModal] = useState<string | null>(null);
+  const [resultsData, setResultsData] = useState<ContestResultsDto | null>(null);
+  const [loadingResults, setLoadingResults] = useState(false);
   const monitorStatus = contests.find((c) => c.id === showMonitorModal)?.status;
   const [calculatingEloContestId, setCalculatingEloContestId] = useState<string | null>(null);
 
@@ -220,6 +243,71 @@ export default function InstructorContest() {
     } finally {
       setResettingStudentId(null);
     }
+  };
+
+  // Mở bảng kết quả thi chi tiết
+  useEffect(() => {
+    const contestId = showResultsModal;
+    if (!contestId) return;
+    let cancelled = false;
+    setLoadingResults(true);
+    setResultsData(null);
+    fetchContestResults(contestId)
+      .then((res: Awaited<ReturnType<typeof fetchContestResults>>) => { if (!cancelled) setResultsData(res); })
+      .catch((err) => {
+        notifyGlobalToast(err instanceof ApiError ? err.message : t('instructorContest.loadResultsFailed'));
+      })
+      .finally(() => { if (!cancelled) setLoadingResults(false); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showResultsModal]);
+
+  // Danh sách kết quả: sắp theo tên thí sinh (A → Z)
+  const sortedResults = resultsData
+    ? [...resultsData.results].sort((x, y) => x.username.localeCompare(y.username, 'vi', { sensitivity: 'base' }))
+    : [];
+  // Ghi chú: chỉ có ở chế độ giám sát (rời màn hình / chuyển tab)
+  const resultNote = (r: ContestResultsDto['results'][number]) => {
+    if (!resultsData || resultsData.contest.lockdown_enabled) return '';
+    if (r.is_disqualified) return t('instructorContest.noteDisqualified', { count: r.cheat_warnings });
+    if (r.cheat_warnings > 0) return t('instructorContest.noteLeftScreen', { count: r.cheat_warnings });
+    return '';
+  };
+
+  // Xuất kết quả thi ra file .csv (có BOM để Excel đọc đúng tiếng Việt)
+  const exportResultsCsv = () => {
+    if (!resultsData) return;
+    const esc = (value: string | number | null | undefined) => {
+      let text = value === null || value === undefined ? '' : String(value);
+      // Tránh bị Excel hiểu là công thức
+      if (/^[=+\-@]/.test(text)) text = `'${text}`;
+      return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    };
+    const header = [
+      t('instructorContest.resultsColNo'),
+      t('instructorContest.colUser'),
+      ...resultsData.problems.map((p) => p.title),
+      t('instructorContest.resultsColTotal'),
+      t('instructorContest.resultsColNote'),
+    ];
+    const rows = sortedResults.map((r, index) => [
+      index + 1,
+      r.username,
+      ...resultsData.problems.map((p) => r.problems[p.id]?.score ?? 0),
+      r.score,
+      resultNote(r),
+    ]);
+    const csv = '\uFEFF' + [header, ...rows].map((line) => line.map(esc).join(',')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const safeTitle = resultsData.contest.title.replace(/[^\p{L}\p{N}]+/gu, '_').replace(/^_+|_+$/g, '') || 'contest';
+    link.href = url;
+    link.download = `ket-qua-thi_${safeTitle}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   };
 
   const sortSessions = (list: ContestSessionDto[]) =>
@@ -544,6 +632,13 @@ export default function InstructorContest() {
                   className="flex items-center gap-2 px-4 py-2 bg-(--ws-panel2) border border-(--ws-border) text-(--ws-text) text-sm font-medium rounded-xl hover:bg-(--ws-hover) transition-colors"
                 >
                   <BookOpen size={14} /> {t('instructorContest.manageProblems')}
+                </button>
+                <button
+                  onClick={() => setShowResultsModal(selectedContestData.id)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-800 border border-blue-200 text-sm font-medium rounded-xl hover:bg-blue-100 transition-colors shadow-sm"
+                  title={t('instructorContest.resultsTooltip')}
+                >
+                  <FileText size={14} /> {t('instructorContest.resultsBtn')}
                 </button>
                 {!selectedContestData.lockdownEnabled && (
                   <button
@@ -980,6 +1075,87 @@ export default function InstructorContest() {
         </div>
       )}
 
+      {/* ── Kết quả thi chi tiết ───────────────────────────────────────────── */}
+      {showResultsModal && hasDocument && createPortal((
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setShowResultsModal(null)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-6xl max-h-[88vh] overflow-hidden shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between gap-3 p-6 border-b border-(--ws-border)">
+              <div className="min-w-0">
+                <h3 className="text-lg font-serif font-bold text-(--ws-text) flex items-center gap-2">
+                  <FileText size={20} className="text-blue-600" /> {t('instructorContest.resultsModalTitle')}
+                </h3>
+                {resultsData && (
+                  <p className="text-xs text-(--ws-muted) mt-0.5 truncate">
+                    {resultsData.contest.title} · {t('instructorContest.resultsCount', { count: resultsData.results.length })}
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={exportResultsCsv}
+                  disabled={!resultsData || resultsData.results.length === 0}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-sm font-medium rounded-xl hover:bg-[#143022] transition-colors disabled:opacity-50"
+                >
+                  <Download size={14} /> {t('instructorContest.exportCsv')}
+                </button>
+                <button onClick={() => setShowResultsModal(null)} className="text-(--ws-muted) hover:text-(--ws-text)">
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 overflow-auto">
+              {loadingResults ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 size={28} className="animate-spin text-[#193a2b]" />
+                </div>
+              ) : !resultsData || resultsData.results.length === 0 ? (
+                <div className="bg-(--ws-panel2) border border-(--ws-border) rounded-xl p-8 text-center text-sm text-(--ws-muted)">
+                  {t('instructorContest.resultsEmpty')}
+                </div>
+              ) : (
+                <div className="bg-(--ws-panel2) rounded-xl border border-(--ws-border) overflow-x-auto">
+                  <table className="w-full min-w-max">
+                    <thead>
+                      <tr className="border-b border-(--ws-border) bg-(--ws-hover)">
+                        <th className="text-left text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.resultsColNo')}</th>
+                        <th className="text-left text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colUser')}</th>
+                        {resultsData.problems.map((p) => (
+                          <th key={p.id} className="text-center text-xs font-semibold text-(--ws-muted) py-2.5 px-3 tracking-wider max-w-40 truncate" title={p.title}>{p.title}</th>
+                        ))}
+                        <th className="text-right text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.resultsColTotal')}</th>
+                        <th className="text-left text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.resultsColNote')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedResults.map((r, index) => {
+                        const note = resultNote(r);
+                        return (
+                          <tr key={r.user_id} className="border-b border-(--ws-border) last:border-b-0 hover:bg-(--ws-hover)">
+                            <td className="py-2.5 px-3 text-sm text-(--ws-muted)">{index + 1}</td>
+                            <td className="py-2.5 px-3 text-sm font-semibold text-(--ws-text)">{r.username}</td>
+                            {resultsData.problems.map((p) => (
+                              <td key={p.id} className="py-2.5 px-3 text-center text-sm text-(--ws-text)">
+                                {r.problems[p.id]?.score ?? 0}
+                              </td>
+                            ))}
+                            <td className="py-2.5 px-3 text-sm text-(--ws-text) font-bold text-right">{r.score}</td>
+                            <td className="py-2.5 px-3 text-xs">
+                              {note ? (
+                                <span className={r.is_disqualified ? 'text-red-700 font-semibold' : 'text-amber-700'}>{note}</span>
+                              ) : null}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ), document.body)}
+
       {/* ── Giám sát kỳ thi ─────────────────────────────────────────────────── */}
       {showMonitorModal && hasDocument && createPortal((
         <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setShowMonitorModal(null)}>
@@ -1078,5 +1254,10 @@ export default function InstructorContest() {
         </div>
       ), document.body)}
     </div>
+  );
+}
+function fetchContestResults(contestId: string) {
+  return apiFetch<ContestResultsDto>(
+    `/api/v1/contests/${encodeURIComponent(contestId)}/results`,
   );
 }

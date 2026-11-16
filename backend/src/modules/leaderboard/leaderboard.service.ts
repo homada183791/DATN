@@ -22,6 +22,14 @@ export interface LeaderboardEntry {
   rating: number;
 }
 
+export interface ContestProblemResult {
+  attempts: number; // số lần nộp (đã chấm)
+  score: number; // điểm cao nhất
+  solved: boolean; // đã AC
+  solved_at_minutes: number | null; // phút kể từ lúc bắt đầu tới lần AC đầu tiên
+  runtime: number | null; // runtime (ms) của bài nộp tốt nhất
+}
+
 @Injectable()
 export class LeaderboardService implements OnModuleDestroy {
   private redisClient: Redis;
@@ -36,6 +44,119 @@ export class LeaderboardService implements OnModuleDestroy {
   async onModuleDestroy() {
     await this.redisClient.quit();
     this.logger.log('[LeaderboardService] Redis connection closed.');
+  }
+
+  /** Kết quả thi chi tiết từng sinh viên theo từng bài (dùng cho giảng viên xem và xuất CSV) */
+  async getDetailedResults(contestId: string) {
+    // Xóa cache để kết quả xuất ra luôn mới nhất
+    await this.redisClient.del(`leaderboard:contest:${contestId}`);
+    const standings = await this.getLeaderboard(contestId);
+
+    const contest = await this.prisma.contest.findUnique({
+      where: { id: contestId },
+      include: {
+        problems: {
+          include: { problem: { select: { id: true, title: true } } },
+          orderBy: { created_at: 'asc' }, // đúng thứ tự bài trong kỳ thi
+        },
+      },
+    });
+    if (!contest) throw new NotFoundException('Không tìm thấy kỳ thi');
+
+    const problems = contest.problems.map((cp) => ({
+      id: cp.problem_id,
+      title: cp.problem.title,
+    }));
+    const problemIds = problems.map((p) => p.id);
+
+    const [submissions, sessions] = await Promise.all([
+      this.prisma.submission.findMany({
+        where: {
+          problem_id: { in: problemIds },
+          created_at: { gte: contest.start_time, lte: contest.end_time },
+        },
+        orderBy: { created_at: 'asc' },
+        select: {
+          user_id: true,
+          problem_id: true,
+          status: true,
+          score: true,
+          instructor_score: true,
+          execution_time: true,
+          created_at: true,
+        },
+      }),
+      this.prisma.contestSession.findMany({
+        where: { contest_id: contestId },
+        select: {
+          student_id: true,
+          cheat_warnings: true,
+          is_disqualified: true,
+        },
+      }),
+    ]);
+
+    const detail = new Map<string, Record<string, ContestProblemResult>>();
+    for (const sub of submissions) {
+      if (
+        sub.status === SubmissionStatus.PENDING ||
+        sub.status === SubmissionStatus.IN_QUEUE
+      ) {
+        continue;
+      }
+      let perUser = detail.get(sub.user_id);
+      if (!perUser) {
+        perUser = {};
+        detail.set(sub.user_id, perUser);
+      }
+      const cell = (perUser[sub.problem_id] ??= {
+        attempts: 0,
+        score: 0,
+        solved: false,
+        solved_at_minutes: null,
+        runtime: null,
+      });
+      cell.attempts += 1;
+
+      const subScore = sub.instructor_score ?? sub.score ?? 0;
+      const subTime = sub.execution_time ?? null;
+      if (
+        subScore > cell.score ||
+        (subScore === cell.score &&
+          subScore > 0 &&
+          subTime !== null &&
+          (cell.runtime === null || subTime < cell.runtime))
+      ) {
+        cell.score = subScore;
+        cell.runtime = subTime;
+      }
+      if (sub.status === SubmissionStatus.ACCEPTED && !cell.solved) {
+        cell.solved = true;
+        cell.solved_at_minutes = Math.floor(
+          (sub.created_at.getTime() - contest.start_time.getTime()) /
+            (1000 * 60),
+        );
+      }
+    }
+    const sessionMap = new Map(sessions.map((s) => [s.student_id, s]));
+
+    return {
+      contest: {
+        id: contest.id,
+        title: contest.title,
+        start_time: contest.start_time,
+        end_time: contest.end_time,
+        lockdown_enabled: contest.lockdown_enabled,
+        max_cheat_warnings: contest.max_cheat_warnings,
+      },
+      problems,
+      results: standings.map((row) => ({
+        ...row,
+        cheat_warnings: sessionMap.get(row.user_id)?.cheat_warnings ?? 0,
+        is_disqualified: sessionMap.get(row.user_id)?.is_disqualified ?? false,
+        problems: detail.get(row.user_id) ?? {},
+      })),
+    };
   }
 
   async getLeaderboard(contestId: string) {
