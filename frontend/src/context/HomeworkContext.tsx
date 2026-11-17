@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, ReactNode } from 'react';
 import { useHomeworkMutations, useHomeworksQuery, HomeworkTaskDto } from '../api/homeworks';
-import { datetimeLocalToISO } from '../utils/dateTime';
+import { datetimeLocalToISO, timeLeftWithinDay } from '../utils/dateTime';
 import i18n from '../i18n';
 
 export interface Homework {
@@ -57,6 +57,7 @@ function normalizeHomework(item: {
   created_at?: string | null;
   class_id: string;
   tasks?: HomeworkProblem[] | null;
+  submitted_students?: number;
   class?: { id?: string; name: string; students?: Array<{ student_id: string }> };
 }): Homework {
   const tasks = Array.isArray(item.tasks) ? item.tasks : [];
@@ -72,7 +73,7 @@ function normalizeHomework(item: {
     classId: String(item.class_id || item.class?.id || ''),
     className: item.class?.name ?? '',
     totalStudents: item.class?.students?.length ?? 0,
-    submittedStudents: 0,
+    submittedStudents: item.submitted_students ?? 0,
     tasks,
   };
 }
@@ -133,12 +134,11 @@ export function deadlineProgress(deadline: string, createdAt?: string | null, cr
   const daysLeft = Math.ceil((timestamp - now) / 86400000);
   const hoursLeft = (timestamp - now) / 3600000;
   const overdue = timestamp < now;
+  const within = timeLeftWithinDay(timestamp - now);
   const label = overdue
     ? i18n.t('common.deadlineProgress.overdue')
-    : daysLeft <= 0
-    ? i18n.t('common.deadlineProgress.dueToday')
-    : daysLeft === 1
-    ? i18n.t('common.deadlineProgress.oneDayLeft')
+    : timestamp - now <= 86400000
+    ? i18n.t(within.key, { count: within.count })
     : i18n.t('common.deadlineProgress.daysLeft', { count: daysLeft });
   return { pct, daysLeft, hoursLeft, overdue, label };
 }

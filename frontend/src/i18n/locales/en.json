@@ -30,6 +30,8 @@
       "overdue": "Overdue",
       "dueToday": "Due today",
       "oneDayLeft": "1 day left",
+      "hoursLeft": "{{count}}h left",
+      "minutesLeft": "{{count}} min left",
       "daysLeft": "{{count}} days left"
     }
   },
@@ -223,6 +225,9 @@
     "hwNoDescription": "No detailed description yet.",
     "deadlineLabel": "Deadline: {{date}}",
     "progressLabel": "Progress: {{submitted}}/{{total}} students submitted",
+    "editHwBtn": "Edit",
+    "editHwTitle": "Edit Homework",
+    "saveHwChanges": "Save Changes",
     "viewDetailBtn": "View Problem Details",
     "deleteHwTooltip": "Delete homework",
     "membersSectionTitle": "Class Member List",

@@ -96,7 +96,11 @@ export class ClassesService {
     return cls;
   }
 
-  async update(id: string, updateClassDto: UpdateClassDto, instructorId: string) {
+  async update(
+    id: string,
+    updateClassDto: UpdateClassDto,
+    instructorId: string,
+  ) {
     const cls = await this.findOne(id);
     if (cls.admin_id !== instructorId) {
       throw new ForbiddenException('Bạn không có quyền chỉnh sửa lớp học này.');
@@ -117,23 +121,38 @@ export class ClassesService {
     });
   }
 
-  async addStudent(classId: string, addStudentDto: AddStudentDto, instructorId: string) {
+  async addStudent(
+    classId: string,
+    addStudentDto: AddStudentDto,
+    instructorId: string,
+  ) {
     const cls = await this.findOne(classId);
     if (cls.admin_id !== instructorId) {
-      throw new ForbiddenException('Bạn không có quyền thêm sinh viên vào lớp học này.');
+      throw new ForbiddenException(
+        'Bạn không có quyền thêm sinh viên vào lớp học này.',
+      );
     }
 
     if (!addStudentDto.email && !addStudentDto.student_id) {
-      throw new BadRequestException('Vui lòng cung cấp email hoặc ID của sinh viên');
+      throw new BadRequestException(
+        'Vui lòng cung cấp email hoặc ID của sinh viên',
+      );
     }
 
     const user = await this.prisma.user.findFirst({
       where: addStudentDto.email
-        ? { email: { equals: addStudentDto.email.trim().toLowerCase(), mode: 'insensitive' } }
+        ? {
+            email: {
+              equals: addStudentDto.email.trim().toLowerCase(),
+              mode: 'insensitive',
+            },
+          }
         : { id: addStudentDto.student_id },
     });
     if (!user) {
-      throw new NotFoundException('Không tìm thấy tài khoản sinh viên với thông tin đã cung cấp');
+      throw new NotFoundException(
+        'Không tìm thấy tài khoản sinh viên với thông tin đã cung cấp',
+      );
     }
 
     const existing = await this.prisma.classStudent.findUnique({
@@ -155,12 +174,18 @@ export class ClassesService {
     });
   }
 
-  async removeStudent(classId: string, studentId: string, instructorId?: string) {
+  async removeStudent(
+    classId: string,
+    studentId: string,
+    instructorId?: string,
+  ) {
     const cls = await this.findOne(classId);
     // Chỉ kiểm tra quyền sở hữu khi kick sinh viên (instructorId được truyền).
     // Sinh viên tự rời lớp (từ endpoint /leave) không truyền instructorId.
     if (instructorId && cls.admin_id !== instructorId) {
-      throw new ForbiddenException('Bạn không có quyền xóa sinh viên khỏi lớp học này.');
+      throw new ForbiddenException(
+        'Bạn không có quyền xóa sinh viên khỏi lớp học này.',
+      );
     }
     return this.prisma.classStudent.delete({
       where: {
@@ -175,14 +200,19 @@ export class ClassesService {
   async joinStudent(classId: string, studentId: string, code?: string) {
     const cls = await this.findOne(classId);
     if (!cls.is_public) {
-      if (!code || code.trim().toUpperCase() !== cls.invite_code.toUpperCase()) {
+      if (
+        !code ||
+        code.trim().toUpperCase() !== cls.invite_code.toUpperCase()
+      ) {
         throw new ForbiddenException(
           'Lớp học này ở chế độ Riêng tư (Private). Bạn cần nhập đúng Mã tham gia (Enrollment Code) để vào lớp hoặc được Giảng viên mời vào danh sách.',
         );
       }
     }
     const existing = await this.prisma.classStudent.findUnique({
-      where: { class_id_student_id: { class_id: classId, student_id: studentId } },
+      where: {
+        class_id_student_id: { class_id: classId, student_id: studentId },
+      },
     });
     if (existing) throw new ConflictException('Sinh viên đã nằm trong lớp này');
 
@@ -195,7 +225,8 @@ export class ClassesService {
     const cls = await this.prisma.class.findUnique({
       where: { invite_code: inviteCode.trim().toUpperCase() },
     });
-    if (!cls) throw new NotFoundException(`Không tìm thấy lớp với mã "${inviteCode}".`);
+    if (!cls)
+      throw new NotFoundException(`Không tìm thấy lớp với mã "${inviteCode}".`);
     return this.joinStudent(cls.id, studentId, inviteCode);
   }
 
@@ -227,7 +258,9 @@ export class ClassesService {
     }
 
     if (instructorId && cls.admin_id !== instructorId) {
-      throw new ForbiddenException('Bạn không có quyền xem sổ điểm của lớp này.');
+      throw new ForbiddenException(
+        'Bạn không có quyền xem sổ điểm của lớp này.',
+      );
     }
 
     // Lấy tất cả problem_ids từ các bài tập về nhà của lớp
@@ -241,15 +274,31 @@ export class ClassesService {
     }> = [];
 
     const homeworkColumns = cls.homeworks.map((hw) => {
-      const tasks = Array.isArray(hw.tasks) ? (hw.tasks as any[]) : [];
-      const parsedTasks = tasks.map((t, idx) => {
-        const taskId = t.id || `task_${idx}`;
-        const problemId = t.problem_id || (t.id && String(t.id).includes('-') ? t.id : undefined);
+      const tasks = Array.isArray(hw.tasks) ? hw.tasks : [];
+      const parsedTasks = tasks.map((task, idx) => {
+        const taskData: Record<string, unknown> =
+          typeof task === 'object' && task !== null && !Array.isArray(task)
+            ? task
+            : {};
+        const id = typeof taskData.id === 'string' ? taskData.id : undefined;
+        const taskId = id || `task_${idx}`;
+        const problemId =
+          (typeof taskData.problem_id === 'string' && taskData.problem_id) ||
+          (id && id.includes('-') ? id : undefined);
+        const title =
+          typeof taskData.title === 'string'
+            ? taskData.title
+            : `Bài ${idx + 1}`;
+        const rawPoints =
+          typeof taskData.points === 'number' ||
+          typeof taskData.points === 'string'
+            ? Number(taskData.points)
+            : 0;
         const taskInfo = {
           task_id: taskId,
           problem_id: problemId,
-          title: t.title || `Bài ${idx + 1}`,
-          points: Number(t.points) || 10,
+          title,
+          points: rawPoints || 10,
         };
         allTaskProblems.push({
           homework_id: hw.id,
@@ -273,25 +322,26 @@ export class ClassesService {
       .map((t) => t.problem_id)
       .filter((pid): pid is string => Boolean(pid));
 
-    const submissions = problemIds.length > 0 && studentIds.length > 0
-      ? await this.prisma.submission.findMany({
-          where: {
-            user_id: { in: studentIds },
-            problem_id: { in: problemIds },
-          },
-          orderBy: { created_at: 'desc' },
-          select: {
-            id: true,
-            user_id: true,
-            problem_id: true,
-            status: true,
-            score: true,
-            instructor_score: true,
-            instructor_feedback: true,
-            created_at: true,
-          },
-        })
-      : [];
+    const submissions =
+      problemIds.length > 0 && studentIds.length > 0
+        ? await this.prisma.submission.findMany({
+            where: {
+              user_id: { in: studentIds },
+              problem_id: { in: problemIds },
+            },
+            orderBy: { created_at: 'desc' },
+            select: {
+              id: true,
+              user_id: true,
+              problem_id: true,
+              status: true,
+              score: true,
+              instructor_score: true,
+              instructor_feedback: true,
+              created_at: true,
+            },
+          })
+        : [];
 
     // Map sinh viên với kết quả từng bài tập
     const studentGrades = cls.students.map((entry) => {
@@ -303,7 +353,9 @@ export class ClassesService {
       const grades = allTaskProblems.map((task) => {
         totalAssignedScore += task.points;
         const studentSubs = task.problem_id
-          ? submissions.filter((s) => s.user_id === st.id && s.problem_id === task.problem_id)
+          ? submissions.filter(
+              (s) => s.user_id === st.id && s.problem_id === task.problem_id,
+            )
           : [];
 
         // Tìm bài nộp tốt nhất (ACCEPTED ưu tiên hàng đầu, hoặc điểm cao nhất)
@@ -313,9 +365,22 @@ export class ClassesService {
         const isAccepted = bestSub?.status === 'ACCEPTED';
         if (isAccepted) completedTasks++;
 
+        // Lần nộp gần nhất (submissions đã sắp xếp mới → cũ)
+        const latestSub = studentSubs[0] || null;
+
         let effectiveScore = 0;
-        if (bestSub) {
-          if (bestSub.instructor_score !== null && bestSub.instructor_score !== undefined) {
+        if (
+          latestSub &&
+          latestSub.instructor_score !== null &&
+          latestSub.instructor_score !== undefined
+        ) {
+          // Giảng viên đã chấm lần nộp gần nhất → ưu tiên điểm này
+          effectiveScore = (latestSub.instructor_score / 10) * task.points;
+        } else if (bestSub) {
+          if (
+            bestSub.instructor_score !== null &&
+            bestSub.instructor_score !== undefined
+          ) {
             effectiveScore = (bestSub.instructor_score / 10) * task.points;
           } else if (isAccepted) {
             effectiveScore = task.points;
@@ -338,12 +403,26 @@ export class ClassesService {
           instructor_feedback: bestSub ? bestSub.instructor_feedback : null,
           submission_id: bestSub ? bestSub.id : null,
           submitted_at: bestSub ? bestSub.created_at : null,
+          earned_score: Math.round(effectiveScore * 100) / 100,
+          latest_submission_id: latestSub ? latestSub.id : null,
+          latest_status: latestSub ? latestSub.status : null,
+          latest_instructor_score: latestSub
+            ? latestSub.instructor_score
+            : null,
+          latest_instructor_feedback: latestSub
+            ? latestSub.instructor_feedback
+            : null,
+          latest_submitted_at: latestSub ? latestSub.created_at : null,
         };
       });
 
       const totalTasks = allTaskProblems.length;
-      const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-      const finalScore = totalAssignedScore > 0 ? Math.round((totalEarnedScore / totalAssignedScore) * 100) / 10 : 0;
+      const completionRate =
+        totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+      const finalScore =
+        totalAssignedScore > 0
+          ? Math.round((totalEarnedScore / totalAssignedScore) * 100) / 10
+          : 0;
 
       return {
         id: st.id,

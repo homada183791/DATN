@@ -1,9 +1,8 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useClassHomeworksQuery } from '../../api/homeworks';
 import { useClassesQuery } from '../../api/classes';
-import { useSubmissionsQuery } from '../../api/submissions';
 import { useMemo } from 'react';
-import { formatVNFull } from '../../utils/dateTime';
+import { formatVNFull, timeLeftWithinDay } from '../../utils/dateTime';
 import { useTranslation } from 'react-i18next';
 
 function deadlineInfo(deadline: string, t: (key: string, options?: Record<string, number>) => string) {
@@ -12,7 +11,7 @@ function deadlineInfo(deadline: string, t: (key: string, options?: Record<string
   const diff = end - now;
   const days = Math.ceil(diff / 86_400_000);
   if (diff < 0) return { label: t('deadline.closed'), color: 'text-[#8a8073]', chipClass: 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]', closed: true };
-  if (days <= 1) return { label: t('deadline.lessThanDay'), color: 'text-red-600', chipClass: 'bg-red-50 text-red-700 border-red-200', closed: false };
+  if (days <= 1) return { label: ((w) => t(w.key, { count: w.count }))(timeLeftWithinDay(diff)), color: 'text-red-600', chipClass: 'bg-red-50 text-red-700 border-red-200', closed: false };
   if (days <= 3) return { label: t('deadline.days', { count: days }), color: 'text-yellow-700', chipClass: 'bg-yellow-50 text-yellow-800 border-yellow-200', closed: false };
   return { label: t('deadline.days', { count: days }), color: 'text-emerald-700', chipClass: 'bg-emerald-50 text-emerald-800 border-emerald-200', closed: false };
 }
@@ -36,23 +35,11 @@ export default function StudentClassDetail() {
 
   const { data: apiClasses = [], isLoading: classLoading } = useClassesQuery();
   const { data: homeworks = [], isLoading: hwLoading } = useClassHomeworksQuery(classId);
-  const { data: submissions = [] } = useSubmissionsQuery();
 
   const classInfo = useMemo(
     () => apiClasses.find((c) => c.id === classId),
     [apiClasses, classId]
   );
-
-  const solvedProblemIds = useMemo(() => {
-    const set = new Set<string>();
-    submissions.forEach((s) => {
-      const status = s.status?.toUpperCase();
-      if (status === 'ACCEPTED' || status === 'AC') {
-        set.add(s.problem_id);
-      }
-    });
-    return set;
-  }, [submissions]);
 
   const activeCount = homeworks.filter((hw) => {
     const d = deadlineInfo(hw.deadline, t);
@@ -141,8 +128,6 @@ export default function StudentClassDetail() {
               const hwTasks = Array.isArray(hw.tasks) ? hw.tasks : [];
               const taskCount = hwTasks.length;
               const solvable = (hwTasks as Array<{ problem_id?: string }>).filter((t) => !!t.problem_id).length;
-              const hwSolved = (hwTasks as Array<{ problem_id?: string }>).filter((t) => t.problem_id && solvedProblemIds.has(t.problem_id)).length;
-              const hwPct = taskCount > 0 ? Math.round((hwSolved / taskCount) * 100) : 0;
 
               return (
                 <Link
@@ -160,19 +145,6 @@ export default function StudentClassDetail() {
                           {dl.closed ? <Lock size={10} className="inline mr-1" /> : null}
                           {dl.label}
                         </span>
-                        {taskCount > 0 && (
-                          <span
-                            className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold shrink-0 ${
-                              hwPct === 100
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : hwPct > 0
-                                ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                : 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]'
-                            }`}
-                          >
-                            {t('studentClass.homeworkCompletedFraction', { solved: hwSolved, total: taskCount, percent: hwPct })}
-                          </span>
-                        )}
                       </div>
                       {hw.description && (
                         <p className="text-sm text-[#5c5446] line-clamp-2 mb-3">{hw.description}</p>
@@ -193,24 +165,6 @@ export default function StudentClassDetail() {
                     </div>
                     <ChevronRight size={18} className="text-[#bfae99] group-hover:text-[#193a2b] shrink-0 mt-1 transition-colors" />
                   </div>
-
-                  {/* Task completion progress bar */}
-                  {taskCount > 0 && (
-                    <div className="mt-3 pt-3 border-t border-[#f0ebd9]">
-                      <div className="flex items-center justify-between text-[11px] text-[#8a8073] mb-1">
-                        <span>{t('studentClass.taskProgressLabel')}</span>
-                        <span className="font-semibold text-[#191919]">{hwSolved}/{taskCount} ({hwPct}%)</span>
-                      </div>
-                      <div className="w-full h-1.5 bg-[#f0ebd9] rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-300 ${
-                            hwPct === 100 ? 'bg-emerald-600' : 'bg-[#193a2b]'
-                          }`}
-                          style={{ width: `${hwPct}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
                 </Link>
               );
             })}

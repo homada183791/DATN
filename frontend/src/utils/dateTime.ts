@@ -132,3 +132,14 @@ export function getVNParts(value: string | Date) {
   const timeString = `${get('hour')}:${get('minute')}`;
   return { year, month, day, hour, minute, dateString, timeString };
 }
+
+/**
+ * Nhãn "Còn X giờ / Còn Y phút" cho khoảng thời gian còn lại dưới 1 ngày (diffMs > 0).
+ * Trả về key i18n + số lượng để truyền vào t(key, { count }).
+ */
+export function timeLeftWithinDay(diffMs: number): { key: string; count: number } {
+  if (diffMs < 3_600_000) {
+    return { key: 'common.deadlineProgress.minutesLeft', count: Math.max(1, Math.ceil(diffMs / 60_000)) };
+  }
+  return { key: 'common.deadlineProgress.hoursLeft', count: Math.ceil(diffMs / 3_600_000) };
+}

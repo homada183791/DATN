@@ -150,6 +150,12 @@ export interface ClassGradeItem {
   instructor_feedback?: string | null;
   submission_id?: string | null;
   submitted_at?: string | null;
+  earned_score?: number;
+  latest_submission_id?: string | null;
+  latest_status?: string | null;
+  latest_instructor_score?: number | null;
+  latest_instructor_feedback?: string | null;
+  latest_submitted_at?: string | null;
 }
 
 export interface ClassGradebookStudent {

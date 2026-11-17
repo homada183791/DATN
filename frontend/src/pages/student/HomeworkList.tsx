@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useHomeworksQuery } from '../../api/homeworks';
-import { useSubmissionsQuery } from '../../api/submissions';
 import { useClass } from '../../context/ClassContext';
-import { formatVNFull } from '../../utils/dateTime';
+import { formatVNFull, timeLeftWithinDay } from '../../utils/dateTime';
 import {
   BookOpen,
   Clock,
@@ -20,7 +19,7 @@ function deadlineInfo(deadline: string, t: (key: string, options?: Record<string
   const diff = end - now;
   const days = Math.ceil(diff / 86_400_000);
   if (diff < 0) return { label: t('studentContest.closed'), chipClass: 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]', closed: true, daysLeft: -1 };
-  if (days <= 1) return { label: t('studentContest.dueLessThanDay'), chipClass: 'bg-red-50 text-red-700 border-red-200', closed: false, daysLeft: days };
+  if (days <= 1) return { label: ((w) => t(w.key, { count: w.count }))(timeLeftWithinDay(diff)), chipClass: 'bg-red-50 text-red-700 border-red-200', closed: false, daysLeft: days };
   if (days <= 3) return { label: t('studentContest.dueDays', { count: days }), chipClass: 'bg-yellow-50 text-yellow-700 border-yellow-200', closed: false, daysLeft: days };
   return { label: t('studentContest.dueDays', { count: days }), chipClass: 'bg-emerald-50 text-emerald-700 border-emerald-200', closed: false, daysLeft: days };
 }
@@ -31,7 +30,6 @@ type StatusFilter = 'all' | 'open' | 'closed';
 export default function HomeworkList() {
   const { t } = useTranslation();
   const { data: allHomeworks = [], isLoading } = useHomeworksQuery();
-  const { data: submissions = [] } = useSubmissionsQuery();
   const { enrolledClasses } = useClass();
 
   const [search, setSearch] = useState('');
@@ -41,17 +39,6 @@ export default function HomeworkList() {
 
   // Chỉ hiển thị homework của các lớp đã tham gia
   const enrolledIds = useMemo(() => new Set(enrolledClasses.map((c) => c.id)), [enrolledClasses]);
-
-  const solvedProblemIds = useMemo(() => {
-    const set = new Set<string>();
-    submissions.forEach((s) => {
-      const status = s.status?.toUpperCase();
-      if (status === 'ACCEPTED' || status === 'AC') {
-        set.add(s.problem_id);
-      }
-    });
-    return set;
-  }, [submissions]);
 
   const filtered = useMemo(() => {
     let list = allHomeworks.filter((hw) => enrolledIds.has(hw.class_id));
@@ -208,8 +195,6 @@ export default function HomeworkList() {
           {filtered.map((hw) => {
             const dl = deadlineInfo(hw.deadline, t);
             const tasks = Array.isArray(hw.tasks) ? hw.tasks as Array<{ problem_id?: string; points?: number }> : [];
-            const hwSolved = tasks.filter((t) => t.problem_id && solvedProblemIds.has(t.problem_id)).length;
-            const hwPct = tasks.length > 0 ? Math.round((hwSolved / tasks.length) * 100) : 0;
 
             return (
               <Link
@@ -229,19 +214,6 @@ export default function HomeworkList() {
                     <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold shrink-0 ${dl.chipClass}`}>
                       {dl.closed && <Lock size={9} className="inline mr-0.5" />}{dl.label}
                     </span>
-                    {tasks.length > 0 && (
-                      <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold shrink-0 ${
-                          hwPct === 100
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : hwPct > 0
-                            ? 'bg-amber-50 text-amber-700 border-amber-200'
-                            : 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]'
-                        }`}
-                      >
-                        {t('studentClass.homeworkCompletedFraction', { solved: hwSolved, total: tasks.length, percent: hwPct })}
-                      </span>
-                    )}
                   </div>
                   <div className="flex items-center gap-3 text-xs text-[#8a8073] flex-wrap">
                     <span className="flex items-center gap-1">

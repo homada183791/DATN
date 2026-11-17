@@ -13,10 +13,10 @@ import {
   type ClassGradeItem,
 } from '../../api/classes';
 import { useClassHomeworksQuery } from '../../api/homeworks';
-import { useHomework, deadlineProgress, HomeworkProblem } from '../../context/HomeworkContext';
 import { useSubmissionDetailQuery, gradeSubmission } from '../../api/submissions';
+import { useHomework, deadlineProgress, HomeworkProblem } from '../../context/HomeworkContext';
 import { useToast } from '../../context/ToastContext';
-import { formatVN, formatVNFull } from '../../utils/dateTime';
+import { formatVN, formatVNFull, toDatetimeLocal } from '../../utils/dateTime';
 import ProblemManager from '../../components/ProblemManager';
 import {
   GraduationCap,
@@ -45,39 +45,70 @@ import {
   Code2,
 } from 'lucide-react';
 
+// Tên hiển thị của sinh viên trong sổ điểm (giống cột "Thí sinh" ở kết quả cuộc thi)
+function gradebookStudentName(st: { username?: string | null; email?: string | null }): string {
+  return st.username || (st.email ?? '').split('@')[0] || '';
+}
+
+// Sắp xếp danh sách sinh viên theo bảng chữ cái (A → Z)
+function sortGradebookStudents<T extends { username?: string | null; email?: string | null }>(students: T[]): T[] {
+  return [...students].sort((a, b) =>
+    gradebookStudentName(a).localeCompare(gradebookStudentName(b), 'vi', { sensitivity: 'base' }),
+  );
+}
+
+// Điểm của một sinh viên cho từng bộ bài tập đã giao + tổng điểm của tất cả bộ bài tập.
+// Điểm mỗi bài = điểm giảng viên chấm (thang 10) × trọng số; chưa chấm thì AC = full điểm, còn lại theo điểm tự động.
+function gradeEarned(g: ClassGradeItem): number {
+  if (g.earned_score != null) return g.earned_score;
+  const points = Number(g.points) || 0;
+  if (g.status === 'NOT_SUBMITTED') return 0;
+  if (g.instructor_score != null) return (g.instructor_score / 10) * points;
+  if (g.status === 'ACCEPTED') return points;
+  return ((g.score || 0) / 100) * points;
+}
+
+function fmtScore(n: number): string {
+  return String(Math.round(n * 10) / 10);
+}
+
+function homeworkScores(gradebook: ClassGradebookDto, st: ClassGradebookStudent) {
+  const perHomework = gradebook.homework_columns.map((hw) => {
+    const grades = st.grades.filter((g) => g.homework_id === hw.homework_id);
+    return {
+      id: hw.homework_id,
+      earned: grades.reduce((sum, g) => sum + gradeEarned(g), 0),
+      total: grades.reduce((sum, g) => sum + (Number(g.points) || 0), 0),
+    };
+  });
+  return {
+    perHomework,
+    earned: perHomework.reduce((sum, h) => sum + h.earned, 0),
+    total: perHomework.reduce((sum, h) => sum + h.total, 0),
+  };
+}
+
 function exportGradebookCsv(gradebook: ClassGradebookDto) {
-  const headers = ['Email / ID', 'Họ và tên', 'Tên đăng nhập', 'Đã hoàn thành', 'Tỷ lệ AC (%)', 'Điểm tổng kết'];
-  const taskCols: string[] = [];
-  gradebook.homework_columns.forEach((hw) => {
-    hw.tasks.forEach((t) => {
-      taskCols.push(`${hw.homework_title} - ${t.title}`);
-    });
-  });
-  const allHeaders = [...headers, ...taskCols];
+  const headers = ['STT', 'Sinh viên'];
+  const allHeaders = [...headers, ...gradebook.homework_columns.map((hw) => hw.homework_title), 'Tổng điểm'];
 
-  const rows = gradebook.students.map((st) => {
-    const base = [
-      `"${st.email}"`,
-      `"${st.full_name || ''}"`,
-      `"${st.username || ''}"`,
-      `"${st.summary.completed_tasks}/${st.summary.total_tasks}"`,
-      `"${st.summary.completion_rate}%"`,
-      `"${st.summary.final_score}"`,
+  const rows = sortGradebookStudents(gradebook.students).map((st, index) => {
+    const scores = homeworkScores(gradebook, st);
+    const cells = [
+      String(index + 1),
+      gradebookStudentName(st),
+      ...scores.perHomework.map((h) => `${fmtScore(h.earned)}/${fmtScore(h.total)}`),
+      `${fmtScore(scores.earned)}/${fmtScore(scores.total)}`,
     ];
-    const taskScores = st.grades.map((g) => {
-      if (g.status === 'NOT_SUBMITTED') return '"Chưa nộp"';
-      if (g.instructor_score != null) return `"${g.instructor_score} (AC)"`;
-      return `"${g.status === 'ACCEPTED' ? 'AC (100)' : g.status}"`;
-    });
-    return [...base, ...taskScores].join(',');
+    return cells.map((c) => `"${c.replace(/"/g, '""')}"`).join(',');
   });
 
-  const csvContent = '\\uFEFF' + [allHeaders.map((h) => `"${h}"`).join(','), ...rows].join('\\n');
+  const csvContent = '\uFEFF' + [allHeaders.map((h) => `"${h.replace(/"/g, '""')}"`).join(','), ...rows].join('\r\n');
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.setAttribute('href', url);
-  link.setAttribute('download', `So_diem_${gradebook.class_name.replace(/\\s+/g, '_')}.csv`);
+  link.setAttribute('download', `So_diem_${gradebook.class_name.replace(/\s+/g, '_')}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -127,7 +158,7 @@ export default function InstructorClassDetail() {
 
   const { data: classData, isLoading: isClassLoading, refetch: refetchClass } = useClassDetailQuery(classId);
   const { data: apiHomeworks = [], isLoading: isHwLoading, refetch: refetchHw } = useClassHomeworksQuery(classId);
-  const { createHomework, deleteHomework } = useHomework();
+  const { createHomework, updateHomework, deleteHomework } = useHomework();
 
   const [activeTab, setActiveTab] = useState<'homework' | 'members' | 'gradebook'>('homework');
   const { data: gradebookData, isLoading: isGradebookLoading, refetch: refetchGradebook } = useClassGradebookQuery(classId);
@@ -147,7 +178,7 @@ export default function InstructorClassDetail() {
   const [isSavingHw, setIsSavingHw] = useState(false);
 
   // Detail & Action modals
-  const [viewHw, setViewHw] = useState<any | null>(null);
+  const [editingHwId, setEditingHwId] = useState<string | null>(null); // đang chỉnh sửa bài tập nào (null = giao mới)
   const [confirmDeleteHwId, setConfirmDeleteHwId] = useState<string | null>(null);
   const [confirmKickStudent, setConfirmKickStudent] = useState<{ id: string; name: string } | null>(null);
   const [isKicking, setIsKicking] = useState(false);
@@ -167,49 +198,53 @@ export default function InstructorClassDetail() {
   const hasDocument = typeof document !== 'undefined';
   const { showToast } = useToast();
 
-  // Quick-grading state for Gradebook matrix
-  const [quickGradingItem, setQuickGradingItem] = useState<{
-    student: ClassGradebookStudent;
-    grade: ClassGradeItem;
-  } | null>(null);
-  const [quickScoreInput, setQuickScoreInput] = useState<string>('');
-  const [quickFeedbackInput, setQuickFeedbackInput] = useState<string>('');
-  const [isSubmittingQuickGrade, setIsSubmittingQuickGrade] = useState(false);
-
-  const { data: quickSubDetail, isLoading: isQuickSubLoading } = useSubmissionDetailQuery(
-    quickGradingItem?.grade.submission_id || undefined
+  // ===== Xem kết quả bài tập đã hết hạn + chấm lại lần nộp gần nhất =====
+  const [resultsHwId, setResultsHwId] = useState<string | null>(null);
+  const [gradingItem, setGradingItem] = useState<{ student: ClassGradebookStudent; grade: ClassGradeItem } | null>(null);
+  const [gradeScoreInput, setGradeScoreInput] = useState('');
+  const [gradeFeedbackInput, setGradeFeedbackInput] = useState('');
+  const [isSavingGrade, setIsSavingGrade] = useState(false);
+  const { data: gradingSubDetail, isLoading: isGradingSubLoading } = useSubmissionDetailQuery(
+    gradingItem?.grade.latest_submission_id || undefined,
   );
 
-  const handleOpenQuickGrade = (student: ClassGradebookStudent, grade: ClassGradeItem) => {
-    if (!grade.submission_id) return;
-    setQuickGradingItem({ student, grade });
-    setQuickScoreInput(grade.instructor_score != null ? String(grade.instructor_score) : '');
-    setQuickFeedbackInput(grade.instructor_feedback || '');
+  const openGrading = (student: ClassGradebookStudent, grade: ClassGradeItem) => {
+    if (!grade.latest_submission_id) return;
+    setGradingItem({ student, grade });
+    setGradeScoreInput(grade.latest_instructor_score != null ? String(grade.latest_instructor_score) : '');
+    setGradeFeedbackInput(grade.latest_instructor_feedback || '');
   };
 
-  const handleSaveQuickGrade = async (e: React.FormEvent) => {
+  const handleSaveGrade = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!quickGradingItem?.grade.submission_id) return;
-    const numScore = parseFloat(quickScoreInput);
-    if (isNaN(numScore) || numScore < 0 || numScore > 100) {
-      showToast('Điểm số phải là số hợp lệ từ 0 đến 10 (hoặc 100).', 'error');
+    if (!gradingItem?.grade.latest_submission_id) return;
+    const numScore = parseFloat(gradeScoreInput);
+    if (isNaN(numScore) || numScore < 0 || numScore > 10) {
+      showToast('Điểm số phải là số hợp lệ từ 0 đến 10.', 'error');
       return;
     }
-    setIsSubmittingQuickGrade(true);
+    setIsSavingGrade(true);
     try {
-      await gradeSubmission(quickGradingItem.grade.submission_id, {
+      await gradeSubmission(gradingItem.grade.latest_submission_id, {
         instructor_score: numScore,
-        instructor_feedback: quickFeedbackInput.trim(),
+        instructor_feedback: gradeFeedbackInput.trim(),
       });
       showToast('Đã lưu điểm và nhận xét thành công!', 'success');
       await refetchGradebook();
-      setQuickGradingItem(null);
+      setGradingItem(null);
     } catch (err: any) {
       showToast(err?.message || 'Không thể lưu điểm chấm.', 'error');
     } finally {
-      setIsSubmittingQuickGrade(false);
+      setIsSavingGrade(false);
     }
   };
+
+  const resultsHwColumn = resultsHwId && gradebookData
+    ? gradebookData.homework_columns.find((c) => c.homework_id === resultsHwId) ?? null
+    : null;
+  const resultsHwTitle = resultsHwColumn?.homework_title
+    ?? (apiHomeworks as any[]).find((h) => h.id === resultsHwId)?.title
+    ?? '';
 
   const copy = (text: string, key: string) => {
     navigator.clipboard?.writeText(text);
@@ -314,18 +349,28 @@ export default function InstructorClassDetail() {
     setIsSavingHw(true);
     setHwError('');
     try {
-      await createHomework({
-        title: hwForm.title.trim(),
-        description: hwForm.description.trim(),
-        deadline: hwForm.deadline.replace('T', ' '),
-        problems: hwProblems,
-        classId: classData.id,
-        className: `${classData.name} - ${classData.invite_code}`,
-        totalStudents: rawMembers.length,
-      });
+      if (editingHwId) {
+        await updateHomework(editingHwId, {
+          title: hwForm.title.trim(),
+          description: hwForm.description.trim(),
+          deadline: hwForm.deadline.replace('T', ' '),
+          problems: hwProblems,
+        });
+      } else {
+        await createHomework({
+          title: hwForm.title.trim(),
+          description: hwForm.description.trim(),
+          deadline: hwForm.deadline.replace('T', ' '),
+          problems: hwProblems,
+          classId: classData.id,
+          className: `${classData.name} - ${classData.invite_code}`,
+          totalStudents: rawMembers.length,
+        });
+      }
       await refetchHw();
       await refetchClass();
       setShowCreateHw(false);
+      setEditingHwId(null);
       setHwForm({ title: '', description: '', deadline: '' });
       setHwProblems([]);
     } catch (e: any) {
@@ -580,6 +625,7 @@ export default function InstructorClassDetail() {
                 setHwForm({ title: '', description: '', deadline: '' });
                 setHwProblems([]);
                 setHwError('');
+                setEditingHwId(null);
                 setShowCreateHw(true);
               }}
               className="inline-flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm shrink-0"
@@ -669,7 +715,7 @@ export default function InstructorClassDetail() {
               {filteredHomeworks.map((hw: any) => {
                 const p = deadlineProgress(hw.deadline);
                 const problemsCount = Array.isArray(hw.tasks) ? hw.tasks.length : hw.problemCount ?? 0;
-                const submittedCount = hw.submittedStudents ?? 0;
+                const submittedCount = hw.submitted_students ?? hw.submittedStudents ?? 0;
 
                 return (
                   <div
@@ -710,11 +756,29 @@ export default function InstructorClassDetail() {
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
+                      {p.overdue && (
+                        <button
+                          onClick={() => setResultsHwId(hw.id)}
+                          className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
+                        >
+                          <Award size={14} /> Xem kết quả
+                        </button>
+                      )}
                       <button
-                        onClick={() => setViewHw(hw)}
+                        onClick={() => {
+                          setEditingHwId(hw.id);
+                          setHwForm({
+                            title: hw.title ?? '',
+                            description: hw.description ?? '',
+                            deadline: toDatetimeLocal(hw.deadline),
+                          });
+                          setHwProblems(Array.isArray(hw.tasks) ? hw.tasks : []);
+                          setHwError('');
+                          setShowCreateHw(true);
+                        }}
                         className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#f0ebd9] text-[#191919] text-xs font-semibold rounded-xl hover:bg-[#e5dac9] transition-colors"
                       >
-                        <Eye size={14} /> {t('instructorClassDetail.viewDetailBtn')}
+                        <Edit3 size={14} /> {t('instructorClassDetail.editHwBtn')}
                       </button>
 
                       {confirmDeleteHwId === hw.id ? (
@@ -947,10 +1011,10 @@ export default function InstructorClassDetail() {
                 <button
                   onClick={() => exportGradebookCsv(gradebookData)}
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
-                  title="Xuất bảng điểm ra file CSV (tương thích Excel tiếng Việt)"
+                  title="Xuất bảng điểm ra file .csv"
                 >
                   <Download size={14} />
-                  Xuất Excel / CSV
+                  Xuất file .csv
                 </button>
               )}
             </div>
@@ -971,105 +1035,46 @@ export default function InstructorClassDetail() {
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
                     <tr className="bg-[#f0ebd9]/60 border-b border-[#e5dac9]">
-                      <th className="py-3 px-4 font-bold text-[#5c5446] uppercase tracking-wider sticky left-0 bg-[#f0ebd9] z-10 min-w-[200px]">
+                      <th className="py-3 px-3 font-bold text-[#5c5446] uppercase tracking-wider text-center w-14 min-w-14">
+                        STT
+                      </th>
+                      <th className="py-3 px-4 font-bold text-[#5c5446] uppercase tracking-wider min-w-[200px]">
                         Sinh viên
                       </th>
-                      <th className="py-3 px-3 font-bold text-[#5c5446] uppercase tracking-wider text-center min-w-[100px]">
-                        Tiến độ AC
+                      {gradebookData.homework_columns.map((hw) => (
+                        <th
+                          key={hw.homework_id}
+                          className="py-3 px-3 font-semibold text-[#5c5446] text-center border-l border-[#e5dac9]/60 min-w-[130px]"
+                          title={hw.homework_title}
+                        >
+                          <span className="block mx-auto text-center font-bold text-[#191919] truncate max-w-[140px]">{hw.homework_title}</span>
+                        </th>
+                      ))}
+                      <th className="py-3 px-3 font-bold text-[#5c5446] uppercase tracking-wider text-center border-l border-[#e5dac9]/60 min-w-[110px]">
+                        Tổng điểm
                       </th>
-                      <th className="py-3 px-3 font-bold text-[#5c5446] uppercase tracking-wider text-center min-w-[90px]">
-                        Điểm TB (10)
-                      </th>
-                      {gradebookData.homework_columns.map((hw) =>
-                        hw.tasks.map((t) => (
-                          <th
-                            key={`${hw.homework_id}_${t.task_id}`}
-                            className="py-3 px-3 font-semibold text-[#5c5446] text-center border-l border-[#e5dac9]/60 min-w-[130px]"
-                            title={`${hw.homework_title} - ${t.title}`}
-                          >
-                            <span className="block font-bold text-[#191919] truncate max-w-[120px]">{t.title}</span>
-                            <span className="text-[10px] text-[#8a8073] block truncate max-w-[120px]">
-                              {hw.homework_title}
-                            </span>
-                          </th>
-                        ))
-                      )}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#e5dac9]/60">
-                    {gradebookData.students.map((st) => (
+                    {sortGradebookStudents(gradebookData.students).map((st, index) => {
+                      const scores = homeworkScores(gradebookData, st);
+                      return (
                       <tr key={st.id} className="hover:bg-[#f7f4eb]/60 transition-colors">
-                        <td className="py-3 px-4 sticky left-0 bg-white hover:bg-[#f7f4eb]/60 z-10 border-r border-[#e5dac9]/40">
-                          <p className="font-bold text-[#191919]">{st.full_name || st.username || 'Sinh viên'}</p>
-                          <p className="text-[11px] text-[#8a8073] font-mono">{st.email}</p>
+                        <td className="py-3 px-3 text-center text-[#8a8073]">{index + 1}</td>
+                        <td className="py-3 px-4 border-r border-[#e5dac9]/40">
+                          <p className="font-bold text-[#191919]">{gradebookStudentName(st)}</p>
                         </td>
-                        <td className="py-3 px-3 text-center">
-                          <div className="flex flex-col items-center gap-1">
-                            <span className="font-bold text-[#193a2b]">
-                              {st.summary.completed_tasks}/{st.summary.total_tasks}
-                            </span>
-                            <div className="w-16 h-1.5 bg-[#e5dac9] rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-emerald-600 rounded-full"
-                                style={{ width: `${st.summary.completion_rate}%` }}
-                              />
-                            </div>
-                          </div>
+                        {scores.perHomework.map((h) => (
+                          <td key={h.id} className="py-3 px-3 text-center border-l border-[#e5dac9]/40 font-semibold text-[#191919]">
+                            {fmtScore(h.earned)}/{fmtScore(h.total)}
+                          </td>
+                        ))}
+                        <td className="py-3 px-3 text-center border-l border-[#e5dac9]/40 font-bold text-[#193a2b]">
+                          {fmtScore(scores.earned)}/{fmtScore(scores.total)}
                         </td>
-                        <td className="py-3 px-3 text-center">
-                          <span
-                            className={`inline-block px-2.5 py-1 rounded-lg font-bold ${
-                              st.summary.final_score >= 8
-                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                                : st.summary.final_score >= 5
-                                ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                                : 'bg-red-100 text-red-800 border border-red-300'
-                            }`}
-                          >
-                            {st.summary.final_score.toFixed(1)}
-                          </span>
-                        </td>
-                        {st.grades.map((g, gIdx) => {
-                          const isAc = g.status === 'ACCEPTED';
-                          const isNotSub = g.status === 'NOT_SUBMITTED';
-                          return (
-                            <td
-                              key={gIdx}
-                              onClick={() => {
-                                if (g.submission_id) {
-                                  handleOpenQuickGrade(st, g);
-                                }
-                              }}
-                              className={`py-3 px-2 text-center border-l border-[#e5dac9]/40 ${
-                                g.submission_id
-                                  ? 'cursor-pointer hover:bg-amber-100/60 transition-all group'
-                                  : ''
-                              }`}
-                              title={g.submission_id ? 'Click để xem bài nộp & chấm điểm trực tiếp' : 'Sinh viên chưa nộp bài'}
-                            >
-                              {isNotSub ? (
-                                <span className="text-[#bfae99]">—</span>
-                              ) : isAc ? (
-                                <div className="inline-flex flex-col items-center">
-                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                                    {g.instructor_score != null ? `⭐ ${g.instructor_score}/10` : 'AC (100)'}
-                                  </span>
-                                  {g.instructor_feedback && (
-                                    <span className="text-[9px] text-[#8a8073] italic truncate max-w-[110px]" title={g.instructor_feedback}>
-                                      "{g.instructor_feedback}"
-                                    </span>
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-800 border border-red-300">
-                                  {g.status}
-                                </span>
-                              )}
-                            </td>
-                          );
-                        })}
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1084,7 +1089,7 @@ export default function InstructorClassDetail() {
           <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border) sticky top-0 z-10 bg-(--ws-panel)">
               <div>
-                <h3 className="font-bold font-serif text-[16px]">{t('instructorClassDetail.createHwBtn')}</h3>
+                <h3 className="font-bold font-serif text-[16px]">{editingHwId ? t('instructorClassDetail.editHwTitle') : t('instructorClassDetail.createHwBtn')}</h3>
                 <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorClassDetail.createHwModalClassLabel', { name: classData.name, code: classData.invite_code })}</p>
               </div>
               <button onClick={() => setShowCreateHw(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
@@ -1146,67 +1151,10 @@ export default function InstructorClassDetail() {
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
                 >
                   {isSavingHw && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                  {t('instructorClassDetail.saveAndAssignHw')}
+                  {editingHwId ? t('instructorClassDetail.saveHwChanges') : t('instructorClassDetail.saveAndAssignHw')}
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      ), document.body)}
-
-      {/* ================= MODAL: XEM CHI TIẾT BÀI TẬP ================= */}
-      {viewHw && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setViewHw(null)}>
-          <div className="bg-white border border-[#e5dac9] rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl p-8 space-y-6 text-[#191919]" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-[#e5dac9] pb-4">
-              <h3 className="font-bold font-serif text-xl text-[#191919]">{viewHw.title}</h3>
-              <button onClick={() => setViewHw(null)} className="text-[#8a8073] hover:text-[#191919]"><X size={20} /></button>
-            </div>
-            <p className="text-base text-[#5c5446] leading-relaxed">{viewHw.description || t('instructorClassDetail.viewHwModalNoDescription')}</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl">
-                <p className="text-xs font-bold uppercase tracking-wider text-[#8a8073] mb-1">{t('instructorClassDetail.deadlineInlineLabel')}</p>
-                <p className="text-lg font-bold font-serif text-[#191919]">{formatVNFull(viewHw.deadline)}</p>
-              </div>
-              <div className="p-4 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl">
-                <p className="text-xs font-bold uppercase tracking-wider text-[#8a8073] mb-1">{t('instructorClassDetail.problemCountFieldLabel')}</p>
-                <p className="text-lg font-bold font-serif text-[#191919]">{Array.isArray(viewHw.tasks) ? viewHw.tasks.length : viewHw.problemCount ?? 0}</p>
-              </div>
-            </div>
-
-            {Array.isArray(viewHw.tasks) && viewHw.tasks.length > 0 && (
-              <div className="space-y-3">
-                <p className="text-sm font-bold text-[#5c5446] uppercase tracking-wider">{t('instructorClassDetail.problemListLabel')}</p>
-                <div className="space-y-2 max-h-72 overflow-y-auto">
-                  {viewHw.tasks.map((task: any, i: number) => (
-                    task.problem_id ? (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => navigate(`/instructor/problem/${task.problem_id}`)}
-                        className="w-full flex items-center justify-between p-3 bg-[#f7f4eb] rounded-lg text-sm text-left cursor-pointer hover:bg-[#ece5d2] hover:ring-1 hover:ring-[#193a2b]/30 transition-all"
-                        title={task.title}
-                      >
-                        <span className="font-semibold text-[#191919] truncate hover:underline">{i + 1}. {task.title}</span>
-                        <span className="text-[#193a2b] font-bold shrink-0 ml-3">{task.points ?? 100} {t('instructorClassDetail.pointsSuffix')} &rarr;</span>
-                      </button>
-                    ) : (
-                      <div key={i} className="flex items-center justify-between p-3 bg-[#f7f4eb] rounded-lg text-sm">
-                        <span className="font-semibold text-[#191919] truncate">{i + 1}. {task.title}</span>
-                        <span className="text-[#193a2b] font-bold">{task.points ?? 100} {t('instructorClassDetail.pointsSuffix')}</span>
-                      </div>
-                    )
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <button
-              onClick={() => setViewHw(null)}
-              className="w-full py-3 bg-[#193a2b] text-white text-sm font-semibold rounded-xl hover:bg-[#143022]"
-            >
-              {t('instructorClassDetail.closeBtn')}
-            </button>
           </div>
         </div>
       ), document.body)}
@@ -1368,17 +1316,104 @@ export default function InstructorClassDetail() {
         </div>
       ), document.body)}
 
-      {/* ================= MODAL: CHẤM ĐIỂM NHANH TỪ SỔ ĐIỂM ================= */}
-      {quickGradingItem && hasDocument && createPortal((
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in"
-          onClick={() => setQuickGradingItem(null)}
-        >
+      {/* ================= MODAL: KẾT QUẢ BÀI TẬP ĐÃ HẾT HẠN ================= */}
+      {resultsHwId && hasDocument && createPortal((
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setResultsHwId(null)}>
           <div
-            className="bg-[#f7f4eb] border border-[#e5dac9] rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 max-h-[90vh] flex flex-col"
+            className="bg-white border border-[#e5dac9] rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5dac9]">
+              <div>
+                <h3 className="font-bold font-serif text-lg text-[#191919]">Kết quả: {resultsHwTitle}</h3>
+                <p className="text-xs text-[#8a8073] mt-0.5">Bấm nút "Xem bài nộp" cạnh điểm của từng bài để xem code lần nộp gần nhất và chấm lại.</p>
+              </div>
+              <button onClick={() => setResultsHwId(null)} className="text-[#8a8073] hover:text-[#191919]"><X size={20} /></button>
+            </div>
+            <div className="overflow-auto p-6">
+              {isGradebookLoading || !gradebookData ? (
+                <div className="p-12 text-center text-sm text-[#8a8073]">Đang tổng hợp kết quả...</div>
+              ) : !resultsHwColumn ? (
+                <div className="p-12 text-center text-sm text-[#8a8073]">Không có dữ liệu kết quả cho bài tập này.</div>
+              ) : gradebookData.students.length === 0 ? (
+                <div className="p-12 text-center text-sm text-[#8a8073]">Lớp chưa có sinh viên nào.</div>
+              ) : (
+                <div className="border border-[#e5dac9] rounded-xl overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-[#f0ebd9]/60 border-b border-[#e5dac9]">
+                      <th className="py-3 px-3 font-bold text-[#5c5446] uppercase tracking-wider text-center w-14 min-w-14">STT</th>
+                      <th className="py-3 px-4 font-bold text-[#5c5446] uppercase tracking-wider min-w-[180px]">Sinh viên</th>
+                      {resultsHwColumn.tasks.map((task) => (
+                        <th
+                          key={task.task_id}
+                          className="py-3 px-3 font-semibold text-[#5c5446] text-center border-l border-[#e5dac9]/60 min-w-[170px]"
+                        >
+                          <span className="block mx-auto text-center font-bold text-[#191919] whitespace-normal wrap-break-word">{task.title}</span>
+                        </th>
+                      ))}
+                      <th className="py-3 px-3 font-bold text-[#5c5446] uppercase tracking-wider text-center border-l border-[#e5dac9]/60 min-w-[110px]">Tổng điểm</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#e5dac9]/60">
+                    {sortGradebookStudents(gradebookData.students).map((st, index) => {
+                      const grades = st.grades.filter((g) => g.homework_id === resultsHwColumn.homework_id);
+                      const earned = grades.reduce((sum, g) => sum + gradeEarned(g), 0);
+                      const total = grades.reduce((sum, g) => sum + (Number(g.points) || 0), 0);
+                      return (
+                        <tr key={st.id}>
+                          <td className="py-3 px-3 text-center text-[#8a8073]">{index + 1}</td>
+                          <td className="py-3 px-4 font-bold text-[#191919]">{gradebookStudentName(st)}</td>
+                          {resultsHwColumn.tasks.map((task, ti) => {
+                            const g = grades[ti];
+                            const canGrade = !!g?.latest_submission_id;
+                            return (
+                              <td
+                                key={task.task_id}
+                                className={`py-3 px-3 text-center border-l border-[#e5dac9]/40 font-semibold ${
+                                  canGrade ? 'text-[#191919]' : 'text-[#bfae99]'
+                                }`}
+                              >
+                                <span className="inline-flex items-center justify-center gap-1.5">
+                                  {g && canGrade
+                                    ? `${fmtScore(gradeEarned(g))}/${fmtScore(Number(g.points) || 0)}`
+                                    : <span className="text-[11px] font-medium italic">Chưa nộp</span>}
+                                  {g && canGrade && (
+                                    <button
+                                      type="button"
+                                      onClick={() => openGrading(st, g)}
+                                      className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-[#e5dac9] bg-[#f7f4eb] text-[10px] font-semibold text-[#5c5446] hover:text-[#193a2b] hover:bg-[#f0ebd9] hover:border-[#193a2b]/30 transition-colors whitespace-nowrap"
+                                      title="Xem bài nộp gần nhất & chấm lại"
+                                    >
+                                      <Eye size={12} /> Xem bài nộp
+                                    </button>
+                                  )}
+                                </span>
+                              </td>
+                            );
+                          })}
+                          <td className="py-3 px-3 text-center border-l border-[#e5dac9]/40 font-bold text-[#193a2b]">
+                            {fmtScore(earned)}/{fmtScore(total)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ), document.body)}
+
+      {/* ================= MODAL: XEM LẦN NỘP GẦN NHẤT & CHẤM LẠI ================= */}
+      {gradingItem && hasDocument && createPortal((
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-100 flex items-center justify-center p-4" onClick={() => setGradingItem(null)}>
+          <div
+            className="bg-[#f7f4eb] border border-[#e5dac9] rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5dac9] bg-white">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-800 flex items-center justify-center font-bold">
@@ -1386,131 +1421,103 @@ export default function InstructorClassDetail() {
                 </div>
                 <div>
                   <h3 className="font-serif font-bold text-base text-[#191919] flex items-center gap-2">
-                    <span>{quickGradingItem.grade.task_title}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-full font-sans font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                      {quickGradingItem.grade.status}
-                    </span>
+                    <span>{gradingItem.grade.task_title}</span>
+                    {gradingItem.grade.latest_status && (
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-sans font-bold border ${
+                        gradingItem.grade.latest_status === 'ACCEPTED'
+                          ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                          : 'bg-red-100 text-red-800 border-red-300'
+                      }`}>
+                        {gradingItem.grade.latest_status}
+                      </span>
+                    )}
                   </h3>
                   <p className="text-xs text-[#8a8073]">
-                    Sinh viên: <span className="font-semibold text-[#5c5446]">{quickGradingItem.student.full_name || quickGradingItem.student.username}</span> ({quickGradingItem.student.email}) • Bài tập: {quickGradingItem.grade.homework_title}
+                    Sinh viên: <span className="font-semibold text-[#5c5446]">{gradebookStudentName(gradingItem.student)}</span>
+                    {gradingItem.grade.latest_submitted_at ? ` • Nộp lúc ${formatVNFull(gradingItem.grade.latest_submitted_at)}` : ''}
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => setQuickGradingItem(null)}
-                className="p-1.5 hover:bg-[#e5dac9]/50 rounded-lg text-[#8a8073] hover:text-[#191919] transition-colors"
-              >
+              <button onClick={() => setGradingItem(null)} className="p-1.5 hover:bg-[#e5dac9]/50 rounded-lg text-[#8a8073] hover:text-[#191919] transition-colors">
                 <X size={20} />
               </button>
             </div>
 
-            {/* Modal Body */}
             <div className="p-6 overflow-y-auto space-y-5">
-              {/* Grading Form */}
-              <form onSubmit={handleSaveQuickGrade} className="bg-white p-5 rounded-xl border border-amber-300/80 shadow-xs space-y-4">
+              <form onSubmit={handleSaveGrade} className="bg-white p-5 rounded-xl border border-amber-300/80 shadow-xs space-y-4">
                 <div className="flex items-center justify-between border-b border-[#e5dac9]/60 pb-3">
                   <div className="flex items-center gap-2 text-amber-950 font-serif font-bold text-sm">
                     <Award size={18} className="text-amber-700" />
-                    <span>Đánh giá sư phạm & Chấm điểm</span>
+                    <span>Chấm điểm lần nộp gần nhất</span>
                   </div>
-                  <span className="text-xs text-[#8a8073] font-mono">
-                    Điểm tự động: {quickGradingItem.grade.score}đ / Trọng số: {quickGradingItem.grade.points}đ
-                  </span>
+                  <span className="text-xs text-[#8a8073] font-mono">Trọng số: {gradingItem.grade.points}đ</span>
                 </div>
-
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-[#191919] mb-1">
-                      Điểm GV chấm (Thang 10): *
-                    </label>
+                    <label className="block text-xs font-bold text-[#191919] mb-1">Điểm GV chấm (thang 10): *</label>
                     <input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="10"
-                      value={quickScoreInput}
-                      onChange={(e) => setQuickScoreInput(e.target.value)}
+                      type="number" step="0.1" min="0" max="10" required
+                      value={gradeScoreInput}
+                      onChange={(e) => setGradeScoreInput(e.target.value)}
                       placeholder="VD: 9.5"
-                      required
                       className="w-full px-3 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-lg text-sm text-[#191919] font-bold focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-[#191919] mb-1">
-                      Lời nhận xét sư phạm:
-                    </label>
+                    <label className="block text-xs font-bold text-[#191919] mb-1">Nhận xét:</label>
                     <textarea
                       rows={2}
-                      value={quickFeedbackInput}
-                      onChange={(e) => setQuickFeedbackInput(e.target.value)}
+                      value={gradeFeedbackInput}
+                      onChange={(e) => setGradeFeedbackInput(e.target.value)}
                       placeholder="Nhận xét về thuật toán, tính tối ưu, trình bày code..."
                       className="w-full px-3 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-lg text-xs text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                     />
                   </div>
                 </div>
-
                 <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#e5dac9]/60">
-                  <button
-                    type="button"
-                    onClick={() => setQuickGradingItem(null)}
-                    disabled={isSubmittingQuickGrade}
-                    className="px-4 py-2 border border-[#e5dac9] bg-white text-xs font-semibold rounded-lg text-[#5c5446] hover:bg-[#f7f4eb] transition-colors"
-                  >
+                  <button type="button" onClick={() => setGradingItem(null)} disabled={isSavingGrade} className="px-4 py-2 border border-[#e5dac9] bg-white text-xs font-semibold rounded-lg text-[#5c5446] hover:bg-[#f7f4eb] transition-colors">
                     Hủy
                   </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmittingQuickGrade}
-                    className="px-5 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-lg hover:bg-[#143022] transition-colors shadow-xs disabled:opacity-50 flex items-center gap-1.5"
-                  >
-                    {isSubmittingQuickGrade ? 'Đang lưu...' : 'Lưu điểm & Cập nhật Sổ điểm'}
+                  <button type="submit" disabled={isSavingGrade} className="px-5 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-lg hover:bg-[#143022] transition-colors shadow-xs disabled:opacity-50">
+                    {isSavingGrade ? 'Đang lưu...' : 'Lưu điểm'}
                   </button>
                 </div>
               </form>
 
-              {/* Submitted Code Preview */}
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-[#5c5446] flex items-center gap-1.5">
                     <Code2 size={14} className="text-[#193a2b]" />
                     Mã nguồn sinh viên đã nộp
                   </h4>
-                  {quickSubDetail && (
+                  {gradingSubDetail && (
                     <span className="text-xs text-[#8a8073] font-mono">
-                      Ngôn ngữ: {quickSubDetail.language} • {quickSubDetail.execution_time ? `${quickSubDetail.execution_time}ms` : ''}
+                      Ngôn ngữ: {gradingSubDetail.language}{gradingSubDetail.execution_time ? ` • ${gradingSubDetail.execution_time}ms` : ''}
                     </span>
                   )}
                 </div>
-
-                {isQuickSubLoading ? (
-                  <div className="p-8 text-center text-xs text-[#8a8073] bg-white rounded-xl border border-[#e5dac9]">
-                    Đang tải mã nguồn...
-                  </div>
-                ) : quickSubDetail?.source_code ? (
+                {isGradingSubLoading ? (
+                  <div className="p-8 text-center text-xs text-[#8a8073] bg-white rounded-xl border border-[#e5dac9]">Đang tải mã nguồn...</div>
+                ) : gradingSubDetail?.source_code ? (
                   <div className="bg-[#242424] border border-[#333333] rounded-xl p-4 overflow-x-auto shadow-inner max-h-72">
-                    <pre className="text-xs text-emerald-400 font-mono whitespace-pre">{quickSubDetail.source_code}</pre>
+                    <pre className="text-xs text-emerald-400 font-mono whitespace-pre">{gradingSubDetail.source_code}</pre>
                   </div>
                 ) : (
-                  <div className="p-6 text-center text-xs text-[#8a8073] bg-white rounded-xl border border-[#e5dac9]">
-                    Không thể tải mã nguồn của bài nộp này.
-                  </div>
+                  <div className="p-6 text-center text-xs text-[#8a8073] bg-white rounded-xl border border-[#e5dac9]">Không thể tải mã nguồn của bài nộp này.</div>
                 )}
               </div>
 
-              {/* Testcases summary if available */}
-              {quickSubDetail?.test_results && quickSubDetail.test_results.length > 0 && (
+              {gradingSubDetail?.test_results && gradingSubDetail.test_results.length > 0 && (
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-[#5c5446] mb-2">
-                    Kết quả chi tiết các bộ test ({quickSubDetail.test_results.filter((r: any) => r.status === 'ACCEPTED').length}/{quickSubDetail.test_results.length} PASSED)
+                    Kết quả các bộ test ({gradingSubDetail.test_results.filter((r) => r.status === 'ACCEPTED').length}/{gradingSubDetail.test_results.length} PASSED)
                   </h4>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {quickSubDetail.test_results.map((tr: any, idx: number) => (
+                    {gradingSubDetail.test_results.map((tr, idx) => (
                       <div
                         key={idx}
                         className={`p-2.5 rounded-lg border text-center text-xs ${
-                          tr.status === 'ACCEPTED'
-                            ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                            : 'bg-red-50 border-red-200 text-red-800'
+                          tr.status === 'ACCEPTED' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'
                         }`}
                       >
                         <span className="font-bold block">TC #{tr.testcase_index ?? idx + 1}</span>

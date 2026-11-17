@@ -19,7 +19,6 @@ import {
   ChevronRight,
   Code2,
   User,
-  ClipboardList,
   GraduationCap,
   Bell,
   Search,
@@ -154,11 +153,9 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
     ? [
         { label: t('nav.dashboard'), icon: <LayoutDashboard size={20} />, path: '/instructor/dashboard' },
         { label: t('nav.class'), icon: <GraduationCap size={20} />, path: '/instructor/classes' },
-        { label: t('nav.homework'), icon: <ClipboardList size={20} />, path: '/instructor/homework' },
         { label: t('nav.gradingSubmissions', 'Chấm bài & Bài nộp'), icon: <Send size={20} />, path: '/instructor/submissions' },
         { label: t('nav.contest'), icon: <Trophy size={20} />, path: '/instructor/contest' },
         { label: t('nav.calendar'), icon: <Calendar size={20} />, path: '/instructor/calendar' },
-        { label: t('nav.students'), icon: <Users size={20} />, path: '/instructor/students' },
         { label: t('nav.problemBank'), icon: <BookOpen size={20} />, path: '/instructor/problems' },
       ]
     : [

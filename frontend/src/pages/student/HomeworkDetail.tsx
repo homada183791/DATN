@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useClassHomeworkQuery } from '../../api/homeworks';
 import { useSubmissionsQuery } from '../../api/submissions';
-import { formatVNFull } from '../../utils/dateTime';
+import { formatVNFull, timeLeftWithinDay } from '../../utils/dateTime';
 import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
@@ -29,7 +29,7 @@ function deadlineInfo(deadline: string, t: (key: string, options?: Record<string
   const diff = end - now;
   const days = Math.ceil(diff / 86_400_000);
   if (diff < 0) return { label: t('deadline.closed'), chipClass: 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]', closed: true };
-  if (days <= 1) return { label: t('deadline.lessThanDay'), chipClass: 'bg-red-50 text-red-700 border-red-200', closed: false };
+  if (days <= 1) return { label: ((w) => t(w.key, { count: w.count }))(timeLeftWithinDay(diff)), chipClass: 'bg-red-50 text-red-700 border-red-200', closed: false };
   if (days <= 3) return { label: t('deadline.days', { count: days }), chipClass: 'bg-yellow-50 text-yellow-800 border-yellow-200', closed: false };
   return { label: t('deadline.days', { count: days }), chipClass: 'bg-emerald-50 text-emerald-800 border-emerald-200', closed: false };
 }

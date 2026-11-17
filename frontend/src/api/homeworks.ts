@@ -20,6 +20,8 @@ export interface HomeworkDto {
   deadline: string;
   created_at?: string | null;
   class_id: string;
+  /** Số sinh viên đã có ít nhất một bài nộp (chỉ có khi instructor gọi) */
+  submitted_students?: number;
   tasks: HomeworkTaskDto[];
   class?: {
     id: string;

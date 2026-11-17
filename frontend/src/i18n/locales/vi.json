@@ -30,6 +30,8 @@
       "overdue": "Đã hết hạn",
       "dueToday": "Hết hạn hôm nay",
       "oneDayLeft": "Còn 1 ngày",
+      "hoursLeft": "Còn {{count}} giờ",
+      "minutesLeft": "Còn {{count}} phút",
       "daysLeft": "Còn {{count}} ngày"
     }
   },
@@ -223,6 +225,9 @@
     "hwNoDescription": "Chưa có mô tả chi tiết.",
     "deadlineLabel": "Hạn nộp: {{date}}",
     "progressLabel": "Tiến độ: {{submitted}}/{{total}} sinh viên đã nộp",
+    "editHwBtn": "Chỉnh sửa",
+    "editHwTitle": "Chỉnh sửa bài tập",
+    "saveHwChanges": "Lưu thay đổi",
     "viewDetailBtn": "Chi tiết đề bài",
     "deleteHwTooltip": "Xóa bài tập",
     "membersSectionTitle": "Danh sách thành viên lớp",
