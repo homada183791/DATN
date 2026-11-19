@@ -1,10 +1,17 @@
 import amqplib from 'amqplib';
 import axios from 'axios';
+import os from 'os';
 import { DockerRunner, RunSubmissionPayload, CustomRunPayload } from './docker/docker-runner';
 
 const AMQP_URL = process.env.RABBITMQ_URL || 'amqp://root:rootpassword@localhost:5672';
 const QUEUE_NAME = process.env.QUEUE_NAME || 'judge_queue';
 const WEBHOOK_URL = process.env.WEBHOOK_URL || 'http://host.docker.internal:3000/api/v1/webhook/judge';
+
+// Số bài chấm song song (mỗi bài = 1 container). Mặc định theo số CPU, tối đa 4.
+const CONCURRENCY = Math.max(
+  1,
+  parseInt(process.env.JUDGE_CONCURRENCY || '', 10) || Math.min(4, Math.max(1, Math.floor(os.cpus().length / 2))),
+);
 
 const JUDGE_SECRET = process.env.JUDGE_SECRET || 'default-judge-secret-key';
 
@@ -33,8 +40,9 @@ export class JudgeConsumer {
       const conn = await amqplib.connect(AMQP_URL);
       const ch = await conn.createChannel();
       await ch.assertQueue(QUEUE_NAME, { durable: true });
+      await ch.prefetch(CONCURRENCY);
 
-      console.log(`[*] Waiting for messages in ${QUEUE_NAME}. To exit press CTRL+C`);
+      console.log(`[*] Waiting for messages in ${QUEUE_NAME} (concurrency ${CONCURRENCY}). To exit press CTRL+C`);
 
       ch.consume(QUEUE_NAME, async (msg) => {
         if (msg !== null) {
@@ -90,9 +98,12 @@ export class JudgeConsumer {
         test_cases: payload.test_cases || [],
       };
       
+      // Webhook tiến độ gửi nền, tuần tự theo thứ tự, không làm chậm việc chạy test
+      let progressChain: Promise<void> = Promise.resolve();
       const result = await DockerRunner.runSubmission(
         submissionPayload,
-        async (progress) => {
+        (progress) => {
+          progressChain = progressChain.then(async () => {
           try {
             const response = await axios.post(
               `${WEBHOOK_URL}/progress`,
@@ -112,9 +123,11 @@ export class JudgeConsumer {
               `[!] Judge progress webhook failed for submission ${payload.submission_id} at ${progress.completed_tests}/${progress.total_tests}: ${message}`,
             );
           }
+          });
         },
       );
-      
+      await progressChain;
+
       await axios.post(WEBHOOK_URL, {
         is_custom: false,
         submission_id: payload.submission_id,
