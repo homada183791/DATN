@@ -30,7 +30,7 @@ flowchart TB
 
     subgraph JudgeSandboxLayer["Lớp Chấm bài Cách ly (Sandboxed Judge Engine)"]
         JudgeRunner["Judge-Runner Worker"]
-        DockerSandbox["Docker Sandbox Container\n(cap_drop, read_only, memory/cpu limits)"]
+        DockerSandbox["Docker Sandbox Container\n(network none, giới hạn RAM/PIDs)"]
         Webhook["Judge Webhook Receiver\n(/api/v1/webhook/judge)"]
     end
 
@@ -174,6 +174,7 @@ erDiagram
         datetime end_time
         boolean is_private
         boolean is_plagiarism_checked
+        boolean elo_calculated "ELO đã được tự động cập nhật"
         string class_id FK
     }
 
@@ -214,7 +215,7 @@ flowchart LR
 ```
 
 ### 3.1. Dashboard & Hồ sơ cá nhân (Personal Profile & Gamification)
-- **Hệ thống Xếp hạng ELO:** Điểm kỹ năng khởi tạo là `1200`. Điểm được tính toán và tăng/giảm linh hoạt dựa trên kết quả giải bài và thứ hạng trong kỳ thi.
+- **Hệ thống Xếp hạng ELO:** Điểm kỹ năng khởi tạo là `1200`. Điểm được tính toán và tăng/giảm linh hoạt dựa trên kết quả giải bài và thứ hạng trong kỳ thi. Khi kỳ thi kết thúc, hệ thống **tự động** cập nhật ELO cho thí sinh (đánh dấu `elo_calculated`), giảng viên không cần thao tác thủ công.
 - **Chuỗi học tập (Streak System):** Ghi nhận `current_streak` và `highest_streak`. Mỗi ngày có ít nhất 1 bài nộp thành công (`ACCEPTED`), chuỗi ngày học tập được tăng 1.
 - **Activity Heatmap (Biểu đồ đóng góp dạng GitHub):** Hiển thị trực quan mật độ hoạt động giải bài trong 365 ngày qua bảng màu nhiệt dựa trên `UserActivityLog`.
 - **Cấu hình Trình soạn thảo (User Preferences):** Tùy chỉnh `editorTheme` (`vs-dark`, `light`), `fontSize`, `tabSize` lưu trữ trực tiếp vào hồ sơ để áp dụng đồng bộ trên mọi thiết bị.
@@ -237,7 +238,8 @@ flowchart LR
   - Nhập mã mời 8 ký tự (`invite_code`) hoặc bấm vào đường link chia sẻ dạng `http://domain/join/CODE2026`.
   - Cơ chế RBAC chặn sinh viên truy cập bài tập của các lớp chưa tham gia (`403 Forbidden`).
 - **Làm bài tập về nhà (Homework Assignment):**
-  - Xem danh sách bài tập được giao kèm thời hạn chót (`deadline`) và đồng hồ đếm ngược.
+  - Xem danh sách bài tập được giao kèm thời hạn chót (`deadline`) và đồng hồ đếm ngược (khi còn dưới 1 ngày sẽ hiển thị theo giờ).
+  - Bài tập đã hết hạn và đóng thì sinh viên không thể vào làm nữa (server từ chối nộp bài theo `homework_id`).
   - Chuyển thẳng vào giao diện giải bài theo ngữ cảnh của bài tập (`/student/class/:classId/homework/:homeworkId/problem/:problemId`).
   - Xem điểm số giảng viên chấm thủ công (`instructor_score`) và lời phê chi tiết (`instructor_feedback`).
 
@@ -245,14 +247,15 @@ flowchart LR
 - **Bảng xếp hạng Trực tiếp (Live Leaderboard):** Tự động cập nhật thứ hạng và điểm số tức thì qua WebSockets (`leaderboard_updated`) khi có thí sinh nộp bài.
 - **Cơ chế Giám sát Chống gian lận (Anti-Cheat Engine):**
   - Lắng nghe sự kiện rời cửa sổ trình duyệt (`visibilitychange`, `window.blur`, thoát Fullscreen).
-  - Tự động gửi cảnh báo lên server. Ghi nhận số lần cảnh báo `cheat_warnings` trong `ContestSession`.
+  - Tự động gửi cảnh báo lên server (thông báo hiển thị khi thí sinh "rời khỏi màn hình làm bài thi"). Ghi nhận số lần cảnh báo `cheat_warnings` trong `ContestSession`.
   - **Quy tắc 3 Cảnh báo:** Nếu vi phạm đến lần thứ 3, hệ thống tự động gắn cờ `is_disqualified = true`, lập tức tước quyền thi và khóa quyền nộp bài (`403 Forbidden`).
+- **Sau khi kỳ thi kết thúc:** danh sách đề bài trong trang kỳ thi được ẩn với sinh viên; sinh viên chỉ xem kết quả của mình.
 - **Khóa AI trong Kỳ thi (Contest AI Lockdown):**
   - Trong thời gian kỳ thi đang diễn ra, mọi yêu cầu gọi trợ lý AI Tutor đều bị chặn đứng (`403 Forbidden`) để đảm bảo sự công bằng tuyệt đối.
 
 ### 3.5. Lịch biểu học tập & Lịch sử nộp bài (Calendar & Submissions)
 - **Lịch biểu học tập (Interactive Calendar):** Hiển thị trực quan trên lịch tháng/tuần/ngày các mốc thời gian bắt đầu/kết thúc kỳ thi và hạn nộp bài tập.
-- **Lịch sử nộp bài (Submission History):** Theo dõi trạng thái bài nộp thời gian thực (chuyển trạng thái từ `PENDING` -> `IN_QUEUE` -> `ACCEPTED`/`WRONG_ANSWER`), xem chi tiết kết quả từng testcase và xem lại mã nguồn đã nộp.
+- **Lịch sử nộp bài (Submission History):** Theo dõi trạng thái bài nộp thời gian thực (chuyển trạng thái từ `PENDING` -> `IN_QUEUE` -> `ACCEPTED`/`WRONG_ANSWER`), xem chi tiết kết quả từng testcase (chỉ trạng thái, thời gian, bộ nhớ; không hiển thị nội dung test) và xem lại mã nguồn đã nộp. Cửa sổ chi tiết bài nộp dùng chung giữa trang "Bài nộp" và mục "Bài nộp gần đây" ở Dashboard.
 
 ---
 
@@ -266,9 +269,9 @@ flowchart LR
         InstDashboard["1. Dashboard Phân tích\n(Lớp học, Bài tập, Tỷ lệ Pass)"]
         ProblemBank["2. Quản lý Kho Bài toán\n(CRUD, Giới hạn, Testcase Ẩn)"]
         ClassManagement["3. Quản trị Lớp học\n(Mã mời, Roster, Xuất sổ điểm)"]
-        HomeworkGrading["4. Giao & Chấm Bài tập\n(Điểm thủ công, Lời phê, Review code)"]
+        HomeworkGrading["4. Bài tập & Chấm điểm trong lớp\n(Điểm thủ công, Lời phê, Review code)"]
         ContestPlagiarism["5. Quản lý Kỳ thi & Chống gian lận\n(Tạo đề thi, Soi đạo văn Winnowing)"]
-        AllSubmissions["6. Giám sát Nộp bài Toàn hệ thống\n(Xem code, Lọc theo sinh viên)"]
+        AllSubmissions["6. Xem bài nộp theo lớp & kỳ thi\n(Xem code, Chấm lại, Kết quả từng sinh viên)"]
     end
 ```
 
@@ -292,8 +295,8 @@ flowchart LR
   - Xem danh sách học viên trong lớp kèm ngày tham gia.
   - Quyền xóa học viên khỏi lớp nếu sinh viên vào nhầm hoặc vi phạm nội quy.
 - **Sổ điểm & Xuất Báo cáo (Gradebook & Export):**
-  - Tổng hợp điểm số bài tập và kỳ thi của từng sinh viên trong lớp.
-  - Xuất bảng điểm ra file định dạng Excel/CSV phục vụ báo cáo khoa/bộ môn.
+  - Bảng gồm STT, họ tên sinh viên (sắp xếp theo thứ tự chữ cái), điểm tổng của từng bài tập và cột tổng điểm cuối cùng.
+  - Xuất bảng điểm ra file `.csv` (UTF-8 có BOM, mở trực tiếp bằng Excel) phục vụ báo cáo khoa/bộ môn.
 
 ### 4.4. Quản lý Bài tập về nhà & Chấm điểm Thủ công (Homework & Advanced Evaluation)
 - **Tạo Bài tập về nhà:**
@@ -303,12 +306,15 @@ flowchart LR
   - Ngoài điểm tự động của hệ thống Online Judge (`score`), giảng viên có thể xem trực tiếp mã nguồn của sinh viên và chấm điểm phong cách lập trình (`instructor_score`).
   - Nhập lời nhận xét, góp ý chi tiết (`instructor_feedback`) lưu kèm thông tin người chấm (`graded_by`) và thời điểm chấm (`graded_at`).
   - Tự động bắn thông báo `submission_graded` đến tài khoản sinh viên.
+  - Thang điểm: bài tập trong lớp chấm `instructor_score` 0–10 (quy đổi theo `points/10` của từng bài); bài thi chấm 0–100.
+- **Xem kết quả bài tập đã hết hạn:** giảng viên xem danh sách toàn bộ sinh viên (kể cả chưa nộp) với điểm từng bài và tổng điểm; bấm vào từng bài để xem bài nộp mới nhất và chấm lại. Tiến độ bài tập tính cả sinh viên đã nộp bất kỳ trạng thái nào.
 
 ### 4.5. Quản lý Kỳ thi & Phát hiện Đạo văn (Contest Management & Plagiarism Detection)
 - **Tạo & Cấu hình Kỳ thi:**
   - Thiết lập thời gian bắt đầu (`start_time`), thời gian kết thúc (`end_time`).
   - Cấu hình phạm vi: Kỳ thi công khai toàn trường (`is_private = false`) hoặc Kỳ thi riêng tư cho lớp học cụ thể (`is_private = true` gắn với `class_id`).
-- **Giám sát Vi phạm Trực tiếp:** Xem số lần cảnh báo gian lận (`cheat_warnings`) của từng thí sinh trong kỳ thi, danh sách thí sinh bị truất quyền thi (`is_disqualified`).
+- **Giám sát Vi phạm Trực tiếp:** Xem số lần cảnh báo gian lận (`cheat_warnings`) của từng thí sinh trong kỳ thi, danh sách thí sinh bị truất quyền thi (`is_disqualified`). Nút "Cấp quyền thi tiếp" chỉ xuất hiện với thí sinh bị truất quyền (3/3 cảnh báo). Trạng thái kỳ thi (sắp diễn ra / đang diễn ra / đã kết thúc) cập nhật theo thời gian thực.
+- **Kết quả thi:** bảng kết quả liệt kê toàn bộ thí sinh (kể cả chưa nộp, hiển thị 0/100) theo từng bài; có nút xem bài nộp và chấm điểm cho từng bài. ELO được hệ thống tự động cập nhật khi kỳ thi kết thúc.
 - **Công cụ Quét Đạo văn (Plagiarism Detection Engine):**
   - Sau khi kết thúc kỳ thi, giảng viên kích hoạt tính năng kiểm tra đạo văn.
   - Hệ thống sử dụng thuật toán phân tích cú pháp (Tokenization & Winnowing Fingerprint Algorithm) để so sánh từng cặp bài nộp của cùng một bài toán.
@@ -336,11 +342,16 @@ sequenceDiagram
     API->>Broker: Đẩy Job chấm bài vào queue
     API-->>Student: Trả về submission_id (status = PENDING)
 
-    Broker->>Runner: Tiêu thụ Job chấm bài
-    Runner->>Sandbox: Tạo container con (gán CPU=1, RAM=256MB, read_only, no-net)
-    Sandbox->>Sandbox: Biên dịch mã nguồn & Chạy testcases
-    Sandbox-->>Runner: Trả về kết quả (stdout, stderr, time, memory)
-    Runner->>Runner: Hủy container sandbox an toàn
+    Broker->>Runner: Tiêu thụ Job chấm bài (prefetch = JUDGE_CONCURRENCY)
+    Runner->>Sandbox: Tạo 1 container cho bài nộp (no-net, giới hạn RAM/PIDs)
+    Runner->>Sandbox: Chép mã nguồn + input các testcase (1 lần)
+    Runner->>Sandbox: exec: Biên dịch (timeout 10s)
+    loop Mỗi testcase
+        Runner->>Sandbox: exec: chạy với stdin (timeout -s KILL theo time_limit)
+        Sandbox-->>Runner: stdout, stderr, exit code
+        Runner-)API: POST /api/v1/webhook/judge/progress (chạy nền, tuần tự)
+    end
+    Runner->>Runner: Hủy container sandbox
     
     Runner->>API: POST /api/v1/webhook/judge (kết quả chấm chi tiết)
     API->>DB: Cập nhật Submission (ACCEPTED/WA, score, test_results)
@@ -437,16 +448,20 @@ sequenceDiagram
 ## 7. ĐẶC TẢ KỸ THUẬT MÔI TRƯỜNG SANDBOX & AN TOÀN HỆ THỐNG
 
 1. **Docker Sandbox Isolation:**
-   - Mã nguồn người dùng được biên dịch và thực thi trong container riêng biệt.
+   - Mỗi bài nộp được chấm trong **một container riêng** (image `judgehub-sandbox`, chạy bằng user không đặc quyền `sandbox`). Mã nguồn được biên dịch và chạy lần lượt từng testcase bằng `exec` trong cùng container, sau đó container bị hủy. Cách này tránh chi phí tạo/hủy container cho từng testcase.
    - Tham số bảo mật:
-     - `cap_drop: [ALL]`: Tước bỏ toàn bộ đặc quyền Linux root/kernel.
-     - `network_mode: none`: Ngắt hoàn toàn kết nối Internet để chống gửi dữ liệu ra ngoài hoặc tấn công mạng.
-     - `read_only: true`: Hệ thống tệp ở chế độ chỉ đọc, chỉ cho phép ghi dữ liệu tạm thời vào thư mục mount RAM `/tmp` giới hạn dung lượng.
-     - `pids_limit: 64`: Chống tấn công Fork Bomb làm sập máy chủ.
-     - `memory: 256m`: Giới hạn RAM tối đa, vượt quá sẽ bị `RUNTIME_ERROR (OOM)`.
+     - `NetworkMode: none`: Ngắt hoàn toàn kết nối mạng để chống gửi dữ liệu ra ngoài hoặc tấn công mạng.
+     - `PidsLimit: 256`: Hạn chế Fork Bomb làm sập máy chủ.
+     - `Memory` / `MemorySwap` (không dùng swap): giữ 512MB trong lúc biên dịch, sau đó hạ xuống đúng `memory_limit` của bài toán khi chạy test. Vượt giới hạn bị hệ điều hành dừng và ghi nhận `RUNTIME_ERROR`.
+     - Container được gắn nhãn `judgehub.sandbox` và luôn bị xóa (`force`) khi chấm xong, kể cả khi lỗi.
+     - Mã nguồn và dữ liệu vào được chép qua Docker API, không bind-mount thư mục của máy chủ.
+   - Hướng tăng cường (chưa áp dụng): `CapDrop: ALL`, `ReadonlyRootfs` kèm tmpfs cho `/tmp`, giới hạn CPU.
 2. **Xử lý Timeout & Infinite Loop:**
-   - Worker giám sát tiến trình bằng cờ ngắt thời gian thực. Nếu thời gian thực thi vượt quá `time_limit` của bài toán, tiến trình bị ép dừng (`SIGKILL`) và trả về mã lỗi `TIME_LIMIT_EXCEEDED`.
-3. **Che dấu Dữ liệu Nhạy cảm (Data Sanitization):**
+   - Giới hạn thời gian được áp ngay trong container bằng `timeout -s KILL <time_limit>`: tiến trình vượt `time_limit` bị diệt hẳn (`SIGKILL`) và trả về `TIME_LIMIT_EXCEEDED`, không ảnh hưởng testcase kế tiếp. Runner có thêm một lớp ngắt dự phòng bên ngoài.
+   - Thời gian thực thi (`execution_time`) được đo ở phía runner cho từng lệnh `exec`, không bao gồm thời gian khởi động container.
+3. **Hàng đợi & Đồng thời:**
+   - Runner nhận job từ RabbitMQ với `prefetch` bằng số bài chấm song song (`JUDGE_CONCURRENCY`, mặc định bằng một nửa số CPU, tối đa 4). Webhook tiến độ được gửi nền theo đúng thứ tự, webhook kết quả cuối chỉ gửi sau khi các webhook tiến độ hoàn tất.
+4. **Che dấu Dữ liệu Nhạy cảm (Data Sanitization):**
    - Bộ lọc tầng Service loại bỏ toàn bộ dữ liệu testcase ẩn trước khi serialize JSON trả về cho Client của Sinh viên.
 
 ---
