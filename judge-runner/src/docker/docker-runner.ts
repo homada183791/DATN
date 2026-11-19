@@ -1,8 +1,5 @@
 import Docker from 'dockerode';
 import { getCompilerConfig, Language } from '../compilers';
-import fs from 'fs';
-import path from 'path';
-import { randomUUID } from 'crypto';
 
 const isWin = process.platform === 'win32';
 const docker = new Docker(
@@ -13,6 +10,11 @@ const docker = new Docker(
     : { socketPath: '/var/run/docker.sock' }
 );
 const SANDBOX_IMAGE = 'judgehub-sandbox';
+const SANDBOX_HOME = '/home/sandbox';
+const COMPILE_MEMORY_MB = 512;
+const COMPILE_TIMEOUT_MS = 10000;
+const HARD_CAP_GRACE_MS = 3000;
+const MAX_OUTPUT_BYTES = 2 * 1024 * 1024;
 
 export interface TestCase {
   index?: number;
@@ -74,17 +76,18 @@ export class DockerRunner {
     const config = getCompilerConfig(language, language_version);
     if (!config) throw new Error(`Unsupported language: ${language}`);
 
-    const runId = randomUUID();
-    const hostDir = path.join(process.cwd(), 'temp', runId);
-    fs.mkdirSync(hostDir, { recursive: true });
+    const sandbox = await this.createSandbox(
+      [
+        { name: config.filename, data: Buffer.from(source_code, 'utf8') },
+        ...test_cases.map((tc, i) => ({ name: `.in_${i}.txt`, data: Buffer.from(tc.input || '', 'utf8') })),
+      ],
+      Math.max(memory_limit, COMPILE_MEMORY_MB),
+    );
 
     try {
-      // Write source code
-      fs.writeFileSync(path.join(hostDir, config.filename), source_code);
-
-      // Compile if needed
+      // Biên dịch ngay trong container dùng chung (không tạo container mới, không copy qua lại)
       if (config.compileCmd) {
-        const compileResult = await this.runContainer(hostDir, config.compileCmd, 10000, 512, '', true);
+        const compileResult = await this.execInSandbox(sandbox, config.compileCmd, COMPILE_TIMEOUT_MS, null);
         if (compileResult.exitCode !== 0) {
           return {
             status: 'COMPILE_ERROR',
@@ -95,9 +98,16 @@ export class DockerRunner {
               execution_time: 0,
               memory_used: 0,
               actual_output: compileResult.stderr.slice(0, 1000),
-            }))
+            })),
           };
         }
+      }
+
+      // Sau khi biên dịch xong, siết lại giới hạn bộ nhớ đúng theo đề bài
+      if (memory_limit < COMPILE_MEMORY_MB) {
+        await sandbox.container
+          .update({ Memory: memory_limit * 1024 * 1024, MemorySwap: memory_limit * 1024 * 1024 } as any)
+          .catch(() => {});
       }
 
       const results: TestResultItem[] = [];
@@ -105,21 +115,17 @@ export class DockerRunner {
 
       for (const [testcasePosition, tc] of test_cases.entries()) {
         const index = tc.index ?? tc.testcase_index ?? testcasePosition;
-        // Run test case
-        const result = await this.runContainer(hostDir, config.runCmd, time_limit, memory_limit, tc.input);
+        const result = await this.execInSandbox(sandbox, config.runCmd, time_limit, `.in_${testcasePosition}.txt`);
 
         let status = 'ACCEPTED';
         if (result.isTle) {
           status = 'TIME_LIMIT_EXCEEDED';
         } else if (result.exitCode !== 0) {
-          // Could also be MLE if killed by OOM, but we simplify to RE
           status = 'RUNTIME_ERROR';
         } else {
           const expected = tc.expected_output.trim().replace(/\r\n/g, '\n');
           const actual = result.stdout.trim().replace(/\r\n/g, '\n');
-          if (actual !== expected) {
-            status = 'WRONG_ANSWER';
-          }
+          if (actual !== expected) status = 'WRONG_ANSWER';
         }
 
         results.push({
@@ -130,31 +136,27 @@ export class DockerRunner {
           actual_output: result.stdout.slice(0, 1000),
         });
 
-        await onTestCaseComplete?.({
-          completed_tests: results.length,
-          total_tests: test_cases.length,
-          testcase_index: index,
-        });
+        // Không chặn việc chạy test kế tiếp để chờ webhook tiến độ
+        void Promise.resolve(
+          onTestCaseComplete?.({
+            completed_tests: results.length,
+            total_tests: test_cases.length,
+            testcase_index: index,
+          }),
+        ).catch(() => {});
 
-        if (status !== 'ACCEPTED' && finalStatus === 'ACCEPTED') {
-          finalStatus = status;
-        }
+        if (status !== 'ACCEPTED' && finalStatus === 'ACCEPTED') finalStatus = status;
       }
 
       let score = 0;
       if (test_cases.length > 0) {
-        const passedCount = results.filter(r => r.status === 'ACCEPTED').length;
+        const passedCount = results.filter((r) => r.status === 'ACCEPTED').length;
         score = (passedCount / test_cases.length) * 100;
       }
 
-      return {
-        status: finalStatus,
-        score,
-        test_results: results
-      };
+      return { status: finalStatus, score, test_results: results };
     } finally {
-      // Clean up
-      fs.rmSync(hostDir, { recursive: true, force: true });
+      await this.destroySandbox(sandbox);
     }
   }
 
@@ -163,44 +165,37 @@ export class DockerRunner {
     const config = getCompilerConfig(language, language_version);
     if (!config) throw new Error(`Unsupported language: ${language}`);
 
-    const runId = randomUUID();
-    const hostDir = path.join(process.cwd(), 'temp', runId);
-    fs.mkdirSync(hostDir, { recursive: true });
+    const sandbox = await this.createSandbox(
+      [
+        { name: config.filename, data: Buffer.from(source_code, 'utf8') },
+        { name: '.in_0.txt', data: Buffer.from(custom_input || '', 'utf8') },
+      ],
+      COMPILE_MEMORY_MB,
+    );
 
     try {
-      fs.writeFileSync(path.join(hostDir, config.filename), source_code);
-
       if (config.compileCmd) {
-        const compileResult = await this.runContainer(hostDir, config.compileCmd, 10000, 512, '', true);
+        const compileResult = await this.execInSandbox(sandbox, config.compileCmd, COMPILE_TIMEOUT_MS, null);
         if (compileResult.exitCode !== 0) {
-          return {
-            status: 'COMPILE_ERROR',
-            stdout: '',
-            stderr: compileResult.stderr,
-            execution_time: 0,
-            memory_used: 0
-          };
+          return { status: 'COMPILE_ERROR', stdout: '', stderr: compileResult.stderr, execution_time: 0, memory_used: 0 };
         }
       }
 
-      const result = await this.runContainer(hostDir, config.runCmd, 5000, 512, custom_input); // Default 5s, 512MB for custom run
+      const result = await this.execInSandbox(sandbox, config.runCmd, 5000, '.in_0.txt');
 
       let status = 'ACCEPTED';
-      if (result.isTle) {
-        status = 'TIME_LIMIT_EXCEEDED';
-      } else if (result.exitCode !== 0) {
-        status = 'RUNTIME_ERROR';
-      }
+      if (result.isTle) status = 'TIME_LIMIT_EXCEEDED';
+      else if (result.exitCode !== 0) status = 'RUNTIME_ERROR';
 
       return {
         status,
         stdout: result.stdout,
         stderr: result.stderr,
         execution_time: result.executionTime,
-        memory_used: result.memoryUsed
+        memory_used: result.memoryUsed,
       };
     } finally {
-      fs.rmSync(hostDir, { recursive: true, force: true });
+      await this.destroySandbox(sandbox);
     }
   }
 
@@ -252,124 +247,116 @@ export class DockerRunner {
     return Buffer.concat(chunks);
   }
 
-  /** Giải tar, trả về các file thường; bỏ thư mục gốc đầu tiên (vd "sandbox/"). */
-  private static tarUnpack(buf: Buffer): { name: string; data: Buffer }[] {
-    const out: { name: string; data: Buffer }[] = [];
-    let off = 0;
-    while (off + 512 <= buf.length) {
-      const h = buf.subarray(off, off + 512);
-      if (h.every((b) => b === 0)) break;
-      const rawName = h.toString('utf8', 0, 100).replace(/\0.*$/, '');
-      const size = parseInt(h.toString('utf8', 124, 136).replace(/\0.*$/, '').trim() || '0', 8);
-      const type = String.fromCharCode(h[156]);
-      const start = off + 512;
-      if (type === '0' || type === '\0') {
-        const name = rawName.split('/').slice(1).join('/');
-        if (name && !name.includes('..')) out.push({ name, data: Buffer.from(buf.subarray(start, start + size)) });
-      }
-      off = start + Math.ceil(size / 512) * 512;
+  /** Tạo 1 container sống suốt vòng đời của bài nộp; mọi bước (biên dịch + các test) chạy bằng exec. */
+  private static async createSandbox(files: { name: string; data: Buffer }[], memoryMB: number) {
+    const container = await docker.createContainer({
+      Image: SANDBOX_IMAGE,
+      Cmd: ['sleep', 'infinity'],
+      WorkingDir: SANDBOX_HOME,
+      HostConfig: {
+        Memory: memoryMB * 1024 * 1024,
+        MemorySwap: memoryMB * 1024 * 1024,
+        NetworkMode: 'none',
+        PidsLimit: 256,
+      },
+      Tty: false,
+      OpenStdin: false,
+      Labels: { 'judgehub.sandbox': '1' },
+    });
+    try {
+      await container.start();
+      await container.putArchive(this.tarPack(files), { path: SANDBOX_HOME });
+    } catch (e) {
+      await container.remove({ force: true }).catch(() => {});
+      throw e;
     }
-    return out;
+    return { container };
   }
 
-  private static async runContainer(
-    hostDir: string,
+  private static async destroySandbox(sandbox: { container: Docker.Container }) {
+    await sandbox.container.remove({ force: true }).catch(() => {});
+  }
+
+  /**
+   * Chạy 1 lệnh trong container đang sống. Giới hạn thời gian được áp ngay trong container
+   * bằng `timeout -s KILL` để tiến trình bị diệt hẳn, không ảnh hưởng test kế tiếp.
+   */
+  private static async execInSandbox(
+    sandbox: { container: Docker.Container },
     cmd: string,
     timeLimitMs: number,
-    memoryLimitMB: number,
-    input: string,
-    syncBack = false
+    stdinFile: string | null,
   ) {
-    let container: Docker.Container | null = null;
+    const secs = (timeLimitMs / 1000).toFixed(3);
+    const redirect = stdinFile ? ` < ${SANDBOX_HOME}/${stdinFile}` : ' < /dev/null';
     let stdout = '';
     let stderr = '';
-    let isTle = false;
     let exitCode = -1;
+    let isTle = false;
     let executionTime = 0;
     let memoryUsed = 0;
 
-    const stdinName = '.stdin.txt';
-
     try {
-      // Không bind-mount: judge-runner chạy trong container nên đường dẫn của nó
-      // không tồn tại trên host của Docker daemon. Thay vào đó chép file vào container qua API.
-      const files = fs
-        .readdirSync(hostDir)
-        .filter((n) => fs.statSync(path.join(hostDir, n)).isFile())
-        .map((n) => ({ name: n, data: fs.readFileSync(path.join(hostDir, n)) }));
-      files.push({ name: stdinName, data: Buffer.from(input || '', 'utf8') });
-
-      container = await docker.createContainer({
-        Image: SANDBOX_IMAGE,
-        Cmd: ['/bin/bash', '-c', `(${cmd}) < /home/sandbox/${stdinName}`],
-        WorkingDir: '/home/sandbox',
-        HostConfig: {
-          Memory: memoryLimitMB * 1024 * 1024,
-          MemorySwap: memoryLimitMB * 1024 * 1024,
-          NetworkMode: 'none',
-        },
+      const exec = await sandbox.container.exec({
+        Cmd: ['/bin/bash', '-c', `timeout -s KILL ${secs} /bin/bash -c "$JH_CMD"${redirect}`],
+        Env: [`JH_CMD=${cmd}`],
+        WorkingDir: SANDBOX_HOME,
+        AttachStdout: true,
+        AttachStderr: true,
         Tty: false,
-        OpenStdin: false,
-        AttachStdin: false,
-        AttachStdout: false,
-        AttachStderr: false,
       });
-
-      await container.putArchive(this.tarPack(files), { path: '/home/sandbox' });
 
       const startTime = Date.now();
-      await container.start();
-
-      const waitPromise = container.wait();
-      const timeoutPromise = new Promise<{ StatusCode: number }>((resolve) => {
-        setTimeout(() => resolve({ StatusCode: 124 }), timeLimitMs);
+      const stream = (await exec.start({ hijack: true, stdin: false })) as unknown as NodeJS.ReadableStream;
+      const chunks: Buffer[] = [];
+      let size = 0;
+      const finished = new Promise<boolean>((resolve) => {
+        stream.on('data', (c: Buffer) => {
+          if (size < MAX_OUTPUT_BYTES) {
+            chunks.push(c);
+            size += c.length;
+          }
+        });
+        stream.on('end', () => resolve(true));
+        stream.on('close', () => resolve(true));
+        stream.on('error', () => resolve(true));
       });
-
-      const result = await Promise.race([waitPromise, timeoutPromise]);
+      let timer: NodeJS.Timeout | undefined;
+      const hardCap = new Promise<boolean>((resolve) => {
+        timer = setTimeout(() => resolve(false), timeLimitMs + HARD_CAP_GRACE_MS);
+      });
+      const completed = await Promise.race([finished, hardCap]);
+      if (timer) clearTimeout(timer);
       executionTime = Date.now() - startTime;
 
-      if (result.StatusCode === 124 && executionTime >= timeLimitMs) {
+      if (!completed) {
+        // Dự phòng: tiến trình không chịu dừng
+        (stream as any).destroy?.();
         isTle = true;
-        await container.kill().catch(() => {});
+        await sandbox.container.exec({ Cmd: ['pkill', '-9', '-u', 'sandbox'] }).then((e) => e.start({})).catch(() => {});
       } else {
-        exitCode = result.StatusCode;
-        memoryUsed = Math.floor(Math.random() * 10) + 2;
-      }
-
-      try {
-        const logs = (await container.logs({ stdout: true, stderr: true, follow: false })) as unknown as Buffer;
-        const parsed = this.demuxLogs(Buffer.isBuffer(logs) ? logs : Buffer.from(logs as any));
-        stdout = parsed.stdout;
-        stderr = parsed.stderr;
-      } catch (e) {
-        stderr += `\n[runner] cannot read logs: ${String(e)}`;
-      }
-
-      // Sau bước biên dịch: lấy file sinh ra (binary `main`, *.class...) về lại thư mục tạm.
-      if (syncBack && !isTle && exitCode === 0) {
-        try {
-          const stream = (await container.getArchive({ path: '/home/sandbox' })) as unknown as NodeJS.ReadableStream;
-          const parts: Buffer[] = [];
-          for await (const c of stream as any) parts.push(Buffer.isBuffer(c) ? c : Buffer.from(c));
-          for (const f of this.tarUnpack(Buffer.concat(parts))) {
-            if (f.name === stdinName) continue;
-            const target = path.join(hostDir, f.name);
-            fs.mkdirSync(path.dirname(target), { recursive: true });
-            fs.writeFileSync(target, f.data, { mode: 0o755 });
+        for (let i = 0; i < 20; i++) {
+          const info = await exec.inspect();
+          if (!info.Running) {
+            exitCode = info.ExitCode ?? -1;
+            break;
           }
-        } catch (e) {
-          stderr += `\n[runner] cannot fetch build output: ${String(e)}`;
-          exitCode = -1;
+          await new Promise((r) => setTimeout(r, 5));
+        }
+        if (exitCode === 124 || (exitCode === 137 && executionTime >= timeLimitMs * 0.9)) {
+          isTle = true;
+        } else if (exitCode === 0) {
+          memoryUsed = Math.floor(Math.random() * 10) + 2;
         }
       }
+
+      const parsed = this.demuxLogs(Buffer.concat(chunks));
+      stdout = parsed.stdout;
+      stderr = parsed.stderr;
     } catch (e) {
       console.error('Docker Error:', e);
       stderr += String(e);
       exitCode = -1;
-    } finally {
-      if (container) {
-        await container.remove({ force: true }).catch(() => {});
-      }
     }
 
     return { stdout, stderr, exitCode, isTle, executionTime, memoryUsed };
