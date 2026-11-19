@@ -13,9 +13,8 @@ import {
   type ClassGradeItem,
 } from '../../api/classes';
 import { useClassHomeworksQuery } from '../../api/homeworks';
-import { useSubmissionDetailQuery, gradeSubmission } from '../../api/submissions';
+import SubmissionDetailModal from '../../components/SubmissionDetailModal';
 import { useHomework, deadlineProgress, HomeworkProblem } from '../../context/HomeworkContext';
-import { useToast } from '../../context/ToastContext';
 import { formatVN, formatVNFull, toDatetimeLocal } from '../../utils/dateTime';
 import ProblemManager from '../../components/ProblemManager';
 import {
@@ -42,7 +41,6 @@ import {
   Download,
   RotateCcw,
   Award,
-  Code2,
 } from 'lucide-react';
 
 // Tên hiển thị của sinh viên trong sổ điểm (giống cột "Thí sinh" ở kết quả cuộc thi)
@@ -196,47 +194,14 @@ export default function InstructorClassDetail() {
   const [isAddingStudent, setIsAddingStudent] = useState(false);
 
   const hasDocument = typeof document !== 'undefined';
-  const { showToast } = useToast();
 
   // ===== Xem kết quả bài tập đã hết hạn + chấm lại lần nộp gần nhất =====
   const [resultsHwId, setResultsHwId] = useState<string | null>(null);
   const [gradingItem, setGradingItem] = useState<{ student: ClassGradebookStudent; grade: ClassGradeItem } | null>(null);
-  const [gradeScoreInput, setGradeScoreInput] = useState('');
-  const [gradeFeedbackInput, setGradeFeedbackInput] = useState('');
-  const [isSavingGrade, setIsSavingGrade] = useState(false);
-  const { data: gradingSubDetail, isLoading: isGradingSubLoading } = useSubmissionDetailQuery(
-    gradingItem?.grade.latest_submission_id || undefined,
-  );
 
   const openGrading = (student: ClassGradebookStudent, grade: ClassGradeItem) => {
     if (!grade.latest_submission_id) return;
     setGradingItem({ student, grade });
-    setGradeScoreInput(grade.latest_instructor_score != null ? String(grade.latest_instructor_score) : '');
-    setGradeFeedbackInput(grade.latest_instructor_feedback || '');
-  };
-
-  const handleSaveGrade = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!gradingItem?.grade.latest_submission_id) return;
-    const numScore = parseFloat(gradeScoreInput);
-    if (isNaN(numScore) || numScore < 0 || numScore > 10) {
-      showToast('Điểm số phải là số hợp lệ từ 0 đến 10.', 'error');
-      return;
-    }
-    setIsSavingGrade(true);
-    try {
-      await gradeSubmission(gradingItem.grade.latest_submission_id, {
-        instructor_score: numScore,
-        instructor_feedback: gradeFeedbackInput.trim(),
-      });
-      showToast('Đã lưu điểm và nhận xét thành công!', 'success');
-      await refetchGradebook();
-      setGradingItem(null);
-    } catch (err: any) {
-      showToast(err?.message || 'Không thể lưu điểm chấm.', 'error');
-    } finally {
-      setIsSavingGrade(false);
-    }
   };
 
   const resultsHwColumn = resultsHwId && gradebookData
@@ -1407,131 +1372,18 @@ export default function InstructorClassDetail() {
         </div>
       ), document.body)}
 
-      {/* ================= MODAL: XEM LẦN NỘP GẦN NHẤT & CHẤM LẠI ================= */}
-      {gradingItem && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-100 flex items-center justify-center p-4" onClick={() => setGradingItem(null)}>
-          <div
-            className="bg-[#f7f4eb] border border-[#e5dac9] rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5dac9] bg-white">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-800 flex items-center justify-center font-bold">
-                  <Award size={22} />
-                </div>
-                <div>
-                  <h3 className="font-serif font-bold text-base text-[#191919] flex items-center gap-2">
-                    <span>{gradingItem.grade.task_title}</span>
-                    {gradingItem.grade.latest_status && (
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-sans font-bold border ${
-                        gradingItem.grade.latest_status === 'ACCEPTED'
-                          ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                          : 'bg-red-100 text-red-800 border-red-300'
-                      }`}>
-                        {gradingItem.grade.latest_status}
-                      </span>
-                    )}
-                  </h3>
-                  <p className="text-xs text-[#8a8073]">
-                    Sinh viên: <span className="font-semibold text-[#5c5446]">{gradebookStudentName(gradingItem.student)}</span>
-                    {gradingItem.grade.latest_submitted_at ? ` • Nộp lúc ${formatVNFull(gradingItem.grade.latest_submitted_at)}` : ''}
-                  </p>
-                </div>
-              </div>
-              <button onClick={() => setGradingItem(null)} className="p-1.5 hover:bg-[#e5dac9]/50 rounded-lg text-[#8a8073] hover:text-[#191919] transition-colors">
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="p-6 overflow-y-auto space-y-5">
-              <form onSubmit={handleSaveGrade} className="bg-white p-5 rounded-xl border border-amber-300/80 shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b border-[#e5dac9]/60 pb-3">
-                  <div className="flex items-center gap-2 text-amber-950 font-serif font-bold text-sm">
-                    <Award size={18} className="text-amber-700" />
-                    <span>Chấm điểm lần nộp gần nhất</span>
-                  </div>
-                  <span className="text-xs text-[#8a8073] font-mono">Trọng số: {gradingItem.grade.points}đ</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-[#191919] mb-1">Điểm GV chấm (thang 10): *</label>
-                    <input
-                      type="number" step="0.1" min="0" max="10" required
-                      value={gradeScoreInput}
-                      onChange={(e) => setGradeScoreInput(e.target.value)}
-                      placeholder="VD: 9.5"
-                      className="w-full px-3 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-lg text-sm text-[#191919] font-bold focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-[#191919] mb-1">Nhận xét:</label>
-                    <textarea
-                      rows={2}
-                      value={gradeFeedbackInput}
-                      onChange={(e) => setGradeFeedbackInput(e.target.value)}
-                      placeholder="Nhận xét về thuật toán, tính tối ưu, trình bày code..."
-                      className="w-full px-3 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-lg text-xs text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
-                    />
-                  </div>
-                </div>
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#e5dac9]/60">
-                  <button type="button" onClick={() => setGradingItem(null)} disabled={isSavingGrade} className="px-4 py-2 border border-[#e5dac9] bg-white text-xs font-semibold rounded-lg text-[#5c5446] hover:bg-[#f7f4eb] transition-colors">
-                    Hủy
-                  </button>
-                  <button type="submit" disabled={isSavingGrade} className="px-5 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-lg hover:bg-[#143022] transition-colors shadow-xs disabled:opacity-50">
-                    {isSavingGrade ? 'Đang lưu...' : 'Lưu điểm'}
-                  </button>
-                </div>
-              </form>
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#5c5446] flex items-center gap-1.5">
-                    <Code2 size={14} className="text-[#193a2b]" />
-                    Mã nguồn sinh viên đã nộp
-                  </h4>
-                  {gradingSubDetail && (
-                    <span className="text-xs text-[#8a8073] font-mono">
-                      Ngôn ngữ: {gradingSubDetail.language}{gradingSubDetail.execution_time ? ` • ${gradingSubDetail.execution_time}ms` : ''}
-                    </span>
-                  )}
-                </div>
-                {isGradingSubLoading ? (
-                  <div className="p-8 text-center text-xs text-[#8a8073] bg-white rounded-xl border border-[#e5dac9]">Đang tải mã nguồn...</div>
-                ) : gradingSubDetail?.source_code ? (
-                  <div className="bg-[#242424] border border-[#333333] rounded-xl p-4 overflow-x-auto shadow-inner max-h-72">
-                    <pre className="text-xs text-emerald-400 font-mono whitespace-pre">{gradingSubDetail.source_code}</pre>
-                  </div>
-                ) : (
-                  <div className="p-6 text-center text-xs text-[#8a8073] bg-white rounded-xl border border-[#e5dac9]">Không thể tải mã nguồn của bài nộp này.</div>
-                )}
-              </div>
-
-              {gradingSubDetail?.test_results && gradingSubDetail.test_results.length > 0 && (
-                <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#5c5446] mb-2">
-                    Kết quả các bộ test ({gradingSubDetail.test_results.filter((r) => r.status === 'ACCEPTED').length}/{gradingSubDetail.test_results.length} PASSED)
-                  </h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {gradingSubDetail.test_results.map((tr, idx) => (
-                      <div
-                        key={idx}
-                        className={`p-2.5 rounded-lg border text-center text-xs ${
-                          tr.status === 'ACCEPTED' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'
-                        }`}
-                      >
-                        <span className="font-bold block">TC #{tr.testcase_index ?? idx + 1}</span>
-                        <span className="text-[10px] uppercase font-mono">{tr.status}</span>
-                        {tr.execution_time != null && <span className="block text-[9px] opacity-75">{tr.execution_time}ms</span>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      ), document.body)}
+      {/* ================= XEM LẦN NỘP GẦN NHẤT & CHẤM LẠI (giao diện giống mục Kỳ thi) ================= */}
+      {gradingItem?.grade.latest_submission_id && (
+        <SubmissionDetailModal
+          submissionId={gradingItem.grade.latest_submission_id}
+          usernameOverride={gradebookStudentName(gradingItem.student)}
+          hideProblemActions
+          scoreMax={10}
+          gradeMax={10}
+          onGraded={() => { refetchGradebook(); }}
+          onClose={() => setGradingItem(null)}
+        />
+      )}
     </div>
   );
 }

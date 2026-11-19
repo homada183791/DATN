@@ -519,6 +519,7 @@
     "studentTitle": "Submission History",
     "instructorSubtitle": "Track, manually grade, and rejudge your students' submissions",
     "studentSubtitle": "Track compile results and feedback from your instructor",
+    "gradeRangeError": "The score must be a valid number from 0 to {{max}}.",
     "gradeValidationError": "The score must be a valid number from 0 to 100 or 0 to 10.",
     "gradeSavedSuccess": "Instructor score and feedback saved successfully!",
     "saveGradeFailed": "Could not save the grade.",

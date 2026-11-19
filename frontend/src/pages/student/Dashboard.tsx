@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Calendar, CheckCircle2, Loader2, Send, Target, Trophy } from 'lucide-react';
@@ -9,6 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 import { formatVN, formatVNFull } from '../../utils/dateTime';
 import UpcomingContestCountdown from '../../components/UpcomingContestCountdown';
 import TopRatedLeaderboard from '../../components/TopRatedLeaderboard';
+import SubmissionDetailModal from '../../components/SubmissionDetailModal';
 
 const verdictColors: Record<string, string> = {
   AC: 'text-emerald-700 bg-emerald-100 border-emerald-300',
@@ -31,6 +32,7 @@ export default function StudentDashboard() {
   const activeContestId = activeContest?.id;
   const { data: leaderboard } = useLeaderboardQuery(activeContestId);
   const { data: submissions, isLoading: submissionsLoading, error: submissionsError } = useSubmissionsQuery();
+  const [selectedSubmission, setSelectedSubmission] = useState<string | null>(null);
 
   const leaderboardRows: LeaderboardEntryDto[] = (leaderboard ?? []) as LeaderboardEntryDto[];
 
@@ -246,7 +248,11 @@ export default function StudentDashboard() {
             ) : (
               <div className="space-y-2">
                 {recentSubmissions.map((sub) => (
-                  <div key={sub.id} className="flex items-center justify-between p-3 bg-[#f7f4eb] rounded-xl border border-[#e5dac9] hover:border-[#193a2b]/30 transition-all">
+                  <div
+                    key={sub.id}
+                    onClick={() => setSelectedSubmission(sub.id)}
+                    className="flex items-center justify-between p-3 bg-[#f7f4eb] rounded-xl border border-[#e5dac9] hover:border-[#193a2b]/30 transition-all cursor-pointer"
+                  >
                     <div className="flex items-center gap-3 min-w-0">
                       <span className={`text-xs px-2.5 py-1 rounded-md font-bold font-mono border ${verdictColors[sub.verdict] || 'bg-slate-100 text-slate-800'}`}>
                         {sub.verdict}
@@ -310,6 +316,10 @@ export default function StudentDashboard() {
           )}
         </div>
       </div>
+
+      {selectedSubmission && (
+        <SubmissionDetailModal submissionId={selectedSubmission} onClose={() => setSelectedSubmission(null)} />
+      )}
     </div>
   );
 }

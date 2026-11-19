@@ -44,6 +44,8 @@ interface SubmissionDetailModalProps {
   hideProblemActions?: boolean;
   /** Thang điểm hiển thị cho điểm giảng viên chấm (mặc định /10) */
   scoreMax?: number;
+  /** Điểm tối đa được phép nhập khi chấm (mặc định 100; bài tập lớp dùng thang 10) */
+  gradeMax?: number;
   /** Gọi sau khi giảng viên lưu điểm thành công */
   onGraded?: () => void;
 }
@@ -54,6 +56,7 @@ export default function SubmissionDetailModal({
   usernameOverride,
   hideProblemActions = false,
   scoreMax = 10,
+  gradeMax = 100,
   onGraded,
 }: SubmissionDetailModalProps) {
   const { t } = useTranslation();
@@ -116,8 +119,8 @@ export default function SubmissionDetailModal({
   const handleSubmitGrade = async (e: React.FormEvent) => {
     e.preventDefault();
     const numScore = parseFloat(gradeInput);
-    if (isNaN(numScore) || numScore < 0 || numScore > 100) {
-      showToast(t('submission.gradeValidationError'), 'error');
+    if (isNaN(numScore) || numScore < 0 || numScore > gradeMax) {
+      showToast(t('submission.gradeRangeError', { max: gradeMax }), 'error');
       return;
     }
 
@@ -202,7 +205,12 @@ export default function SubmissionDetailModal({
                     </button>
                   </h3>
                   <p className="text-xs text-[#8a8073]">
-                    {t('submission.submitterLabel')} <span className="font-semibold text-[#5c5446]">{usernameOverride ?? `@${selectedSub.username}`}</span> • {t('submission.submissionIdLabel')} #{selectedSub.id.slice(0, 8)}
+                    {isInstructor && (
+                      <>
+                        {t('submission.submitterLabel')} <span className="font-semibold text-[#5c5446]">{usernameOverride ?? `@${selectedSub.username}`}</span> •{' '}
+                      </>
+                    )}
+                    {t('submission.submissionIdLabel')} #{selectedSub.id.slice(0, 8)}
                   </p>
                 </div>
               </div>
@@ -218,9 +226,9 @@ export default function SubmissionDetailModal({
                     {isRejudging ? t('submission.rejudgingLabel') : t('submission.rejudgeBtn')}
                   </button>
                 )}
-                {!hideProblemActions && (
+                {isInstructor && !hideProblemActions && (
                   <button
-                    onClick={() => navigate(isInstructor ? `/instructor/problem/${selectedSub.problemId}` : `/student/problem/${selectedSub.problemId}`)}
+                    onClick={() => navigate(`/instructor/problem/${selectedSub.problemId}`)}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#193a2b] bg-[#193a2b]/10 hover:bg-[#193a2b]/20 rounded-lg transition-colors"
                     title={t('submission.goToProblem')}
                   >
@@ -328,7 +336,7 @@ export default function SubmissionDetailModal({
                           type="number"
                           step="0.1"
                           min="0"
-                          max="100"
+                          max={gradeMax}
                           value={gradeInput}
                           onChange={(e) => setGradeInput(e.target.value)}
                           placeholder={t('submission.scorePlaceholder')}
@@ -407,21 +415,21 @@ export default function SubmissionDetailModal({
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-3 text-xs">
+                            <div className="grid grid-cols-[9rem_5rem_4rem] items-center gap-3 text-xs text-right">
                               <span className={`font-bold ${isAC ? 'text-emerald-700' : 'text-red-700'}`}>
                                 {verdictFullNames[tr.status] || tr.status}
                               </span>
-                              {tr.execution_time != null && (
-                                <span className="text-[#8a8073]">{tr.execution_time}ms</span>
-                              )}
-                              {tr.memory_used != null && (
-                                <span className="text-[#8a8073]">{tr.memory_used}MB</span>
-                              )}
+                              <span className="text-[#8a8073] tabular-nums">
+                                {tr.execution_time != null ? `${tr.execution_time}ms` : ''}
+                              </span>
+                              <span className="text-[#8a8073] tabular-nums">
+                                {tr.memory_used != null ? `${tr.memory_used}MB` : ''}
+                              </span>
                             </div>
                           </div>
 
-                          {/* Chi tiết I/O nếu không ẩn hoặc là Giảng viên */}
-                          {(!tr.is_hidden || isInstructor) && (tr.input || tr.expected_output || tr.actual_output) && (
+                          {/* Chi tiết I/O chỉ dành cho Giảng viên; sinh viên chỉ thấy kết quả từng bộ test */}
+                          {isInstructor && (tr.input || tr.expected_output || tr.actual_output) && (
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2 pt-2 border-t border-black/5 text-[11px] font-mono">
                               {tr.input && (
                                 <div className="bg-white/80 p-2 rounded border border-[#e5dac9]/60">
