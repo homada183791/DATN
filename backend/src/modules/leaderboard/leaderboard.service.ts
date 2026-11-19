@@ -28,6 +28,7 @@ export interface ContestProblemResult {
   solved: boolean; // đã AC
   solved_at_minutes: number | null; // phút kể từ lúc bắt đầu tới lần AC đầu tiên
   runtime: number | null; // runtime (ms) của bài nộp tốt nhất
+  latest_submission_id: string | null; // lần nộp gần nhất trong thời gian thi (mọi trạng thái)
 }
 
 @Injectable()
@@ -77,6 +78,7 @@ export class LeaderboardService implements OnModuleDestroy {
         },
         orderBy: { created_at: 'asc' },
         select: {
+          id: true,
           user_id: true,
           problem_id: true,
           status: true,
@@ -97,6 +99,11 @@ export class LeaderboardService implements OnModuleDestroy {
     ]);
 
     const detail = new Map<string, Record<string, ContestProblemResult>>();
+    // Lần nộp gần nhất (submissions đã sắp xếp tăng dần theo thời gian) — tính cả mọi trạng thái
+    const latestSubmission = new Map<string, string>();
+    for (const sub of submissions) {
+      latestSubmission.set(`${sub.user_id}:${sub.problem_id}`, sub.id);
+    }
     for (const sub of submissions) {
       if (
         sub.status === SubmissionStatus.PENDING ||
@@ -115,6 +122,8 @@ export class LeaderboardService implements OnModuleDestroy {
         solved: false,
         solved_at_minutes: null,
         runtime: null,
+        latest_submission_id:
+          latestSubmission.get(`${sub.user_id}:${sub.problem_id}`) ?? null,
       });
       cell.attempts += 1;
 
@@ -137,6 +146,23 @@ export class LeaderboardService implements OnModuleDestroy {
             (1000 * 60),
         );
       }
+    }
+    // Bài chỉ có lần nộp đang chấm (PENDING/IN_QUEUE) vẫn cần có nút xem mã nguồn
+    for (const [key, submissionId] of latestSubmission) {
+      const [userId, problemId] = key.split(':');
+      let perUser = detail.get(userId);
+      if (!perUser) {
+        perUser = {};
+        detail.set(userId, perUser);
+      }
+      perUser[problemId] ??= {
+        attempts: 0,
+        score: 0,
+        solved: false,
+        solved_at_minutes: null,
+        runtime: null,
+        latest_submission_id: submissionId,
+      };
     }
     const sessionMap = new Map(sessions.map((s) => [s.student_id, s]));
 

@@ -1,23 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   createContest, deleteContest, updateContest,
   useContestsQuery, useLeaderboardQuery,
   addProblemToContest, removeProblemFromContest, fetchContestDetail,
-  calculateContestElo, fetchContestSessions, resetContestSession, type ContestSessionDto,
+  fetchContestSessions, resetContestSession, type ContestDto, type ContestSessionDto, fetchContestResults, type ContestResultsDto,
 } from '../../api/contests';
 import { useClassesQuery } from '../../api/classes';
+import SubmissionDetailModal from '../../components/SubmissionDetailModal';
 import { useProblemsQuery, createProblem, type CreateProblemDto, type ProblemDto } from '../../api/problems';
 import ProblemFormModal from '../../components/ProblemFormModal';
-import { ApiError, apiFetch } from '../../api/http';
+import { ApiError } from '../../api/http';
 import { createSocket } from '../../api/socket';
 import { notifyGlobalToast } from '../../context/ToastContext';
 import { toDatetimeLocal, datetimeLocalToISO, formatVNFull } from '../../utils/dateTime';
 import {
   Trophy, Users, Plus, Search, X, Calendar, Edit3, Trash2, Eye,
-  Lock, Globe, BookOpen, CheckCircle2, ShieldAlert, TrendingUp, Loader2, RefreshCw, Minus, Download, FileText,
+  Lock, Globe, BookOpen, CheckCircle2, ShieldAlert, Loader2, RefreshCw, Minus, Download, FileText,
 } from 'lucide-react';
 
 type ContestForm = {
@@ -30,26 +32,6 @@ type ContestForm = {
   maxCheatWarnings: string;
   lockdownEnabled: boolean;
   lockdownCode: string;
-};
-
-type ContestResultsDto = {
-  contest: {
-    id: string;
-    title: string;
-    start_time: string;
-    end_time: string;
-    lockdown_enabled: boolean;
-    max_cheat_warnings: number;
-  };
-  problems: Array<{ id: string; title: string }>;
-  results: Array<{
-    user_id: string;
-    username: string;
-    score: number;
-    cheat_warnings: number;
-    is_disqualified: boolean;
-    problems: Record<string, { attempts: number; score: number; solved: boolean; solved_at_minutes: number | null; runtime: number | null }>;
-  }>;
 };
 
 /** Mã giám thị ngẫu nhiên (bỏ ký tự dễ nhầm 0/O, 1/I) */
@@ -74,6 +56,7 @@ const emptyContestForm: ContestForm = {
 
 export default function InstructorContest() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'running' | 'ended'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -86,7 +69,30 @@ export default function InstructorContest() {
   const [editingContest, setEditingContest] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const hasDocument = typeof document !== 'undefined';
-  const { data: contests = [] } = useContestsQuery();
+  const { data: contestsData } = useContestsQuery();
+
+  // Trạng thái kỳ thi tính theo giờ hiện tại ở trình duyệt, tự cập nhật đúng thời điểm bắt đầu/kết thúc
+  // (không cần tải lại trang).
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const boundaries = (contestsData ?? [])
+      .flatMap((c) => [new Date(c.startTime).getTime(), new Date(c.endTime).getTime()])
+      .filter((ts) => Number.isFinite(ts) && ts > now);
+    if (boundaries.length === 0) return;
+    const delay = Math.min(Math.min(...boundaries) - now + 200, 2147483000);
+    const timer = window.setTimeout(() => setNow(Date.now()), delay);
+    return () => window.clearTimeout(timer);
+  }, [contestsData, now]);
+  const contests = useMemo(
+    () =>
+      (contestsData ?? []).map((c): ContestDto => {
+        const start = new Date(c.startTime).getTime();
+        const end = new Date(c.endTime).getTime();
+        const status: ContestDto['status'] = now < start ? 'upcoming' : now <= end ? 'running' : 'ended';
+        return { ...c, status };
+      }),
+    [contestsData, now],
+  );
   const { data: leaderboard = [] } = useLeaderboardQuery(selectedContest ?? undefined);
   const { data: classes = [] } = useClassesQuery();
   const { data: bankProblems = [] } = useProblemsQuery();
@@ -106,9 +112,9 @@ export default function InstructorContest() {
   const [resettingStudentId, setResettingStudentId] = useState<string | null>(null);
   const [showResultsModal, setShowResultsModal] = useState<string | null>(null);
   const [resultsData, setResultsData] = useState<ContestResultsDto | null>(null);
+  const [viewCode, setViewCode] = useState<{ submissionId: string; student: string; problem: string } | null>(null);
   const [loadingResults, setLoadingResults] = useState(false);
   const monitorStatus = contests.find((c) => c.id === showMonitorModal)?.status;
-  const [calculatingEloContestId, setCalculatingEloContestId] = useState<string | null>(null);
 
   const openCreate = () => {
     setEditingContest(null);
@@ -216,20 +222,6 @@ export default function InstructorContest() {
     }
   };
 
-  const handleCalculateElo = async (contestId: string) => {
-    setCalculatingEloContestId(contestId);
-    try {
-      await calculateContestElo(contestId);
-      notifyGlobalToast(t('instructorContest.success.eloCalculated'), 'success');
-      await queryClient.invalidateQueries({ queryKey: ['contests'] });
-      await queryClient.invalidateQueries({ queryKey: ['users', 'top-rated'] });
-    } catch (err: any) {
-      notifyGlobalToast(err instanceof ApiError ? err.message : t('instructorContest.errors.eloCalculationFailed'));
-    } finally {
-      setCalculatingEloContestId(null);
-    }
-  };
-
   const handleResetSession = async (studentId: string) => {
     const contestId = showMonitorModal;
     if (!contestId) return;
@@ -253,7 +245,7 @@ export default function InstructorContest() {
     setLoadingResults(true);
     setResultsData(null);
     fetchContestResults(contestId)
-      .then((res: Awaited<ReturnType<typeof fetchContestResults>>) => { if (!cancelled) setResultsData(res); })
+      .then((res) => { if (!cancelled) setResultsData(res); })
       .catch((err) => {
         notifyGlobalToast(err instanceof ApiError ? err.message : t('instructorContest.loadResultsFailed'));
       })
@@ -649,21 +641,6 @@ export default function InstructorContest() {
                     <ShieldAlert size={14} /> {t('instructorContest.monitorBtn')}
                   </button>
                 )}
-                {selectedContestData.status === 'ended' && (
-                  <button
-                    onClick={() => handleCalculateElo(selectedContestData.id)}
-                    disabled={calculatingEloContestId === selectedContestData.id}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 border border-indigo-200 text-sm font-medium rounded-xl hover:bg-indigo-100 transition-colors shadow-sm disabled:opacity-60"
-                    title={t('instructorContest.finalizeEloTooltip')}
-                  >
-                    {calculatingEloContestId === selectedContestData.id ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <TrendingUp size={14} />
-                    )}
-                    {t('instructorContest.finalizeEloBtn')}
-                  </button>
-                )}
               </div>
             </div>
           </div>
@@ -720,8 +697,15 @@ export default function InstructorContest() {
                       const diffColor: Record<string, string> = { EASY: 'bg-emerald-100 text-emerald-700', MEDIUM: 'bg-yellow-100 text-yellow-700', HARD: 'bg-red-100 text-red-700', Easy: 'bg-emerald-100 text-emerald-700', Medium: 'bg-yellow-100 text-yellow-700', Hard: 'bg-red-100 text-red-700' };
                       return (
                         <div key={cp.problem_id} className="flex items-center gap-3 px-4 py-3 bg-(--ws-panel2) border border-(--ws-border) rounded-xl">
-                          <span className="text-sm font-mono text-(--ws-muted) w-5 text-center">{String.fromCharCode(65 + i)}</span>
-                          <p className="flex-1 text-sm font-semibold text-(--ws-text)">{cp.problem.title}</p>
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/instructor/problem/${cp.problem_id}`)}
+                            className="flex-1 flex items-center gap-3 text-left min-w-0 group"
+                            title={t('instructorContest.viewProblemTooltip')}
+                          >
+                            <span className="text-sm font-mono text-(--ws-muted) w-5 text-center shrink-0">{i + 1}</span>
+                            <span className="flex-1 text-sm font-semibold text-(--ws-text) group-hover:underline truncate">{cp.problem.title}</span>
+                          </button>
                           <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${diffColor[cp.problem.difficulty] ?? 'bg-gray-100 text-gray-600'}`}>
                             {diffMap[cp.problem.difficulty] ?? cp.problem.difficulty}
                           </span>
@@ -1046,20 +1030,6 @@ export default function InstructorContest() {
                         <ShieldAlert size={16} />
                       </button>
                     )}
-                    {contest.status === 'ended' && (
-                      <button
-                        onClick={() => handleCalculateElo(contest.id)}
-                        disabled={calculatingEloContestId === contest.id}
-                        className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-indigo-600 hover:bg-[#f7f4eb] transition-colors disabled:opacity-50"
-                        title={t('instructorContest.finalizeEloBtn')}
-                      >
-                        {calculatingEloContestId === contest.id ? (
-                          <Loader2 size={16} className="animate-spin" />
-                        ) : (
-                          <TrendingUp size={16} />
-                        )}
-                      </button>
-                    )}
                     <button
                       onClick={() => removeContest(contest.id)}
                       className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-red-600 hover:bg-[#f7f4eb] transition-colors"
@@ -1120,7 +1090,7 @@ export default function InstructorContest() {
                         <th className="text-left text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.resultsColNo')}</th>
                         <th className="text-left text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.colUser')}</th>
                         {resultsData.problems.map((p) => (
-                          <th key={p.id} className="text-center text-xs font-semibold text-(--ws-muted) py-2.5 px-3 tracking-wider max-w-40 truncate" title={p.title}>{p.title}</th>
+                          <th key={p.id} className="text-center text-xs font-semibold text-(--ws-muted) py-2.5 px-3 tracking-wider min-w-44 whitespace-normal wrap-break-word">{p.title}</th>
                         ))}
                         <th className="text-right text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.resultsColTotal')}</th>
                         <th className="text-left text-xs font-semibold text-(--ws-muted) py-2.5 px-3 uppercase tracking-wider">{t('instructorContest.resultsColNote')}</th>
@@ -1133,12 +1103,27 @@ export default function InstructorContest() {
                           <tr key={r.user_id} className="border-b border-(--ws-border) last:border-b-0 hover:bg-(--ws-hover)">
                             <td className="py-2.5 px-3 text-sm text-(--ws-muted)">{index + 1}</td>
                             <td className="py-2.5 px-3 text-sm font-semibold text-(--ws-text)">{r.username}</td>
-                            {resultsData.problems.map((p) => (
-                              <td key={p.id} className="py-2.5 px-3 text-center text-sm text-(--ws-text)">
-                                {r.problems[p.id]?.score ?? 0}
-                              </td>
-                            ))}
-                            <td className="py-2.5 px-3 text-sm text-(--ws-text) font-bold text-right">{r.score}</td>
+                            {resultsData.problems.map((p) => {
+                              const cell = r.problems[p.id];
+                              return (
+                                <td key={p.id} className="py-2.5 px-3 text-center text-sm text-(--ws-text)">
+                                  <span className="inline-flex items-center justify-center gap-1.5">
+                                    {cell?.score ?? 0}/100
+                                    {cell?.latest_submission_id && (
+                                      <button
+                                        type="button"
+                                        onClick={() => setViewCode({ submissionId: cell.latest_submission_id as string, student: r.username, problem: p.title })}
+                                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-(--ws-border) bg-(--ws-panel) text-[10px] font-semibold text-(--ws-muted) hover:text-(--ws-text) hover:bg-(--ws-hover) transition-colors whitespace-nowrap"
+                                        title={t('instructorContest.viewSubmissionTitle')}
+                                      >
+                                        <Eye size={12} /> {t('instructorContest.viewSubmission')}
+                                      </button>
+                                    )}
+                                  </span>
+                                </td>
+                              );
+                            })}
+                            <td className="py-2.5 px-3 text-sm text-(--ws-text) font-bold text-right">{r.score}/{resultsData.problems.length * 100}</td>
                             <td className="py-2.5 px-3 text-xs">
                               {note ? (
                                 <span className={r.is_disqualified ? 'text-red-700 font-semibold' : 'text-amber-700'}>{note}</span>
@@ -1155,6 +1140,18 @@ export default function InstructorContest() {
           </div>
         </div>
       ), document.body)}
+
+      {/* Xem bài nộp gần nhất của thí sinh trong kỳ thi (giao diện giống mục Chấm bài & Bài nộp) */}
+      {viewCode && (
+        <SubmissionDetailModal
+          submissionId={viewCode.submissionId}
+          usernameOverride={viewCode.student}
+          hideProblemActions
+          scoreMax={100}
+          onGraded={() => { if (showResultsModal) fetchContestResults(showResultsModal).then(setResultsData).catch(() => {}); }}
+          onClose={() => setViewCode(null)}
+        />
+      )}
 
       {/* ── Giám sát kỳ thi ─────────────────────────────────────────────────── */}
       {showMonitorModal && hasDocument && createPortal((
@@ -1231,6 +1228,7 @@ export default function InstructorContest() {
                             </td>
                             {monitorStatus !== 'ended' && (
                               <td className="py-2.5 px-3 text-right">
+                                {sess.is_disqualified && (
                                 <button
                                   type="button"
                                   onClick={() => handleResetSession(sess.student_id)}
@@ -1240,6 +1238,7 @@ export default function InstructorContest() {
                                   {resettingStudentId === sess.student_id && <Loader2 size={12} className="animate-spin" />}
                                   {t('instructorContest.monitorResetBtn')}
                                 </button>
+                                )}
                               </td>
                             )}
                           </tr>
@@ -1254,10 +1253,5 @@ export default function InstructorContest() {
         </div>
       ), document.body)}
     </div>
-  );
-}
-function fetchContestResults(contestId: string) {
-  return apiFetch<ContestResultsDto>(
-    `/api/v1/contests/${encodeURIComponent(contestId)}/results`,
   );
 }

@@ -190,6 +190,46 @@ export function calculateContestElo(contestId: string) {
   });
 }
 
+export interface ContestProblemResultDto {
+  attempts: number;
+  score: number;
+  solved: boolean;
+  solved_at_minutes: number | null;
+  runtime: number | null;
+  latest_submission_id?: string | null;
+}
+
+export interface ContestResultRowDto {
+  rank: number;
+  user_id: string;
+  username: string;
+  email: string;
+  solved: number;
+  penalty: number;
+  score: number;
+  runtime: number;
+  cheat_warnings: number;
+  is_disqualified: boolean;
+  problems: Record<string, ContestProblemResultDto>;
+}
+
+export interface ContestResultsDto {
+  contest: {
+    id: string;
+    title: string;
+    start_time: string;
+    end_time: string;
+    lockdown_enabled: boolean;
+    max_cheat_warnings: number;
+  };
+  problems: Array<{ id: string; title: string }>;
+  results: ContestResultRowDto[];
+}
+
+export function fetchContestResults(contestId: string) {
+  return apiFetch<ContestResultsDto>(`/api/v1/contests/${contestId}/results`);
+}
+
 export interface ContestSessionDto {
   student_id: string;
   username: string;

@@ -290,8 +290,8 @@ export default function Contest() {
                     </div>
                   ) : null}
 
-                  {/* Problem list: chỉ hiện khi cuộc thi đang diễn ra (và đã đăng ký) hoặc đã kết thúc; chưa bắt đầu thì ẩn */}
-                  {((isRegistered(selectedContestData.id) && selectedContestData.status === 'running') || selectedContestData.status === 'ended') && (
+                  {/* Problem list: chỉ hiện khi cuộc thi đang diễn ra (và đã đăng ký); chưa bắt đầu hoặc đã kết thúc thì ẩn */}
+                  {isRegistered(selectedContestData.id) && selectedContestData.status === 'running' && (
                     <div className="mb-2">
                       <h4 className="text-sm font-bold font-serif text-[#191919] mb-3 flex items-center gap-2">
                         <BookOpen size={15} /> {t('studentContest.problemsInContest')}
@@ -308,8 +308,6 @@ export default function Contest() {
                         <div className="space-y-2">
                           {contestProblems.map((cp, i) => {
                             const diffColor: Record<string, string> = { EASY: 'bg-emerald-100 text-emerald-700', MEDIUM: 'bg-yellow-100 text-yellow-700', HARD: 'bg-red-100 text-red-700', Easy: 'bg-emerald-100 text-emerald-700', Medium: 'bg-yellow-100 text-yellow-700', Hard: 'bg-red-100 text-red-700' };
-                            const isRunning = selectedContestData.status === 'running';
-                            const isEnded = selectedContestData.status === 'ended';
                             return (
                               <div key={cp.problem_id} className="flex items-center gap-3 px-4 py-3 bg-white border border-[#e5dac9] rounded-xl hover:bg-[#f7f4eb] transition-colors">
                                 <span className="text-sm font-mono text-[#8a8073] w-5 text-center">{String.fromCharCode(65 + i)}</span>
@@ -317,27 +315,13 @@ export default function Contest() {
                                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold shrink-0 ${diffColor[cp.problem.difficulty] ?? 'bg-gray-100 text-gray-600'}`}>
                                   {difficultyLabels[cp.problem.difficulty] ?? cp.problem.difficulty}
                                 </span>
-                                {isRunning ? (
-                                  <Link
-                                    to={`/student/contest/${selectedContestData.id}/problem/${cp.problem_id}`}
-                                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors"
-                                    onClick={() => setSelectedContest(null)}
-                                  >
-                                    <Play size={11} fill="white" /> {t('studentHomework.goSolve')}
-                                  </Link>
-                                ) : isEnded ? (
-                                  <Link
-                                    to={`/student/problem/${cp.problem_id}`}
-                                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors"
-                                    onClick={() => setSelectedContest(null)}
-                                  >
-                                    <Play size={11} fill="white" /> {t('studentDashboard.practiceBtn')}
-                                  </Link>
-                                ) : (
-                                  <span className="shrink-0 text-xs text-[#8a8073] px-3 py-1.5 bg-[#f0ebd9] rounded-xl">
-                                    {t('instructorContest.statusUpcoming')}
-                                  </span>
-                                )}
+                                <Link
+                                  to={`/student/contest/${selectedContestData.id}/problem/${cp.problem_id}`}
+                                  className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors"
+                                  onClick={() => setSelectedContest(null)}
+                                >
+                                  <Play size={11} fill="white" /> {t('studentHomework.goSolve')}
+                                </Link>
                               </div>
                             );
                           })}

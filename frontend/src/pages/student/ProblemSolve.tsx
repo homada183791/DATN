@@ -3141,7 +3141,7 @@ export default function ProblemSolve() {
             BÀI THI CỦA BẠN ĐÃ BỊ HỦY BỎ
           </h1>
           <p className="text-sm text-red-300 max-w-lg mb-6 leading-relaxed">
-            Hệ thống giám sát ghi nhận bạn đã vi phạm quy chế thi cử quá {maxWarnings} lần (chuyển tab, rời cửa sổ hoặc thoát chế độ toàn màn hình). Quyền nộp bài đã bị vô hiệu hóa.
+            Hệ thống giám sát ghi nhận bạn đã vi phạm quy chế thi cử quá {maxWarnings} lần (rời khỏi màn hình làm bài thi). Quyền nộp bài đã bị vô hiệu hóa.
           </p>
           <div className="bg-red-900/60 border border-red-700/80 rounded-xl px-6 py-3 text-xs font-mono text-red-200 mb-8">
             Số lần vi phạm: {cheatWarnings}/{maxWarnings} • Trạng thái: DISQUALIFIED
