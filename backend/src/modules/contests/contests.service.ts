@@ -5,6 +5,7 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EventsGateway } from '../../events/events.gateway';
 import { CreateContestDto } from './dto/create-contest.dto';
@@ -22,6 +23,17 @@ function generateLockdownCode(length = 6): string {
     code += LOCKDOWN_CODE_CHARS[randomInt(LOCKDOWN_CODE_CHARS.length)];
   }
   return code;
+}
+
+function getErrorCode(error: unknown): string | undefined {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    typeof error.code === 'string'
+  ) {
+    return error.code;
+  }
 }
 
 /** Ẩn mã lockdown khỏi dữ liệu trả cho sinh viên */
@@ -106,7 +118,10 @@ export class ContestsService {
 
     // Đánh dấu kỳ thi mà sinh viên này đã đăng ký (có ContestSession) để giữ trạng thái sau khi tải lại trang
     const mySessions = await this.prisma.contestSession.findMany({
-      where: { student_id: userId, contest_id: { in: contests.map((c) => c.id) } },
+      where: {
+        student_id: userId,
+        contest_id: { in: contests.map((c) => c.id) },
+      },
       select: { contest_id: true },
     });
     const registeredIds = new Set(mySessions.map((s) => s.contest_id));
@@ -244,18 +259,37 @@ export class ContestsService {
     if (!contest) throw new NotFoundException('Không tìm thấy kỳ thi');
 
     // Upsert: nếu đã có session thì không tạo mới (idempotent)
-    const session = await this.prisma.contestSession.upsert({
-      where: {
-        contest_id_student_id: { contest_id: contestId, student_id: studentId },
-      },
-      update: {}, // Không thay đổi gì nếu đã tồn tại
-      create: {
-        contest_id: contestId,
-        student_id: studentId,
-        cheat_warnings: 0,
-        is_disqualified: false,
-      },
-    });
+    let session: Awaited<ReturnType<typeof this.prisma.contestSession.upsert>>;
+    try {
+      session = await this.prisma.contestSession.upsert({
+        where: {
+          contest_id_student_id: {
+            contest_id: contestId,
+            student_id: studentId,
+          },
+        },
+        update: {}, // Không thay đổi gì nếu đã tồn tại
+        create: {
+          contest_id: contestId,
+          student_id: studentId,
+          cheat_warnings: 0,
+          is_disqualified: false,
+        },
+      });
+    } catch (err) {
+      if (getErrorCode(err) !== 'P2002') throw err;
+
+      const existing = await this.prisma.contestSession.findUnique({
+        where: {
+          contest_id_student_id: {
+            contest_id: contestId,
+            student_id: studentId,
+          },
+        },
+      });
+      if (!existing) throw err;
+      session = existing;
+    }
     return {
       success: true,
       session_id: session.id,
@@ -406,7 +440,10 @@ export class ContestsService {
     });
 
     let isDisqualified = session.is_disqualified;
-    if (session.cheat_warnings >= contest.max_cheat_warnings && !isDisqualified) {
+    if (
+      session.cheat_warnings >= contest.max_cheat_warnings &&
+      !isDisqualified
+    ) {
       isDisqualified = true;
       await this.prisma.contestSession.update({
         where: { id: session.id },
@@ -431,7 +468,60 @@ export class ContestsService {
     };
   }
 
+  /**
+   * Tự động cập nhật ELO cho các kỳ thi vừa kết thúc (chạy mỗi phút).
+   * Mỗi kỳ thi chỉ được cập nhật đúng một lần nhờ cờ is_elo_calculated.
+   */
+  @Cron(CronExpression.EVERY_MINUTE)
+  async autoCalculateElo() {
+    const contests = await this.prisma.contest.findMany({
+      where: { end_time: { lte: new Date() }, is_elo_calculated: false },
+      select: { id: true },
+    });
+    for (const c of contests) {
+      try {
+        await this.calculateElo(c.id);
+      } catch (err) {
+        this.logger.error(
+          `[ELO] Không thể tự động cập nhật ELO cho contest ${c.id}: ${(err as Error).message}`,
+        );
+      }
+    }
+  }
+
   async calculateElo(contestId: string) {
+    const contest = await this.prisma.contest.findUnique({
+      where: { id: contestId },
+    });
+    if (!contest) throw new NotFoundException('Không tìm thấy kỳ thi');
+    if (contest.end_time > new Date()) {
+      throw new BadRequestException(
+        'Kỳ thi chưa kết thúc, không thể tính ELO.',
+      );
+    }
+
+    // "Chiếm" kỳ thi: chỉ một tiến trình được phép tính ELO, tránh cộng/trừ hai lần
+    const claimed = await this.prisma.contest.updateMany({
+      where: { id: contestId, is_elo_calculated: false },
+      data: { is_elo_calculated: true },
+    });
+    if (claimed.count === 0) {
+      return { message: 'ELO của kỳ thi này đã được cập nhật trước đó.' };
+    }
+
+    try {
+      return await this.runEloCalculation(contestId);
+    } catch (err) {
+      // Lỗi thì mở lại để lần chạy sau thử lại
+      await this.prisma.contest.update({
+        where: { id: contestId },
+        data: { is_elo_calculated: false },
+      });
+      throw err;
+    }
+  }
+
+  private async runEloCalculation(contestId: string) {
     const contest = await this.prisma.contest.findUnique({
       where: { id: contestId },
     });

@@ -151,6 +151,7 @@ model Contest {
   end_time              DateTime
   is_private            Boolean  @default(false)
   is_plagiarism_checked Boolean  @default(false)
+  is_elo_calculated     Boolean  @default(false) // đã tự động cập nhật ELO sau khi kết thúc
   class_id              String?
   max_cheat_warnings    Int      @default(3) // số lần được phép rời màn hình trước khi bị loại
   lockdown_enabled      Boolean  @default(false) // bật chế độ lockdown (toàn màn hình) khi thi
