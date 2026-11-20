@@ -10,6 +10,13 @@ import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
 import { AddStudentDto } from './dto/add-student.dto';
 
+interface HomeworkTask {
+  id?: unknown;
+  problem_id?: unknown;
+  title?: unknown;
+  points?: unknown;
+}
+
 @Injectable()
 export class ClassesService {
   constructor(private readonly prisma: PrismaService) {}
@@ -31,7 +38,9 @@ export class ClassesService {
   async findAll() {
     return this.prisma.class.findMany({
       include: {
-        admin: { select: { id: true, email: true, username: true } },
+        admin: {
+          select: { id: true, email: true, username: true, full_name: true },
+        },
         students: {
           include: {
             student: {
@@ -64,7 +73,9 @@ export class ClassesService {
     const cls = await this.prisma.class.findUnique({
       where: { id },
       include: {
-        admin: { select: { id: true, email: true, username: true } },
+        admin: {
+          select: { id: true, email: true, username: true, full_name: true },
+        },
         students: {
           include: {
             student: {
@@ -274,31 +285,33 @@ export class ClassesService {
     }> = [];
 
     const homeworkColumns = cls.homeworks.map((hw) => {
-      const tasks = Array.isArray(hw.tasks) ? hw.tasks : [];
-      const parsedTasks = tasks.map((task, idx) => {
-        const taskData: Record<string, unknown> =
-          typeof task === 'object' && task !== null && !Array.isArray(task)
-            ? task
+      const tasks: unknown[] = Array.isArray(hw.tasks) ? hw.tasks : [];
+      const parsedTasks = tasks.map((t, idx) => {
+        const task =
+          typeof t === 'object' && t !== null
+            ? (t as unknown as HomeworkTask)
             : {};
-        const id = typeof taskData.id === 'string' ? taskData.id : undefined;
-        const taskId = id || `task_${idx}`;
+        const rawTaskId =
+          typeof task.id === 'string' && task.id ? task.id : undefined;
+        const rawProblemId =
+          typeof task.problem_id === 'string' && task.problem_id
+            ? task.problem_id
+            : undefined;
+        const taskId = rawTaskId || `task_${idx}`;
         const problemId =
-          (typeof taskData.problem_id === 'string' && taskData.problem_id) ||
-          (id && id.includes('-') ? id : undefined);
-        const title =
-          typeof taskData.title === 'string'
-            ? taskData.title
-            : `Bài ${idx + 1}`;
-        const rawPoints =
-          typeof taskData.points === 'number' ||
-          typeof taskData.points === 'string'
-            ? Number(taskData.points)
-            : 0;
+          rawProblemId ||
+          (rawTaskId && rawTaskId.includes('-') ? rawTaskId : undefined);
         const taskInfo = {
           task_id: taskId,
           problem_id: problemId,
-          title,
-          points: rawPoints || 10,
+          title:
+            typeof task.title === 'string' && task.title
+              ? task.title
+              : `Bài ${idx + 1}`,
+          points:
+            typeof task.points === 'number' && Number.isFinite(task.points)
+              ? task.points
+              : 10,
         };
         allTaskProblems.push({
           homework_id: hw.id,

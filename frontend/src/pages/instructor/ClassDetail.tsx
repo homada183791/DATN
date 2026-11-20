@@ -194,7 +194,6 @@ export default function InstructorClassDetail() {
   const [isAddingStudent, setIsAddingStudent] = useState(false);
 
   const hasDocument = typeof document !== 'undefined';
-
   // ===== Xem kết quả bài tập đã hết hạn + chấm lại lần nộp gần nhất =====
   const [resultsHwId, setResultsHwId] = useState<string | null>(null);
   const [gradingItem, setGradingItem] = useState<{ student: ClassGradebookStudent; grade: ClassGradeItem } | null>(null);
@@ -1291,7 +1290,7 @@ export default function InstructorClassDetail() {
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5dac9]">
               <div>
                 <h3 className="font-bold font-serif text-lg text-[#191919]">Kết quả: {resultsHwTitle}</h3>
-                <p className="text-xs text-[#8a8073] mt-0.5">Bấm nút "Xem bài nộp" cạnh điểm của từng bài để xem code lần nộp gần nhất và chấm lại.</p>
+                <p className="text-xs text-[#8a8073] mt-0.5">Bấm nút "Xem bài nộp" để xem chi tiết bài nộp của sinh viên.</p>
               </div>
               <button onClick={() => setResultsHwId(null)} className="text-[#8a8073] hover:text-[#191919]"><X size={20} /></button>
             </div>

@@ -9,6 +9,7 @@ export interface ClassInfo {
   name: string;
   code: string;
   instructor: string;
+  instructorName?: string;
   adminId?: string;
   semester: string;
   studentCount: number;
@@ -56,6 +57,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
     name: cls.name,
     code: cls.invite_code,
     instructor: cls.admin?.email ?? '',
+    instructorName: cls.admin?.full_name?.trim() || cls.admin?.username || cls.admin?.email?.split('@')[0] || '',
     adminId: cls.admin?.id ?? '',
     semester: cls.semester ?? '',
     studentCount: cls.students?.length ?? 0,
@@ -104,6 +106,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
       name: created.name,
       code: created.invite_code,
       instructor: created.admin?.email ?? user?.email ?? '',
+      instructorName: created.admin?.full_name?.trim() || created.admin?.username || user?.fullName?.trim() || (created.admin?.email ?? user?.email ?? '').split('@')[0],
       semester: created.semester ?? data.semester,
       studentCount: created.students?.length ?? 0,
       homeworkCount: 0,

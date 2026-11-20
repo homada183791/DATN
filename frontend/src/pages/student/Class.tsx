@@ -75,7 +75,7 @@ export default function ClassPage() {
       !isEnrolled(c.id) &&
       (c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         c.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.instructor.toLowerCase().includes(searchQuery.toLowerCase()))
+        (c.instructorName || c.instructor).toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const handleJoin = async (code: string) => {
@@ -223,7 +223,7 @@ export default function ClassPage() {
                   </div>
                   <h3 className="text-lg font-bold font-serif text-[#191919] mb-1">{cls.name}</h3>
                   <p className="text-sm text-[#8a8073] mb-1">{cls.code} • {cls.semester}</p>
-                  <p className="text-xs text-[#8a8073] mb-4">{t('studentClass.instructorPrefix')}: {cls.instructor}</p>
+                  <p className="text-xs text-[#8a8073] mb-4">{t('studentClass.instructorPrefix')}: {cls.instructorName || cls.instructor}</p>
                   <div className="flex items-center gap-4 text-sm text-[#8a8073] mt-auto mb-4">
                     <span className="flex items-center gap-1"><Users size={14} /> {membersOf(cls.id).length}</span>
                   </div>
@@ -274,7 +274,7 @@ export default function ClassPage() {
                     </span>
                   </div>
                   <p className="text-xs text-[#8a8073] mt-0.5">
-                    {cls.instructor} • {cls.semester} • {t('instructorClass.memberCountSuffix', { count: membersOf(cls.id).length })}
+                    {cls.instructorName || cls.instructor} • {cls.semester} • {t('instructorClass.memberCountSuffix', { count: membersOf(cls.id).length })}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -341,7 +341,7 @@ export default function ClassPage() {
                 <div className="flex items-center gap-2 text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">
                   <User size={14} /> {t('breadcrumb.instructor')}
                 </div>
-                <p className="text-sm text-[#191919] font-semibold">{selectedClassData.instructor}</p>
+                <p className="text-sm text-[#191919] font-semibold">{selectedClassData.instructorName || selectedClassData.instructor}</p>
               </div>
 
               {selectedClassHws.length > 0 && (

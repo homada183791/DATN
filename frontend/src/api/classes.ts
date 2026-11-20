@@ -8,7 +8,7 @@ export interface ClassDto {
   semester?: string | null;
   invite_code: string;
   is_public?: boolean;
-  admin?: { id: string; email: string; username?: string };
+  admin?: { id: string; email: string; username?: string; full_name?: string | null };
   students?: Array<{
     student: {
       id: string;
@@ -47,7 +47,7 @@ export interface ClassDetailDto {
   semester?: string | null;
   invite_code: string;
   is_public?: boolean;
-  admin?: { id: string; email: string; username?: string };
+  admin?: { id: string; email: string; username?: string; full_name?: string | null };
   students?: ClassStudentItemDto[];
   homeworks?: Array<{
     id: string;
