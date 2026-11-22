@@ -2350,7 +2350,7 @@ export default function ProblemSolve() {
                                       {t('problemSolve.executionTimeLabel')} <strong className="text-(--ws-text)">{sub.execution_time != null ? `${sub.execution_time} ms` : '—'}</strong>
                                     </span>
                                     <span>
-                                      {t('problemSolve.memoryUsedLabel')} <strong className="text-(--ws-text)">{sub.memory_used != null ? `${(sub.memory_used / 1024).toFixed(1)} MB` : '—'}</strong>
+                                      {t('problemSolve.memoryUsedLabel')} <strong className="text-(--ws-text)">{sub.memory_used != null ? `${sub.memory_used.toFixed(1)} MB` : '—'}</strong>
                                     </span>
                                   </div>
 

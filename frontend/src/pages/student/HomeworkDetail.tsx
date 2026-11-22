@@ -166,6 +166,9 @@ export default function HomeworkDetail() {
               const solveUrl = `/student/class/${classId}/homework/${homeworkId}/problem/${task.problem_id}`;
               const isSolved = !!(task.problem_id && solvedProblemIds.has(task.problem_id));
               const isAttempted = !!(task.problem_id && attemptedProblemIds.has(task.problem_id));
+              const statementPreview = task.statement
+                ?.replace(/^\s*\[\s*(?:Tiếng\s*Việt|English)\s*\]\s*/i, '')
+                .slice(0, 80) ?? '';
 
               return (
                 <div
@@ -176,7 +179,7 @@ export default function HomeworkDetail() {
                 >
                   {/* Index */}
                   <span className="text-sm font-mono text-[#8a8073] w-6 shrink-0 text-center">
-                    {String.fromCharCode(65 + i)}
+                    {i + 1}
                   </span>
 
                   {/* Title + description */}
@@ -185,7 +188,7 @@ export default function HomeworkDetail() {
                       {task.title}
                     </p>
                     <p className="text-xs text-[#8a8073] truncate mt-0.5">
-                      {task.statement?.slice(0, 80) ?? ''}...
+                      {statementPreview}...
                     </p>
                   </div>
 

@@ -123,6 +123,17 @@ const TITLE_TRANSLATIONS_REVERSE: Record<string, string> = Object.entries(TITLE_
   {} as Record<string, string>,
 );
 
+/** Bỏ các thẻ ngôn ngữ [Tiếng Việt] / [English]... còn sót trong nội dung khi hiển thị. */
+function stripLanguageTags(text: string): string {
+  return text
+    .normalize('NFC')
+    .replace(/\[\s*(?:Tiếng\s*Việt|Vietnamese|VI|English|Tiếng\s*Anh|EN)\s*\]\s*/gi, '')
+    // Bỏ dòng phân cách ---------- còn sót ở đầu/cuối khi đề chỉ có một ngôn ngữ
+    .replace(/^\s*[-=_]{3,}\s*(?:\n|$)/, '')
+    .replace(/(?:^|\n)\s*[-=_]{3,}\s*$/, '')
+    .trim();
+}
+
 /**
  * Phân tích và trích xuất nội dung song ngữ [Tiếng Việt] và [English]
  * từ mô tả bài toán (chuẩn cấu trúc Hard_450.json / Medium / Custom upload).
@@ -133,6 +144,7 @@ export function parseBilingualDescription(raw: string | undefined | null): {
   isBilingual: boolean;
 } {
   if (!raw) return { vi: '', en: '', isBilingual: false };
+  raw = raw.normalize('NFC');
 
   // Nhận diện các thẻ phân tách ngôn ngữ
   const viHeaderRegex = /\[(?:Tiếng Việt|Vietnamese|VI)\]/i;
@@ -236,8 +248,11 @@ export function getLocalizedProblemDescription(desc: string | undefined | null, 
   // Bước 1: Kiểm tra xem đề bài có phần song ngữ [Tiếng Việt] và [English] không
   const bilingual = parseBilingualDescription(desc);
   if (bilingual.isBilingual) {
-    return isEn ? bilingual.en : bilingual.vi;
+    return stripLanguageTags(isEn ? bilingual.en : bilingual.vi);
   }
+
+  // Đề chỉ có 1 ngôn ngữ nhưng còn sót thẻ [Tiếng Việt] / [English] -> bỏ thẻ này khi hiển thị
+  desc = stripLanguageTags(desc);
 
   // Bước 2: Nếu là tiếng Anh và không có bản song ngữ -> giữ nguyên bản gốc tiếng Anh
   if (isEn) {

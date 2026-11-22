@@ -310,7 +310,7 @@ export default function Contest() {
                             const diffColor: Record<string, string> = { EASY: 'bg-emerald-100 text-emerald-700', MEDIUM: 'bg-yellow-100 text-yellow-700', HARD: 'bg-red-100 text-red-700', Easy: 'bg-emerald-100 text-emerald-700', Medium: 'bg-yellow-100 text-yellow-700', Hard: 'bg-red-100 text-red-700' };
                             return (
                               <div key={cp.problem_id} className="flex items-center gap-3 px-4 py-3 bg-white border border-[#e5dac9] rounded-xl hover:bg-[#f7f4eb] transition-colors">
-                                <span className="text-sm font-mono text-[#8a8073] w-5 text-center">{String.fromCharCode(65 + i)}</span>
+                                <span className="text-sm font-mono text-[#8a8073] w-5 text-center">{i + 1}</span>
                                 <p className="flex-1 text-sm font-semibold text-[#191919] truncate">{cp.problem.title}</p>
                                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold shrink-0 ${diffColor[cp.problem.difficulty] ?? 'bg-gray-100 text-gray-600'}`}>
                                   {difficultyLabels[cp.problem.difficulty] ?? cp.problem.difficulty}
