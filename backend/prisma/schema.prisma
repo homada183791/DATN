@@ -19,6 +19,7 @@ model User {
   id                String    @id @default(uuid())
   email                 String    @unique
   username              String?   @unique
+  student_code          String?   @unique
   password              String?
   full_name             String?
   bio                   String?   @db.Text

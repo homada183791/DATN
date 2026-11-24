@@ -26,6 +26,7 @@ export default function SettingsPage() {
   const [profileForm, setProfileForm] = useState({
     fullName: user?.fullName || '',
     email: user?.email || '',
+    studentCode: user?.studentCode || '',
     bio: user?.bio || '',
     institution: user?.institution || '',
     avatarUrl: user?.avatar || '',
@@ -63,6 +64,7 @@ export default function SettingsPage() {
         setProfileForm({
           fullName: data.full_name || data.username || '',
           email: data.email || '',
+          studentCode: data.student_code || '',
           bio: data.bio || '',
           institution: data.institution || '',
           avatarUrl: data.avatar_url || '',
@@ -330,6 +332,18 @@ export default function SettingsPage() {
                       className="w-full px-4 py-2.5 bg-gray-100 border border-[#e5dac9] rounded-xl text-gray-500 cursor-not-allowed"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#5c5446] mb-1.5">
+                    {t('settings.studentIdImmutable')}
+                  </label>
+                  <input
+                    type="text"
+                    value={profileForm.studentCode || t('settings.studentIdEmpty')}
+                    disabled
+                    className="w-full px-4 py-2.5 bg-gray-100 border border-[#e5dac9] rounded-xl text-gray-500 cursor-not-allowed"
+                  />
                 </div>
 
                 <div>

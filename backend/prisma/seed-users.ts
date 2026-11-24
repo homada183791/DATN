@@ -18,6 +18,7 @@ async function main() {
     create: {
       email: 'student@example.com',
       username: 'student',
+      student_code: '20210001',
       password: hashedPassword,
       full_name: 'Nguyễn Văn Sinh Viên',
       role: Role.STUDENT,
@@ -81,7 +82,13 @@ async function main() {
   const problems = await prisma.problem.findMany({ take: 3 });
 
   if (problems.length > 0) {
-    // 5. Create Homework
+    // 5. Create Homework (idempotent)
+    await prisma.homework.deleteMany({
+      where: {
+        class_id: sampleClass.id,
+        title: 'Bài Tập Tuần 1: Mảng và Con Trỏ',
+      },
+    });
     await prisma.homework.create({
       data: {
         title: 'Bài Tập Tuần 1: Mảng và Con Trỏ',
@@ -91,7 +98,12 @@ async function main() {
         tasks: problems.map((p, idx) => ({
           id: `task-${idx + 1}`,
           title: p.title,
-          difficulty: p.difficulty === Difficulty.HARD ? 'Hard' : p.difficulty === Difficulty.MEDIUM ? 'Medium' : 'Easy',
+          difficulty:
+            p.difficulty === Difficulty.HARD
+              ? 'Hard'
+              : p.difficulty === Difficulty.MEDIUM
+                ? 'Medium'
+                : 'Easy',
           points: 10,
           statement: p.description.slice(0, 100),
           problem_id: p.id,
@@ -99,11 +111,15 @@ async function main() {
       },
     });
 
-    // 6. Create Running Contest
+    // 6. Create Running Contest (idempotent)
+    await prisma.contest.deleteMany({
+      where: { title: 'Đấu Trường Lập Trình Sinh Viên 2026' },
+    });
     const contest = await prisma.contest.create({
       data: {
         title: 'Đấu Trường Lập Trình Sinh Viên 2026',
-        description: 'Kỳ thi thử thách thuật toán trực tuyến dành cho toàn bộ sinh viên.',
+        description:
+          'Kỳ thi thử thách thuật toán trực tuyến dành cho toàn bộ sinh viên.',
         start_time: new Date(Date.now() - 1 * 60 * 60 * 1000), // Bắt đầu 1 giờ trước
         end_time: new Date(Date.now() + 3 * 60 * 60 * 1000), // Kết thúc sau 3 giờ nữa
         is_private: false,
@@ -131,18 +147,25 @@ async function main() {
         is_disqualified: false,
       },
     });
-  }
 
-  // 7. Notification for student
-  await prisma.notification.create({
-    data: {
-      user_id: student.id,
-      type: 'homework_assigned',
-      title: 'Bài tập mới: Mảng và Con Trỏ',
-      body: 'Giảng viên đã giao bài tập tuần 1 trong lớp Lập Trình Nâng Cao - K20.',
-      link: `/student/class/${sampleClass.id}`,
-    },
-  });
+    // 7. Notification for student (idempotent, only when homework is created)
+    await prisma.notification.deleteMany({
+      where: {
+        user_id: student.id,
+        type: 'homework_assigned',
+        title: 'Bài tập mới: Mảng và Con Trỏ',
+      },
+    });
+    await prisma.notification.create({
+      data: {
+        user_id: student.id,
+        type: 'homework_assigned',
+        title: 'Bài tập mới: Mảng và Con Trỏ',
+        body: 'Giảng viên đã giao bài tập tuần 1 trong lớp Lập Trình Nâng Cao - K20.',
+        link: `/student/class/${sampleClass.id}`,
+      },
+    });
+  }
 
   console.log('Seed users, class, homework, contest, notification completed successfully!');
 }
@@ -154,4 +177,5 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
+    await pool.end();
   });

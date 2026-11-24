@@ -9,6 +9,9 @@ export interface User {
   avatar: string;
   role: 'student' | 'instructor';
   institution: string;
+  studentCode: string;
+  /** Trường còn thiếu; username/studentCode là bắt buộc (chặn vào ứng dụng), fullName chỉ tùy chọn */
+  missingFields?: { username: boolean; fullName: boolean; studentCode: boolean };
   solvedCount: number;
   submissionCount: number;
   rating: number;
@@ -22,7 +25,7 @@ interface AuthContextType {
   user: User | null;
   login: (identifier: string, password: string) => Promise<{ ok: boolean; message?: string }>;
   loginWithGoogle: (accessToken: string) => Promise<{ ok: boolean; message?: string }>;
-  register: (username: string, email: string, password: string, fullName: string) => Promise<{ ok: boolean; message?: string }>;
+  register: (username: string, email: string, password: string, fullName: string, studentCode: string) => Promise<{ ok: boolean; message?: string }>;
   updateUser: (updatedData: Partial<User>) => void;
   refreshProfile: () => Promise<void>;
   forgotPassword: (email: string) => Promise<{ ok: boolean; message?: string }>;
@@ -52,6 +55,7 @@ const ACCESS_TOKEN_KEY = 'accessToken';
 const baseUserFields = {
   avatar: '',
   institution: '',
+  studentCode: '',
   solvedCount: 0,
   submissionCount: 0,
   rating: 1200,
@@ -95,6 +99,12 @@ async function hydrateProfile(token: string): Promise<User> {
       avatar: profile.avatar_url || '',
       role,
       institution: profile.institution || '',
+      studentCode: profile.student_code || '',
+      missingFields: {
+        username: !profile.username,
+        fullName: !profile.full_name,
+        studentCode: role === 'student' && !profile.student_code,
+      },
       solvedCount: stats.solved_count ?? 0,
       submissionCount: stats.total_submissions ?? 0,
       rating: profile.elo_rating ?? 1200,
@@ -199,7 +209,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (username: string, email: string, password: string, fullName: string) => {
+  const register = async (username: string, email: string, password: string, fullName: string, studentCode: string) => {
     try {
       const trimmedUsername = username.trim();
       await apiFetch('/api/v1/auth/register', {
@@ -209,6 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           username: trimmedUsername || undefined,
           password,
           full_name: fullName.trim() || undefined,
+          student_code: studentCode.trim(),
         }),
       });
       return { ok: true };

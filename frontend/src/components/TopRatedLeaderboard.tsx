@@ -3,15 +3,6 @@ import { Flame, CheckCircle2, Award, Crown } from 'lucide-react';
 import { useTopRatedUsersQuery } from '../api/users';
 import { useTranslation } from 'react-i18next';
 
-function getMSSV(email: string, username?: string | null, id?: string): string {
-  const emailMatch = email.match(/^(\d{6,10})/);
-  if (emailMatch) return emailMatch[1];
-  if (username && /^\d{6,10}$/.test(username)) return username;
-  const userMatch = username?.match(/\d{6,10}/);
-  if (userMatch) return userMatch[0];
-  return `SV${(id || email.split('@')[0]).slice(0, 6).toUpperCase()}`;
-}
-
 function getRatingBadgeColor(rating: number): string {
   if (rating >= 1800) return 'text-purple-700 bg-purple-50 border-purple-200';
   if (rating >= 1500) return 'text-blue-700 bg-blue-50 border-blue-200';
@@ -118,8 +109,8 @@ export default function TopRatedLeaderboard({ maxItems = 5, showTitle = true }: 
       <div className="space-y-2">
         {displayUsers.map((u, idx) => {
           const rank = idx + 1;
-          const mssv = getMSSV(u.email, u.username, u.id);
-          const initial = (u.username || u.email.split('@')[0]).charAt(0).toUpperCase();
+          const displayName = u.full_name?.trim() || u.username;
+          const initial = displayName.charAt(0).toUpperCase();
 
           return (
             <div
@@ -139,10 +130,12 @@ export default function TopRatedLeaderboard({ maxItems = 5, showTitle = true }: 
 
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <p className="text-xs font-semibold text-[#191919] truncate">{u.username}</p>
-                    <span className="text-[10px] font-mono font-medium px-1.5 py-0.2 rounded-md bg-[#f0ebd9] text-[#5c5446]">
-                      {mssv}
-                    </span>
+                    <p className="text-xs font-semibold text-[#191919] truncate">{displayName}</p>
+                    {u.student_code && (
+                      <span className="text-[10px] font-mono font-medium px-1.5 py-0.2 rounded-md bg-[#f0ebd9] text-[#5c5446]">
+                        {u.student_code}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-3 text-[11px] text-[#8a8073] mt-0.5">
                     <span className="flex items-center gap-0.5">

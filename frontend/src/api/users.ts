@@ -4,6 +4,8 @@ import { apiFetch } from './http';
 export interface TopRatedUserDto {
   id: string;
   username: string;
+  full_name?: string | null;
+  student_code?: string | null;
   email: string;
   elo_rating: number;
   current_streak: number;

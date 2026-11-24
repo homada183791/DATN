@@ -96,6 +96,17 @@ export function RegisterModal({
       return;
     }
 
+    const trimmedStudentId = studentId.trim();
+    if (!trimmedStudentId) {
+      setError(t("auth.studentIdRequired"));
+      return;
+    }
+
+    if (!/^\d{8}$/.test(trimmedStudentId)) {
+      setError(t("auth.studentIdInvalid"));
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError(t("auth.passwordMismatch"));
       return;
@@ -106,7 +117,7 @@ export function RegisterModal({
       return;
     }
 
-    register(trimmedUsername, email.trim(), password, fullName.trim()).then((result) => {
+    register(trimmedUsername, email.trim(), password, fullName.trim(), trimmedStudentId).then((result) => {
       if (!result.ok) {
         const message = result.message ?? t("auth.fieldsRequired");
         setError(message);
@@ -183,12 +194,19 @@ export function RegisterModal({
               </label>
 
               <label className={styles.field}>
-                <span className={styles.label}>{t("auth.studentIdOptional")}</span>
+                <span className={styles.label}>
+                  {t("auth.studentId")} <span className={styles.required}>*</span>
+                </span>
                 <input
                   type="text"
                   name="studentId"
+                  inputMode="numeric"
+                  maxLength={8}
+                  pattern="\d{8}"
+                  placeholder="20120001"
+                  required
                   value={studentId}
-                  onChange={(e) => setStudentId(e.target.value)}
+                  onChange={(e) => setStudentId(e.target.value.replace(/\D/g, "").slice(0, 8))}
                 />
               </label>
             </div>

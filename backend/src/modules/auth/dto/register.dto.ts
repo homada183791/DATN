@@ -38,9 +38,14 @@ export class RegisterDto {
   @MinLength(6, { message: 'Mật khẩu phải có ít nhất 6 ký tự' })
   password: string;
 
+  @ApiProperty({ description: 'Mã số sinh viên (đúng 8 chữ số)', example: '20210001' })
+  @IsString({ message: 'MSSV không hợp lệ' })
+  @IsNotEmpty({ message: 'MSSV không được để trống' })
+  @Matches(/^\d{8}$/, { message: 'MSSV phải gồm đúng 8 chữ số (0-9)' })
+  student_code: string;
+
   @ApiProperty({ description: 'Họ và tên', example: 'Nguyễn Văn A', required: false })
   @IsOptional()
   @IsString()
   full_name?: string;
 }
-

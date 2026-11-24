@@ -999,6 +999,8 @@
     "accountTypeInstructor": "Instructor",
     "accountTypeStudent": "Student",
     "emailImmutable": "Email (cannot be changed)",
+    "studentIdImmutable": "Student ID (cannot be changed)",
+    "studentIdEmpty": "Not set",
     "avatarUrlLabel": "Avatar image URL",
     "avatarPlaceholder": "https://example.com/avatar.jpg",
     "institutionPlaceholder": "e.g. University of Science",
@@ -1246,7 +1248,9 @@
     "newPassword": "New password",
     "confirmPassword": "Confirm password",
     "fullNameOptional": "Full name (optional)",
-    "studentIdOptional": "Student ID (optional)",
+    "studentId": "Student ID",
+    "studentIdRequired": "Please enter your student ID.",
+    "studentIdInvalid": "Student ID must be exactly 8 digits (0-9).",
     "passwordMismatch": "Passwords do not match.",
     "passwordInvalid": "Password does not meet the minimum requirements.",
     "usernameRequired": "Please enter a username.",
@@ -1297,6 +1301,18 @@
     "processing": "Processing...",
     "registerName": "Register",
     "newPasswordLabel": "New password"
+  },
+  "completeProfile": {
+    "title": "Complete your account",
+    "subtitle": "Please provide the missing information to continue",
+    "username": "Username",
+    "studentId": "Student ID",
+    "studentIdHint": "Student ID has 8 digits and cannot be changed after saving.",
+    "submit": "Save and continue",
+    "saving": "Saving...",
+    "logout": "Log out",
+    "success": "Account information updated.",
+    "failed": "Could not save your information right now."
   },
   "notFound": {
     "title": "Page not found",

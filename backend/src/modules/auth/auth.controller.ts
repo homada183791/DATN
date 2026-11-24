@@ -12,6 +12,7 @@ import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { VerifyResetCodeDto } from './dto/verify-reset-code.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -32,6 +33,15 @@ export class AuthController {
   @Post('google')
   googleLogin(@Body() googleLoginDto: GoogleLoginDto) {
     return this.authService.googleLogin(googleLoginDto.accessToken);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('complete-profile')
+  completeProfile(
+    @Request() req: { user: { userId: string } },
+    @Body() dto: CompleteProfileDto,
+  ) {
+    return this.authService.completeProfile(req.user.userId, dto);
   }
 
   @Post('forgot-password')

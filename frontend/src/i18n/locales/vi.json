@@ -999,6 +999,8 @@
     "accountTypeInstructor": "Giảng viên",
     "accountTypeStudent": "Sinh viên",
     "emailImmutable": "Email (không thể thay đổi)",
+    "studentIdImmutable": "MSSV (không thể thay đổi)",
+    "studentIdEmpty": "Chưa cập nhật",
     "avatarUrlLabel": "URL ảnh đại diện",
     "avatarPlaceholder": "https://example.com/avatar.jpg",
     "institutionPlaceholder": "Ví dụ: Đại học Khoa học Tự nhiên",
@@ -1246,7 +1248,9 @@
     "newPassword": "Mật khẩu mới",
     "confirmPassword": "Xác nhận mật khẩu",
     "fullNameOptional": "Họ tên (tùy chọn)",
-    "studentIdOptional": "MSSV (tùy chọn)",
+    "studentId": "MSSV",
+    "studentIdRequired": "Vui lòng nhập MSSV.",
+    "studentIdInvalid": "MSSV phải gồm đúng 8 chữ số (0-9).",
     "passwordMismatch": "Mật khẩu xác nhận không khớp.",
     "passwordInvalid": "Mật khẩu chưa đáp ứng đủ điều kiện tối thiểu.",
     "usernameRequired": "Vui lòng nhập tên đăng nhập.",
@@ -1297,6 +1301,18 @@
     "processing": "Đang xử lý...",
     "registerName": "Đăng ký",
     "newPasswordLabel": "Mật khẩu mới"
+  },
+  "completeProfile": {
+    "title": "Hoàn tất thông tin tài khoản",
+    "subtitle": "Vui lòng bổ sung các thông tin còn thiếu để tiếp tục",
+    "username": "Tên đăng nhập",
+    "studentId": "MSSV",
+    "studentIdHint": "MSSV gồm 8 chữ số và không thể thay đổi sau khi lưu.",
+    "submit": "Lưu và tiếp tục",
+    "saving": "Đang lưu...",
+    "logout": "Đăng xuất",
+    "success": "Đã cập nhật thông tin tài khoản.",
+    "failed": "Không thể lưu thông tin lúc này."
   },
   "notFound": {
     "title": "Không tìm thấy trang",

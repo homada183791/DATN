@@ -17,6 +17,7 @@ import { OAuth2Client, type TokenInfo } from 'google-auth-library';
 import { Redis } from 'ioredis';
 import * as nodemailer from 'nodemailer';
 import { RegisterDto } from './dto/register.dto';
+import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { VerifyResetCodeDto } from './dto/verify-reset-code.dto';
@@ -42,7 +43,10 @@ export class AuthService implements OnModuleDestroy {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {
-    const redisUrl = this.configService.get<string>('REDIS_URL') || process.env.REDIS_URL || 'redis://localhost:6379';
+    const redisUrl =
+      this.configService.get<string>('REDIS_URL') ||
+      process.env.REDIS_URL ||
+      'redis://localhost:6379';
     this.redisClient = new Redis(redisUrl);
   }
 
@@ -73,9 +77,10 @@ export class AuthService implements OnModuleDestroy {
       JSON.stringify({
         code: record.code,
         token: record.token,
-        expiresAt: record.expiresAt instanceof Date
-          ? record.expiresAt.toISOString()
-          : record.expiresAt,
+        expiresAt:
+          record.expiresAt instanceof Date
+            ? record.expiresAt.toISOString()
+            : record.expiresAt,
       }),
     );
   }
@@ -105,12 +110,27 @@ export class AuthService implements OnModuleDestroy {
     await this.redisClient.del(this.resetKey(email));
   }
 
-  private async sendResetEmail(email: string, code: string, token: string, expiresAt: Date) {
-    const smtpHost = this.configService.get<string>('SMTP_HOST') || process.env.SMTP_HOST;
-    const smtpPort = Number(this.configService.get<string>('SMTP_PORT') || process.env.SMTP_PORT || 587);
-    const smtpUser = this.configService.get<string>('SMTP_USER') || process.env.SMTP_USER;
-    const smtpPass = this.configService.get<string>('SMTP_PASS') || process.env.SMTP_PASS;
-    const smtpFrom = this.configService.get<string>('SMTP_FROM') || process.env.SMTP_FROM || smtpUser;
+  private async sendResetEmail(
+    email: string,
+    code: string,
+    token: string,
+    expiresAt: Date,
+  ) {
+    const smtpHost =
+      this.configService.get<string>('SMTP_HOST') || process.env.SMTP_HOST;
+    const smtpPort = Number(
+      this.configService.get<string>('SMTP_PORT') ||
+        process.env.SMTP_PORT ||
+        587,
+    );
+    const smtpUser =
+      this.configService.get<string>('SMTP_USER') || process.env.SMTP_USER;
+    const smtpPass =
+      this.configService.get<string>('SMTP_PASS') || process.env.SMTP_PASS;
+    const smtpFrom =
+      this.configService.get<string>('SMTP_FROM') ||
+      process.env.SMTP_FROM ||
+      smtpUser;
 
     if (!smtpHost || !smtpUser || !smtpPass) {
       this.logger.warn(
@@ -130,7 +150,10 @@ export class AuthService implements OnModuleDestroy {
         },
       });
 
-      const expiresFormatted = expiresAt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+      const expiresFormatted = expiresAt.toLocaleTimeString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
 
       await transporter.sendMail({
         from: `"JudgeHub Support" <${smtpFrom}>`,
@@ -160,7 +183,9 @@ export class AuthService implements OnModuleDestroy {
         `,
       });
 
-      this.logger.log(`[Auth] Reset password email sent successfully to ${email}`);
+      this.logger.log(
+        `[Auth] Reset password email sent successfully to ${email}`,
+      );
     } catch (error) {
       this.logger.error(
         `[Auth] SMTP send failed for ${email}: ${error instanceof Error ? error.message : String(error)}`,
@@ -201,6 +226,18 @@ export class AuthService implements OnModuleDestroy {
       }
     }
 
+    const studentCode = registerDto.student_code?.trim();
+    if (!studentCode || !/^\d{8}$/.test(studentCode)) {
+      throw new BadRequestException('MSSV phải gồm đúng 8 chữ số (0-9)');
+    }
+    const existingUserByStudentCode = await this.prisma.user.findUnique({
+      where: { student_code: studentCode },
+      select: { id: true },
+    });
+    if (existingUserByStudentCode) {
+      throw new ConflictException('MSSV đã được sử dụng bởi tài khoản khác');
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(registerDto.password, salt);
 
@@ -209,12 +246,14 @@ export class AuthService implements OnModuleDestroy {
         email: normalizedEmail,
         username: trimmedUsername || null,
         password: hashedPassword,
+        student_code: studentCode,
         full_name: registerDto.full_name?.trim() || null,
       },
       select: {
         id: true,
         email: true,
         username: true,
+        student_code: true,
         full_name: true,
         role: true,
         created_at: true,
@@ -257,7 +296,12 @@ export class AuthService implements OnModuleDestroy {
     }
 
     const username = user.username ?? user.email.split('@')[0];
-    const payload = { sub: user.id, email: user.email, role: user.role, username };
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      username,
+    };
 
     return {
       success: true,
@@ -298,20 +342,44 @@ export class AuthService implements OnModuleDestroy {
       );
     }
 
-    if (
-      !googlePayload ||
-      googlePayload.aud !== clientId ||
-      googlePayload.expiry_date <= Date.now() ||
-      !googlePayload.email ||
-      !googlePayload.email_verified ||
-      !googlePayload.user_id
-    ) {
+    // Tokeninfo của Google không còn luôn trả `user_id` (thay bằng `sub`) và `email_verified`
+    // có thể là chuỗi 'true'/'false'. Kiểm tra từng điều kiện và ghi log lý do cụ thể.
+    const info = googlePayload as {
+      aud?: string;
+      expiry_date?: number;
+      email?: string;
+      scopes?: string[];
+      sub?: string;
+      user_id?: string;
+      email_verified?: boolean | string;
+    };
+    const googleUserId = info.sub ?? info.user_id;
+    const emailVerified =
+      info.email_verified === true || info.email_verified === 'true';
+
+    if (info.aud !== clientId) {
+      throw new UnauthorizedException(
+        'Mã truy cập Google không thuộc ứng dụng này.',
+      );
+    }
+    if (info.expiry_date == null || info.expiry_date <= Date.now()) {
+      throw new UnauthorizedException('Mã truy cập Google đã hết hạn.');
+    }
+    if (!info.email || !googleUserId) {
+      this.logger.warn(
+        `[Auth] Google tokeninfo thiếu dữ liệu: email=${!!info.email}, id=${!!googleUserId}, scopes=${(info.scopes ?? []).join(' ')}`,
+      );
+      throw new UnauthorizedException(
+        'Không lấy được email từ tài khoản Google. Vui lòng cấp quyền email khi đăng nhập.',
+      );
+    }
+    if (!emailVerified) {
       throw new UnauthorizedException(
         'Tài khoản Google cần xác minh email để đăng nhập.',
       );
     }
 
-    const email = this.normalizeEmail(googlePayload.email);
+    const email = this.normalizeEmail(info.email);
     const user = await this.prisma.user.upsert({
       where: { email },
       update: {},
@@ -346,6 +414,86 @@ export class AuthService implements OnModuleDestroy {
         },
       },
     };
+  }
+
+  /**
+   * Bổ sung thông tin còn thiếu cho tài khoản (đăng nhập Google lần đầu).
+   * Chỉ điền các trường đang trống; trường đã có (đặc biệt MSSV) không bị thay đổi.
+   */
+  async completeProfile(userId: string, dto: CompleteProfileDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new UnauthorizedException('Không tìm thấy người dùng');
+    }
+
+    const data: {
+      username?: string;
+      full_name?: string;
+      student_code?: string;
+    } = {};
+
+    if (!user.username) {
+      const username = dto.username?.trim();
+      if (!username)
+        throw new BadRequestException('Vui lòng nhập tên đăng nhập');
+      const taken = await this.prisma.user.findFirst({
+        where: {
+          username: { equals: username, mode: 'insensitive' },
+          NOT: { id: userId },
+        },
+        select: { id: true },
+      });
+      if (taken) throw new ConflictException('Tên đăng nhập đã được sử dụng');
+      data.username = username;
+    }
+
+    // Họ tên không bắt buộc (có thể chỉnh trong hồ sơ)
+    const fullName = dto.full_name?.trim();
+    if (!user.full_name && fullName) {
+      data.full_name = fullName;
+    }
+
+    if (!user.student_code && user.role === 'STUDENT') {
+      const code = dto.student_code?.trim();
+      if (!code || !/^\d{8}$/.test(code)) {
+        throw new BadRequestException('MSSV phải gồm đúng 8 chữ số (0-9)');
+      }
+      const taken = await this.prisma.user.findUnique({
+        where: { student_code: code },
+        select: { id: true },
+      });
+      if (taken && taken.id !== userId) {
+        throw new ConflictException('MSSV đã được sử dụng bởi tài khoản khác');
+      }
+      data.student_code = code;
+    }
+
+    if (Object.keys(data).length === 0) {
+      return { success: true, data: { id: user.id } };
+    }
+
+    try {
+      const updated = await this.prisma.user.update({
+        where: { id: userId },
+        data,
+        select: {
+          id: true,
+          username: true,
+          full_name: true,
+          student_code: true,
+        },
+      });
+      return { success: true, data: updated };
+    } catch (error: unknown) {
+      const code =
+        typeof error === 'object' && error !== null && 'code' in error
+          ? (error as { code?: string }).code
+          : undefined;
+      if (code === 'P2002') {
+        throw new ConflictException('Tên đăng nhập hoặc MSSV đã được sử dụng');
+      }
+      throw error;
+    }
   }
 
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
@@ -418,7 +566,9 @@ export class AuthService implements OnModuleDestroy {
     }
 
     if (record.token !== resetPasswordDto.token.trim()) {
-      throw new BadRequestException('Token xác nhận không hợp lệ hoặc đã hết hạn.');
+      throw new BadRequestException(
+        'Token xác nhận không hợp lệ hoặc đã hết hạn.',
+      );
     }
 
     const user = await this.prisma.user.findUnique({

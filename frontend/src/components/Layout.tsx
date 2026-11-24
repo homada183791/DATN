@@ -6,6 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useProblemsQuery } from '../api/problems';
 import { useNotifications } from '../context/NotificationContext';
 import { useLockdownActive } from '../context/lockdownStore';
+import CompleteProfileModal from './CompleteProfileModal';
 import {
   LayoutDashboard,
   BookOpen,
@@ -171,6 +172,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
 
   return (
     <div className="h-screen overflow-hidden bg-(--ws-bg) flex text-(--ws-text)">
+      {(user?.missingFields?.username || user?.missingFields?.studentCode) && <CompleteProfileModal />}
       {/* Mobile overlay */}
       {mobileSidebarOpen && (
         <div

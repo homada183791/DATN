@@ -145,6 +145,8 @@ export class UsersService {
       select: {
         id: true,
         username: true,
+        full_name: true,
+        student_code: true,
         email: true,
         elo_rating: true,
         current_streak: true,
@@ -168,6 +170,8 @@ export class UsersService {
     return users.map((u) => ({
       id: u.id,
       username: u.username || u.email.split('@')[0],
+      full_name: u.full_name,
+      student_code: u.student_code,
       email: u.email,
       elo_rating: u.elo_rating,
       current_streak: u.current_streak,
@@ -187,6 +191,7 @@ export class UsersService {
         id: true,
         email: true,
         username: true,
+        student_code: true,
         full_name: true,
         bio: true,
         institution: true,
@@ -234,6 +239,7 @@ export class UsersService {
         id: true,
         email: true,
         username: true,
+        student_code: true,
         full_name: true,
         bio: true,
         institution: true,
