@@ -42,6 +42,7 @@ export default function ClassPage() {
   const [leaveConfirmId, setLeaveConfirmId] = useState<string | null>(null);
   const [privateJoinModal, setPrivateJoinModal] = useState<ClassInfo | null>(null);
   const [privateCodeInput, setPrivateCodeInput] = useState('');
+  const [privateJoinError, setPrivateJoinError] = useState('');
   const [isJoining, setIsJoining] = useState(false);
   const hasDocument = typeof document !== 'undefined';
 
@@ -94,6 +95,7 @@ export default function ClassPage() {
       setTimeout(() => setJoinMsg(null), 4000);
     } else {
       setPrivateCodeInput('');
+      setPrivateJoinError('');
       setPrivateJoinModal(cls);
     }
   };
@@ -101,14 +103,18 @@ export default function ClassPage() {
   const submitPrivateJoin = async () => {
     if (!privateJoinModal || !privateCodeInput.trim()) return;
     setIsJoining(true);
+    setPrivateJoinError('');
     const res = await joinDirectly(privateJoinModal.id, privateCodeInput.trim());
     setIsJoining(false);
-    setJoinMsg({ ok: res.ok, text: res.message });
     if (res.ok) {
+      setJoinMsg({ ok: true, text: res.message });
       setPrivateJoinModal(null);
       setPrivateCodeInput('');
+      setTimeout(() => setJoinMsg(null), 4000);
+    } else {
+      // Hiển thị lỗi ngay trên cửa sổ nhập mã (vd. MSSV không có trong danh sách lớp)
+      setPrivateJoinError(res.message);
     }
-    setTimeout(() => setJoinMsg(null), 4000);
   };
 
   return (
@@ -183,13 +189,7 @@ export default function ClassPage() {
             <div className="bg-white border border-[#e5dac9] rounded-xl p-14 text-center shadow-sm">
               <GraduationCap size={48} className="text-[#bfae99] mx-auto mb-4" />
               <p className="font-semibold text-[#191919]">{t('studentClass.emptyMyTitle')}</p>
-              <p className="text-sm text-[#8a8073] mt-1 mb-5">{t('studentClass.emptyMySubtitle')}</p>
-              <button
-                onClick={() => setTab('explore')}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md"
-              >
-                <Search size={15} /> {t('studentClass.exploreClasses')}
-              </button>
+              <p className="text-sm text-[#8a8073] mt-1">{t('studentClass.emptyMySubtitle')}</p>
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -221,8 +221,8 @@ export default function ClassPage() {
                       </button>
                     )}
                   </div>
-                  <h3 className="text-lg font-bold font-serif text-[#191919] mb-1">{cls.name}</h3>
-                  <p className="text-sm text-[#8a8073] mb-1">{cls.code} • {cls.semester}</p>
+                  <h3 className="text-lg font-bold font-serif text-[#191919] mb-1">{cls.subject ? `${cls.subject} - ${cls.name}` : cls.name}</h3>
+                  {cls.semester && <p className="text-sm text-[#8a8073] mb-1">{cls.semester}</p>}
                   <p className="text-xs text-[#8a8073] mb-4">{t('studentClass.instructorPrefix')}: {cls.instructorName || cls.instructor}</p>
                   <div className="flex items-center gap-4 text-sm text-[#8a8073] mt-auto mb-4">
                     <span className="flex items-center gap-1"><Users size={14} /> {membersOf(cls.id).length}</span>
@@ -262,8 +262,7 @@ export default function ClassPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-semibold text-[#191919]">{cls.name}</p>
-                    <span className="text-[10.5px] font-bold font-mono px-1.5 py-0.5 rounded bg-[#f0ebd9] border border-[#e5dac9] text-[#193a2b]">{cls.code}</span>
+                    <p className="font-semibold text-[#191919]">{cls.subject ? `${cls.subject} - ${cls.name}` : cls.name}</p>
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 ${
                       cls.is_public
                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
@@ -273,17 +272,12 @@ export default function ClassPage() {
                       {cls.is_public ? 'Công khai' : 'Riêng tư'}
                     </span>
                   </div>
+                  {cls.semester && <p className="text-xs text-[#8a8073] mt-0.5">{cls.semester}</p>}
                   <p className="text-xs text-[#8a8073] mt-0.5">
-                    {cls.instructorName || cls.instructor} • {cls.semester} • {t('instructorClass.memberCountSuffix', { count: membersOf(cls.id).length })}
+                    {t('studentClass.instructorPrefix')}: {cls.instructorName || cls.instructor} • {t('instructorClass.memberCountSuffix', { count: membersOf(cls.id).length })}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setSelectedClass(cls.id)}
-                    className="px-3 py-1.5 text-xs font-medium text-[#5c5446] border border-[#e5dac9] rounded-lg hover:bg-[#f7f4eb] transition-colors"
-                  >
-                    {t('studentClass.detailBtn')}
-                  </button>
                   <button
                     onClick={() => handleJoinClassItem(cls)}
                     className={`flex items-center gap-1.5 px-3.5 py-1.5 text-white text-xs font-semibold rounded-lg shadow-sm transition-all ${
@@ -311,8 +305,8 @@ export default function ClassPage() {
           <div className="bg-[#f7f4eb] border border-[#e5dac9] rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-[#e5dac9]">
               <div>
-                <h3 className="text-lg font-bold font-serif text-[#191919]">{selectedClassData.name}</h3>
-                <p className="text-sm text-[#8a8073] mt-1">{selectedClassData.code} • {selectedClassData.semester}</p>
+                <h3 className="text-lg font-bold font-serif text-[#191919]">{selectedClassData.subject ? `${selectedClassData.subject} - ${selectedClassData.name}` : selectedClassData.name}</h3>
+                {selectedClassData.semester && <p className="text-sm text-[#8a8073] mt-1">{selectedClassData.semester}</p>}
               </div>
               <button onClick={() => setSelectedClass(null)} className="text-[#8a8073] hover:text-[#191919]"><X size={20} /></button>
             </div>
@@ -470,7 +464,7 @@ export default function ClassPage() {
                   <Lock size={16} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-[#191919]">{privateJoinModal.name}</h3>
+                  <h3 className="font-bold text-base text-[#191919] wrap-break-word">{privateJoinModal.subject ? `${privateJoinModal.subject} - ${privateJoinModal.name}` : privateJoinModal.name}</h3>
                   <p className="text-xs text-[#8a8073]">Lớp học riêng tư (Private)</p>
                 </div>
               </div>
@@ -486,12 +480,18 @@ export default function ClassPage() {
               <input
                 autoFocus
                 value={privateCodeInput}
-                onChange={(e) => setPrivateCodeInput(e.target.value)}
+                onChange={(e) => { setPrivateCodeInput(e.target.value); setPrivateJoinError(''); }}
                 onKeyDown={(e) => e.key === 'Enter' && privateCodeInput.trim() && submitPrivateJoin()}
                 placeholder="Nhập mã mời lớp học (VD: INT4821)"
                 className="w-full pl-9 pr-3 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-sm font-mono text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
               />
             </div>
+
+            {privateJoinError && (
+              <p className="text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4">
+                {privateJoinError}
+              </p>
+            )}
 
             <div className="flex items-center justify-end gap-2.5">
               <button

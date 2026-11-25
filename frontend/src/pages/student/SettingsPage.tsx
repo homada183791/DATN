@@ -334,17 +334,19 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-[#5c5446] mb-1.5">
-                    {t('settings.studentIdImmutable')}
-                  </label>
-                  <input
-                    type="text"
-                    value={profileForm.studentCode || t('settings.studentIdEmpty')}
-                    disabled
-                    className="w-full px-4 py-2.5 bg-gray-100 border border-[#e5dac9] rounded-xl text-gray-500 cursor-not-allowed"
-                  />
-                </div>
+                {user?.role !== 'instructor' && (
+                  <div>
+                    <label className="block text-sm font-medium text-[#5c5446] mb-1.5">
+                      {t('settings.studentIdImmutable')}
+                    </label>
+                    <input
+                      type="text"
+                      value={profileForm.studentCode || t('settings.studentIdEmpty')}
+                      disabled
+                      className="w-full px-4 py-2.5 bg-gray-100 border border-[#e5dac9] rounded-xl text-gray-500 cursor-not-allowed"
+                    />
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-medium text-[#5c5446] mb-1.5">

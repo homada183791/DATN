@@ -65,7 +65,7 @@ export default function InstructorClass() {
   const [confirmKickId, setConfirmKickId] = useState<string | null>(null);
 
 
-  const [form, setForm] = useState({ name: '', semester: getDefaultSemester(), description: '', is_public: false });
+  const [form, setForm] = useState({ name: '', subject: '', semester: getDefaultSemester(), description: '', is_public: false });
   const [formError, setFormError] = useState('');
 
   const hasDocument = typeof document !== 'undefined';
@@ -93,16 +93,21 @@ export default function InstructorClass() {
       setFormError(t('instructorClass.errors.nameTooShort'));
       return;
     }
+    if (!form.subject.trim()) {
+      setFormError(t('instructorClass.errors.subjectRequired'));
+      return;
+    }
     setIsCreatingClass(true);
     setFormError('');
     try {
       await createClass({
         name: form.name.trim(),
+        subject: form.subject.trim(),
         semester: form.semester.trim(),
         description: form.description.trim(),
         is_public: form.is_public,
       });
-      setForm({ name: '', semester: getDefaultSemester(), description: '', is_public: false });
+      setForm({ name: '', subject: '', semester: getDefaultSemester(), description: '', is_public: false });
       setShowCreate(false);
     } catch (e: any) {
       setFormError(e.message || t('instructorClass.errors.createClassFailed'));
@@ -153,13 +158,7 @@ export default function InstructorClass() {
         <div className="bg-white border border-[#e5dac9] rounded-xl p-14 text-center shadow-sm">
           <GraduationCap size={48} className="text-[#bfae99] mx-auto mb-4" />
           <p className="font-semibold text-[#191919]">{t('instructorClass.emptyTitle')}</p>
-          <p className="text-sm text-[#8a8073] mt-1 mb-5">{t('instructorClass.emptySubtitle')}</p>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md"
-          >
-            <Plus size={16} /> {t('instructorClass.createNew')}
-          </button>
+          <p className="text-sm text-[#8a8073] mt-1">{t('instructorClass.emptySubtitle')}</p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
@@ -178,7 +177,7 @@ export default function InstructorClass() {
                     <div>
                       <Link to={`/instructor/class/${cls.id}`} className="group/link block">
                         <h3 className="text-lg font-bold font-serif text-[#191919] group-hover/link:text-[#193a2b] group-hover/link:underline transition-colors flex items-center gap-1.5">
-                          {cls.name}
+                          {cls.subject ? `${cls.subject} - ${cls.name}` : cls.name}
                         </h3>
                       </Link>
                       <p className="text-xs text-[#8a8073] flex items-center gap-1 mt-0.5">
@@ -295,6 +294,15 @@ export default function InstructorClass() {
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   placeholder={t('instructorClass.fieldClassNamePlaceholder')}
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldSubject')}</label>
+                <input
+                  value={form.subject}
+                  onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                  placeholder={t('instructorClass.fieldSubjectPlaceholder')}
                   className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                 />
               </div>

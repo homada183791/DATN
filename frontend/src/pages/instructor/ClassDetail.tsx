@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -8,6 +8,9 @@ import {
   updateClass as updateClassApi,
   addStudentToClass as addStudentApi,
   useClassGradebookQuery,
+  useClassRosterQuery,
+  uploadClassRoster,
+  clearClassRoster,
   type ClassGradebookDto,
   type ClassGradebookStudent,
   type ClassGradeItem,
@@ -17,6 +20,8 @@ import SubmissionDetailModal from '../../components/SubmissionDetailModal';
 import { useHomework, deadlineProgress, HomeworkProblem } from '../../context/HomeworkContext';
 import { formatVN, formatVNFull, toDatetimeLocal } from '../../utils/dateTime';
 import ProblemManager from '../../components/ProblemManager';
+import { parseRosterCsv, RosterCsvError } from '../../utils/rosterCsv';
+import { notifyGlobalToast } from '../../context/ToastContext';
 import {
   GraduationCap,
   Users,
@@ -38,21 +43,27 @@ import {
   Copy,
   Edit3,
   UserPlus,
+  Upload,
   Download,
   RotateCcw,
   Award,
 } from 'lucide-react';
 
-// Tên hiển thị của sinh viên trong sổ điểm (giống cột "Thí sinh" ở kết quả cuộc thi)
-function gradebookStudentName(st: { username?: string | null; email?: string | null }): string {
-  return st.username || (st.email ?? '').split('@')[0] || '';
+// Họ và tên hiển thị trong sổ điểm: ưu tiên Họ và tên, chưa có thì dùng Tên đăng nhập
+function gradebookStudentName(st: { full_name?: string | null; username?: string | null; email?: string | null }): string {
+  return st.full_name?.trim() || st.username || (st.email ?? '').split('@')[0] || '';
 }
 
-// Sắp xếp danh sách sinh viên theo bảng chữ cái (A → Z)
-function sortGradebookStudents<T extends { username?: string | null; email?: string | null }>(students: T[]): T[] {
-  return [...students].sort((a, b) =>
-    gradebookStudentName(a).localeCompare(gradebookStudentName(b), 'vi', { sensitivity: 'base' }),
-  );
+// Sắp xếp danh sách sinh viên theo MSSV tăng dần (chưa có MSSV xếp cuối, cùng MSSV thì theo tên)
+function sortGradebookStudents<T extends { full_name?: string | null; username?: string | null; email?: string | null; student_code?: string | null }>(students: T[]): T[] {
+  return [...students].sort((a, b) => {
+    const ca = a.student_code || '';
+    const cb = b.student_code || '';
+    if (ca && cb && ca !== cb) return ca < cb ? -1 : 1;
+    if (ca && !cb) return -1;
+    if (!ca && cb) return 1;
+    return gradebookStudentName(a).localeCompare(gradebookStudentName(b), 'vi', { sensitivity: 'base' });
+  });
 }
 
 // Điểm của một sinh viên cho từng bộ bài tập đã giao + tổng điểm của tất cả bộ bài tập.
@@ -87,13 +98,14 @@ function homeworkScores(gradebook: ClassGradebookDto, st: ClassGradebookStudent)
 }
 
 function exportGradebookCsv(gradebook: ClassGradebookDto) {
-  const headers = ['STT', 'Sinh viên'];
+  const headers = ['STT', 'MSSV', 'Họ và tên'];
   const allHeaders = [...headers, ...gradebook.homework_columns.map((hw) => hw.homework_title), 'Tổng điểm'];
 
   const rows = sortGradebookStudents(gradebook.students).map((st, index) => {
     const scores = homeworkScores(gradebook, st);
     const cells = [
       String(index + 1),
+      st.student_code ?? '',
       gradebookStudentName(st),
       ...scores.perHomework.map((h) => `${fmtScore(h.earned)}/${fmtScore(h.total)}`),
       `${fmtScore(scores.earned)}/${fmtScore(scores.total)}`,
@@ -158,7 +170,20 @@ export default function InstructorClassDetail() {
   const { data: apiHomeworks = [], isLoading: isHwLoading, refetch: refetchHw } = useClassHomeworksQuery(classId);
   const { createHomework, updateHomework, deleteHomework } = useHomework();
 
-  const [activeTab, setActiveTab] = useState<'homework' | 'members' | 'gradebook'>('homework');
+  // Lưu tab đang xem trên URL (?tab=...) để tải lại trang không bị quay về tab Bài tập
+  type ClassTab = 'homework' | 'members' | 'gradebook';
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const activeTab: ClassTab = tabParam === 'members' || tabParam === 'gradebook' ? tabParam : 'homework';
+  const setActiveTab = (tab: ClassTab) =>
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('tab', tab);
+        return next;
+      },
+      { replace: true },
+    );
   const { data: gradebookData, isLoading: isGradebookLoading, refetch: refetchGradebook } = useClassGradebookQuery(classId);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState<'stt' | 'name_asc' | 'name_desc' | 'rating_desc' | 'subs_desc'>('stt');
@@ -183,7 +208,7 @@ export default function InstructorClassDetail() {
 
   // Edit class state
   const [showEditClass, setShowEditClass] = useState(false);
-  const [editForm, setEditForm] = useState({ name: '', semester: '', description: '' });
+  const [editForm, setEditForm] = useState({ name: '', subject: '', semester: '', description: '' });
   const [editError, setEditError] = useState('');
   const [isUpdatingClass, setIsUpdatingClass] = useState(false);
 
@@ -192,6 +217,99 @@ export default function InstructorClassDetail() {
   const [studentEmail, setStudentEmail] = useState('');
   const [addStudentError, setAddStudentError] = useState('');
   const [isAddingStudent, setIsAddingStudent] = useState(false);
+
+  // Danh sách lớp (CSV MSSV)
+  const { data: rosterInfo, refetch: refetchRoster } = useClassRosterQuery(classId);
+  const [isUploadingRoster, setIsUploadingRoster] = useState(false);
+
+  const [showRosterModal, setShowRosterModal] = useState(false);
+  type RosterFileItem = {
+    key: string;
+    name: string;
+    codes?: string[];
+    invalidCount?: number;
+    error?: string;
+  };
+  const [rosterFiles, setRosterFiles] = useState<RosterFileItem[]>([]);
+  const [rosterError, setRosterError] = useState('');
+  const [isDraggingRoster, setIsDraggingRoster] = useState(false);
+
+  // Gộp MSSV (đã loại trùng) của tất cả các file hợp lệ
+  const rosterValidFiles = rosterFiles.filter((f) => f.codes && f.codes.length > 0);
+  const rosterAllCodes = [...new Set(rosterValidFiles.flatMap((f) => f.codes ?? []))];
+  const rosterInvalidTotal = rosterFiles.reduce((sum, f) => sum + (f.invalidCount ?? 0), 0);
+
+  const resetRosterModal = () => {
+    setRosterFiles([]);
+    setRosterError('');
+    setIsDraggingRoster(false);
+  };
+
+  const closeRosterModal = () => {
+    setShowRosterModal(false);
+    resetRosterModal();
+  };
+
+  const pickRosterFiles = async (fileList: FileList | File[] | null | undefined) => {
+    const files = Array.from(fileList ?? []);
+    if (files.length === 0) return;
+    setRosterError('');
+
+    const items: RosterFileItem[] = await Promise.all(
+      files.map(async (file): Promise<RosterFileItem> => {
+        const key = `${file.name}-${file.size}-${file.lastModified}`;
+        if (!/\.csv$/i.test(file.name)) {
+          return { key, name: file.name, error: t('instructorClassDetail.rosterNotCsv') };
+        }
+        try {
+          const parsed = parseRosterCsv(await file.text());
+          return { key, name: file.name, codes: parsed.codes, invalidCount: parsed.invalidCount };
+        } catch (e: any) {
+          return {
+            key,
+            name: file.name,
+            error:
+              e instanceof RosterCsvError && e.message === 'NO_COLUMN'
+                ? t('instructorClassDetail.rosterNoColumn')
+                : t('instructorClassDetail.rosterNoValid'),
+          };
+        }
+      }),
+    );
+
+    // Thêm vào danh sách hiện có; file trùng (cùng tên, kích thước) được thay thế
+    setRosterFiles((prev) => [...prev.filter((p) => !items.some((i) => i.key === p.key)), ...items]);
+  };
+
+  const submitRoster = async () => {
+    if (!classId || rosterAllCodes.length === 0) return;
+    setIsUploadingRoster(true);
+    setRosterError('');
+    try {
+      const info = await uploadClassRoster(classId, rosterAllCodes);
+      await refetchRoster();
+      notifyGlobalToast(
+        t('instructorClassDetail.rosterUploaded', { count: info.count, invalid: rosterInvalidTotal }),
+        'success',
+      );
+      closeRosterModal();
+    } catch (e: any) {
+      setRosterError(e?.message || t('instructorClassDetail.rosterUploadFailed'));
+    } finally {
+      setIsUploadingRoster(false);
+    }
+  };
+
+  const handleClearRoster = async () => {
+    if (!classId) return;
+    if (!window.confirm(t('instructorClassDetail.rosterClearConfirm'))) return;
+    try {
+      await clearClassRoster(classId);
+      await refetchRoster();
+    } catch (e: any) {
+      notifyGlobalToast(e?.message || t('instructorClassDetail.rosterUploadFailed'), 'error');
+    }
+  };
 
   const hasDocument = typeof document !== 'undefined';
   // ===== Xem kết quả bài tập đã hết hạn + chấm lại lần nộp gần nhất =====
@@ -252,13 +370,14 @@ export default function InstructorClassDetail() {
       .map((item, index) => {
         const student = item.student;
         const email = student.email || '';
-        const displayName = student.username || email.split('@')[0] || student.id;
+        const displayName = student.full_name?.trim() || student.username || email.split('@')[0] || student.id;
         return {
           stt: index + 1,
           id: student.id,
           email,
           username: student.username || email.split('@')[0] || student.id,
           displayName,
+          studentCode: student.student_code || '',
           rating: student.elo_rating ?? 1200,
           submissionsCount: student._count?.submissions ?? 0,
           joinedAt: item.joined_at,
@@ -274,6 +393,7 @@ export default function InstructorClassDetail() {
       result = result.filter(
         (m) =>
           m.displayName.toLowerCase().includes(q) ||
+          m.studentCode.includes(q) ||
           m.email.toLowerCase().includes(q) ||
           m.username.toLowerCase().includes(q)
       );
@@ -359,6 +479,7 @@ export default function InstructorClassDetail() {
     if (!classData) return;
     setEditForm({
       name: classData.name || '',
+      subject: classData.subject || '',
       semester: classData.semester || getDefaultSemester(),
       description: classData.description || '',
     });
@@ -372,11 +493,16 @@ export default function InstructorClassDetail() {
       setEditError(t('instructorClass.errors.nameTooShort'));
       return;
     }
+    if (!editForm.subject.trim()) {
+      setEditError(t('instructorClass.errors.subjectRequired'));
+      return;
+    }
     setIsUpdatingClass(true);
     setEditError('');
     try {
       await updateClassApi(classId, {
         name: editForm.name.trim(),
+        subject: editForm.subject.trim(),
         semester: editForm.semester.trim(),
         description: editForm.description.trim(),
       });
@@ -396,7 +522,7 @@ export default function InstructorClassDetail() {
       setAddStudentError(t('instructorClassDetail.errors.emailRequired'));
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!/^\d{8}$/.test(email) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setAddStudentError(t('instructorClassDetail.errors.invalidEmail'));
       return;
     }
@@ -451,8 +577,6 @@ export default function InstructorClassDetail() {
           >
             <ArrowLeft size={16} /> {t('instructorClassDetail.backLabel')}
           </button>
-          <span>/</span>
-          <span className="text-[#191919] font-semibold truncate">{classData.name}</span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -496,7 +620,7 @@ export default function InstructorClassDetail() {
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2 mb-1">
-                <h1 className="text-2xl font-bold font-serif text-[#191919]">{classData.name}</h1>
+                <h1 className="text-2xl font-bold font-serif text-[#191919]">{classData.subject ? `${classData.subject} - ${classData.name}` : classData.name}</h1>
                 <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-[#f0ebd9] text-[#193a2b] border border-[#e5dac9]">
                   {formatSemesterWithYear(classData.semester || t('instructorClassDetail.defaultSemesterLabel'))}
                 </span>
@@ -802,6 +926,14 @@ export default function InstructorClassDetail() {
                 <span>{t('instructorClassDetail.addStudentBtn')}</span>
               </button>
               <button
+                onClick={() => { resetRosterModal(); setShowRosterModal(true); }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#f0ebd9] text-[#191919] border border-[#e5dac9] text-xs font-semibold rounded-xl hover:bg-[#e5dac9] transition-colors shadow-xs"
+                title={t('instructorClassDetail.rosterUploadTooltip')}
+              >
+                <Upload size={14} />
+                <span>{t('instructorClassDetail.rosterUploadBtn')}</span>
+              </button>
+              <button
                 onClick={() => copy(classData.invite_code || '', 'code')}
                 className="inline-flex items-center gap-1 px-2.5 py-2 bg-[#f0ebd9] border border-[#e5dac9] text-xs font-semibold text-[#193a2b] rounded-xl hover:bg-[#e5dac9] transition-colors"
                 title={t('instructorClass.copyClassCode')}
@@ -819,6 +951,17 @@ export default function InstructorClassDetail() {
               </button>
             </div>
           </div>
+
+          {rosterInfo && rosterInfo.count > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl px-4 py-2.5 text-xs text-[#5c5446]">
+              <span>
+                {t('instructorClassDetail.rosterInfo', { count: rosterInfo.count, joined: rosterInfo.joined_count })}
+              </span>
+              <button onClick={handleClearRoster} className="font-semibold text-red-600 hover:underline">
+                {t('instructorClassDetail.rosterClear')}
+              </button>
+            </div>
+          )}
 
           {/* Search & Sort Toolbar (Tier 2: Synchronized with Homework tab) */}
           <div className="bg-white border border-[#e5dac9] rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
@@ -888,7 +1031,8 @@ export default function InstructorClassDetail() {
                   <thead>
                     <tr className="border-b border-[#e5dac9] bg-[#faf8f2] text-[11px] font-bold text-[#8a8073] uppercase tracking-wider">
                       <th className="py-3 px-4 w-12 text-center">{t('instructorClassDetail.colStt')}</th>
-                      <th className="py-3 px-4">{t('instructorClass.colStudent')}</th>
+                      <th className="py-3 px-4">{t('instructorClassDetail.colMssv')}</th>
+                      <th className="py-3 px-4">{t('instructorClassDetail.colFullName')}</th>
                       <th className="py-3 px-4">{t('instructorClassDetail.colEmail')}</th>
                       <th className="py-3 px-4 text-center">{t('instructorClassDetail.colSubmissions')}</th>
                       <th className="py-3 px-4 text-center">{t('instructorClassDetail.colRating')}</th>
@@ -901,6 +1045,9 @@ export default function InstructorClassDetail() {
                       <tr key={m.id} className="hover:bg-[#f7f4eb]/60 transition-colors">
                         <td className="py-3.5 px-4 text-center text-xs font-semibold text-[#8a8073]">
                           {idx + 1}
+                        </td>
+                        <td className="py-3.5 px-4 text-xs font-mono text-[#5c5446]">
+                          {m.studentCode || '—'}
                         </td>
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-2.5">
@@ -1002,8 +1149,11 @@ export default function InstructorClassDetail() {
                       <th className="py-3 px-3 font-bold text-[#5c5446] uppercase tracking-wider text-center w-14 min-w-14">
                         STT
                       </th>
+                      <th className="py-3 px-4 font-bold text-[#5c5446] uppercase tracking-wider min-w-[110px]">
+                        MSSV
+                      </th>
                       <th className="py-3 px-4 font-bold text-[#5c5446] uppercase tracking-wider min-w-[200px]">
-                        Sinh viên
+                        Họ và tên
                       </th>
                       {gradebookData.homework_columns.map((hw) => (
                         <th
@@ -1025,6 +1175,7 @@ export default function InstructorClassDetail() {
                       return (
                       <tr key={st.id} className="hover:bg-[#f7f4eb]/60 transition-colors">
                         <td className="py-3 px-3 text-center text-[#8a8073]">{index + 1}</td>
+                        <td className="py-3 px-4 font-mono text-[#5c5446]">{st.student_code || '—'}</td>
                         <td className="py-3 px-4 border-r border-[#e5dac9]/40">
                           <p className="font-bold text-[#191919]">{gradebookStudentName(st)}</p>
                         </td>
@@ -1054,7 +1205,7 @@ export default function InstructorClassDetail() {
             <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border) sticky top-0 z-10 bg-(--ws-panel)">
               <div>
                 <h3 className="font-bold font-serif text-[16px]">{editingHwId ? t('instructorClassDetail.editHwTitle') : t('instructorClassDetail.createHwBtn')}</h3>
-                <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorClassDetail.createHwModalClassLabel', { name: classData.name, code: classData.invite_code })}</p>
+                <p className="text-xs text-(--ws-muted) mt-0.5">{classData.subject ? `${classData.subject} - ${classData.name}` : classData.name}</p>
               </div>
               <button onClick={() => setShowCreateHw(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
@@ -1140,7 +1291,7 @@ export default function InstructorClassDetail() {
               <button
                 onClick={() => setConfirmKickStudent(null)}
                 disabled={isKicking}
-                className="flex-1 py-2 border border-[#e5dac9] text-xs font-semibold rounded-xl hover:bg-[#f0ebd9]"
+                className="flex-1 py-2 bg-[#f0ebd9] border border-[#cbbd9f] text-[#191919] text-xs font-semibold rounded-xl hover:bg-[#e5dac9] transition-colors"
               >
                 {t('common.cancel')}
               </button>
@@ -1164,7 +1315,7 @@ export default function InstructorClassDetail() {
             <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
               <div>
                 <h3 className="font-bold font-serif text-[16px]">{t('instructorClass.editModalTitle')}</h3>
-                <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorClass.editModalCode', { code: classData.invite_code })}</p>
+                <p className="text-xs text-(--ws-muted) mt-0.5">{classData.subject ? `${classData.subject} - ${classData.name}` : classData.name}</p>
               </div>
               <button onClick={() => setShowEditClass(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
@@ -1175,6 +1326,15 @@ export default function InstructorClassDetail() {
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                   placeholder={t('instructorClass.fieldClassNamePlaceholder')}
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldSubject')}</label>
+                <input
+                  value={editForm.subject}
+                  onChange={(e) => setEditForm({ ...editForm, subject: e.target.value })}
+                  placeholder={t('instructorClass.fieldSubjectPlaceholder')}
                   className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
                 />
               </div>
@@ -1229,13 +1389,136 @@ export default function InstructorClassDetail() {
       ), document.body)}
 
       {/* ================= MODAL: THÊM SINH VIÊN BẰNG EMAIL ================= */}
+      {showRosterModal && hasDocument && createPortal((
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={closeRosterModal}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
+              <div>
+                <h3 className="font-bold font-serif text-[16px]">{t('instructorClassDetail.rosterModalTitle')}</h3>
+                <p className="text-xs text-(--ws-muted) mt-0.5">{classData.subject ? `${classData.subject} - ${classData.name}` : classData.name}</p>
+              </div>
+              <button onClick={closeRosterModal} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <label
+                onDragOver={(e) => { e.preventDefault(); setIsDraggingRoster(true); }}
+                onDragLeave={() => setIsDraggingRoster(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDraggingRoster(false);
+                  void pickRosterFiles(e.dataTransfer.files);
+                }}
+                className={`flex flex-col items-center justify-center gap-2 text-center px-4 py-8 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
+                  isDraggingRoster ? 'border-[#193a2b] bg-[#193a2b]/5' : 'border-(--ws-border) hover:border-[#193a2b]/60'
+                }`}
+              >
+                <Upload size={28} className="text-[#193a2b]" />
+                <p className="text-sm font-semibold">{t('instructorClassDetail.rosterDropHere')}</p>
+                <p className="text-xs text-(--ws-muted)">{t('instructorClassDetail.rosterOrBrowse')}</p>
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    void pickRosterFiles(e.target.files);
+                    e.target.value = '';
+                  }}
+                />
+              </label>
+
+              {rosterFiles.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-bold">{t('instructorClassDetail.rosterFilesHeading', { count: rosterFiles.length })}</p>
+                  <ul className="space-y-1.5 max-h-48 overflow-y-auto">
+                    {rosterFiles.map((f) => (
+                      <li
+                        key={f.key}
+                        className={`flex items-start justify-between gap-3 px-3 py-2 rounded-lg border text-xs ${
+                          f.error ? 'border-red-200 bg-red-50' : 'border-emerald-200 bg-emerald-50'
+                        }`}
+                      >
+                        <div className="min-w-0">
+                          <p className="font-semibold text-(--ws-text) break-all">{f.name}</p>
+                          {f.error ? (
+                            <p className="text-red-600 mt-0.5">{f.error}</p>
+                          ) : (
+                            <p className="text-emerald-700 mt-0.5">
+                              {t('instructorClassDetail.rosterPreview', { count: f.codes?.length ?? 0, invalid: f.invalidCount ?? 0 })}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setRosterFiles((prev) => prev.filter((p) => p.key !== f.key))}
+                          className="text-(--ws-muted) hover:text-red-600 shrink-0"
+                          title={t('instructorClassDetail.rosterRemoveFile')}
+                        >
+                          <X size={14} />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  {rosterAllCodes.length > 0 && (
+                    <p className="text-xs font-semibold text-emerald-700">
+                      {t('instructorClassDetail.rosterTotal', { count: rosterAllCodes.length, files: rosterValidFiles.length })}
+                    </p>
+                  )}
+                </div>
+              )}
+              {rosterError && <p className="text-xs font-medium text-red-600">{rosterError}</p>}
+
+              <div className="rounded-xl border border-(--ws-border) bg-(--ws-editor) p-4 space-y-2">
+                <p className="text-xs font-bold">{t('instructorClassDetail.rosterGuideTitle')}</p>
+                <ul className="text-xs text-(--ws-muted) space-y-1 list-disc pl-4">
+                  <li>{t('instructorClassDetail.rosterGuide1')}</li>
+                  <li>{t('instructorClassDetail.rosterGuide2')}</li>
+                  <li>{t('instructorClassDetail.rosterGuide3')}</li>
+                  <li>{t('instructorClassDetail.rosterGuide4')}</li>
+                </ul>
+                <div className="overflow-x-auto">
+                  <table className="text-xs font-mono border border-(--ws-border) w-full">
+                    <thead>
+                      <tr className="bg-(--ws-panel)">
+                        <th className="px-2 py-1 text-left border-b border-(--ws-border)">STT</th>
+                        <th className="px-2 py-1 text-left border-b border-(--ws-border)">Họ và tên</th>
+                        <th className="px-2 py-1 text-left border-b border-(--ws-border) text-[#193a2b]">MSSV</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td className="px-2 py-1">1</td><td className="px-2 py-1">Nguyễn Văn A</td><td className="px-2 py-1 font-bold">20120001</td></tr>
+                      <tr><td className="px-2 py-1">2</td><td className="px-2 py-1">Trần Thị B</td><td className="px-2 py-1 font-bold">20120002</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <p className="text-xs text-(--ws-muted)">{t('instructorClassDetail.rosterReplaceNote')}</p>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-(--ws-border)">
+                <button onClick={closeRosterModal} className="px-4 py-2 text-sm text-(--ws-muted) hover:text-(--ws-text)">
+                  {t('common.cancel')}
+                </button>
+                <button
+                  onClick={submitRoster}
+                  disabled={rosterAllCodes.length === 0 || isUploadingRoster}
+                  className="px-5 py-2 bg-[#193a2b] text-white text-sm font-semibold rounded-xl hover:bg-[#143022] disabled:opacity-50"
+                >
+                  {isUploadingRoster ? t('instructorClassDetail.rosterUploading') : t('instructorClassDetail.rosterSubmit')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ), document.body)}
+
       {showAddStudent && hasDocument && createPortal((
         <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-85 flex items-center justify-center p-4" onClick={() => setShowAddStudent(false)}>
           <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-md shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
               <div>
                 <h3 className="font-bold font-serif text-[16px]">{t('instructorClassDetail.addStudentModalTitle')}</h3>
-                <p className="text-xs text-(--ws-muted) mt-0.5">{classData.name}</p>
+                <p className="text-xs text-(--ws-muted) mt-0.5">{classData.subject ? `${classData.subject} - ${classData.name}` : classData.name}</p>
               </div>
               <button onClick={() => setShowAddStudent(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
             </div>
@@ -1243,7 +1526,7 @@ export default function InstructorClassDetail() {
               <div>
                 <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClassDetail.fieldStudentEmail')}</label>
                 <input
-                  type="email"
+                  type="text"
                   value={studentEmail}
                   onChange={(e) => setStudentEmail(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddStudent()}

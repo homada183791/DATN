@@ -75,8 +75,6 @@ export default function StudentClassDetail() {
         <button onClick={() => navigate('/student/class')} className="hover:text-[#193a2b] transition-colors flex items-center gap-1">
           <ArrowLeft size={14} /> {t('studentContest.classLabel')}
         </button>
-        <ChevronRight size={14} />
-        <span className="text-[#191919] font-medium truncate">{classInfo.name}</span>
       </div>
 
       {/* Class header */}
@@ -87,7 +85,7 @@ export default function StudentClassDetail() {
               <GraduationCap size={20} className="shrink-0 opacity-80" />
               <span className="text-sm opacity-75">{classInfo.semester}</span>
             </div>
-            <h1 className="text-2xl font-bold font-serif mb-1">{classInfo.name}</h1>
+            <h1 className="text-2xl font-bold font-serif mb-1">{classInfo.subject ? `${classInfo.subject} - ${classInfo.name}` : classInfo.name}</h1>
             {classInfo.description && (
               <p className="text-sm opacity-80 line-clamp-2 mt-1">{classInfo.description}</p>
             )}

@@ -184,6 +184,7 @@ model ContestProblem {
 model Class {
   id          String   @id @default(uuid())
   name        String
+  subject     String?
   description String?  @db.Text
   semester    String?
   invite_code String   @unique
@@ -194,10 +195,23 @@ model Class {
 
   admin    User           @relation(fields: [admin_id], references: [id], onDelete: Cascade)
   students ClassStudent[]
+  roster   ClassRosterEntry[]
   contests Contest[]
   homeworks Homework[]
 
   @@map("classes")
+}
+
+/// Danh sách MSSV do giảng viên tải lên (CSV). Lớp có danh sách → chỉ sinh viên có MSSV trong danh sách mới vào được lớp.
+model ClassRosterEntry {
+  class_id     String
+  student_code String
+  created_at   DateTime @default(now())
+
+  class Class @relation(fields: [class_id], references: [id], onDelete: Cascade)
+
+  @@id([class_id, student_code])
+  @@map("class_roster_entries")
 }
 
 model Homework {

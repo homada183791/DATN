@@ -7,6 +7,7 @@ import { apiFetch } from '../api/http';
 export interface ClassInfo {
   id: string;
   name: string;
+  subject: string;
   code: string;
   instructor: string;
   instructorName?: string;
@@ -35,8 +36,8 @@ interface ClassContextType {
   enrolledClasses: ClassInfo[];    // sinh viên: lớp đã tham gia
   membersOf: (classId: string) => Member[];
   isEnrolled: (classId: string) => boolean;
-  createClass: (data: { name: string; semester: string; description: string; is_public?: boolean }) => Promise<ClassInfo>;
-  updateClass: (classId: string, data: { name?: string; semester?: string; description?: string; is_public?: boolean }) => Promise<void>;
+  createClass: (data: { name: string; subject: string; semester: string; description: string; is_public?: boolean }) => Promise<ClassInfo>;
+  updateClass: (classId: string, data: { name?: string; subject?: string; semester?: string; description?: string; is_public?: boolean }) => Promise<void>;
   deleteClass: (classId: string) => Promise<void>;
   joinByCode: (code: string) => Promise<{ ok: boolean; message: string; classId?: string }>;
   joinByInviteCode: (code: string) => Promise<{ ok: boolean; message: string; classId?: string }>;
@@ -55,6 +56,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
   const serverClasses = useMemo(() => apiClasses.map((cls) => ({
     id: cls.id,
     name: cls.name,
+    subject: cls.subject ?? '',
     code: cls.invite_code,
     instructor: cls.admin?.email ?? '',
     instructorName: cls.admin?.full_name?.trim() || cls.admin?.username || cls.admin?.email?.split('@')[0] || '',
@@ -99,11 +101,12 @@ export function ClassProvider({ children }: { children: ReactNode }) {
   }, [allClasses, user, apiClasses]);
 
   const createClass: ClassContextType['createClass'] = async (data) => {
-    const created = await createClassApi({ name: data.name, semester: data.semester, description: data.description, is_public: data.is_public });
+    const created = await createClassApi({ name: data.name, subject: data.subject, semester: data.semester, description: data.description, is_public: data.is_public });
     await queryClient.invalidateQueries({ queryKey: ['classes'] });
     return {
       id: created.id,
       name: created.name,
+      subject: created.subject ?? data.subject,
       code: created.invite_code,
       instructor: created.admin?.email ?? user?.email ?? '',
       instructorName: created.admin?.full_name?.trim() || created.admin?.username || user?.fullName?.trim() || (created.admin?.email ?? user?.email ?? '').split('@')[0],
@@ -127,24 +130,30 @@ export function ClassProvider({ children }: { children: ReactNode }) {
     await queryClient.invalidateQueries({ queryKey: ['classes'] });
   };
 
+  const classLabel = (c: { subject?: string; name: string }) => (c.subject ? `${c.subject} - ${c.name}` : c.name);
+
   const joinByCode: ClassContextType['joinByCode'] = async (code) => {
     if (!user) return { ok: false, message: 'Cần đăng nhập để tham gia lớp.' };
     const cls = allClasses.find((c) => c.code.toLowerCase() === code.trim().toLowerCase());
     if (!cls) return { ok: false, message: `Không tìm thấy lớp với mã "${code}".` };
-    if (isEnrolled(cls.id)) return { ok: false, message: `Bạn đã là thành viên của "${cls.name}".`, classId: cls.id };
-    await apiFetch(`/api/v1/classes/${cls.id}/join`, {
-      method: 'POST',
-      body: JSON.stringify({ code: code.trim() }),
-    });
-    await queryClient.invalidateQueries({ queryKey: ['classes'] });
-    return { ok: true, message: `Đã tham gia lớp "${cls.name}".`, classId: cls.id };
+    if (isEnrolled(cls.id)) return { ok: false, message: `Bạn đã là thành viên của lớp ${classLabel(cls)}`, classId: cls.id };
+    try {
+      await apiFetch(`/api/v1/classes/${cls.id}/join`, {
+        method: 'POST',
+        body: JSON.stringify({ code: code.trim() }),
+      });
+      await queryClient.invalidateQueries({ queryKey: ['classes'] });
+      return { ok: true, message: `Đã tham gia lớp ${classLabel(cls)} thành công`, classId: cls.id };
+    } catch (e: any) {
+      return { ok: false, message: e?.message || 'Không thể tham gia lớp học.' };
+    }
   };
 
   const joinDirectly: ClassContextType['joinDirectly'] = async (classId, code) => {
     if (!user) return { ok: false, message: 'Cần đăng nhập để tham gia lớp.' };
     const cls = allClasses.find((c) => c.id === classId);
     if (!cls) return { ok: false, message: 'Không tìm thấy thông tin lớp học.' };
-    if (isEnrolled(classId)) return { ok: false, message: `Bạn đã là thành viên của "${cls.name}".`, classId };
+    if (isEnrolled(classId)) return { ok: false, message: `Bạn đã là thành viên của lớp ${classLabel(cls)}`, classId };
 
     try {
       await apiFetch(`/api/v1/classes/${classId}/join`, {
@@ -152,7 +161,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ code: code?.trim() || undefined }),
       });
       await queryClient.invalidateQueries({ queryKey: ['classes'] });
-      return { ok: true, message: `Đã tham gia lớp "${cls.name}" thành công!`, classId };
+      return { ok: true, message: `Đã tham gia lớp ${classLabel(cls)} thành công`, classId };
     } catch (e: any) {
       return { ok: false, message: e.message || 'Không thể tham gia lớp học.' };
     }
@@ -164,12 +173,23 @@ export function ClassProvider({ children }: { children: ReactNode }) {
     try {
       const result = await joinClassByCode(code);
       await queryClient.invalidateQueries({ queryKey: ['classes'] });
-      return { ok: true, message: `Đã tham gia lớp thành công.`, classId: result?.class_id };
+      const joined =
+        allClasses.find((c) => c.id === result?.class_id) ??
+        allClasses.find((c) => c.code.toLowerCase() === code.trim().toLowerCase());
+      return {
+        ok: true,
+        message: joined ? `Đã tham gia lớp ${classLabel(joined)} thành công` : 'Đã tham gia lớp thành công',
+        classId: result?.class_id ?? joined?.id,
+      };
     } catch (e: any) {
       const msg: string = e?.message ?? '';
       if (msg.includes('Sinh viên đã nằm trong lớp')) {
         const cls = allClasses.find((c) => c.code.toLowerCase() === code.trim().toLowerCase());
-        return { ok: false, message: `Bạn đã là thành viên của lớp này.`, classId: cls?.id };
+        return {
+          ok: false,
+          message: cls ? `Bạn đã là thành viên của lớp ${classLabel(cls)}` : 'Bạn đã là thành viên của lớp này',
+          classId: cls?.id,
+        };
       }
       return { ok: false, message: e?.message || 'Không thể tham gia lớp.' };
     }

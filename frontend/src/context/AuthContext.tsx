@@ -101,8 +101,9 @@ async function hydrateProfile(token: string): Promise<User> {
       institution: profile.institution || '',
       studentCode: profile.student_code || '',
       missingFields: {
-        username: !profile.username,
-        fullName: !profile.full_name,
+        // Tài khoản giảng viên do hệ thống cấp sẵn → không cần hoàn tất thông tin
+        username: role !== 'instructor' && !profile.username,
+        fullName: role !== 'instructor' && !profile.full_name,
         studentCode: role === 'student' && !profile.student_code,
       },
       solvedCount: stats.solved_count ?? 0,

@@ -13,6 +13,7 @@ import { ClassesService } from './classes.service';
 import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
 import { AddStudentDto } from './dto/add-student.dto';
+import { UploadRosterDto } from './dto/upload-roster.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -94,6 +95,31 @@ export class ClassesController {
     @Request() req: { user: { userId: string } },
   ) {
     return this.classesService.addStudent(id, addStudentDto, req.user.userId);
+  }
+
+  @Get(':id/roster')
+  @UseGuards(RolesGuard)
+  @Roles(Role.INSTRUCTOR)
+  getRoster(@Param('id') id: string, @Request() req: { user: { userId: string } }) {
+    return this.classesService.getRoster(id, req.user.userId);
+  }
+
+  @Post(':id/roster')
+  @UseGuards(RolesGuard)
+  @Roles(Role.INSTRUCTOR)
+  uploadRoster(
+    @Param('id') id: string,
+    @Body() dto: UploadRosterDto,
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.classesService.uploadRoster(id, dto, req.user.userId);
+  }
+
+  @Delete(':id/roster')
+  @UseGuards(RolesGuard)
+  @Roles(Role.INSTRUCTOR)
+  clearRoster(@Param('id') id: string, @Request() req: { user: { userId: string } }) {
+    return this.classesService.clearRoster(id, req.user.userId);
   }
 
   /** Tham gia lớp bằng ID */

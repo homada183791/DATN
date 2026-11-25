@@ -61,6 +61,10 @@ describe('Student Role - Comprehensive Business Logic & Edge Cases', () => {
         findUnique: jest.fn(),
         findMany: jest.fn(),
       },
+      classRosterEntry: {
+        count: jest.fn().mockResolvedValue(0),
+        findUnique: jest.fn(),
+      },
       classStudent: {
         findUnique: jest.fn(),
         findMany: jest.fn(),

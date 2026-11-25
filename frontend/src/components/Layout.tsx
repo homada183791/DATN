@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useProblemsQuery } from '../api/problems';
+import { useClassesQuery } from '../api/classes';
 import { useNotifications } from '../context/NotificationContext';
 import { useLockdownActive } from '../context/lockdownStore';
 import CompleteProfileModal from './CompleteProfileModal';
@@ -46,6 +47,7 @@ function Breadcrumbs() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const pathSegments = location.pathname.split('/').filter(Boolean);
+  const { data: classList = [] } = useClassesQuery();
 
   const labels: Record<string, string> = {
     student: t('breadcrumb.student'),
@@ -76,6 +78,13 @@ function Breadcrumbs() {
     }
     if (labels[segment]) return labels[segment];
     if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment)) {
+      // Đoạn ID ngay sau "class/classes" → hiển thị "Môn học - Tên lớp" thay cho mã hệ thống
+      const idx = pathSegments.indexOf(segment);
+      const prev = pathSegments[idx - 1];
+      if (prev === 'class' || prev === 'classes') {
+        const cls = classList.find((c) => c.id === segment);
+        if (cls) return cls.subject ? `${cls.subject} - ${cls.name}` : cls.name;
+      }
       return `#${segment.slice(0, 8)}`;
     }
     return segment;

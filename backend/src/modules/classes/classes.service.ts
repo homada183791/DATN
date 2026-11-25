@@ -9,6 +9,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
 import { AddStudentDto } from './dto/add-student.dto';
+import { UploadRosterDto } from './dto/upload-roster.dto';
 
 interface HomeworkTask {
   id?: unknown;
@@ -26,6 +27,7 @@ export class ClassesService {
     return this.prisma.class.create({
       data: {
         name: createClassDto.name,
+        subject: createClassDto.subject?.trim(),
         description: createClassDto.description,
         semester: createClassDto.semester,
         invite_code: inviteCode,
@@ -83,6 +85,8 @@ export class ClassesService {
                 id: true,
                 email: true,
                 username: true,
+                full_name: true,
+                student_code: true,
                 elo_rating: true,
                 created_at: true,
                 _count: {
@@ -144,9 +148,13 @@ export class ClassesService {
       );
     }
 
-    if (!addStudentDto.email && !addStudentDto.student_id) {
+    if (
+      !addStudentDto.email &&
+      !addStudentDto.student_id &&
+      !addStudentDto.student_code
+    ) {
       throw new BadRequestException(
-        'Vui lòng cung cấp email hoặc ID của sinh viên',
+        'Vui lòng cung cấp email hoặc MSSV của sinh viên',
       );
     }
 
@@ -158,7 +166,9 @@ export class ClassesService {
               mode: 'insensitive',
             },
           }
-        : { id: addStudentDto.student_id },
+        : addStudentDto.student_code
+          ? { student_code: addStudentDto.student_code.trim() }
+          : { id: addStudentDto.student_id },
     });
     if (!user) {
       throw new NotFoundException(
@@ -227,9 +237,102 @@ export class ClassesService {
     });
     if (existing) throw new ConflictException('Sinh viên đã nằm trong lớp này');
 
+    await this.assertInRoster(classId, studentId);
+
     return this.prisma.classStudent.create({
       data: { class_id: classId, student_id: studentId },
     });
+  }
+
+  /**
+   * Nếu lớp đã có danh sách MSSV (giảng viên tải lên), chỉ sinh viên có MSSV nằm trong
+   * danh sách mới được tham gia; ngược lại không duyệt.
+   */
+  private async assertInRoster(classId: string, studentId: string) {
+    const rosterCount = await this.prisma.classRosterEntry.count({
+      where: { class_id: classId },
+    });
+    if (!rosterCount) return;
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: studentId },
+      select: { student_code: true },
+    });
+    if (!user?.student_code) {
+      throw new ForbiddenException(
+        'Bạn không có trong danh sách lớp nên chưa được tham gia. Vui lòng liên hệ giảng viên.',
+      );
+    }
+    const entry = await this.prisma.classRosterEntry.findUnique({
+      where: {
+        class_id_student_code: {
+          class_id: classId,
+          student_code: user.student_code,
+        },
+      },
+    });
+    if (!entry) {
+      throw new ForbiddenException(
+        'Bạn không có trong danh sách lớp nên chưa được tham gia. Vui lòng liên hệ giảng viên.',
+      );
+    }
+  }
+
+  private async assertOwner(classId: string, instructorId: string) {
+    const cls = await this.findOne(classId);
+    if (cls.admin_id !== instructorId) {
+      throw new ForbiddenException('Bạn không có quyền quản lý danh sách của lớp học này.');
+    }
+  }
+
+  /** Tải lên (thay thế toàn bộ) danh sách MSSV của lớp */
+  async uploadRoster(classId: string, dto: UploadRosterDto, instructorId: string) {
+    await this.assertOwner(classId, instructorId);
+
+    const codes = [
+      ...new Set(dto.codes.map((c) => String(c).trim()).filter((c) => /^\d{8}$/.test(c))),
+    ];
+    if (codes.length === 0) {
+      throw new BadRequestException('Không có MSSV hợp lệ (8 chữ số) trong danh sách.');
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.classRosterEntry.deleteMany({ where: { class_id: classId } }),
+      this.prisma.classRosterEntry.createMany({
+        data: codes.map((student_code) => ({ class_id: classId, student_code })),
+        skipDuplicates: true,
+      }),
+    ]);
+    return this.getRoster(classId, instructorId);
+  }
+
+  async getRoster(classId: string, instructorId: string) {
+    await this.assertOwner(classId, instructorId);
+    const entries = await this.prisma.classRosterEntry.findMany({
+      where: { class_id: classId },
+      select: { student_code: true, created_at: true },
+    });
+    if (entries.length === 0) {
+      return { count: 0, joined_count: 0, uploaded_at: null as Date | null };
+    }
+    const joined = await this.prisma.classStudent.count({
+      where: {
+        class_id: classId,
+        student: { student_code: { in: entries.map((e) => e.student_code) } },
+      },
+    });
+    return {
+      count: entries.length,
+      joined_count: joined,
+      uploaded_at: entries[0].created_at,
+    };
+  }
+
+  /** Xóa danh sách → lớp quay về chế độ nhận sinh viên bình thường */
+  async clearRoster(classId: string, instructorId: string) {
+    await this.assertOwner(classId, instructorId);
+    await this.prisma.classRosterEntry.deleteMany({ where: { class_id: classId } });
+    return { count: 0, joined_count: 0, uploaded_at: null };
   }
 
   async joinByCode(inviteCode: string, studentId: string) {
@@ -253,6 +356,7 @@ export class ClassesService {
                 email: true,
                 username: true,
                 full_name: true,
+                student_code: true,
               },
             },
           },
@@ -442,6 +546,7 @@ export class ClassesService {
         email: st.email,
         username: st.username,
         full_name: st.full_name,
+        student_code: st.student_code,
         summary: {
           total_tasks: totalTasks,
           completed_tasks: completedTasks,

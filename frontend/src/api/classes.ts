@@ -4,6 +4,7 @@ import { apiFetch } from './http';
 export interface ClassDto {
   id: string;
   name: string;
+  subject?: string | null;
   description?: string | null;
   semester?: string | null;
   invite_code: string;
@@ -32,6 +33,8 @@ export interface ClassStudentItemDto {
     id: string;
     email: string;
     username?: string | null;
+    full_name?: string | null;
+    student_code?: string | null;
     elo_rating?: number;
     created_at?: string;
     _count?: {
@@ -43,6 +46,7 @@ export interface ClassStudentItemDto {
 export interface ClassDetailDto {
   id: string;
   name: string;
+  subject?: string | null;
   description?: string | null;
   semester?: string | null;
   invite_code: string;
@@ -83,14 +87,14 @@ export function useClassDetailQuery(classId?: string) {
   });
 }
 
-export function createClass(data: { name: string; semester?: string; description?: string; is_public?: boolean }) {
+export function createClass(data: { name: string; subject: string; semester?: string; description?: string; is_public?: boolean }) {
   return apiFetch<ClassDto>('/api/v1/classes', {
     method: 'POST',
     body: JSON.stringify(data),
   });
 }
 
-export function updateClass(classId: string, data: { name?: string; semester?: string; description?: string; is_public?: boolean }) {
+export function updateClass(classId: string, data: { name?: string; subject?: string; semester?: string; description?: string; is_public?: boolean }) {
   return apiFetch<ClassDto>(`/api/v1/classes/${classId}`, {
     method: 'PATCH',
     body: JSON.stringify(data),
@@ -104,10 +108,13 @@ export function joinClass(classId: string, code?: string) {
   });
 }
 
-export function addStudentToClass(classId: string, email: string) {
+/** Thêm sinh viên bằng email hoặc MSSV (8 chữ số) */
+export function addStudentToClass(classId: string, identifier: string) {
+  const value = identifier.trim();
+  const body = /^\d{8}$/.test(value) ? { student_code: value } : { email: value.toLowerCase() };
   return apiFetch<any>(`/api/v1/classes/${classId}/students`, {
     method: 'POST',
-    body: JSON.stringify({ email: email.trim().toLowerCase() }),
+    body: JSON.stringify(body),
   });
 }
 
@@ -163,6 +170,7 @@ export interface ClassGradebookStudent {
   email: string;
   username?: string | null;
   full_name?: string | null;
+  student_code?: string | null;
   summary: {
     total_tasks: number;
     completed_tasks: number;
@@ -201,4 +209,33 @@ export function useClassGradebookQuery(classId?: string) {
     queryFn: () => fetchClassGradebook(classId!),
     enabled: !!classId && !!window.localStorage.getItem('accessToken'),
   });
+}
+export interface ClassRosterInfo {
+  count: number;
+  joined_count: number;
+  uploaded_at: string | null;
+}
+
+export function useClassRosterQuery(classId?: string) {
+  return useQuery({
+    queryKey: ['classes', classId, 'roster'],
+    queryFn: () => apiFetch<ClassRosterInfo>(`/api/v1/classes/${classId}/roster`),
+    enabled: !!classId && !!window.localStorage.getItem('accessToken'),
+    staleTime: 0,
+    // Cập nhật liên tục số sinh viên đã tham gia mà không cần tải lại trang
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
+  });
+}
+
+/** Tải lên (thay thế) danh sách MSSV của lớp */
+export function uploadClassRoster(classId: string, codes: string[]) {
+  return apiFetch<ClassRosterInfo>(`/api/v1/classes/${classId}/roster`, {
+    method: 'POST',
+    body: JSON.stringify({ codes }),
+  });
+}
+
+export function clearClassRoster(classId: string) {
+  return apiFetch<ClassRosterInfo>(`/api/v1/classes/${classId}/roster`, { method: 'DELETE' });
 }
