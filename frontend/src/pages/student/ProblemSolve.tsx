@@ -20,7 +20,6 @@ import { createSocket } from '../../api/socket';
 import {
   HelpCircle,
   Send,
-  Eye,
   Columns,
   FileText,
   Code,
@@ -34,7 +33,6 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  Zap,
   Terminal,
   Bug,
   FlaskConical,
@@ -43,6 +41,8 @@ import {
   ChevronDown,
   ChevronUp,
   Sparkles,
+  ThumbsUp,
+  ThumbsDown,
   BookOpen,
   Lock,
   Languages,
@@ -56,18 +56,7 @@ import {
   mapVersionToApi,
 } from '../../config/languages';
 import { getLocalizedProblemTitle, getLocalizedProblemDescription } from '../../utils/problemTranslation';
-import { getAiTutorHint, explainSubmissionError } from '../../api/ai';
-
-function highlightCode(raw: string): string {
-  const esc = (s: string) =>
-    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  let out = esc(raw || '');
-  out = out.replace(/(\/\/[^\n]*|#[^\n]*)/g, '<span class="text-[#6a9955]">$1</span>');
-  out = out.replace(/("[^"\\]*(?:\\.[^"\\]*)*"|'[^'\\]*(?:\\.[^'\\]*)*')/g, '<span class="text-[#ce9178]">$1</span>');
-  const kw = /\b(def|class|return|if|else|elif|for|while|import|from|in|include|int|float|double|char|void|bool|auto|vector|string|public|private|static|const|namespace|using|try|catch|new|throw|package|func|var|let)\b/g;
-  out = out.replace(kw, '<span class="text-[#569cd6] font-semibold">$1</span>');
-  return out;
-}
+import { getAiTutorHint, explainSubmissionError, sendAiFeedback, type AiMeta } from '../../api/ai';
 
 function escapeHtml(s: string) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -949,6 +938,10 @@ export default function ProblemSolve() {
   const [aiTutorHintType, setAiTutorHintType] = useState<'HINT' | 'COMPLEXITY' | 'EDGE_CASE' | 'EXPLAIN_LOGIC'>('HINT');
   const [aiTutorLoading, setAiTutorLoading] = useState(false);
   const [aiTutorResponse, setAiTutorResponse] = useState<string | null>(null);
+  const [aiMeta, setAiMeta] = useState<AiMeta | null>(null);
+  const [aiFeedback, setAiFeedback] = useState<1 | -1 | null>(null);
+  /** Bài nộp vừa chấm xong, để nút "Hỏi trợ giảng" ở tab Kết quả biết hỏi về bài nào. */
+  const [lastSubmissionId, setLastSubmissionId] = useState<string | null>(null);
 
   const resolvedId = pid ?? id;
   const navigate = useNavigate();
@@ -1075,7 +1068,6 @@ export default function ProblemSolve() {
 
   const [layout, setLayout] = useState<LayoutMode>('split');
   const [mobilePane, setMobilePane] = useState<'statement' | 'editor'>('statement');
-  const [showSolution, setShowSolution] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [uploadPreview, setUploadPreview] = useState<{ fileName: string; content: string } | null>(null);
   const hasDocument = typeof document !== 'undefined';
@@ -1298,7 +1290,10 @@ export default function ProblemSolve() {
     }
   };
 
-  const requestAiHint = async (type: 'HINT' | 'COMPLEXITY' | 'EDGE_CASE' | 'EXPLAIN_LOGIC' = 'HINT') => {
+  const requestAiHint = async (
+    type: 'HINT' | 'COMPLEXITY' | 'EDGE_CASE' | 'EXPLAIN_LOGIC' = 'HINT',
+    level?: 1 | 2 | 3,
+  ) => {
     if (contestId) {
       showToast(t('problemSolve.aiTutorDisabledToast'), 'error');
       return;
@@ -1313,8 +1308,11 @@ export default function ProblemSolve() {
         language: apiLang.language as any,
         hint_type: type,
         contest_id: contestId,
+        level,
       });
       setAiTutorResponse(res.response);
+      setAiMeta(res);
+      setAiFeedback(null);
     } catch (e: any) {
       showToast(e.message || t('problemSolve.aiTutorHintError'), 'error');
     } finally {
@@ -1327,11 +1325,23 @@ export default function ProblemSolve() {
     setLeftTab('ai_tutor');
     try {
       const res = await explainSubmissionError({ submission_id: submissionId });
-      setAiTutorResponse(`### 🔍 ${t('problemSolve.aiTutorErrorAnalysisTitle')} (#${submissionId.slice(0, 8)} - ${res.status})\n\n${res.analysis}`);
+      setAiTutorResponse(`### ${t('problemSolve.aiTutorErrorAnalysisTitle')} (#${submissionId.slice(0, 8)} - ${res.status})\n\n${res.analysis}`);
+      setAiMeta(res);
+      setAiFeedback(null);
     } catch (e: any) {
       showToast(e.message || t('problemSolve.aiTutorExplainError'), 'error');
     } finally {
       setAiTutorLoading(false);
+    }
+  };
+
+  const rateAiAnswer = async (value: 1 | -1) => {
+    if (!aiMeta?.interaction_id || aiFeedback) return;
+    setAiFeedback(value);
+    try {
+      await sendAiFeedback(aiMeta.interaction_id, value);
+    } catch {
+      setAiFeedback(null);
     }
   };
 
@@ -1707,6 +1717,7 @@ export default function ProblemSolve() {
       submissionSocketRef.current = null;
     }, 60000);
 
+    setLastSubmissionId(submissionId);
     socket.on('connect', () => {
       socket.emit('join_submission', { submission_id: submissionId });
       pushConsole(t('problemSolve.consoleSocketConnected', { id: submissionId.slice(0, 8) }), 'info');
@@ -2033,14 +2044,6 @@ export default function ProblemSolve() {
           >
             <HelpCircle size={15} />
           </button>
-          {!contestId && (
-            <button
-              onClick={() => setShowSolution(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] font-medium text-(--ws-muted) hover:text-(--ws-text) hover:border-(--ws-accent) transition-colors"
-            >
-              <Eye size={14} /> {t('problemSolve.viewSolution')}
-            </button>
-          )}
           <div className="flex items-center rounded-lg border border-(--ws-border) overflow-hidden">
             {([['split', <Columns size={14} key="c" />], ['statement', <FileText size={14} key="f" />], ['editor', <Code size={14} key="e" />]] as [LayoutMode, React.ReactNode][]).map(([mode, icon]) => (
               <button
@@ -2386,10 +2389,10 @@ export default function ProblemSolve() {
                                     {!isAc && !contestId && (
                                       <button
                                         onClick={() => requestExplainError(sub.id)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-purple-300 bg-purple-50 text-purple-800 text-xs font-semibold hover:bg-purple-100 transition-colors"
-                                        title="Nhờ AI phân tích nguyên nhân lỗi và gợi ý sửa"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-(--ws-accent) text-(--ws-accent) text-xs font-semibold hover:bg-(--ws-accent-soft) transition-colors"
+                                        title="Nhờ AI phân tích nguyên nhân lỗi"
                                       >
-                                        <Sparkles size={13} className="text-purple-600" />
+                                        <Sparkles size={13} />
                                         <span>Hỏi AI về lỗi</span>
                                       </button>
                                     )}
@@ -2531,6 +2534,64 @@ export default function ProblemSolve() {
                                 <div className="prose prose-sm max-w-none text-(--ws-text) leading-relaxed">
                                   <ReactMarkdown>{aiTutorResponse}</ReactMarkdown>
                                 </div>
+                                {aiMeta && (
+                                  <div className="mt-4 pt-3 border-t border-(--ws-border) flex flex-wrap items-center gap-2 text-[12px]">
+                                    {aiMeta.level && (
+                                      <span className="px-2 py-0.5 rounded-md bg-(--ws-accent-soft) text-(--ws-accent) font-semibold">
+                                        {t('problemSolve.aiLevelLabel', { level: aiMeta.level, defaultValue: 'Gợi ý mức {{level}}/3' })}
+                                      </span>
+                                    )}
+                                    {aiMeta.context && (
+                                      <span className="px-2 py-0.5 rounded-md bg-(--ws-panel2) text-(--ws-muted)">
+                                        {aiMeta.context === 'homework'
+                                          ? t('problemSolve.aiContextHomework', 'Bài tập có điểm: gợi ý mở dần')
+                                          : t('problemSolve.aiContextPractice', 'Luyện tập: giải thích đầy đủ')}
+                                      </span>
+                                    )}
+                                    {aiMeta.source === 'template' && (
+                                      <span className="px-2 py-0.5 rounded-md bg-(--ws-panel2) text-(--ws-muted)">
+                                        {t('problemSolve.aiTemplateNote', 'Gợi ý soạn sẵn (AI chưa sẵn sàng)')}
+                                      </span>
+                                    )}
+                                    {aiMeta.next_level_available && aiMeta.level && aiMeta.level < 3 && (
+                                      <button
+                                        onClick={() => requestAiHint(aiTutorHintType, (aiMeta.level! + 1) as 2 | 3)}
+                                        disabled={aiTutorLoading}
+                                        className="min-h-9 px-3 rounded-lg border border-(--ws-accent) text-(--ws-accent) font-semibold hover:bg-(--ws-accent-soft) disabled:opacity-50"
+                                      >
+                                        {t('problemSolve.aiNextLevel', 'Gợi ý rõ hơn')}
+                                      </button>
+                                    )}
+                                    <span className="flex-1" />
+                                    {typeof aiMeta.remaining_quota === 'number' && (
+                                      <span className="text-(--ws-muted)">
+                                        {t('problemSolve.aiQuotaLeft', { count: aiMeta.remaining_quota, defaultValue: 'Còn {{count}} lượt hỏi hôm nay' })}
+                                      </span>
+                                    )}
+                                    {aiMeta.interaction_id && (
+                                      <span className="flex items-center gap-1" role="group" aria-label={t('problemSolve.aiRateLabel', 'Câu trả lời có hữu ích không?')}>
+                                        <button
+                                          onClick={() => rateAiAnswer(1)}
+                                          disabled={aiFeedback !== null}
+                                          aria-pressed={aiFeedback === 1}
+                                          aria-label={t('problemSolve.aiRateUp', 'Hữu ích')}
+                                          className={`w-9 h-9 flex items-center justify-center rounded-lg border ${aiFeedback === 1 ? 'border-(--ws-accent) text-(--ws-accent) bg-(--ws-accent-soft)' : 'border-(--ws-border) text-(--ws-muted) hover:text-(--ws-text)'}`}
+                                        >
+                                          <ThumbsUp size={14} />
+                                        </button>
+                                        <button
+                                          onClick={() => rateAiAnswer(-1)}
+                                          disabled={aiFeedback !== null}
+                                          aria-pressed={aiFeedback === -1}
+                                          aria-label={t('problemSolve.aiRateDown', 'Không hữu ích')}
+                                          className={`w-9 h-9 flex items-center justify-center rounded-lg border ${aiFeedback === -1 ? 'border-(--ws-danger) text-(--ws-danger)' : 'border-(--ws-border) text-(--ws-muted) hover:text-(--ws-text)'}`}
+                                        >
+                                          <ThumbsDown size={14} />
+                                        </button>
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             ) : (
                               <div className="flex-1 flex flex-col items-center justify-center py-10 text-center text-(--ws-muted)">
@@ -2896,6 +2957,15 @@ export default function ProblemSolve() {
                             {finalVerdict === 'AC' ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
                             {finalVerdict === 'AC' ? t('problemSolve.acceptedLabel', { points: detail.points }) : finalVerdict === 'TLE' ? t('problemSolve.verdictTLE') : t('problemSolve.verdictWA')}
                           </div>
+                          {finalVerdict !== 'AC' && !contestId && lastSubmissionId && (
+                            <button
+                              onClick={() => requestExplainError(lastSubmissionId)}
+                              disabled={aiTutorLoading}
+                              className="ml-2 mb-4 inline-flex items-center gap-1.5 min-h-9 px-3 rounded-lg border border-(--ws-accent) text-(--ws-accent) text-[12.5px] font-semibold hover:bg-(--ws-accent-soft) disabled:opacity-50"
+                            >
+                              <Sparkles size={13} /> {t('problemSolve.aiAskAboutVerdict', 'Hỏi trợ giảng AI về lỗi này')}
+                            </button>
+                          )}
                           <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
                             {testVerdicts.map((tv) => (
                               <div
@@ -3037,25 +3107,6 @@ export default function ProblemSolve() {
           </div>
         </div>
       )}
-
-      {/* ============ SOLUTION MODAL ============ */}
-      {showSolution && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setShowSolution(false)}>
-          <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
-              <h3 className="font-bold text-[15px]">{t('problemSolve.referenceSolutionTitle', { title: problemTitle })}</h3>
-              <button onClick={() => setShowSolution(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
-            </div>
-            <div className="p-6 overflow-y-auto max-h-[calc(80vh-64px)]">
-              <div className="flex items-center gap-2 mb-3 text-[12px] text-(--ws-muted)">
-                <Clock size={13} /> {detail.timeLimit}
-                <Zap size={13} className="ml-3" /> {detail.memoryLimit}
-              </div>
-              <pre className="ws-dark bg-[#0b1210] border border-(--ws-border) rounded-xl p-4 overflow-x-auto font-mono text-[12.5px] leading-6 text-[#e4ece8]" dangerouslySetInnerHTML={{ __html: highlightCode(detail.solutions[lang] || currentLangConfig.template) }} />
-            </div>
-          </div>
-        </div>
-      ), document.body)}
 
       {/* ============ GUIDE MODAL ============ */}
       {showGuide && hasDocument && createPortal((

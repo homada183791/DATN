@@ -33,6 +33,9 @@ type UpdatedSubmission = {
 
 type SubmissionTransactionClient = {
   submissionTestResult: {
+    deleteMany(args: {
+      where: { submission_id: string };
+    }): Promise<{ count: number }>;
     createMany(args: {
       data: Array<{
         submission_id: string;
@@ -162,6 +165,10 @@ export class WebhookService {
     const updatedSubmission = await (this.prisma.$transaction as any)(
       async (tx: SubmissionTransactionClient): Promise<UpdatedSubmission> => {
         let score = 0;
+
+        // Idempotent: một bài có thể bị chấm lại (gửi lại hàng đợi, rejudge),
+        // nên xóa kết quả cũ trước khi ghi kết quả mới.
+        await tx.submissionTestResult.deleteMany({ where: { submission_id } });
 
         if (test_results && test_results.length > 0) {
           // Tính điểm: (số testcase ACCEPTED / tổng số) * 100

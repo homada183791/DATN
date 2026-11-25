@@ -5,12 +5,11 @@ import { ContestsService } from '../contests/contests.service';
 import { ClassesService } from '../classes/classes.service';
 import { HomeworksService } from '../homeworks/homeworks.service';
 import { AiService } from '../ai/ai.service';
+import { AiProvider } from '../ai/ai-provider';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { QueueService } from '../queue/queue.service';
 import { EventsGateway } from '../../events/events.gateway';
-import { LocalJudgeService } from './local-judge.service';
-import { WebhookService } from '../webhook/webhook.service';
 import {
   BadRequestException,
   ForbiddenException,
@@ -44,6 +43,7 @@ describe('Student Role - Comprehensive Business Logic & Edge Cases', () => {
         findUnique: jest.fn(),
         findMany: jest.fn(),
         update: jest.fn(),
+        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
       },
       contest: {
         findUnique: jest.fn(),
@@ -73,7 +73,12 @@ describe('Student Role - Comprehensive Business Logic & Edge Cases', () => {
       },
       homework: {
         findFirst: jest.fn(),
-        findMany: jest.fn(),
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+      aiInteraction: {
+        count: jest.fn().mockResolvedValue(0),
+        create: jest.fn().mockResolvedValue({ id: 'ai-1' }),
+        aggregate: jest.fn().mockResolvedValue({ _max: { level: null } }),
       },
       notification: {
         create: jest.fn(),
@@ -94,6 +99,8 @@ describe('Student Role - Comprehensive Business Logic & Edge Cases', () => {
         ClassesService,
         HomeworksService,
         AiService,
+        // AI chưa cấu hình: dùng câu trả lời soạn sẵn, không gọi mạng.
+        { provide: AiProvider, useValue: { isConfigured: () => false } },
         NotificationsService,
         { provide: PrismaService, useValue: prisma },
         { provide: QueueService, useValue: { publishJudgeJob: jest.fn().mockReturnValue(true) } },
@@ -105,17 +112,6 @@ describe('Student Role - Comprehensive Business Logic & Edge Cases', () => {
             emitLeaderboardUpdate: jest.fn(),
             server: { to: jest.fn().mockReturnThis(), emit: jest.fn() },
           },
-        },
-        {
-          provide: LocalJudgeService,
-          useValue: {
-            evaluateSubmission: jest.fn(),
-            evaluateCustomRun: jest.fn(),
-          },
-        },
-        {
-          provide: WebhookService,
-          useValue: { processJudgeResult: jest.fn() },
         },
       ],
     }).compile();
@@ -537,6 +533,8 @@ describe('Student Role - Comprehensive Business Logic & Edge Cases', () => {
   // =========================================================================
   describe('Domain 5: AI Assistant & Contest Lockdown', () => {
     it('[TC-AI-01] AI Tutor hỗ trợ học viên gợi ý tư duy khi luyện tập bình thường', async () => {
+      prisma.contest.findFirst = jest.fn().mockResolvedValue(null);
+      prisma.submission.findFirst = jest.fn().mockResolvedValue(null);
       prisma.problem.findUnique.mockResolvedValue({
         id: 'p-1',
         title: 'Two Sum',
@@ -555,13 +553,15 @@ describe('Student Role - Comprehensive Business Logic & Edge Cases', () => {
       );
 
       expect(res.success).toBe(true);
-      expect(res.response).toContain('Phân tích Độ phức tạp');
-      expect(res.response).toContain('Độ phức tạp thời gian tối ưu');
+      expect(res.source).toBe('template');
+      expect(res.context).toBe('practice');
+      expect(res.level).toBe(3);
+      expect(res.response).toContain('Phân tích độ phức tạp');
     });
 
     it('[TC-AI-02] AI Tutor bị khóa hoàn toàn khi đang thi trực tiếp (403 Forbidden)', async () => {
       const now = new Date();
-      prisma.contest.findUnique.mockResolvedValue({
+      prisma.contest.findFirst = jest.fn().mockResolvedValue({
         id: 'c-active',
         start_time: new Date(now.getTime() - 10000),
         end_time: new Date(now.getTime() + 100000),
@@ -581,24 +581,38 @@ describe('Student Role - Comprehensive Business Logic & Edge Cases', () => {
       ).rejects.toThrow(ForbiddenException);
     });
 
-    it('[TC-AI-03] AI Explain Error phân tích chi tiết lỗi WRONG_ANSWER', async () => {
+    it('[TC-AI-03] AI Explain Error giải thích lỗi WRONG_ANSWER của chính sinh viên', async () => {
+      prisma.contest.findFirst = jest.fn().mockResolvedValue(null);
       prisma.submission.findUnique.mockResolvedValue({
         id: 'sub-wa',
+        user_id: 'student-1',
+        problem_id: 'p-1',
+        language: 'CPP',
+        source_code: 'int main(){}',
         status: 'WRONG_ANSWER',
-        problem: { id: 'p-1', title: 'Binary Search', difficulty: Difficulty.MEDIUM },
-        test_results: [
-          { testcase_index: 2, status: 'WRONG_ANSWER', actual_output: 'Output: 42' },
-        ],
+        problem: {
+          id: 'p-1', title: 'Binary Search', description: '...', difficulty: Difficulty.MEDIUM,
+          time_limit: 1000, memory_limit: 256,
+          test_cases: [{ input: '1', expected_output: '1', is_hidden: false }],
+        },
+        test_results: [{ testcase_index: 0, status: 'WRONG_ANSWER', actual_output: '42' }],
       });
 
-      const res = await aiService.explainError(
-        { submission_id: 'sub-wa' },
-        'student-1',
-      );
+      const res = await aiService.explainError({ submission_id: 'sub-wa' }, 'student-1', 'STUDENT');
 
       expect(res.success).toBe(true);
-      expect(res.analysis).toContain('Phân tích Lỗi Wrong Answer');
-      expect(res.analysis).toContain('Output: 42');
+      expect(res.analysis).toContain('Sai đáp án');
+    });
+
+    it('[TC-AI-04] Sinh viên không xem được giải thích lỗi bài nộp của người khác (403)', async () => {
+      prisma.submission.findUnique.mockResolvedValue({
+        id: 'sub-x', user_id: 'other-student', problem_id: 'p-1', status: 'WRONG_ANSWER',
+        problem: { id: 'p-1', title: 'X', description: '', difficulty: Difficulty.EASY, time_limit: 1, memory_limit: 1, test_cases: [] },
+        test_results: [],
+      });
+      await expect(
+        aiService.explainError({ submission_id: 'sub-x' }, 'student-1', 'STUDENT'),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 

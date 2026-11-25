@@ -1,4 +1,12 @@
-import { IsNotEmpty, IsOptional, IsString, IsEnum } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsEnum,
+  IsInt,
+  Min,
+  Max,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export enum HintType {
@@ -33,4 +41,16 @@ export class TutorHintDto {
   @IsOptional()
   @IsString()
   contest_id?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Mức gợi ý 1 (gợi mở), 2 (chỉ chỗ sai), 3 (cách sửa). Bài tập có điểm chỉ mở dần từng mức; luyện tập mặc định mức 3.',
+    minimum: 1,
+    maximum: 3,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(3)
+  level?: number;
 }

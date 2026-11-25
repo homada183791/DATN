@@ -1,7 +1,4 @@
-import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
-import { createSocket } from './api/socket';
-import { queryClient } from './api/queryClient';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
@@ -46,22 +43,6 @@ function ProblemsRedirect() {
 }
 
 export default function App() {
-  useEffect(() => {
-    const socket = createSocket();
-
-    socket.on('leaderboard_updated', (payload: { contest_id?: string }) => {
-      // Invalidate both the list and the specific leaderboard for this contest
-      queryClient.invalidateQueries({ queryKey: ['contests'] });
-      if (payload?.contest_id) {
-        queryClient.invalidateQueries({ queryKey: ['contests', payload.contest_id, 'leaderboard'] });
-      }
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
-
   return (
     <ThemeProvider>
       <ToastProvider>

@@ -10,15 +10,22 @@ export class QueueService {
     @Inject('RABBITMQ_SERVICE') private readonly client: ClientProxy,
   ) {}
 
+  /** Tóm tắt job để ghi log, bỏ nội dung nhạy cảm. */
+  static describe(payload: any): string {
+    const id = payload?.submission_id ?? payload?.session_id ?? 'unknown';
+    const kind = payload?.is_custom ? 'custom-run' : 'submission';
+    const tests = Array.isArray(payload?.test_cases) ? payload.test_cases.length : 0;
+    return `${kind} ${id} lang=${payload?.language ?? '?'} tests=${tests}`;
+  }
+
   async publishJudgeJob(payload: any): Promise<boolean> {
     try {
       // emit gửi message lên queue, pattern là 'judge_job'
       await firstValueFrom(
         this.client.emit('judge_job', payload).pipe(timeout({ first: 3000 })),
       );
-      this.logger.log(
-        `[RabbitMQ] Published job to judge_queue: ${JSON.stringify(payload)}`,
-      );
+      // Không ghi source code hay test case (kể cả test ẩn) vào log.
+      this.logger.log(`[RabbitMQ] Published job: ${QueueService.describe(payload)}`);
       return true;
     } catch (error: unknown) {
       const message =

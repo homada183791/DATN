@@ -4,6 +4,7 @@ import {
   ExecutionContext,
   ForbiddenException,
 } from '@nestjs/common';
+import { requireSecret, safeEqual } from '../config/secrets';
 
 @Injectable()
 export class JudgeSecretGuard implements CanActivate {
@@ -13,10 +14,7 @@ export class JudgeSecretGuard implements CanActivate {
       .getRequest<{ headers: Record<string, string> }>();
     const secret = request.headers['x-judge-secret'];
 
-    const expectedSecret =
-      process.env.JUDGE_SECRET || 'default-judge-secret-key';
-
-    if (!secret || secret !== expectedSecret) {
+    if (!safeEqual(secret, requireSecret('JUDGE_SECRET'))) {
       throw new ForbiddenException('Invalid Judge Secret Key');
     }
 

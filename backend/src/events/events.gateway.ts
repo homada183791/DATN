@@ -10,11 +10,22 @@ import {
   WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger } from '@nestjs/common';
+import { Logger, Optional } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from '../prisma/prisma.service';
 import { JoinSubmissionRoomDto } from './dto/join-submission-room.dto';
 import { JoinAdminDashboardDto } from './dto/join-admin-dashboard.dto';
+import { isAllowedOrigin, requireSecret } from '../common/config/secrets';
 
-@WebSocketGateway({ cors: { origin: '*' } })
+export type SocketUser = { userId: string; role: string };
+
+@WebSocketGateway({
+  cors: {
+    origin: (origin: string | undefined, cb: (err: Error | null, ok?: boolean) => void) =>
+      cb(null, isAllowedOrigin(origin)),
+    credentials: true,
+  },
+})
 export class EventsGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
@@ -39,16 +50,62 @@ export class EventsGateway
     }
   >();
 
-  afterInit(server: Server) {
+  /** session_id của lần chạy thử -> user sở hữu, để chỉ chủ phiên mới vào được phòng. */
+  private readonly customRunOwners = new Map<string, { userId: string; expiresAt: number }>();
+  private static readonly CUSTOM_RUN_TTL_MS = 10 * 60 * 1000;
+
+  constructor(
+    @Optional() private readonly jwtService?: JwtService,
+    @Optional() private readonly prisma?: PrismaService,
+  ) {}
+
+  afterInit() {
     this.logger.log('Websocket Gateway Initialized');
   }
 
-  handleConnection(client: Socket) {
-    this.logger.log(`[EventsGateway] Client connected: ${client.id}`);
+  /** Xác thực JWT ngay khi kết nối; token sai hoặc thiếu thì ngắt kết nối. */
+  async handleConnection(client: Socket) {
+    try {
+      const raw =
+        (client.handshake?.auth?.token as string | undefined) ??
+        client.handshake?.headers?.authorization;
+      const token = raw?.replace(/^Bearer\s+/i, '');
+      if (!token || !this.jwtService) throw new Error('missing token');
+      const payload = await this.jwtService.verifyAsync<{ sub: string; role: string }>(
+        token,
+        { secret: requireSecret('JWT_SECRET') },
+      );
+      (client.data as { user?: SocketUser }).user = {
+        userId: payload.sub,
+        role: payload.role,
+      };
+      this.logger.log(`[EventsGateway] Client connected: ${client.id} (user ${payload.sub})`);
+    } catch {
+      this.logger.warn(`[EventsGateway] Rejected unauthenticated socket ${client.id}`);
+      client.emit('auth_error', { message: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.' });
+      client.disconnect(true);
+    }
   }
 
   handleDisconnect(client: Socket) {
     this.logger.log(`[EventsGateway] Client disconnected: ${client.id}`);
+  }
+
+  private requireUser(client: Socket): SocketUser {
+    const user = (client.data as { user?: SocketUser } | undefined)?.user;
+    if (!user) throw new WsException({ success: false, message: 'Chưa đăng nhập' });
+    return user;
+  }
+
+  private isInstructor(user: SocketUser) {
+    return user.role === 'INSTRUCTOR' || user.role === 'ADMIN';
+  }
+
+  /** Gọi khi tạo một lần chạy thử, để gắn phiên với người tạo. */
+  public registerCustomRunSession(sessionId: string, userId: string) {
+    const now = Date.now();
+    for (const [id, v] of this.customRunOwners) if (v.expiresAt <= now) this.customRunOwners.delete(id);
+    this.customRunOwners.set(sessionId, { userId, expiresAt: now + EventsGateway.CUSTOM_RUN_TTL_MS });
   }
 
   // ─── Submission room ────────────────────────────────────────────────────────
@@ -58,99 +115,67 @@ export class EventsGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() joinSubmissionRoomDto: JoinSubmissionRoomDto,
   ) {
-    try {
-      const { submission_id } = joinSubmissionRoomDto;
-      const roomName = `submission_${submission_id}`;
-      await client.join(roomName);
-      this.logger.log(
-        `[EventsGateway] Client ${client.id} joined room ${roomName}`,
-      );
-
-      const snapshot = this.getSubmissionSnapshot(submission_id);
-      if (snapshot?.progress) {
-        client.emit('submission_progress', snapshot.progress);
+    const user = this.requireUser(client);
+    const { submission_id } = joinSubmissionRoomDto;
+    if (!this.isInstructor(user)) {
+      const owner = await this.prisma?.submission.findUnique({
+        where: { id: submission_id },
+        select: { user_id: true },
+      });
+      if (!owner || owner.user_id !== user.userId) {
+        throw new WsException({ success: false, message: 'Không có quyền xem bài nộp này' });
       }
-      if (snapshot?.status) {
-        client.emit('submission_status_changed', snapshot.status);
-      }
-
-      return { success: true, event: 'joined', room: roomName };
-    } catch (error: any) {
-      this.logger.error(`[EventsGateway] Error joining room: ${error.message}`);
-      throw new WsException({ success: false, message: error.message });
     }
+    const roomName = `submission_${submission_id}`;
+    await client.join(roomName);
+
+    const snapshot = this.getSubmissionSnapshot(submission_id);
+    if (snapshot?.progress) client.emit('submission_progress', snapshot.progress);
+    if (snapshot?.status) client.emit('submission_status_changed', snapshot.status);
+    return { success: true, event: 'joined', room: roomName };
   }
 
   // ─── Admin dashboard room ───────────────────────────────────────────────────
 
   @SubscribeMessage('join_admin_dashboard')
-  handleJoinAdminDashboard(
+  async handleJoinAdminDashboard(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: JoinAdminDashboardDto,
   ) {
-    try {
-      const roomName = `admin_dashboard_${payload.contest_id}`;
-      client.join(roomName);
-      this.logger.log(
-        `[EventsGateway] Admin ${client.id} joined dashboard for contest ${payload.contest_id}`,
-      );
-      return { success: true, event: 'joined_admin', room: roomName };
-    } catch (error: any) {
-      this.logger.error(
-        `[EventsGateway] Error joining admin room: ${error.message}`,
-      );
-      throw new WsException({ success: false, message: error.message });
+    const user = this.requireUser(client);
+    if (!this.isInstructor(user)) {
+      throw new WsException({ success: false, message: 'Chỉ giảng viên được theo dõi kỳ thi' });
     }
+    const roomName = `admin_dashboard_${payload.contest_id}`;
+    await client.join(roomName);
+    return { success: true, event: 'joined_admin', room: roomName };
   }
 
   // ─── Custom run room ────────────────────────────────────────────────────────
 
   @SubscribeMessage('join_custom_run')
-  handleJoinCustomRun(
+  async handleJoinCustomRun(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { session_id: string },
   ) {
-    try {
-      const roomName = `custom_run_${payload.session_id}`;
-      client.join(roomName);
-      this.logger.log(
-        `[EventsGateway] Client ${client.id} joined custom run room ${roomName}`,
-      );
-      return { success: true, event: 'joined_custom_run', room: roomName };
-    } catch (error: any) {
-      this.logger.error(
-        `[EventsGateway] Error joining custom run room: ${error.message}`,
-      );
-      throw new WsException({ success: false, message: error.message });
+    const user = this.requireUser(client);
+    const owner = this.customRunOwners.get(payload?.session_id);
+    if (!owner || owner.expiresAt <= Date.now() || owner.userId !== user.userId) {
+      throw new WsException({ success: false, message: 'Phiên chạy thử không hợp lệ' });
     }
+    const roomName = `custom_run_${payload.session_id}`;
+    await client.join(roomName);
+    return { success: true, event: 'joined_custom_run', room: roomName };
   }
 
   // ─── Per-user notification room ─────────────────────────────────────────────
-  /**
-   * Client gửi { user_id } để join room riêng của mình.
-   * Backend sẽ emit 'notification_received' vào room này khi có thông báo mới.
-   */
+  /** Mỗi socket chỉ vào được phòng thông báo của chính mình (lấy từ JWT, bỏ qua user_id gửi lên). */
   @SubscribeMessage('join_user_room')
-  handleJoinUserRoom(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { user_id: string },
-  ) {
-    try {
-      if (!payload?.user_id) {
-        throw new WsException({ success: false, message: 'Missing user_id' });
-      }
-      const roomName = `user_${payload.user_id}`;
-      client.join(roomName);
-      this.logger.log(
-        `[EventsGateway] Client ${client.id} joined user room ${roomName}`,
-      );
-      return { success: true, event: 'joined_user_room', room: roomName };
-    } catch (error: any) {
-      this.logger.error(
-        `[EventsGateway] Error joining user room: ${error.message}`,
-      );
-      throw new WsException({ success: false, message: error.message });
-    }
+  async handleJoinUserRoom(@ConnectedSocket() client: Socket) {
+    const user = this.requireUser(client);
+    const roomName = `user_${user.userId}`;
+    await client.join(roomName);
+    return { success: true, event: 'joined_user_room', room: roomName };
   }
 
   // ─── Emit helpers ───────────────────────────────────────────────────────────

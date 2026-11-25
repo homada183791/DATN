@@ -5,13 +5,12 @@ import { QueueModule } from '../queue/queue.module';
 
 import { NotificationsModule } from '../notifications/notifications.module';
 import { EventsModule } from '../../events/events.module';
-import { WebhookModule } from '../webhook/webhook.module';
-import { LocalJudgeService } from './local-judge.service';
+import { JudgeRequeueService } from './judge-requeue.service';
 
 @Module({
-  imports: [QueueModule, NotificationsModule, EventsModule, WebhookModule],
+  imports: [QueueModule, NotificationsModule, EventsModule],
   controllers: [SubmissionsController],
-  providers: [SubmissionsService, LocalJudgeService],
-  exports: [SubmissionsService, LocalJudgeService],
+  providers: [SubmissionsService, JudgeRequeueService],
+  exports: [SubmissionsService],
 })
 export class SubmissionsModule {}

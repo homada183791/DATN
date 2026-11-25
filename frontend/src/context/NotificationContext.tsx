@@ -195,6 +195,15 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       socket.emit('join_user_room', { user_id: user.id });
     });
 
+    // Bảng xếp hạng kỳ thi thay đổi (trước đây nghe ở App.tsx, nhưng socket ở đó
+    // được tạo trước khi đăng nhập nên bị backend từ chối vì chưa có token).
+    socket.on('leaderboard_updated', (payload: { contest_id?: string }) => {
+      qc.invalidateQueries({ queryKey: ['contests'] });
+      if (payload?.contest_id) {
+        qc.invalidateQueries({ queryKey: ['contests', payload.contest_id, 'leaderboard'] });
+      }
+    });
+
     socket.on('notification_received', (notification: Notification) => {
       // Prepend new notification to list
       setNotifications((prev) => {

@@ -4,8 +4,11 @@ import { JudgeResultDto } from './dto/judge-result.dto';
 import { JudgeProgressDto } from './dto/judge-progress.dto';
 import { JudgeSecretGuard } from '../../common/guards/judge-secret.guard';
 import { ApiTags, ApiOperation, ApiResponse, ApiHeader } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @ApiTags('Webhook')
+// Judge runner gửi tiến độ từng test liên tục; đã có JudgeSecretGuard nên không giới hạn.
+@SkipThrottle()
 @Controller('webhook')
 export class WebhookController {
   constructor(private readonly webhookService: WebhookService) {}

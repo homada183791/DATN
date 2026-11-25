@@ -4,8 +4,6 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { QueueService } from '../queue/queue.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { EventsGateway } from '../../events/events.gateway';
-import { LocalJudgeService } from './local-judge.service';
-import { WebhookService } from '../webhook/webhook.service';
 import { BadRequestException } from '@nestjs/common';
 import { Language } from '@prisma/client';
 
@@ -24,6 +22,7 @@ describe('SubmissionsService - Language Restriction Tests', () => {
       },
       submission: {
         create: jest.fn().mockResolvedValue({ id: 'sub-1', status: 'PENDING' }),
+        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
       },
     };
 
@@ -43,14 +42,6 @@ describe('SubmissionsService - Language Restriction Tests', () => {
         {
           provide: EventsGateway,
           useValue: { emitSubmissionUpdate: jest.fn(), server: { to: jest.fn().mockReturnThis(), emit: jest.fn() } },
-        },
-        {
-          provide: LocalJudgeService,
-          useValue: { evaluateSubmission: jest.fn(), evaluateCustomRun: jest.fn() },
-        },
-        {
-          provide: WebhookService,
-          useValue: { processJudgeResult: jest.fn() },
         },
       ],
     }).compile();

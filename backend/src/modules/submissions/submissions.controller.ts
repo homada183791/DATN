@@ -45,6 +45,7 @@ export class SubmissionsController {
     return this.submissionsService.findOne(id, req.user.userId, req.user.role);
   }
 
+  @Throttle({ default: { limit: 12, ttl: 60_000 } })
   @Post()
   @ApiOperation({ summary: 'Nộp bài lên hệ thống để chấm' })
   @ApiResponse({

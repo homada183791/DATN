@@ -9,7 +9,9 @@ export interface ThemeDef {
 }
 
 export const THEMES: ThemeDef[] = [
-  { id: 'nord', name: 'Nord', desc: 'Mặc định • Bắc cực xanh băng', dark: true, sw: ['#242933', '#2e3440', '#88c0d0'] },
+  { id: 'forest', name: 'Forest Paper', desc: 'Mặc định • Giấy ấm + xanh rừng', dark: false, sw: ['#f7f5ef', '#ffffff', '#1f5c46'] },
+  { id: 'forest-night', name: 'Forest Night', desc: 'Nền tối dịu mắt cho vùng code', dark: true, sw: ['#0e1513', '#121a17', '#5fd3a6'] },
+  { id: 'nord', name: 'Nord', desc: 'Bắc cực xanh băng', dark: true, sw: ['#242933', '#2e3440', '#88c0d0'] },
   { id: 'ember', name: 'Ember', desc: 'Than ấm + hổ phách', dark: true, sw: ['#161210', '#1f1915', '#f5a524'] },
   { id: 'midnight', name: 'Midnight Teal', desc: 'IDE workspace nguyên bản', dark: true, sw: ['#0a0f0e', '#101716', '#2dd4bf'] },
   { id: 'sakura', name: 'Sakura', desc: 'Mận thẫm + hồng anh đào', dark: true, sw: ['#18121d', '#211827', '#f472b6'] },
@@ -30,13 +32,20 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [themeId, setThemeIdState] = useState<string>(() => {
+    // Lần đầu sau khi ra mắt giao diện Forest Paper: chuyển mọi người sang theme mới một lần.
+    // Sau đó người dùng đổi theme nào thì giữ theme đó như cũ.
+    if (!localStorage.getItem('jh-theme-forest-v1')) {
+      localStorage.setItem('jh-theme-forest-v1', '1');
+      localStorage.setItem('jh-theme', 'forest');
+      return 'forest';
+    }
     const saved = localStorage.getItem('jh-theme');
-    return THEMES.some((t) => t.id === saved) ? (saved as string) : 'nord';
+    return THEMES.some((t) => t.id === saved) ? (saved as string) : 'forest';
   });
 
   /* nhớ theme dark/light cuối cùng người dùng đã chọn */
-  const [lastDark, setLastDark] = useState<string>(() => localStorage.getItem('jh-theme-dark') || 'nord');
-  const [lastLight, setLastLight] = useState<string>(() => localStorage.getItem('jh-theme-light') || 'paper');
+  const [lastDark, setLastDark] = useState<string>(() => localStorage.getItem('jh-theme-dark') || 'forest-night');
+  const [lastLight, setLastLight] = useState<string>(() => localStorage.getItem('jh-theme-light') || 'forest');
 
   const theme = THEMES.find((t) => t.id === themeId) ?? THEMES[0];
   const dark = theme.dark;
@@ -95,7 +104,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
 export function useTheme() {
   const ctx = useContext(ThemeContext);
-  const fallback = THEMES.find((t) => t.id === 'nord') ?? THEMES[0];
-  if (!ctx) return { theme: fallback, dark: true, setThemeId: () => {}, toggleTheme: () => {}, themes: THEMES };
+  const fallback = THEMES.find((t) => t.id === 'forest') ?? THEMES[0];
+  if (!ctx) return { theme: fallback, dark: false, setThemeId: () => {}, toggleTheme: () => {}, themes: THEMES };
   return ctx;
 }

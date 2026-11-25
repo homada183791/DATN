@@ -201,27 +201,27 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
       {/* Sidebar */}
       {!lockdown && (
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-[#f0ebd9] border-r border-[#e5dac9] transition-all duration-300 lg:sticky lg:top-0 lg:h-screen lg:self-start lg:shrink-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-(--ws-panel) border-r border-(--ws-border) transition-all duration-300 lg:sticky lg:top-0 lg:h-screen lg:self-start lg:shrink-0 ${
           sidebarOpen ? 'w-52' : 'w-20'
         } ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         {/* Logo */}
-        <div className="flex items-center h-16 px-4 border-b border-[#e5dac9]">
+        <div className="flex items-center h-16 px-4 border-b border-(--ws-border-soft)">
           <div className="flex items-center gap-3 overflow-hidden w-full">
             <div className="shrink-0 w-10 h-10 border-[#e5dac9] rounded-xl flex items-center justify-center overflow-hidden">
               <img src="/logo-hcmus.png" alt="HCMUS logo" className="w-full h-full object-contain p-1" />
             </div>
             {sidebarOpen && (
               <div className="leading-tight whitespace-nowrap">
-                <p className="text-[17px] font-bold text-[#191919] font-serif tracking-tight">JudgeHub</p>
-                <p className="text-[10.5px] text-[#8a8073]">University Of Science</p>
+                <p className="text-[17px] font-bold text-(--ws-text) font-serif tracking-tight">JudgeHub</p>
+                <p className="text-[11px] text-(--ws-muted)">University of Science</p>
               </div>
             )}
           </div>
         </div>
 
         {/* Nav Items */}
-        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+        <nav aria-label="Điều hướng chính" className="flex-1 py-4 px-3 space-y-0.5 overflow-y-auto">
           {items.map((item) => {
             const isActive =
               location.pathname === item.path ||
@@ -234,17 +234,19 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                 key={item.path}
                 to={item.path}
                 onClick={() => setMobileSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${
+                aria-current={isActive ? 'page' : undefined}
+                title={sidebarOpen ? undefined : item.label}
+                className={`flex items-center gap-3 px-3 min-h-11 rounded-lg transition-colors duration-150 group ${
                   isActive
-                    ? 'bg-[#e5dac9] text-[#193a2b] font-medium border border-[#d8cfbe]'
-                    : 'text-[#5c5446] hover:bg-[#eadecc]/60 hover:text-[#191919] border border-transparent'
+                    ? 'bg-(--ws-accent-soft) text-(--ws-accent) font-semibold'
+                    : 'text-(--ws-muted) hover:bg-(--ws-hover) hover:text-(--ws-text)'
                 }`}
               >
-                <span className={`shrink-0 ${isActive ? 'text-[#193a2b]' : 'text-[#8a8073] group-hover:text-[#191919]'}`}>
+                <span className={`shrink-0 ${isActive ? 'text-(--ws-accent)' : 'text-(--ws-muted) group-hover:text-(--ws-text)'}`}>
                   {item.icon}
                 </span>
                 {sidebarOpen && (
-                  <span className="text-sm font-medium whitespace-nowrap">{item.label}</span>
+                  <span className="text-sm whitespace-nowrap">{item.label}</span>
                 )}
               </Link>
             );
@@ -252,13 +254,13 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
         </nav>
 
         {/* User Info */}
-        <div className="border-t border-[#e5dac9] p-3 bg-[#eadecc]/20">
+        <div className="border-t border-(--ws-border-soft) p-3">
           <Link
             to={user?.role === 'instructor' ? '/instructor/profile' : '/student/profile'}
             onClick={() => setMobileSidebarOpen(false)}
-            className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#eadecc]/60 transition-colors"
+            className="flex items-center gap-3 px-3 py-2 rounded-xl border border-(--ws-border) hover:bg-(--ws-hover) transition-colors"
           >
-            <div className="shrink-0 w-9 h-9 bg-linear-to-br from-[#193a2b] to-[#2d5a3f] rounded-full flex items-center justify-center text-white font-bold text-sm overflow-hidden">
+            <div className="shrink-0 w-9 h-9 bg-(--ws-accent) rounded-full flex items-center justify-center text-(--ws-panel) font-bold text-sm overflow-hidden">
               {user?.avatar ? (
                 <img src={user.avatar} alt={user.fullName || user.username} className="w-full h-full object-cover" />
               ) : (
@@ -267,8 +269,8 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
             </div>
             {sidebarOpen && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-[#191919] truncate">{user?.fullName || user?.username}</p>
-                <p className="text-xs text-[#8a8073] truncate">{user?.role === 'instructor' ? t('personal.roleInstructor') : t('personal.roleStudent')}</p>
+                <p className="text-sm font-semibold text-(--ws-text) truncate">{user?.fullName || user?.username}</p>
+                <p className="text-xs text-(--ws-muted) truncate">{user?.role === 'instructor' ? t('personal.roleInstructor') : t('personal.roleStudent')}</p>
               </div>
             )}
           </Link>
@@ -280,7 +282,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Bar */}
         {!lockdown && (
-        <header className="sticky top-0 z-50 h-16 shrink-0 bg-[#f7f4eb]/80 backdrop-blur-xl border-b border-[#e5dac9] flex items-center px-4 lg:px-6 gap-3">
+        <header className="sticky top-0 z-50 h-16 shrink-0 bg-(--ws-bg) border-b border-(--ws-border) flex items-center px-4 lg:px-6 gap-3">
           <button
             onClick={() => {
               if (window.innerWidth < 1024) {
@@ -289,7 +291,8 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                 setSidebarOpen(!sidebarOpen);
               }
             }}
-            className="p-2 rounded-lg text-[#5c5446] hover:bg-[#eadecc]/60 hover:text-[#191919] transition-colors"
+            aria-label={sidebarOpen ? 'Thu gọn menu' : 'Mở rộng menu'}
+            className="w-11 h-11 flex items-center justify-center rounded-lg text-(--ws-muted) hover:bg-(--ws-hover) hover:text-(--ws-text) transition-colors"
           >
             {mobileSidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -316,7 +319,8 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
               onFocus={() => setSearchOpen(true)}
               onBlur={() => setTimeout(() => setSearchOpen(false), 150)}
               placeholder={t('topbar.searchPlaceholder')}
-              className="w-48 lg:w-72 pl-9 pr-10 py-2 bg-[#f0ebd9] border border-[#e5dac9] rounded-lg text-[13px] text-[#191919] placeholder-[#bfae99] focus:outline-none focus:border-[#193a2b]"
+              aria-label={t('topbar.searchPlaceholder')}
+              className="w-48 lg:w-72 h-10 pl-9 pr-10 bg-(--ws-panel) border border-(--ws-border) rounded-lg text-[13px] text-(--ws-text) placeholder:text-(--ws-faint) focus:outline-none focus:border-(--ws-accent)"
             />
             <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0.5 rounded border border-[#e5dac9] text-[#8a8073] font-mono">⌘K</kbd>
             {searchOpen && query && (

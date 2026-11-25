@@ -77,14 +77,15 @@ html { background: #0a0f0e; }
 body {
   margin: 0;
   color: #e6efeb;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-y: scroll;
 }
 
 /* Distinctive display face for headings */
 .font-serif {
-  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif !important;
+  /* Be Vietnam Pro hiển thị đủ dấu tiếng Việt ở mọi cỡ chữ tiêu đề. */
+  font-family: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif !important;
   letter-spacing: -0.015em;
 }
 
@@ -162,42 +163,42 @@ tr, .group { transition: background-color .14s ease; }
    ============================================================ */
 
 /* --- backgrounds --- */
-:is(.ws-dark, .theme-frost) .bg-white { background-color: var(--ws-panel); }
-:is(.ws-dark, .theme-frost) .bg-\[\#fbf9f4\],
-:is(.ws-dark, .theme-frost) .bg-\[\#fbf9f4\]\/30,
-:is(.ws-dark, .theme-frost) .bg-\[\#fbf9f4\]\/50,
-:is(.ws-dark, .theme-frost) .bg-\[\#fbf9f4\]\/60,
-:is(.ws-dark, .theme-frost) .bg-\[\#fbf9f4\]\/70,
-:is(.ws-dark, .theme-frost) .bg-\[\#fbf9f4\]\/80,
-:is(.ws-dark, .theme-frost) .bg-\[\#f7f4eb\],
-:is(.ws-dark, .theme-frost) .bg-\[\#f7f4eb\]\/30,
-:is(.ws-dark, .theme-frost) .bg-\[\#f7f4eb\]\/50,
-:is(.ws-dark, .theme-frost) .bg-\[\#f7f4eb\]\/60,
-:is(.ws-dark, .theme-frost) .bg-\[\#f7f4eb\]\/70,
-:is(.ws-dark, .theme-frost) .bg-\[\#f7f4eb\]\/80,
-:is(.ws-dark, .theme-frost) .bg-\[\#f0ebd9\],
-:is(.ws-dark, .theme-frost) .bg-\[\#f0ebd9\]\/30,
-:is(.ws-dark, .theme-frost) .bg-\[\#f0ebd9\]\/40,
-:is(.ws-dark, .theme-frost) .bg-\[\#f0ebd9\]\/50 { background-color: var(--ws-panel2); }
-:is(.ws-dark, .theme-frost) .bg-\[\#e5dac9\] { background-color: var(--ws-border); }
-:is(.ws-dark, .theme-frost) .bg-\[\#eadecc\]\/60 { background-color: var(--ws-accent-soft); }
-:is(.ws-dark, .theme-frost) .bg-\[\#eadecc\]\/20 { background-color: var(--ws-accent-soft); }
-:is(.ws-dark, .theme-frost) .bg-\[\#d8cfbe\] { background-color: var(--ws-border); }
-:is(.ws-dark, .theme-frost) .bg-\[\#193a2b\] { background-color: var(--ws-accent-strong); }
-:is(.ws-dark, .theme-frost) .bg-\[\#193a2b\]\/10 { background-color: var(--ws-accent-soft); }
-:is(.ws-dark, .theme-frost) .bg-\[\#193a2b\]\/20 { background-color: var(--ws-accent-soft); }
-:is(.ws-dark, .theme-frost) .bg-\[\#cc5a37\]\/10 { background-color: rgba(204, 90, 55, 0.14); }
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-white { background-color: var(--ws-panel); }
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#fbf9f4\],
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#fbf9f4\]\/30,
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#fbf9f4\]\/50,
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#fbf9f4\]\/60,
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#fbf9f4\]\/70,
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#fbf9f4\]\/80,
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#f7f4eb\],
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#f7f4eb\]\/30,
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#f7f4eb\]\/50,
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#f7f4eb\]\/60,
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#f7f4eb\]\/70,
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#f7f4eb\]\/80,
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#f0ebd9\],
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#f0ebd9\]\/30,
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#f0ebd9\]\/40,
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#f0ebd9\]\/50 { background-color: var(--ws-panel2); }
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#e5dac9\] { background-color: var(--ws-border); }
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#eadecc\]\/60 { background-color: var(--ws-accent-soft); }
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#eadecc\]\/20 { background-color: var(--ws-accent-soft); }
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#d8cfbe\] { background-color: var(--ws-border); }
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#193a2b\] { background-color: var(--ws-accent-strong); }
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#193a2b\]\/10 { background-color: var(--ws-accent-soft); }
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#193a2b\]\/20 { background-color: var(--ws-accent-soft); }
+:is(.ws-dark, .theme-frost, .theme-forest) .bg-\[\#cc5a37\]\/10 { background-color: rgba(204, 90, 55, 0.14); }
 
-:is(.ws-dark, .theme-frost) .hover\:bg-\[\#fbf9f4\]:hover,
-:is(.ws-dark, .theme-frost) .hover\:bg-\[\#f7f4eb\]:hover,
-:is(.ws-dark, .theme-frost) .hover\:bg-\[\#f7f4eb\]\/50:hover,
-:is(.ws-dark, .theme-frost) .hover\:bg-\[\#f0ebd9\]:hover,
-:is(.ws-dark, .theme-frost) .hover\:bg-\[\#f0ebd9\]\/30:hover,
-:is(.ws-dark, .theme-frost) .hover\:bg-\[\#f0ebd9\]\/50:hover,
-:is(.ws-dark, .theme-frost) .hover\:bg-\[\#e5dac9\]:hover { background-color: var(--ws-hover); }
-:is(.ws-dark, .theme-frost) .hover\:bg-\[\#143022\]:hover { background-color: var(--ws-accent-strong); }
-:is(.ws-dark, .theme-frost) .hover\:bg-\[\#eadecc\]\/60:hover { background-color: var(--ws-hover); }
-:is(.ws-dark, .theme-frost) .hover\:bg-\[\#193a2b\]:hover { background-color: var(--ws-accent); }
+:is(.ws-dark, .theme-frost, .theme-forest) .hover\:bg-\[\#fbf9f4\]:hover,
+:is(.ws-dark, .theme-frost, .theme-forest) .hover\:bg-\[\#f7f4eb\]:hover,
+:is(.ws-dark, .theme-frost, .theme-forest) .hover\:bg-\[\#f7f4eb\]\/50:hover,
+:is(.ws-dark, .theme-frost, .theme-forest) .hover\:bg-\[\#f0ebd9\]:hover,
+:is(.ws-dark, .theme-frost, .theme-forest) .hover\:bg-\[\#f0ebd9\]\/30:hover,
+:is(.ws-dark, .theme-frost, .theme-forest) .hover\:bg-\[\#f0ebd9\]\/50:hover,
+:is(.ws-dark, .theme-frost, .theme-forest) .hover\:bg-\[\#e5dac9\]:hover { background-color: var(--ws-hover); }
+:is(.ws-dark, .theme-frost, .theme-forest) .hover\:bg-\[\#143022\]:hover { background-color: var(--ws-accent-strong); }
+:is(.ws-dark, .theme-frost, .theme-forest) .hover\:bg-\[\#eadecc\]\/60:hover { background-color: var(--ws-hover); }
+:is(.ws-dark, .theme-frost, .theme-forest) .hover\:bg-\[\#193a2b\]:hover { background-color: var(--ws-accent); }
 
 /* status chips → translucent on dark */
 .ws-dark .bg-emerald-100,
@@ -220,20 +221,20 @@ tr, .group { transition: background-color .14s ease; }
 .ws-dark .bg-slate-50 { background-color: rgba(148, 163, 184, 0.15); }
 
 /* --- borders --- */
-:is(.ws-dark, .theme-frost) .border-\[\#e5dac9\],
-:is(.ws-dark, .theme-frost) .border-\[\#e5dac9\]\/30,
-:is(.ws-dark, .theme-frost) .border-\[\#e5dac9\]\/40,
-:is(.ws-dark, .theme-frost) .border-\[\#e5dac9\]\/50,
-:is(.ws-dark, .theme-frost) .border-\[\#e5dac9\]\/60,
-:is(.ws-dark, .theme-frost) .border-\[\#f0ebd9\],
-:is(.ws-dark, .theme-frost) .border-\[\#f0ebd9\]\/50,
-:is(.ws-dark, .theme-frost) .border-\[\#f0ebd9\]\/60,
-:is(.ws-dark, .theme-frost) .border-\[\#d8cfbe\] { border-color: var(--ws-border); }
-:is(.ws-dark, .theme-frost) .border-\[\#193a2b\]\/30 { border-color: var(--ws-border-soft); }
-:is(.ws-dark, .theme-frost) .hover\:border-\[\#193a2b\]\/30:hover,
-:is(.ws-dark, .theme-frost) .hover\:border-\[\#193a2b\]\/40:hover { border-color: var(--ws-accent); }
-:is(.ws-dark, .theme-frost) .hover\:border-\[\#bfae99\]:hover { border-color: var(--ws-border); }
-:is(.ws-dark, .theme-frost) .divide-\[\#e5dac9\]\/60 > :not([hidden]) ~ :not([hidden]) { border-color: var(--ws-border); }
+:is(.ws-dark, .theme-frost, .theme-forest) .border-\[\#e5dac9\],
+:is(.ws-dark, .theme-frost, .theme-forest) .border-\[\#e5dac9\]\/30,
+:is(.ws-dark, .theme-frost, .theme-forest) .border-\[\#e5dac9\]\/40,
+:is(.ws-dark, .theme-frost, .theme-forest) .border-\[\#e5dac9\]\/50,
+:is(.ws-dark, .theme-frost, .theme-forest) .border-\[\#e5dac9\]\/60,
+:is(.ws-dark, .theme-frost, .theme-forest) .border-\[\#f0ebd9\],
+:is(.ws-dark, .theme-frost, .theme-forest) .border-\[\#f0ebd9\]\/50,
+:is(.ws-dark, .theme-frost, .theme-forest) .border-\[\#f0ebd9\]\/60,
+:is(.ws-dark, .theme-frost, .theme-forest) .border-\[\#d8cfbe\] { border-color: var(--ws-border); }
+:is(.ws-dark, .theme-frost, .theme-forest) .border-\[\#193a2b\]\/30 { border-color: var(--ws-border-soft); }
+:is(.ws-dark, .theme-frost, .theme-forest) .hover\:border-\[\#193a2b\]\/30:hover,
+:is(.ws-dark, .theme-frost, .theme-forest) .hover\:border-\[\#193a2b\]\/40:hover { border-color: var(--ws-accent); }
+:is(.ws-dark, .theme-frost, .theme-forest) .hover\:border-\[\#bfae99\]:hover { border-color: var(--ws-border); }
+:is(.ws-dark, .theme-frost, .theme-forest) .divide-\[\#e5dac9\]\/60 > :not([hidden]) ~ :not([hidden]) { border-color: var(--ws-border); }
 .ws-dark .border-emerald-200,
 .ws-dark .border-emerald-300 { border-color: rgba(16, 185, 129, 0.35); }
 .ws-dark .border-red-200,
@@ -254,14 +255,14 @@ tr, .group { transition: background-color .14s ease; }
 .ws-dark .border-slate-300 { border-color: rgba(148, 163, 184, 0.3); }
 
 /* --- text --- */
-:is(.ws-dark, .theme-frost) .text-\[\#191919\] { color: var(--ws-text); }
-:is(.ws-dark, .theme-frost) .text-\[\#5c5446\] { color: var(--ws-text); opacity: 0.88; }
-:is(.ws-dark, .theme-frost) .text-\[\#8a8073\] { color: var(--ws-muted); }
-:is(.ws-dark, .theme-frost) .text-\[\#bfae99\] { color: var(--ws-faint); }
-:is(.ws-dark, .theme-frost) .text-\[\#193a2b\] { color: var(--ws-accent); }
-:is(.ws-dark, .theme-frost) .hover\:text-\[\#191919\]:hover { color: var(--ws-text); }
-:is(.ws-dark, .theme-frost) .hover\:text-\[\#193a2b\]:hover { color: var(--ws-accent); }
-:is(.ws-dark, .theme-frost) .placeholder-\[\#bfae99\]::placeholder { color: var(--ws-faint); }
+:is(.ws-dark, .theme-frost, .theme-forest) .text-\[\#191919\] { color: var(--ws-text); }
+:is(.ws-dark, .theme-frost, .theme-forest) .text-\[\#5c5446\] { color: var(--ws-text); opacity: 0.88; }
+:is(.ws-dark, .theme-frost, .theme-forest) .text-\[\#8a8073\] { color: var(--ws-muted); }
+:is(.ws-dark, .theme-frost, .theme-forest) .text-\[\#bfae99\] { color: var(--ws-faint); }
+:is(.ws-dark, .theme-frost, .theme-forest) .text-\[\#193a2b\] { color: var(--ws-accent); }
+:is(.ws-dark, .theme-frost, .theme-forest) .hover\:text-\[\#191919\]:hover { color: var(--ws-text); }
+:is(.ws-dark, .theme-frost, .theme-forest) .hover\:text-\[\#193a2b\]:hover { color: var(--ws-accent); }
+:is(.ws-dark, .theme-frost, .theme-forest) .placeholder-\[\#bfae99\]::placeholder { color: var(--ws-faint); }
 
 /* chip text → bright variants on dark */
 .ws-dark .text-emerald-800 { color: #6ee7b7; }
@@ -290,8 +291,8 @@ tr, .group { transition: background-color .14s ease; }
 .ws-dark .text-slate-700 { color: #cbd5e1; }
 
 /* --- gradients (avatars / accents) --- */
-:is(.ws-dark, .theme-frost) .from-\[\#193a2b\] { --tw-gradient-from: var(--ws-accent-strong); }
-:is(.ws-dark, .theme-frost) .to-\[\#2d5a3f\] { --tw-gradient-to: var(--ws-accent); }
+:is(.ws-dark, .theme-frost, .theme-forest) .from-\[\#193a2b\] { --tw-gradient-from: var(--ws-accent-strong); }
+:is(.ws-dark, .theme-frost, .theme-forest) .to-\[\#2d5a3f\] { --tw-gradient-to: var(--ws-accent); }
 
 /* ================= Animations ================= */
 
@@ -558,3 +559,98 @@ tr, .group { transition: background-color .14s ease; }
 .theme-frost .tok-num { color: #7c3aed; }
 .theme-frost .tok-fn  { color: #0284c7; }
 .theme-frost .tok-pp  { color: #0369a1; }
+
+
+/* ================= Forest Paper (mặc định) =================
+   Giao diện sáng: giấy ấm + xanh rừng. Vùng làm bài dùng Forest Night.
+   Token đặt theo mục đích (bg, panel, text, muted, accent...), không theo màu.
+   Thêm nhóm --ws-verdict-* cho nhãn kết quả chấm (AC/WA/TLE/CE):
+   mỗi cặp khác nhau cả về độ sáng, không chỉ khác sắc màu. */
+.theme-forest {
+  --ws-bg: #f7f5ef;
+  --ws-panel: #ffffff;
+  --ws-panel2: #efece3;
+  --ws-border: #e2ddd0;
+  --ws-border-soft: #ede9df;
+  --ws-text: #16201c;
+  --ws-muted: #5e6a64;
+  --ws-faint: #7d8a83;
+  --ws-accent: #1f5c46;
+  --ws-accent-strong: #174634;
+  --ws-accent-soft: #e7f0eb;
+  --ws-editor: #fbfaf6;
+  --ws-gutter: #a2aca7;
+  --ws-hover: #efece3;
+  --ws-danger: #b42318;
+  --ws-warn: #b4570a;
+  --ws-ok: #1e7a4c;
+
+  --ws-hw-dot: #1f5c46;
+  --ws-hw-text: #174634;
+  --ws-hw-bg: #e7f0eb;
+  --ws-hw-border: #b9d6c6;
+  --ws-contest-dot: #b4570a;
+  --ws-contest-text: #8a4b08;
+  --ws-contest-bg: #fbf0e0;
+  --ws-contest-border: #f1d3a6;
+
+  --ws-verdict-ac-fg: #17603d;  --ws-verdict-ac-bg: #e6f2ec;
+  --ws-verdict-wa-fg: #a11f1f;  --ws-verdict-wa-bg: #fbeaea;
+  --ws-verdict-tle-fg: #8a4b08; --ws-verdict-tle-bg: #fbf0e0;
+  --ws-verdict-ce-fg: #2b4c8c;  --ws-verdict-ce-bg: #e9eef7;
+}
+.theme-forest .tok-kw  { color: #7a3e9d; }
+.theme-forest .tok-ty  { color: #1f5c46; }
+.theme-forest .tok-str { color: #8a4b08; }
+.theme-forest .tok-com { color: #7d8a83; font-style: italic; }
+.theme-forest .tok-num { color: #a11f1f; }
+.theme-forest .tok-fn  { color: #2b4c8c; }
+.theme-forest .tok-pp  { color: #17603d; }
+
+.theme-forest-night {
+  --ws-bg: #0e1513;
+  --ws-panel: #121a17;
+  --ws-panel2: #18221f;
+  --ws-border: #24312c;
+  --ws-border-soft: #1c2824;
+  --ws-text: #e4ece8;
+  --ws-muted: #93a69e;
+  --ws-faint: #6b7f77;
+  --ws-accent: #5fd3a6;
+  --ws-accent-strong: #3db88b;
+  --ws-accent-soft: rgba(95, 211, 166, 0.12);
+  --ws-editor: #0b110f;
+  --ws-gutter: #4e6159;
+  --ws-hover: #1a2521;
+  --ws-danger: #f07178;
+  --ws-warn: #f0c77a;
+  --ws-ok: #3dbe8b;
+
+  --ws-hw-dot: #5fd3a6;
+  --ws-hw-text: #8fe6c2;
+  --ws-hw-bg: rgba(95, 211, 166, 0.12);
+  --ws-hw-border: rgba(95, 211, 166, 0.3);
+  --ws-contest-dot: #f0c77a;
+  --ws-contest-text: #f5d79c;
+  --ws-contest-bg: rgba(240, 199, 122, 0.12);
+  --ws-contest-border: rgba(240, 199, 122, 0.3);
+
+  --ws-verdict-ac-fg: #8fe6c2;  --ws-verdict-ac-bg: rgba(61, 190, 139, 0.16);
+  --ws-verdict-wa-fg: #ff9c9c;  --ws-verdict-wa-bg: rgba(240, 113, 120, 0.16);
+  --ws-verdict-tle-fg: #f5d79c; --ws-verdict-tle-bg: rgba(240, 199, 122, 0.16);
+  --ws-verdict-ce-fg: #a9c1f2;  --ws-verdict-ce-bg: rgba(130, 170, 255, 0.16);
+}
+.theme-forest-night .tok-kw  { color: #c792ea; }
+.theme-forest-night .tok-ty  { color: #82aaff; }
+.theme-forest-night .tok-str { color: #c3e88d; }
+.theme-forest-night .tok-com { color: #6b7f77; font-style: italic; }
+.theme-forest-night .tok-num { color: #f78c6c; }
+.theme-forest-night .tok-fn  { color: #8fe6c2; }
+.theme-forest-night .tok-pp  { color: #89ddff; }
+
+/* Nhãn kết quả chấm dùng chung (cho các theme chưa khai báo thì lấy màu mặc định). */
+.verdict { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; font-weight: 500; }
+.verdict-ac  { color: var(--ws-verdict-ac-fg, #17603d);  background: var(--ws-verdict-ac-bg, #e6f2ec); }
+.verdict-wa  { color: var(--ws-verdict-wa-fg, #a11f1f);  background: var(--ws-verdict-wa-bg, #fbeaea); }
+.verdict-tle { color: var(--ws-verdict-tle-fg, #8a4b08); background: var(--ws-verdict-tle-bg, #fbf0e0); }
+.verdict-ce  { color: var(--ws-verdict-ce-fg, #2b4c8c);  background: var(--ws-verdict-ce-bg, #e9eef7); }

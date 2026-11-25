@@ -2,14 +2,17 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { isAllowedOrigin, requireSecret } from './common/config/secrets';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  // Dừng ngay nếu thiếu secret, thay vì chạy với khóa mặc định đoán được.
+  requireSecret('JWT_SECRET');
+  requireSecret('JUDGE_SECRET');
 
   app.enableCors({
     origin: (origin, callback) => {
-      const allowedOrigins = process.env.CORS_ORIGIN?.split(',') ?? ['http://localhost:5173', 'http://localhost:5174'];
-      if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin) || allowedOrigins.includes(origin)) {
+      if (isAllowedOrigin(origin)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));

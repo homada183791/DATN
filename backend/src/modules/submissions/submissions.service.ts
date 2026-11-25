@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   BadRequestException,
   Logger,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { QueueService } from '../queue/queue.service';
@@ -14,8 +15,6 @@ import { RunCustomCodeDto } from './dto/run-custom-code.dto';
 import { GradeSubmissionDto } from './dto/grade-submission.dto';
 import { Role, SubmissionStatus } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
-import { LocalJudgeService } from './local-judge.service';
-import { WebhookService } from '../webhook/webhook.service';
 
 @Injectable()
 export class SubmissionsService {
@@ -26,9 +25,18 @@ export class SubmissionsService {
     private readonly queueService: QueueService,
     private readonly notificationsService: NotificationsService,
     private readonly eventsGateway: EventsGateway,
-    private readonly localJudgeService: LocalJudgeService,
-    private readonly webhookService: WebhookService,
   ) {}
+
+  /**
+   * Đánh dấu bài đã vào hàng đợi. Chỉ đổi khi vẫn còn PENDING để không ghi đè
+   * kết quả nếu webhook chấm xong trước khi lệnh này chạy.
+   */
+  private async markInQueue(submissionId: string) {
+    await this.prisma.submission.updateMany({
+      where: { id: submissionId, status: SubmissionStatus.PENDING },
+      data: { status: SubmissionStatus.IN_QUEUE },
+    });
+  }
 
   async findAll(userId: string, userRole: Role, problemId?: string) {
     type SubmissionListRow = {
@@ -366,61 +374,13 @@ export class SubmissionsService {
     // B4: Gọi hàm publishJudgeJob của QueueService
     const dispatched = await this.queueService.publishJudgeJob(payload);
 
-    if (!dispatched) {
-      setTimeout(() => {
-        void (async () => {
-          try {
-            const check = await this.prisma.submission.findUnique({
-              where: { id: submission.id },
-              select: { status: true },
-            });
-            if (
-              check &&
-              (check.status === 'PENDING' || check.status === 'IN_QUEUE')
-            ) {
-              this.logger.log(
-                `[JudgeFallback] Queue publish failed for ${submission.id}. Executing via LocalJudgeService...`,
-              );
-              const evalResult =
-                await this.localJudgeService.evaluateSubmission(
-                  {
-                    language,
-                    language_version: createSubmissionDto.language_version,
-                    source_code,
-                    time_limit: problem.time_limit,
-                    memory_limit: problem.memory_limit,
-                    test_cases: problem.test_cases,
-                  },
-                  (progress) => {
-                    this.eventsGateway.emitSubmissionProgress(
-                      submission.id,
-                      progress,
-                    );
-                  },
-                );
-
-              await this.webhookService.processJudgeResult({
-                is_custom: false,
-                submission_id: submission.id,
-                status: evalResult.status as SubmissionStatus,
-                execution_time: evalResult.execution_time,
-                memory_used: evalResult.memory_used,
-                test_results: evalResult.test_results.map((result) => ({
-                  ...result,
-                  status: result.status as SubmissionStatus,
-                })),
-              });
-            }
-          } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : String(err);
-            const stack = err instanceof Error ? err.stack : undefined;
-            this.logger.error(
-              `[JudgeFallback] Failed to evaluate submission ${submission.id}: ${message}`,
-              stack,
-            );
-          }
-        })();
-      }, 100);
+    if (dispatched) {
+      await this.markInQueue(submission.id);
+    } else {
+      // Không chấm ngoài sandbox: bài nộp giữ PENDING, JudgeRequeueService sẽ gửi lại vào hàng đợi.
+      this.logger.warn(
+        `[Judge] Queue publish failed for ${submission.id}; will be retried by requeue job.`,
+      );
     }
 
     // B5: Trả về cho frontend
@@ -435,6 +395,8 @@ export class SubmissionsService {
   async runCustomCode(userId: string, dto: RunCustomCodeDto) {
     const { language, source_code, custom_input = '' } = dto;
     const sessionId = randomUUID();
+    // Gắn phiên chạy thử với người tạo, để chỉ họ vào được phòng nhận kết quả.
+    this.eventsGateway.registerCustomRunSession(sessionId, userId);
 
     this.logger.log(
       `[CustomRun] User ${userId} — session=${sessionId}, lang=${language}`,
@@ -454,35 +416,9 @@ export class SubmissionsService {
       const dispatched = await this.queueService.publishJudgeJob(payload);
 
       if (!dispatched) {
-        setTimeout(() => {
-          void (async () => {
-            try {
-              const evalResult = await this.localJudgeService.evaluateCustomRun(
-                {
-                  language,
-                  language_version: dto.language_version,
-                  source_code,
-                  custom_input,
-                },
-              );
-
-              await this.webhookService.processJudgeResult({
-                is_custom: true,
-                session_id: sessionId,
-                status: evalResult.status as SubmissionStatus,
-                stdout: evalResult.stdout,
-                stderr: evalResult.stderr,
-                execution_time: evalResult.execution_time,
-                memory_used: evalResult.memory_used,
-              });
-            } catch (err: unknown) {
-              const message = err instanceof Error ? err.message : String(err);
-              this.logger.error(
-                `[CustomRunFallback] Failed session ${sessionId}: ${message}`,
-              );
-            }
-          })();
-        }, 100);
+        throw new ServiceUnavailableException(
+          'Hệ thống chấm đang bận, vui lòng thử chạy lại sau ít phút.',
+        );
       }
 
       return {
@@ -594,50 +530,12 @@ export class SubmissionsService {
       test_cases: submission.problem.test_cases,
     });
 
-    if (!dispatched) {
-      setTimeout(() => {
-        void (async () => {
-          try {
-            const check = await this.prisma.submission.findUnique({
-              where: { id },
-              select: { status: true },
-            });
-            if (
-              check &&
-              (check.status === 'PENDING' || check.status === 'IN_QUEUE')
-            ) {
-              this.logger.log(
-                `[JudgeFallback] Queue publish failed; rejudging submission ${id} locally...`,
-              );
-              const evalResult =
-                await this.localJudgeService.evaluateSubmission({
-                  language: submission.language,
-                  source_code: submission.source_code,
-                  time_limit: submission.problem.time_limit,
-                  memory_limit: submission.problem.memory_limit,
-                  test_cases: submission.problem.test_cases,
-                });
-
-              await this.webhookService.processJudgeResult({
-                is_custom: false,
-                submission_id: id,
-                status: evalResult.status as SubmissionStatus,
-                execution_time: evalResult.execution_time,
-                memory_used: evalResult.memory_used,
-                test_results: evalResult.test_results.map((result) => ({
-                  ...result,
-                  status: result.status as SubmissionStatus,
-                })),
-              });
-            }
-          } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : String(err);
-            this.logger.error(
-              `[JudgeFallback] Failed to rejudge ${id}: ${message}`,
-            );
-          }
-        })();
-      }, 100);
+    if (dispatched) {
+      await this.markInQueue(id);
+    } else {
+      this.logger.warn(
+        `[Judge] Queue publish failed while rejudging ${id}; will be retried by requeue job.`,
+      );
     }
 
     // Phát socket update

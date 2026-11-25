@@ -31,6 +31,9 @@ export function createSocket(opts?: Partial<ManagerOptions & SocketOptions>): So
   return io(url, {
     transports: ['websocket', 'polling'],
     timeout: 10000,
+    // Backend xác thực JWT ngay khi kết nối. Dùng hàm để mỗi lần kết nối lại
+    // đều đọc token mới nhất (sau khi đăng nhập lại).
+    auth: (cb) => cb({ token: window.localStorage.getItem('accessToken') ?? '' }),
     ...opts,
   });
 }
