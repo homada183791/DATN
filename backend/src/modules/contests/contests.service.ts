@@ -87,6 +87,7 @@ export class ContestsService {
       return this.prisma.contest.findMany({
         orderBy: { created_at: 'desc' },
         include: {
+          class: { select: { name: true, subject: true } },
           _count: {
             select: { problems: true, contest_sessions: true },
           },
@@ -110,6 +111,7 @@ export class ContestsService {
       },
       orderBy: { created_at: 'desc' },
       include: {
+        class: { select: { name: true, subject: true } },
         _count: {
           select: { problems: true, contest_sessions: true },
         },

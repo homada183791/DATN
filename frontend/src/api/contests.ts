@@ -15,6 +15,8 @@ export interface ContestDto {
   accessCode?: string;
   classId?: string;
   className?: string;
+  /** "Môn học - Tên lớp" của lớp mà kỳ thi riêng tư thuộc về */
+  classLabel?: string;
   /** Sinh viên hiện tại đã đăng ký kỳ thi này (từ server) */
   isRegistered?: boolean;
   /** Số lần được phép rời màn hình trước khi bị loại */
@@ -33,6 +35,7 @@ interface ContestApiResponse {
   end_time: string;
   is_private: boolean;
   class_id?: string | null;
+  class?: { name: string; subject?: string | null } | null;
   is_registered?: boolean;
   max_cheat_warnings?: number;
   lockdown_enabled?: boolean;
@@ -90,6 +93,11 @@ export function fetchContests() {
         type: 'ICPC',
         visibility: contest.is_private ? 'private' : 'public',
         classId: contest.class_id ?? undefined,
+        classLabel: contest.class
+          ? contest.class.subject
+            ? `${contest.class.subject} - ${contest.class.name}`
+            : contest.class.name
+          : undefined,
       };
     })
   );

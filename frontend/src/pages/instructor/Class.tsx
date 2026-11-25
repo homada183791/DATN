@@ -186,9 +186,6 @@ export default function InstructorClass() {
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1.5 shrink-0">
-                    <span className="flex items-center gap-1 text-[11px] font-bold font-mono px-2 py-1 rounded-md bg-[#f0ebd9] border border-[#e5dac9] text-[#193a2b]">
-                      <Hash size={11} /> {cls.code}
-                    </span>
                     <span className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full border ${
                       cls.is_public
                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200'

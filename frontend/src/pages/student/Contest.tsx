@@ -184,7 +184,7 @@ export default function Contest() {
         <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setSelectedContest(null)}>
           <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-[#e5dac9]">
-              <h3 className="text-lg font-serif font-bold text-[#191919]">{selectedContestData.title}</h3>
+              <h3 className="text-lg font-serif font-bold text-[#191919]">{selectedContestData.title}{selectedContestData.visibility === 'private' && selectedContestData.classLabel && (<span className="ml-2 align-middle text-xs font-semibold text-[#5c5446] bg-[#f0ebd9] border border-[#e5dac9] rounded-full px-2.5 py-0.5">{selectedContestData.classLabel}</span>)}</h3>
               <button onClick={() => setSelectedContest(null)} className="text-[#8a8073] hover:text-[#191919]"><X size={20} /></button>
             </div>
             {/* Modal Tabs */}
@@ -407,7 +407,7 @@ export default function Contest() {
                       <Trophy size={20} className={contest.status === 'running' ? 'text-emerald-700' : contest.status === 'upcoming' ? 'text-yellow-700' : 'text-[#8a8073]'} />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold font-serif text-[#191919]">{contest.title}</h3>
+                      <h3 className="text-lg font-bold font-serif text-[#191919]">{contest.title}{contest.visibility === 'private' && contest.classLabel && (<span className="ml-2 align-middle text-xs font-semibold text-[#5c5446] bg-[#f0ebd9] border border-[#e5dac9] rounded-full px-2.5 py-0.5">{contest.classLabel}</span>)}</h3>
                       <div className="flex items-center gap-3 text-sm text-[#8a8073] mt-1">
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${typeColors[contest.type ?? 'Homework']}`}>
                           {contest.type ?? 'Homework'}

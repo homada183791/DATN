@@ -521,7 +521,7 @@ export default function InstructorContest() {
         <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-80 flex items-center justify-center p-4" onClick={() => setSelectedContest(null)}>
           <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-(--ws-border)">
-              <h3 className="text-lg font-serif font-bold text-(--ws-text)">{selectedContestData.title}</h3>
+              <h3 className="text-lg font-serif font-bold text-(--ws-text)">{selectedContestData.title}{selectedContestData.visibility === 'private' && selectedContestData.classLabel && (<span className="ml-2 align-middle text-xs font-semibold text-(--ws-muted) bg-(--ws-editor) border border-(--ws-border) rounded-full px-2.5 py-0.5">{selectedContestData.classLabel}</span>)}</h3>
               <button onClick={() => setSelectedContest(null)} className="text-(--ws-muted) hover:text-(--ws-text)">
                 <X size={20} />
               </button>
@@ -843,7 +843,7 @@ export default function InstructorContest() {
                     className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b] disabled:opacity-50"
                   >
                     <option value="">{t('instructorContest.selectClassPlaceholderOption')}</option>
-                    {classes.map((classItem) => <option key={classItem.id} value={classItem.id}>{classItem.name}</option>)}
+                    {classes.map((classItem) => <option key={classItem.id} value={classItem.id}>{classItem.subject ? `${classItem.subject} - ${classItem.name}` : classItem.name}</option>)}
                   </select>
                 </div>
               </div>
@@ -977,7 +977,7 @@ export default function InstructorContest() {
                     } />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold font-serif text-[#191919]">{contest.title}</h3>
+                    <h3 className="text-lg font-bold font-serif text-[#191919]">{contest.title}{contest.visibility === 'private' && contest.classLabel && (<span className="ml-2 align-middle text-xs font-semibold text-[#5c5446] bg-[#f0ebd9] border border-[#e5dac9] rounded-full px-2.5 py-0.5">{contest.classLabel}</span>)}</h3>
                     <div className="flex items-center gap-3 text-sm text-[#8a8073] mt-1 flex-wrap">
                       {/* Visibility badge */}
                       {contest.visibility === 'private' ? (
