@@ -17,9 +17,9 @@ import {
 } from 'lucide-react';
 
 const diffChip: Record<string, string> = {
-  Easy: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-  Medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  Hard: 'bg-red-100 text-red-800 border-red-200',
+  Easy: 'bg-(--ws-ok-soft) text-(--ws-ok) border-(--ws-ok)/35',
+  Medium: 'bg-(--ws-warn-soft) text-(--ws-warn) border-(--ws-warn)/35',
+  Hard: 'bg-(--ws-danger-soft) text-(--ws-danger) border-(--ws-danger)/35',
 };
 const diffLabel: Record<string, string> = { Easy: 'easy', Medium: 'medium', Hard: 'hard' };
 
@@ -28,10 +28,10 @@ function deadlineInfo(deadline: string, t: (key: string, options?: Record<string
   const end = new Date(deadline).getTime();
   const diff = end - now;
   const days = Math.ceil(diff / 86_400_000);
-  if (diff < 0) return { label: t('deadline.closed'), chipClass: 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]', closed: true };
-  if (days <= 1) return { label: ((w) => t(w.key, { count: w.count }))(timeLeftWithinDay(diff)), chipClass: 'bg-red-50 text-red-700 border-red-200', closed: false };
-  if (days <= 3) return { label: t('deadline.days', { count: days }), chipClass: 'bg-yellow-50 text-yellow-800 border-yellow-200', closed: false };
-  return { label: t('deadline.days', { count: days }), chipClass: 'bg-emerald-50 text-emerald-800 border-emerald-200', closed: false };
+  if (diff < 0) return { label: t('deadline.closed'), chipClass: 'bg-(--ws-panel2) text-(--ws-muted) border-(--ws-border)', closed: true };
+  if (days <= 1) return { label: ((w) => t(w.key, { count: w.count }))(timeLeftWithinDay(diff)), chipClass: 'bg-(--ws-danger-soft) text-(--ws-danger) border-(--ws-danger)/35', closed: false };
+  if (days <= 3) return { label: t('deadline.days', { count: days }), chipClass: 'bg-(--ws-warn-soft) text-(--ws-warn) border-(--ws-warn)/35', closed: false };
+  return { label: t('deadline.days', { count: days }), chipClass: 'bg-(--ws-ok-soft) text-(--ws-ok) border-(--ws-ok)/35', closed: false };
 }
 
 export default function HomeworkDetail() {
@@ -59,7 +59,7 @@ export default function HomeworkDetail() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-[#193a2b] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-(--ws-accent) border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -67,9 +67,9 @@ export default function HomeworkDetail() {
   if (isError || !homework) {
     return (
       <div className="text-center py-20">
-        <AlertTriangle size={48} className="text-[#bfae99] mx-auto mb-4" />
-        <p className="font-semibold text-[#191919]">{t('studentContest.homeworkNotFound')}</p>
-        <button onClick={() => navigate(`/student/class/${classId}`)} className="mt-4 text-sm text-[#193a2b] hover:underline">
+        <AlertTriangle size={48} className="text-(--ws-faint) mx-auto mb-4" />
+        <p className="font-semibold text-(--ws-text)">{t('studentContest.homeworkNotFound')}</p>
+        <button onClick={() => navigate(`/student/class/${classId}`)} className="mt-4 text-sm text-(--ws-accent) hover:underline">
           {t('studentContest.backToClass')}
         </button>
       </div>
@@ -90,47 +90,47 @@ export default function HomeworkDetail() {
   const solvableCount = tasks.filter((t) => !!t.problem_id).length;
 
   return (
-    <div className="space-y-6 text-[#191919]">
+    <div className="space-y-6 text-(--ws-text)">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-[#8a8073] flex-wrap">
-        <button onClick={() => navigate('/student/class')} className="hover:text-[#193a2b] transition-colors">
+      <div className="flex items-center gap-2 text-sm text-(--ws-muted) flex-wrap">
+        <button onClick={() => navigate('/student/class')} className="hover:text-(--ws-accent) transition-colors">
           {t('studentContest.classLabel')}
         </button>
         <ChevronRight size={14} />
-        <button onClick={() => navigate(`/student/class/${classId}`)} className="hover:text-[#193a2b] transition-colors truncate max-w-[120px]">
+        <button onClick={() => navigate(`/student/class/${classId}`)} className="hover:text-(--ws-accent) transition-colors truncate max-w-[120px]">
           {homework.class?.name ?? t('studentContest.classLabel')}
         </button>
         <ChevronRight size={14} />
-        <span className="text-[#191919] font-medium truncate max-w-[200px]">{homework.title}</span>
+        <span className="text-(--ws-text) font-medium truncate max-w-[200px]">{homework.title}</span>
       </div>
 
       {/* Homework header */}
-      <div className="bg-white border border-[#e5dac9] rounded-2xl p-6 shadow-sm">
+      <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-6 shadow-sm">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-2">
               <span className={`text-[10px] px-2.5 py-1 rounded-full border font-semibold ${dl.chipClass}`}>
                 {dl.closed ? <Lock size={10} className="inline mr-1" /> : null}{dl.label}
               </span>
-              <span className="text-xs text-[#8a8073] bg-[#f0ebd9] px-2 py-0.5 rounded-full border border-[#e5dac9]">
+              <span className="text-xs text-(--ws-muted) bg-(--ws-panel2) px-2 py-0.5 rounded-full border border-(--ws-border)">
                 {homework.class?.name}
               </span>
             </div>
-            <h1 className="text-2xl font-bold font-serif text-[#191919]">{homework.title}</h1>
+            <h1 className="text-2xl font-bold font-serif text-(--ws-text)">{homework.title}</h1>
             {homework.description && (
-              <p className="text-sm text-[#5c5446] mt-2 leading-relaxed">{homework.description}</p>
+              <p className="text-sm text-(--ws-text) mt-2 leading-relaxed">{homework.description}</p>
             )}
           </div>
           <button
             onClick={() => navigate(`/student/class/${classId}`)}
-            className="flex items-center gap-1.5 text-sm text-[#8a8073] hover:text-[#193a2b] transition-colors shrink-0"
+            className="flex items-center gap-1.5 text-sm text-(--ws-muted) hover:text-(--ws-accent) transition-colors shrink-0"
           >
             <ArrowLeft size={14} /> {t('studentContest.back')}
           </button>
         </div>
 
         {/* Stats row */}
-        <div className="flex items-center gap-6 text-sm text-[#8a8073] pt-4 border-t border-[#f0ebd9] flex-wrap">
+        <div className="flex items-center gap-6 text-sm text-(--ws-muted) pt-4 border-t border-(--ws-border) flex-wrap">
           <span className="flex items-center gap-1.5">
             <BookOpen size={14} /> {t('studentContest.problemCount', { count: tasks.length })}
           </span>
@@ -145,22 +145,22 @@ export default function HomeworkDetail() {
 
       {/* Problem list */}
       <div>
-        <h2 className="text-base font-bold text-[#191919] mb-3">
+        <h2 className="text-base font-bold text-(--ws-text) mb-3">
           {t('studentContest.classHomework')}
           {solvableCount < tasks.length && (
-            <span className="ml-2 text-xs font-normal text-yellow-700 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full">
+            <span className="ml-2 text-xs font-normal text-(--ws-warn) bg-(--ws-warn-soft) border border-(--ws-warn)/35 px-2 py-0.5 rounded-full">
               {t('studentContest.notLinkedCount', { count: tasks.length - solvableCount })}
             </span>
           )}
         </h2>
 
         {tasks.length === 0 ? (
-          <div className="bg-white border border-[#e5dac9] rounded-2xl p-14 text-center shadow-sm">
-            <BookOpen size={48} className="text-[#bfae99] mx-auto mb-4" />
-            <p className="font-semibold text-[#191919]">{t('studentContest.emptyProblems')}</p>
+          <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-14 text-center shadow-sm">
+            <BookOpen size={48} className="text-(--ws-faint) mx-auto mb-4" />
+            <p className="font-semibold text-(--ws-text)">{t('studentContest.emptyProblems')}</p>
           </div>
         ) : (
-          <div className="bg-white border border-[#e5dac9] rounded-2xl overflow-hidden shadow-sm divide-y divide-[#f0ebd9]">
+          <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl overflow-hidden shadow-sm divide-y divide-(--ws-border)">
             {tasks.map((task, i) => {
               const canSolve = !!task.problem_id;
               const solveUrl = `/student/class/${classId}/homework/${homeworkId}/problem/${task.problem_id}`;
@@ -174,20 +174,20 @@ export default function HomeworkDetail() {
                 <div
                   key={task.id}
                   className={`flex items-center gap-4 px-5 py-4 transition-colors ${
-                    canSolve ? 'hover:bg-[#f7f4eb]' : 'opacity-70'
+                    canSolve ? 'hover:bg-(--ws-hover)' : 'opacity-70'
                   }`}
                 >
                   {/* Index */}
-                  <span className="text-sm font-mono text-[#8a8073] w-6 shrink-0 text-center">
+                  <span className="text-sm font-mono text-(--ws-muted) w-6 shrink-0 text-center">
                     {i + 1}
                   </span>
 
                   {/* Title + description */}
                   <div className="flex-1 min-w-0">
-                    <p className={`font-semibold truncate ${canSolve ? 'text-[#191919]' : 'text-[#5c5446]'}`}>
+                    <p className={`font-semibold truncate ${canSolve ? 'text-(--ws-text)' : 'text-(--ws-text)'}`}>
                       {task.title}
                     </p>
-                    <p className="text-xs text-[#8a8073] truncate mt-0.5">
+                    <p className="text-xs text-(--ws-muted) truncate mt-0.5">
                       {statementPreview}...
                     </p>
                   </div>
@@ -198,7 +198,7 @@ export default function HomeworkDetail() {
                   </span>
 
                   {/* Points */}
-                  <span className="text-xs text-[#8a8073] w-12 text-right shrink-0 font-mono">
+                  <span className="text-xs text-(--ws-muted) w-12 text-right shrink-0 font-mono">
                     {t('studentContest.pointsShort', { count: task.points })}
                   </span>
 
@@ -206,32 +206,32 @@ export default function HomeworkDetail() {
                   <div className="flex items-center gap-2 shrink-0">
                     {canSolve && (
                       isSolved ? (
-                        <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-lg">
-                          <CheckCircle2 size={12} className="text-emerald-600" /> {t('studentHomework.completed')}
+                        <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 bg-(--ws-ok-soft) text-(--ws-ok) border border-(--ws-ok)/35 text-xs font-semibold rounded-lg">
+                          <CheckCircle2 size={12} className="text-(--ws-ok)" /> {t('studentHomework.completed')}
                         </span>
                       ) : isAttempted ? (
-                        <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-semibold rounded-lg">
-                          <Clock size={12} className="text-amber-600" /> {t('studentContest.inProgress')}
+                        <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 bg-(--ws-warn-soft) text-(--ws-warn) border border-(--ws-warn)/35 text-xs font-semibold rounded-lg">
+                          <Clock size={12} className="text-(--ws-warn)" /> {t('studentContest.inProgress')}
                         </span>
                       ) : (
-                        <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 bg-[#f0ebd9] text-[#8a8073] text-xs rounded-lg">
+                        <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 bg-(--ws-panel2) text-(--ws-muted) text-xs rounded-lg">
                           {t('studentContest.notSubmitted')}
                         </span>
                       )
                     )}
                     {canSolve && dl.closed ? (
-                      <span className="flex items-center gap-1 px-3.5 py-1.5 bg-[#f0ebd9] text-[#8a8073] text-xs rounded-xl cursor-not-allowed">
+                      <span className="flex items-center gap-1 px-3.5 py-1.5 bg-(--ws-panel2) text-(--ws-muted) text-xs rounded-xl cursor-not-allowed">
                         <Lock size={11} /> {t('studentContest.closed')}
                       </span>
                     ) : canSolve ? (
                       <Link
                         to={solveUrl}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 bg-(--ws-accent) text-(--ws-on-accent) text-xs font-semibold rounded-xl hover:bg-(--ws-accent-strong) transition-colors shadow-sm"
                       >
                         <Play size={11} fill="white" /> {t('studentContest.solveTask')}
                       </Link>
                     ) : (
-                      <span className="flex items-center gap-1 px-3.5 py-1.5 bg-[#f0ebd9] text-[#8a8073] text-xs rounded-xl cursor-not-allowed">
+                      <span className="flex items-center gap-1 px-3.5 py-1.5 bg-(--ws-panel2) text-(--ws-muted) text-xs rounded-xl cursor-not-allowed">
                         <Lock size={11} /> {t('studentContest.noLink')}
                       </span>
                     )}

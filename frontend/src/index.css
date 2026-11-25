@@ -294,6 +294,36 @@ tr, .group { transition: background-color .14s ease; }
 :is(.ws-dark, .theme-frost, .theme-forest) .from-\[\#193a2b\] { --tw-gradient-from: var(--ws-accent-strong); }
 :is(.ws-dark, .theme-frost, .theme-forest) .to-\[\#2d5a3f\] { --tw-gradient-to: var(--ws-accent); }
 
+/* ================= Màu trạng thái dùng chung cho mọi giao diện =================
+   Tính từ --ws-danger/warn/ok của theme đang chọn, nên Nord, Ember, Sakura... đều đúng màu.
+   --ws-on-accent: chữ đặt trên nền đặc (nút chính, nhãn đặc) — trắng ở theme sáng, nền tối ở theme tối. */
+.ws-light {
+  --ws-info: #1d4ed8;
+  --ws-on-accent: #ffffff;
+}
+.ws-dark {
+  --ws-info: #93c5fd;
+  --ws-on-accent: var(--ws-bg);
+}
+.ws-light, .ws-dark {
+  --ws-danger-soft: color-mix(in srgb, var(--ws-danger) 13%, transparent);
+  --ws-warn-soft: color-mix(in srgb, var(--ws-warn) 15%, transparent);
+  --ws-ok-soft: color-mix(in srgb, var(--ws-ok) 14%, transparent);
+  --ws-info-soft: color-mix(in srgb, var(--ws-info) 13%, transparent);
+  /* Nhãn kết quả chấm: mặc định theo màu trạng thái; theme Forest có bộ màu riêng (định nghĩa sau, đè lên) */
+  --ws-verdict-ac-fg: var(--ws-ok);     --ws-verdict-ac-bg: var(--ws-ok-soft);
+  --ws-verdict-wa-fg: var(--ws-danger); --ws-verdict-wa-bg: var(--ws-danger-soft);
+  --ws-verdict-tle-fg: var(--ws-warn);  --ws-verdict-tle-bg: var(--ws-warn-soft);
+  --ws-verdict-ce-fg: var(--ws-info);   --ws-verdict-ce-bg: var(--ws-info-soft);
+}
+
+/* Viền focus rõ ràng khi dùng bàn phím (không hiện khi bấm chuột) */
+:where(a, button, input, select, textarea, summary, [role="button"], [tabindex]):focus-visible {
+  outline: 2px solid var(--ws-accent) !important;
+  outline-offset: 2px;
+}
+.monaco-editor :focus-visible { outline: none !important; }
+
 /* ================= Animations ================= */
 
 @keyframes fadeIn {

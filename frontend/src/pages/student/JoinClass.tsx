@@ -52,8 +52,8 @@ export default function JoinClass() {
   return (
     <div className="min-h-screen bg-(--ws-bg) flex items-center justify-center text-(--ws-text)">
       <div className="text-center animate-fade-in">
-        <div className="w-16 h-16 mx-auto mb-5 bg-linear-to-br from-[#193a2b] to-[#2d5a3f] rounded-2xl flex items-center justify-center shadow-lg">
-          <GraduationCap size={30} className="text-white" />
+        <div className="w-16 h-16 mx-auto mb-5 bg-linear-to-br from-(--ws-accent-strong) to-(--ws-accent) rounded-2xl flex items-center justify-center shadow-lg">
+          <GraduationCap size={30} className="text-(--ws-on-accent)" />
         </div>
         <p className="font-semibold font-serif text-lg">{t('joinClass.joining', { code: code?.toUpperCase() })}</p>
         <p className="text-sm text-(--ws-muted) mt-2 flex items-center justify-center gap-2">

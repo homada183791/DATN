@@ -10,10 +10,10 @@ function deadlineInfo(deadline: string, t: (key: string, options?: Record<string
   const end = new Date(deadline).getTime();
   const diff = end - now;
   const days = Math.ceil(diff / 86_400_000);
-  if (diff < 0) return { label: t('deadline.closed'), color: 'text-[#8a8073]', chipClass: 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]', closed: true };
-  if (days <= 1) return { label: ((w) => t(w.key, { count: w.count }))(timeLeftWithinDay(diff)), color: 'text-red-600', chipClass: 'bg-red-50 text-red-700 border-red-200', closed: false };
-  if (days <= 3) return { label: t('deadline.days', { count: days }), color: 'text-yellow-700', chipClass: 'bg-yellow-50 text-yellow-800 border-yellow-200', closed: false };
-  return { label: t('deadline.days', { count: days }), color: 'text-emerald-700', chipClass: 'bg-emerald-50 text-emerald-800 border-emerald-200', closed: false };
+  if (diff < 0) return { label: t('deadline.closed'), color: 'text-(--ws-muted)', chipClass: 'bg-(--ws-panel2) text-(--ws-muted) border-(--ws-border)', closed: true };
+  if (days <= 1) return { label: ((w) => t(w.key, { count: w.count }))(timeLeftWithinDay(diff)), color: 'text-(--ws-danger)', chipClass: 'bg-(--ws-danger-soft) text-(--ws-danger) border-(--ws-danger)/35', closed: false };
+  if (days <= 3) return { label: t('deadline.days', { count: days }), color: 'text-(--ws-warn)', chipClass: 'bg-(--ws-warn-soft) text-(--ws-warn) border-(--ws-warn)/35', closed: false };
+  return { label: t('deadline.days', { count: days }), color: 'text-(--ws-ok)', chipClass: 'bg-(--ws-ok-soft) text-(--ws-ok) border-(--ws-ok)/35', closed: false };
 }
 
 import {
@@ -51,7 +51,7 @@ export default function StudentClassDetail() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-[#193a2b] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-(--ws-accent) border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -59,9 +59,9 @@ export default function StudentClassDetail() {
   if (!classInfo) {
     return (
       <div className="text-center py-20">
-        <GraduationCap size={48} className="text-[#bfae99] mx-auto mb-4" />
-        <p className="font-semibold text-[#191919]">{t('studentContest.notFoundClass')}</p>
-        <button onClick={() => navigate('/student/class')} className="mt-4 text-sm text-[#193a2b] hover:underline">
+        <GraduationCap size={48} className="text-(--ws-faint) mx-auto mb-4" />
+        <p className="font-semibold text-(--ws-text)">{t('studentContest.notFoundClass')}</p>
+        <button onClick={() => navigate('/student/class')} className="mt-4 text-sm text-(--ws-accent) hover:underline">
           {t('studentContest.backToClasses')}
         </button>
       </div>
@@ -69,16 +69,16 @@ export default function StudentClassDetail() {
   }
 
   return (
-    <div className="space-y-6 text-[#191919]">
+    <div className="space-y-6 text-(--ws-text)">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-[#8a8073]">
-        <button onClick={() => navigate('/student/class')} className="hover:text-[#193a2b] transition-colors flex items-center gap-1">
+      <div className="flex items-center gap-2 text-sm text-(--ws-muted)">
+        <button onClick={() => navigate('/student/class')} className="hover:text-(--ws-accent) transition-colors flex items-center gap-1">
           <ArrowLeft size={14} /> {t('studentContest.classLabel')}
         </button>
       </div>
 
       {/* Class header */}
-      <div className="bg-linear-to-br from-[#193a2b] to-[#2a5540] rounded-2xl p-6 text-white shadow-lg">
+      <div className="bg-linear-to-br from-(--ws-accent-strong) to-(--ws-accent) rounded-2xl p-6 text-(--ws-on-accent) shadow-lg">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
@@ -96,7 +96,7 @@ export default function StudentClassDetail() {
           </div>
         </div>
 
-        <div className="flex items-center gap-6 mt-5 pt-4 border-t border-white/20 text-sm">
+        <div className="flex items-center gap-6 mt-5 pt-4 border-t border-(--ws-panel)/20 text-sm">
           <span className="flex items-center gap-1.5 opacity-80">
             <Users size={14} /> {t('studentClass.studentCount', { count: classInfo.students?.length ?? 0 })}
           </span>
@@ -111,13 +111,13 @@ export default function StudentClassDetail() {
 
       {/* Homework list */}
       <div>
-        <h2 className="text-lg font-bold font-serif text-[#191919] mb-4">{t('studentClass.homeworkList')}</h2>
+        <h2 className="text-lg font-bold font-serif text-(--ws-text) mb-4">{t('studentClass.homeworkList')}</h2>
 
         {homeworks.length === 0 ? (
-          <div className="bg-white border border-[#e5dac9] rounded-2xl p-14 text-center shadow-sm">
-            <BookOpen size={48} className="text-[#bfae99] mx-auto mb-4" />
-            <p className="font-semibold text-[#191919]">{t('studentClass.emptyHomework')}</p>
-            <p className="text-sm text-[#8a8073] mt-1">{t('studentClass.teacherNoHomework')}</p>
+          <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-14 text-center shadow-sm">
+            <BookOpen size={48} className="text-(--ws-faint) mx-auto mb-4" />
+            <p className="font-semibold text-(--ws-text)">{t('studentClass.emptyHomework')}</p>
+            <p className="text-sm text-(--ws-muted) mt-1">{t('studentClass.teacherNoHomework')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -131,12 +131,12 @@ export default function StudentClassDetail() {
                 <Link
                   key={hw.id}
                   to={`/student/class/${classId}/homework/${hw.id}`}
-                  className="block bg-white border border-[#e5dac9] rounded-2xl p-5 hover:shadow-md hover:border-[#193a2b]/30 transition-all shadow-sm group"
+                  className="block bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-5 hover:shadow-md hover:border-(--ws-accent)/30 transition-all shadow-sm group"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <h3 className="font-bold text-[#191919] group-hover:text-[#193a2b] transition-colors">
+                        <h3 className="font-bold text-(--ws-text) group-hover:text-(--ws-accent) transition-colors">
                           {hw.title}
                         </h3>
                         <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold shrink-0 ${dl.chipClass}`}>
@@ -145,14 +145,14 @@ export default function StudentClassDetail() {
                         </span>
                       </div>
                       {hw.description && (
-                        <p className="text-sm text-[#5c5446] line-clamp-2 mb-3">{hw.description}</p>
+                        <p className="text-sm text-(--ws-text) line-clamp-2 mb-3">{hw.description}</p>
                       )}
-                      <div className="flex items-center gap-4 text-xs text-[#8a8073] flex-wrap">
+                      <div className="flex items-center gap-4 text-xs text-(--ws-muted) flex-wrap">
                         <span className="flex items-center gap-1">
                           <BookOpen size={12} /> {t('studentClass.problemCount', { count: taskCount })}
                         </span>
                         {solvable < taskCount && (
-                          <span className="flex items-center gap-1 text-yellow-700">
+                          <span className="flex items-center gap-1 text-(--ws-warn)">
                             <AlertTriangle size={12} /> {t('studentClass.solvableCount', { solvable, total: taskCount })}
                           </span>
                         )}
@@ -161,7 +161,7 @@ export default function StudentClassDetail() {
                         </span>
                       </div>
                     </div>
-                    <ChevronRight size={18} className="text-[#bfae99] group-hover:text-[#193a2b] shrink-0 mt-1 transition-colors" />
+                    <ChevronRight size={18} className="text-(--ws-faint) group-hover:text-(--ws-accent) shrink-0 mt-1 transition-colors" />
                   </div>
                 </Link>
               );

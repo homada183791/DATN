@@ -65,19 +65,19 @@ export default function UpcomingContestCountdown({ contests, userRole = 'student
 
   if (!nextContest) {
     return (
-      <div className="bg-white border border-[#e5dac9] rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#f0ebd9] text-[#193a2b] flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-(--ws-panel2) text-(--ws-accent) flex items-center justify-center shrink-0">
             <Trophy size={18} />
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-[#191919]">{t('widgets.upcomingTitle')}</h4>
-            <p className="text-xs text-[#8a8073] mt-0.5">{t('widgets.upcomingEmpty')}</p>
+            <h4 className="text-sm font-semibold text-(--ws-text)">{t('widgets.upcomingTitle')}</h4>
+            <p className="text-xs text-(--ws-muted) mt-0.5">{t('widgets.upcomingEmpty')}</p>
           </div>
         </div>
         <Link
           to={targetLink}
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#f7f4eb] border border-[#e5dac9] text-xs font-semibold text-[#193a2b] rounded-lg hover:bg-[#e5dac9] transition-colors"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-(--ws-panel2) border border-(--ws-border) text-xs font-semibold text-(--ws-accent) rounded-lg hover:bg-(--ws-hover) transition-colors"
         >
           {t('widgets.allContests')} <ArrowRight size={13} />
         </Link>
@@ -86,22 +86,22 @@ export default function UpcomingContestCountdown({ contests, userRole = 'student
   }
 
   return (
-    <div className="bg-white border border-[#e5dac9] rounded-2xl p-5 shadow-xs hover:border-[#193a2b]/30 transition-all">
+    <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-5 shadow-xs hover:border-(--ws-accent)/30 transition-all">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
         <div className="flex items-start gap-3">
-          <div className="w-11 h-11 rounded-xl bg-[#193a2b] text-white flex items-center justify-center shrink-0 shadow-xs">
+          <div className="w-11 h-11 rounded-xl bg-(--ws-accent) text-(--ws-on-accent) flex items-center justify-center shrink-0 shadow-xs">
             <Trophy size={20} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-(--ws-warn-soft) text-(--ws-warn) border border-(--ws-warn)/35">
                 <Clock size={11} /> {t('widgets.upcoming')}
               </span>
-              <span className="text-xs text-[#8a8073]">
+              <span className="text-xs text-(--ws-muted)">
                 {formatVNFull(nextContest.startTime)}
               </span>
             </div>
-            <h4 className="text-base font-bold text-[#191919] mt-1 hover:text-[#193a2b] transition-colors">
+            <h4 className="text-base font-bold text-(--ws-text) mt-1 hover:text-(--ws-accent) transition-colors">
               {nextContest.title}
             </h4>
           </div>
@@ -109,40 +109,40 @@ export default function UpcomingContestCountdown({ contests, userRole = 'student
 
         <Link
           to={targetLink}
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-xs shrink-0 self-start md:self-center"
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-(--ws-accent) text-(--ws-on-accent) text-xs font-semibold rounded-xl hover:bg-(--ws-accent-strong) transition-colors shadow-xs shrink-0 self-start md:self-center"
         >
           {t('widgets.contestDetails')} <ArrowRight size={13} />
         </Link>
       </div>
 
       {/* Countdown Grid */}
-      <div className="grid grid-cols-4 gap-2 pt-3 border-t border-[#f0ebd9]">
-        <div className="bg-[#f7f4eb] border border-[#e5dac9] rounded-xl py-2 px-3 text-center">
-          <span className="block text-lg font-bold font-mono text-[#191919] leading-tight">
+      <div className="grid grid-cols-4 gap-2 pt-3 border-t border-(--ws-border)">
+        <div className="bg-(--ws-panel2) border border-(--ws-border) rounded-xl py-2 px-3 text-center">
+          <span className="block text-lg font-bold font-mono text-(--ws-text) leading-tight">
             {String(timeLeft.days).padStart(2, '0')}
           </span>
-          <span className="text-[10px] font-semibold text-[#8a8073] uppercase tracking-wider">{t('widgets.days')}</span>
+          <span className="text-[10px] font-semibold text-(--ws-muted) uppercase tracking-wider">{t('widgets.days')}</span>
         </div>
 
-        <div className="bg-[#f7f4eb] border border-[#e5dac9] rounded-xl py-2 px-3 text-center">
-          <span className="block text-lg font-bold font-mono text-[#191919] leading-tight">
+        <div className="bg-(--ws-panel2) border border-(--ws-border) rounded-xl py-2 px-3 text-center">
+          <span className="block text-lg font-bold font-mono text-(--ws-text) leading-tight">
             {String(timeLeft.hours).padStart(2, '0')}
           </span>
-          <span className="text-[10px] font-semibold text-[#8a8073] uppercase tracking-wider">{t('widgets.hours')}</span>
+          <span className="text-[10px] font-semibold text-(--ws-muted) uppercase tracking-wider">{t('widgets.hours')}</span>
         </div>
 
-        <div className="bg-[#f7f4eb] border border-[#e5dac9] rounded-xl py-2 px-3 text-center">
-          <span className="block text-lg font-bold font-mono text-[#191919] leading-tight">
+        <div className="bg-(--ws-panel2) border border-(--ws-border) rounded-xl py-2 px-3 text-center">
+          <span className="block text-lg font-bold font-mono text-(--ws-text) leading-tight">
             {String(timeLeft.minutes).padStart(2, '0')}
           </span>
-          <span className="text-[10px] font-semibold text-[#8a8073] uppercase tracking-wider">{t('widgets.minutes')}</span>
+          <span className="text-[10px] font-semibold text-(--ws-muted) uppercase tracking-wider">{t('widgets.minutes')}</span>
         </div>
 
-        <div className="bg-[#f7f4eb] border border-[#e5dac9] rounded-xl py-2 px-3 text-center">
-          <span className="block text-lg font-bold font-mono text-[#193a2b] leading-tight">
+        <div className="bg-(--ws-panel2) border border-(--ws-border) rounded-xl py-2 px-3 text-center">
+          <span className="block text-lg font-bold font-mono text-(--ws-accent) leading-tight">
             {String(timeLeft.seconds).padStart(2, '0')}
           </span>
-          <span className="text-[10px] font-semibold text-[#193a2b] uppercase tracking-wider">{t('widgets.seconds')}</span>
+          <span className="text-[10px] font-semibold text-(--ws-accent) uppercase tracking-wider">{t('widgets.seconds')}</span>
         </div>
       </div>
     </div>

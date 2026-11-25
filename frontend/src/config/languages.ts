@@ -375,11 +375,11 @@ func main() {
 ];
 
 export const LANGUAGE_CATEGORIES = [
-  { key: 'CPP', label: 'C++', icon: '🔵', desc: 'C++11, C++14, C++17, C++20' },
-  { key: 'PYTHON', label: 'Python', icon: '🐍', desc: 'Python 3.8, 3.10, 3.11, 3.12' },
-  { key: 'JAVA', label: 'Java', icon: '☕', desc: 'Java 8, 11, 17, 21 LTS' },
-  { key: 'C', label: 'C', icon: '⚙️', desc: 'C99, C11' },
-  { key: 'GO', label: 'Go', icon: '🦫', desc: 'Go 1.20, Go 1.22' },
+  { key: 'CPP', label: 'C++', icon: 'C++', desc: 'C++11, C++14, C++17, C++20' },
+  { key: 'PYTHON', label: 'Python', icon: 'Py', desc: 'Python 3.8, 3.10, 3.11, 3.12' },
+  { key: 'JAVA', label: 'Java', icon: 'Java', desc: 'Java 8, 11, 17, 21 LTS' },
+  { key: 'C', label: 'C', icon: 'C', desc: 'C99, C11' },
+  { key: 'GO', label: 'Go', icon: 'Go', desc: 'Go 1.20, Go 1.22' },
 ] as const;
 
 export function getLanguageConfig(idOrCategory: string): LanguageVersionConfig {

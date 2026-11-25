@@ -128,19 +128,19 @@ function Breadcrumbs() {
   };
 
   return (
-    <nav className="flex items-center text-sm text-[#8a8073] mb-4">
-      <Link to="/" className="hover:text-[#193a2b] transition-colors">
+    <nav className="flex items-center text-sm text-(--ws-muted) mb-4">
+      <Link to="/" className="hover:text-(--ws-accent) transition-colors">
         <Code2 size={16} />
       </Link>
       {pathSegments.map((segment, index) => (
         <span key={index} className="flex items-center">
-          <ChevronRight size={14} className="mx-2 text-[#bfae99]" />
+          <ChevronRight size={14} className="mx-2 text-(--ws-faint)" />
           {index === pathSegments.length - 1 ? (
-            <span className="text-[#191919] font-medium" aria-current="page">{formatSegment(segment)}</span>
+            <span className="text-(--ws-text) font-medium" aria-current="page">{formatSegment(segment)}</span>
           ) : (() => {
             const href = breadcrumbHref(pathSegments, index);
             return href ? (
-              <Link to={href} className="hover:text-[#193a2b] transition-colors">
+              <Link to={href} className="hover:text-(--ws-accent) transition-colors">
                 {formatSegment(segment)}
               </Link>
             ) : (
@@ -247,7 +247,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
         {/* Logo */}
         <div className="flex items-center h-16 px-4 border-b border-(--ws-border-soft)">
           <div className="flex items-center gap-3 overflow-hidden w-full">
-            <div className="shrink-0 w-10 h-10 border-[#e5dac9] rounded-xl flex items-center justify-center overflow-hidden">
+            <div className="shrink-0 w-10 h-10 border-(--ws-border) rounded-xl flex items-center justify-center overflow-hidden">
               <img src="/logo-hcmus.png" alt="HCMUS logo" className="w-full h-full object-contain p-1" />
             </div>
             {sidebarOpen && (
@@ -337,10 +337,10 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
           </button>
 
           {!fullBleed && (
-            <nav className="hidden md:flex items-center text-[13.5px] text-[#8a8073]">
-              <span className="font-semibold text-[#191919]">JudgeHub</span>
-              <ChevronRight size={14} className="mx-1.5 text-[#bfae99]" />
-              <span className="text-[#5c5446]">
+            <nav className="hidden md:flex items-center text-[13.5px] text-(--ws-muted)">
+              <span className="font-semibold text-(--ws-text)">JudgeHub</span>
+              <ChevronRight size={14} className="mx-1.5 text-(--ws-faint)" />
+              <span className="text-(--ws-text)">
                 {user?.role === 'instructor' ? t('personal.roleInstructor') : t('personal.roleStudent')}
               </span>
             </nav>
@@ -350,7 +350,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
 
           {/* Global search */}
           <div className="relative hidden sm:block">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a8073]" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-(--ws-muted)" />
             <input
               ref={searchRef}
               value={query}
@@ -361,22 +361,22 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
               aria-label={t('topbar.searchPlaceholder')}
               className="w-48 lg:w-72 h-10 pl-9 pr-10 bg-(--ws-panel) border border-(--ws-border) rounded-lg text-[13px] text-(--ws-text) placeholder:text-(--ws-faint) focus:outline-none focus:border-(--ws-accent)"
             />
-            <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0.5 rounded border border-[#e5dac9] text-[#8a8073] font-mono">⌘K</kbd>
+            <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0.5 rounded border border-(--ws-border) text-(--ws-muted) font-mono">⌘K</kbd>
             {searchOpen && query && (
-              <div className="absolute top-full mt-2 right-0 w-80 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl overflow-hidden z-60 animate-slide-up">
-                <p className="px-4 py-2 text-[10.5px] font-bold uppercase tracking-widest text-[#8a8073] border-b border-[#e5dac9]">{t('topbar.searchResults')}</p>
+              <div className="absolute top-full mt-2 right-0 w-80 bg-(--ws-panel2) border border-(--ws-border) rounded-xl shadow-2xl overflow-hidden z-60 animate-slide-up">
+                <p className="px-4 py-2 text-[10.5px] font-bold uppercase tracking-widest text-(--ws-muted) border-b border-(--ws-border)">{t('topbar.searchResults')}</p>
                 {filteredProblems.slice(0, 6).map((p) => (
                   <Link
                     key={p.id}
                     to={`/student/problem/${p.id}`}
-                    className="flex items-center justify-between px-4 py-2.5 hover:bg-(--ws-hover) text-[13px] text-[#191919]"
+                    className="flex items-center justify-between px-4 py-2.5 hover:bg-(--ws-hover) text-[13px] text-(--ws-text)"
                   >
                     <span className="font-medium">{p.title}</span>
-                    <span className="text-[11px] text-[#8a8073] font-mono">{p.id}</span>
+                    <span className="text-[11px] text-(--ws-muted) font-mono">{p.id}</span>
                   </Link>
                 ))}
                 {filteredProblems.length === 0 && (
-                  <p className="px-4 py-3 text-[13px] text-[#8a8073]">{t('topbar.searchEmpty')}</p>
+                  <p className="px-4 py-3 text-[13px] text-(--ws-muted)">{t('topbar.searchEmpty')}</p>
                 )}
               </div>
             )}
@@ -387,15 +387,15 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
             <button
               onClick={() => setPaletteOpen(!paletteOpen)}
               className={`p-2 rounded-lg transition-colors ${
-                paletteOpen ? 'text-[#193a2b] bg-[#eadecc]/60' : 'text-[#8a8073] hover:text-[#193a2b] hover:bg-[#eadecc]/60'
+                paletteOpen ? 'text-(--ws-accent) bg-(--ws-panel2)/60' : 'text-(--ws-muted) hover:text-(--ws-accent) hover:bg-(--ws-hover)/60'
               }`}
               title={t('topbar.palette')}
             >
               <Palette size={18} />
             </button>
             {paletteOpen && (
-              <div className="absolute right-0 top-full mt-2 w-72 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden">
-                <p className="px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-widest text-[#8a8073] border-b border-[#e5dac9]">
+              <div className="absolute right-0 top-full mt-2 w-72 bg-(--ws-panel2) border border-(--ws-border) rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden">
+                <p className="px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-widest text-(--ws-muted) border-b border-(--ws-border)">
                   {t('topbar.paletteTitle')}
                 </p>
                 <div className="p-2 max-h-80 overflow-y-auto">
@@ -411,16 +411,16 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                         {t.sw.map((c, i) => (
                           <span
                             key={i}
-                            className="w-5 h-5 rounded-full border-2 border-[#f7f4eb] shadow-sm"
+                            className="w-5 h-5 rounded-full border-2 border-(--ws-border) shadow-sm"
                             style={{ backgroundColor: c }}
                           />
                         ))}
                       </span>
                       <span className="flex-1 min-w-0">
-                        <span className="block text-[13px] font-semibold text-[#191919]">{t.name}</span>
-                        <span className="block text-[11px] text-[#8a8073]">{t.desc}</span>
+                        <span className="block text-[13px] font-semibold text-(--ws-text)">{t.name}</span>
+                        <span className="block text-[11px] text-(--ws-muted)">{t.desc}</span>
                       </span>
-                      {theme.id === t.id && <Check size={15} className="text-[#193a2b] shrink-0" />}
+                      {theme.id === t.id && <Check size={15} className="text-(--ws-accent) shrink-0" />}
                     </button>
                   ))}
                 </div>
@@ -433,7 +433,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
             <button
               onClick={() => setLangOpen(!langOpen)}
               className={`p-2 rounded-lg transition-colors ${
-                langOpen ? 'text-[#193a2b] bg-[#eadecc]/60' : 'text-[#8a8073] hover:text-[#193a2b] hover:bg-[#eadecc]/60'
+                langOpen ? 'text-(--ws-accent) bg-(--ws-panel2)/60' : 'text-(--ws-muted) hover:text-(--ws-accent) hover:bg-(--ws-hover)/60'
               }`}
               title={t('topbar.language')}
               aria-label={t('topbar.language')}
@@ -441,7 +441,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
               <Languages size={18} />
             </button>
             {langOpen && (
-              <div className="absolute right-0 top-full mt-2 w-44 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden p-1.5">
+              <div className="absolute right-0 top-full mt-2 w-44 bg-(--ws-panel2) border border-(--ws-border) rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden p-1.5">
                 {(['vi', 'en'] as const).map((language) => (
                   <button
                     key={language}
@@ -450,14 +450,14 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                       setLangOpen(false);
                     }}
                     className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-[13px] transition-colors ${
-                      i18n.resolvedLanguage === language ? 'bg-(--ws-accent-soft) text-[#193a2b] font-semibold' : 'text-[#191919] hover:bg-(--ws-hover)'
+                      i18n.resolvedLanguage === language ? 'bg-(--ws-accent-soft) text-(--ws-accent) font-semibold' : 'text-(--ws-text) hover:bg-(--ws-hover)'
                     }`}
                   >
-                    <span className="w-6 h-4 flex items-center justify-center rounded-[3px] border border-[#e5dac9] text-[8px] font-bold bg-white text-[#8a8073]">
+                    <span className="w-6 h-4 flex items-center justify-center rounded-[3px] border border-(--ws-border) text-[8px] font-bold bg-(--ws-panel) text-(--ws-muted)">
                       {language.toUpperCase()}
                     </span>
                     {t(language === 'vi' ? 'topbar.langVi' : 'topbar.langEn')}
-                    {i18n.resolvedLanguage === language && <Check size={13} className="ml-auto text-[#193a2b]" />}
+                    {i18n.resolvedLanguage === language && <Check size={13} className="ml-auto text-(--ws-accent)" />}
                   </button>
                 ))}
               </div>
@@ -468,32 +468,32 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
           <div className="relative">
             <button
               onClick={() => setBellOpen(!bellOpen)}
-              className="relative p-2 rounded-lg text-[#8a8073] hover:text-[#191919] hover:bg-[#eadecc]/60 transition-colors"
+              className="relative p-2 rounded-lg text-(--ws-muted) hover:text-(--ws-text) hover:bg-(--ws-hover)/60 transition-colors"
               title={t('topbar.notifications')}
             >
               <Bell size={18} />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-[#cc5a37] border-2 border-[#f7f4eb] flex items-center justify-center text-white text-[10px] font-bold leading-none px-0.5">
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-(--ws-danger) border-2 border-(--ws-border) flex items-center justify-center text-(--ws-on-accent) text-[10px] font-bold leading-none px-0.5">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
             </button>
 
             {bellOpen && (
-              <div className="absolute right-0 top-full mt-2 w-96 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden">
+              <div className="absolute right-0 top-full mt-2 w-96 bg-(--ws-panel2) border border-(--ws-border) rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-[#e5dac9]">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-(--ws-border)">
                   <div className="flex items-center gap-2">
-                    <Bell size={14} className="text-[#8a8073]" />
-                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-[#8a8073]">{t('topbar.notifications')}</p>
+                    <Bell size={14} className="text-(--ws-muted)" />
+                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-(--ws-muted)">{t('topbar.notifications')}</p>
                     {unreadCount > 0 && (
-                      <span className="px-1.5 py-0.5 rounded-full bg-[#cc5a37]/10 text-[#cc5a37] text-[10px] font-bold">{t('topbar.unreadCount', { count: unreadCount })}</span>
+                      <span className="px-1.5 py-0.5 rounded-full bg-(--ws-danger)/10 text-(--ws-danger) text-[10px] font-bold">{t('topbar.unreadCount', { count: unreadCount })}</span>
                     )}
                   </div>
                   {unreadCount > 0 && (
                     <button
                       onClick={markAllRead}
-                      className="flex items-center gap-1 text-[11px] text-[#193a2b] hover:text-[#0d6b55] font-medium transition-colors"
+                      className="flex items-center gap-1 text-[11px] text-(--ws-accent) hover:text-(--ws-accent) font-medium transition-colors"
                       title={t('topbar.markAllRead')}
                     >
                       <CheckCheck size={13} />
@@ -505,19 +505,19 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                 {/* Notification list */}
                 <div className="max-h-[400px] overflow-y-auto">
                   {notifications.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-10 text-[#8a8073]">
+                    <div className="flex flex-col items-center justify-center py-10 text-(--ws-muted)">
                       <Bell size={28} className="mb-2 opacity-30" />
                       <p className="text-[13px]">{t('topbar.notificationsEmpty')}</p>
                     </div>
                   ) : (
                     notifications.map((n) => {
                       const icon = {
-                        submission_judged: <Award size={15} className="shrink-0 text-emerald-600" />,
-                        homework_assigned: <FileText size={15} className="shrink-0 text-blue-500" />,
-                        contest_starting_soon: <Clock size={15} className="shrink-0 text-amber-500" />,
-                        contest_started: <Trophy size={15} className="shrink-0 text-amber-500" />,
-                        class_enrolled: <Users size={15} className="shrink-0 text-purple-500" />,
-                      }[n.type] ?? <Bell size={15} className="shrink-0 text-[#8a8073]" />;
+                        submission_judged: <Award size={15} className="shrink-0 text-(--ws-ok)" />,
+                        homework_assigned: <FileText size={15} className="shrink-0 text-(--ws-info)" />,
+                        contest_starting_soon: <Clock size={15} className="shrink-0 text-(--ws-warn)" />,
+                        contest_started: <Trophy size={15} className="shrink-0 text-(--ws-warn)" />,
+                        class_enrolled: <Users size={15} className="shrink-0 text-(--ws-info)" />,
+                      }[n.type] ?? <Bell size={15} className="shrink-0 text-(--ws-muted)" />;
 
                       const timeAgo = (() => {
                         const diff = Date.now() - new Date(n.created_at).getTime();
@@ -530,8 +530,8 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                       return (
                         <div
                           key={n.id}
-                          className={`group flex items-start gap-3 px-4 py-3 border-b border-[#e5dac9]/60 cursor-pointer transition-colors ${
-                            n.is_read ? 'hover:bg-(--ws-hover)' : 'bg-[#193a2b]/5 hover:bg-[#193a2b]/10'
+                          className={`group flex items-start gap-3 px-4 py-3 border-b border-(--ws-border)/60 cursor-pointer transition-colors ${
+                            n.is_read ? 'hover:bg-(--ws-hover)' : 'bg-(--ws-accent)/5 hover:bg-(--ws-accent)/10'
                           }`}
                           onClick={async () => {
                             if (!n.is_read) await markRead(n.id);
@@ -540,18 +540,18 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                         >
                           <div className="mt-0.5">{icon}</div>
                           <div className="flex-1 min-w-0">
-                            <p className={`text-[13px] leading-snug ${n.is_read ? 'text-[#5c5446]' : 'font-semibold text-[#191919]'}`}>
+                            <p className={`text-[13px] leading-snug ${n.is_read ? 'text-(--ws-text)' : 'font-semibold text-(--ws-text)'}`}>
                               {n.title}
                             </p>
-                            <p className="text-[11.5px] text-[#8a8073] mt-0.5 line-clamp-2">{n.body}</p>
-                            <p className="text-[10.5px] text-[#bfae99] mt-1">{timeAgo}</p>
+                            <p className="text-[11.5px] text-(--ws-muted) mt-0.5 line-clamp-2">{n.body}</p>
+                            <p className="text-[10.5px] text-(--ws-faint) mt-1">{timeAgo}</p>
                           </div>
                           {!n.is_read && (
-                            <span className="shrink-0 mt-1.5 w-2 h-2 rounded-full bg-[#cc5a37]" />
+                            <span className="shrink-0 mt-1.5 w-2 h-2 rounded-full bg-(--ws-danger)" />
                           )}
                           <button
                             onClick={(e) => { e.stopPropagation(); removeNotification(n.id); }}
-                            className="shrink-0 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-100 text-[#8a8073] hover:text-red-500 transition-all"
+                            className="shrink-0 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-(--ws-danger-soft) text-(--ws-muted) hover:text-(--ws-danger) transition-all"
                             title={t('topbar.deleteNotification')}
                           >
                             <Trash2 size={12} />
@@ -563,11 +563,11 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
 
                   {/* Load more */}
                   {hasMore && (
-                    <div className="p-3 text-center border-t border-[#e5dac9]/60">
+                    <div className="p-3 text-center border-t border-(--ws-border)/60">
                       <button
                         onClick={loadMore}
                         disabled={loading}
-                        className="text-[12px] text-[#193a2b] font-medium hover:underline disabled:opacity-50"
+                        className="text-[12px] text-(--ws-accent) font-medium hover:underline disabled:opacity-50"
                       >
                         {loading ? t('topbar.loading') : t('topbar.loadMore')}
                       </button>
@@ -581,40 +581,40 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
           {/* Stats chips (ẩn với giảng viên) */}
           {user?.role !== 'instructor' && (
             <>
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[#f0ebd9] rounded-lg border border-[#e5dac9]">
-              <Trophy size={14} className="text-[#cc5a37]" />
-              <span className="text-sm text-[#cc5a37] font-semibold font-mono">{user?.rating}</span>
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-(--ws-panel2) rounded-lg border border-(--ws-border)">
+              <Trophy size={14} className="text-(--ws-danger)" />
+              <span className="text-sm text-(--ws-danger) font-semibold font-mono">{user?.rating}</span>
             </div>
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[#f0ebd9] rounded-lg border border-[#e5dac9]">
-              <BookOpen size={14} className="text-[#193a2b]" />
-              <span className="text-sm text-[#193a2b] font-semibold font-mono">{user?.solvedCount}</span>
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-(--ws-panel2) rounded-lg border border-(--ws-border)">
+              <BookOpen size={14} className="text-(--ws-accent)" />
+              <span className="text-sm text-(--ws-accent) font-semibold font-mono">{user?.solvedCount}</span>
             </div>
             </>
           )}
 
           {/* Avatar + dropdown */}
-          <div className="relative pl-3 border-l border-[#e5dac9]">
+          <div className="relative pl-3 border-l border-(--ws-border)">
             <button
               onClick={() => setAvatarOpen(!avatarOpen)}
               className={`flex items-center gap-2 rounded-xl px-1.5 py-1 transition-colors ${
-                avatarOpen ? 'bg-[#eadecc]/60' : 'hover:bg-[#eadecc]/60'
+                avatarOpen ? 'bg-(--ws-panel2)/60' : 'hover:bg-(--ws-hover)/60'
               }`}
             >
-              <div className="w-9 h-9 rounded-full bg-linear-to-br from-[#193a2b] to-[#2d5a3f] flex items-center justify-center text-white text-sm font-bold overflow-hidden">
+              <div className="w-9 h-9 rounded-full bg-linear-to-br from-(--ws-accent-strong) to-(--ws-accent) flex items-center justify-center text-(--ws-on-accent) text-sm font-bold overflow-hidden">
                 {user?.avatar ? (
                   <img src={user.avatar} alt={user.fullName || user.username} className="w-full h-full object-cover" />
                 ) : (
                   user?.fullName?.charAt(0) || user?.username?.charAt(0) || 'U'
                 )}
               </div>
-              <ChevronDown size={15} className={`text-[#8a8073] transition-transform ${avatarOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={15} className={`text-(--ws-muted) transition-transform ${avatarOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {avatarOpen && (
-              <div className="absolute right-0 top-full mt-2 w-64 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden">
+              <div className="absolute right-0 top-full mt-2 w-64 bg-(--ws-panel2) border border-(--ws-border) rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden">
                 {/* header */}
-                <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#e5dac9] bg-[#f0ebd9]/50">
-                  <div className="w-11 h-11 rounded-full bg-linear-to-br from-[#193a2b] to-[#2d5a3f] flex items-center justify-center text-white text-base font-bold shrink-0 overflow-hidden">
+                <div className="flex items-center gap-3 px-4 py-3.5 border-b border-(--ws-border) bg-(--ws-panel2)/50">
+                  <div className="w-11 h-11 rounded-full bg-linear-to-br from-(--ws-accent-strong) to-(--ws-accent) flex items-center justify-center text-(--ws-on-accent) text-base font-bold shrink-0 overflow-hidden">
                     {user?.avatar ? (
                       <img src={user.avatar} alt={user.fullName || user.username} className="w-full h-full object-cover" />
                     ) : (
@@ -622,18 +622,18 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-[#191919] truncate">{user?.fullName}</p>
-                    <p className="text-xs text-[#8a8073] truncate">{user?.email}</p>
+                    <p className="text-sm font-semibold text-(--ws-text) truncate">{user?.fullName}</p>
+                    <p className="text-xs text-(--ws-muted) truncate">{user?.email}</p>
                   </div>
                 </div>
 
                 {/* stats (mobile visibility) */}
                 {user?.role !== 'instructor' && (
-                  <div className="flex md:hidden items-center gap-2 px-4 py-2.5 border-b border-[#e5dac9]/60">
-                    <span className="flex items-center gap-1 text-xs text-[#cc5a37] font-semibold">
+                  <div className="flex md:hidden items-center gap-2 px-4 py-2.5 border-b border-(--ws-border)/60">
+                    <span className="flex items-center gap-1 text-xs text-(--ws-danger) font-semibold">
                       <Trophy size={13} /> {user?.rating}
                     </span>
-                    <span className="flex items-center gap-1 text-xs text-[#193a2b] font-semibold">
+                    <span className="flex items-center gap-1 text-xs text-(--ws-accent) font-semibold">
                       <BookOpen size={13} /> {user?.solvedCount}
                     </span>
                   </div>
@@ -644,24 +644,24 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                   <Link
                     to={user?.role === 'instructor' ? '/instructor/profile' : '/student/profile'}
                     onClick={() => setAvatarOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-[#5c5446] hover:bg-(--ws-hover) transition-colors"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-(--ws-text) hover:bg-(--ws-hover) transition-colors"
                   >
-                    <User size={17} className="text-[#8a8073]" /> {t('userMenu.myProfile')}
+                    <User size={17} className="text-(--ws-muted)" /> {t('userMenu.myProfile')}
                   </Link>
                   <Link
                     to={user?.role === 'instructor' ? '/instructor/settings' : '/student/settings'}
                     onClick={() => setAvatarOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-[#5c5446] hover:bg-(--ws-hover) transition-colors"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-(--ws-text) hover:bg-(--ws-hover) transition-colors"
                   >
-                    <Settings size={17} className="text-[#8a8073]" /> {t('userMenu.settings')}
+                    <Settings size={17} className="text-(--ws-muted)" /> {t('userMenu.settings')}
                   </Link>
                 </div>
 
                 {/* logout */}
-                <div className="p-1.5 border-t border-[#e5dac9]/60">
+                <div className="p-1.5 border-t border-(--ws-border)/60">
                   <button
                     onClick={() => { setAvatarOpen(false); logout(); }}
-                    className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-[#cc5a37] hover:bg-[#cc5a37]/10 transition-colors"
+                    className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-(--ws-danger) hover:bg-(--ws-danger)/10 transition-colors"
                   >
                     <LogOut size={17} /> {t('userMenu.logout')}
                   </button>

@@ -609,10 +609,10 @@ type TFn = ReturnType<typeof useTranslation>['t'];
 function StatePill({ state, since, now, t }: { state: LiveState | 'disq'; since: number | null; now: number; t: TFn }) {
   const base = 'shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap';
   if (state === 'disq')
-    return <span className={`${base} bg-(--ws-danger) text-white`}><Ban size={11} aria-hidden="true" />{t('contestMonitor.stDisq')}</span>;
+    return <span className={`${base} bg-(--ws-danger) text-(--ws-on-accent)`}><Ban size={11} aria-hidden="true" />{t('contestMonitor.stDisq')}</span>;
   if (state === 'away')
     return (
-      <span className={`${base} bg-(--ws-warn) text-[#1b1b1b]`}>
+      <span className={`${base} bg-(--ws-warn) text-(--ws-on-accent)`}>
         <EyeOff size={11} aria-hidden="true" />
         {t('contestMonitor.stAway')} {since ? formatDuration(now - since) : ''}
       </span>

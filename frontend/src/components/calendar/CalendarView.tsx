@@ -318,17 +318,17 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                   <div className="flex items-center justify-between pb-2 mb-2 border-b border-(--ws-border)">
                     <span className="text-xs font-bold text-(--ws-text)">{t('calendar.year', { year: currentYear })}</span>
                     <div className="flex items-center gap-1">
-                      <button
+                      <button aria-label={t('common.previous')}
                         onClick={() => setCurrentYear((y) => y - 1)}
                         className="p-1 rounded hover:bg-(--ws-hover) text-(--ws-muted) hover:text-(--ws-text)"
                       >
-                        <ChevronLeft size={13} />
+                        <ChevronLeft size={13} aria-hidden="true" />
                       </button>
-                      <button
+                      <button aria-label={t('common.next')}
                         onClick={() => setCurrentYear((y) => y + 1)}
                         className="p-1 rounded hover:bg-(--ws-hover) text-(--ws-muted) hover:text-(--ws-text)"
                       >
-                        <ChevronRight size={13} />
+                        <ChevronRight size={13} aria-hidden="true" />
                       </button>
                     </div>
                   </div>
@@ -346,7 +346,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                           }}
                           className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                             isSelected
-                              ? 'bg-(--ws-accent) text-white shadow-2xs'
+                              ? 'bg-(--ws-accent) text-(--ws-on-accent) shadow-2xs'
                               : 'text-(--ws-muted) hover:text-(--ws-text) hover:bg-(--ws-hover)'
                           }`}
                         >
@@ -368,7 +368,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                 onClick={() => setTypeFilter('all')}
                 className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all ${
                   typeFilter === 'all'
-                    ? 'bg-(--ws-accent) text-white shadow-2xs'
+                    ? 'bg-(--ws-accent) text-(--ws-on-accent) shadow-2xs'
                     : 'text-(--ws-muted) hover:text-(--ws-text)'
                 }`}
               >
@@ -378,12 +378,12 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                 onClick={() => setTypeFilter('homework')}
                 style={
                   typeFilter === 'homework'
-                    ? { backgroundColor: 'var(--ws-hw-dot)', color: '#fff' }
+                    ? { backgroundColor: 'var(--ws-hw-dot)', color: 'var(--ws-on-accent)' }
                     : undefined
                 }
                 className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all flex items-center gap-1 ${
                   typeFilter === 'homework'
-                    ? 'shadow-2xs text-white'
+                    ? 'shadow-2xs'
                     : 'text-(--ws-muted) hover:text-(--ws-text)'
                 }`}
               >
@@ -393,12 +393,12 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                 onClick={() => setTypeFilter('contest')}
                 style={
                   typeFilter === 'contest'
-                    ? { backgroundColor: 'var(--ws-contest-dot)', color: '#fff' }
+                    ? { backgroundColor: 'var(--ws-contest-dot)', color: 'var(--ws-on-accent)' }
                     : undefined
                 }
                 className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all flex items-center gap-1 ${
                   typeFilter === 'contest'
-                    ? 'shadow-2xs text-white'
+                    ? 'shadow-2xs'
                     : 'text-(--ws-muted) hover:text-(--ws-text)'
                 }`}
               >
@@ -499,7 +499,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                     {/* Centered Date Header as shown in the Codeforces screenshot */}
                     <div className="relative text-center mb-1 leading-none">
                       {cell.isToday ? (
-                        <div className="w-5 h-5 rounded-full bg-(--ws-accent) text-white font-bold text-[10.5px] flex items-center justify-center mx-auto shadow-2xs">
+                        <div className="w-5 h-5 rounded-full bg-(--ws-accent) text-(--ws-on-accent) font-bold text-[10.5px] flex items-center justify-center mx-auto shadow-2xs">
                           {cell.day}
                         </div>
                       ) : cell.isFirstOfMonth ? (
@@ -593,7 +593,7 @@ export default function CalendarView({ events, userRole = 'student', classes = [
                   </p>
                   <div className="mt-0.5 flex items-center justify-center">
                     {d.isToday ? (
-                      <span className="w-5 h-5 rounded-full bg-(--ws-accent) text-white text-[10.5px] font-bold flex items-center justify-center shadow-2xs">
+                      <span className="w-5 h-5 rounded-full bg-(--ws-accent) text-(--ws-on-accent) text-[10.5px] font-bold flex items-center justify-center shadow-2xs">
                         {d.dayNumber}
                       </span>
                     ) : (
@@ -783,12 +783,12 @@ export default function CalendarView({ events, userRole = 'student', classes = [
               className="flex items-center gap-1 text-[11px] font-semibold text-(--ws-text) hover:text-(--ws-accent) transition-colors border border-(--ws-border) bg-(--ws-panel) px-2 py-0.5 rounded-md shadow-2xs"
               title={t('calendar.openGoogleCalendar')}
             >
-              <span className="text-blue-500 font-bold">G</span>
-              <span className="text-red-500 font-bold">o</span>
-              <span className="text-yellow-500 font-bold">o</span>
-              <span className="text-blue-500 font-bold">g</span>
-              <span className="text-green-500 font-bold">l</span>
-              <span className="text-red-500 font-bold">e</span>
+              <span className="text-(--ws-info) font-bold">G</span>
+              <span className="text-(--ws-danger) font-bold">o</span>
+              <span className="text-(--ws-warn) font-bold">o</span>
+              <span className="text-(--ws-info) font-bold">g</span>
+              <span className="text-(--ws-ok) font-bold">l</span>
+              <span className="text-(--ws-danger) font-bold">e</span>
               <span className="text-(--ws-text) font-semibold ml-0.5">Calendar</span>
             </a>
           </div>

@@ -12,10 +12,10 @@ interface ActivityHeatmapProps {
 
 const LEVELS = [
   { min: 0, max: 0, bg: 'bg-(--ws-border)', titleKey: 'activityHeatmap.zero' },
-  { min: 1, max: 2, bg: 'bg-emerald-200', titleKey: 'activityHeatmap.oneToTwo' },
-  { min: 3, max: 5, bg: 'bg-emerald-400', titleKey: 'activityHeatmap.threeToFive' },
-  { min: 6, max: 9, bg: 'bg-emerald-600', titleKey: 'activityHeatmap.sixToNine' },
-  { min: 10, max: Infinity, bg: 'bg-emerald-800', titleKey: 'activityHeatmap.tenPlus' },
+  { min: 1, max: 2, bg: 'bg-(--ws-ok-soft)', titleKey: 'activityHeatmap.oneToTwo' },
+  { min: 3, max: 5, bg: 'bg-(--ws-ok)', titleKey: 'activityHeatmap.threeToFive' },
+  { min: 6, max: 9, bg: 'bg-(--ws-ok)', titleKey: 'activityHeatmap.sixToNine' },
+  { min: 10, max: Infinity, bg: 'bg-(--ws-ok)', titleKey: 'activityHeatmap.tenPlus' },
 ];
 
 function getLevel(count: number) {
@@ -89,10 +89,10 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
   const totalContributions = data.reduce((s, d) => s + d.count, 0);
 
   return (
-    <div className="bg-white border border-[#e5dac9] rounded-xl p-6 shadow-sm">
+    <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-6 shadow-sm">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-[#191919] font-serif flex items-center gap-2">
-          <span className="w-5 h-5 rounded bg-emerald-600 inline-block" />
+        <h3 className="text-lg font-bold text-(--ws-text) font-serif flex items-center gap-2">
+          <span className="w-5 h-5 rounded bg-(--ws-ok) inline-block" />
           {t('activityHeatmap.title', { count: totalContributions })}
         </h3>
       </div>
@@ -102,7 +102,7 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
           {/* Day labels */}
           <div className="flex flex-col gap-[3px] mr-2 mt-6">
             {DAY_LABELS.map((label, i) => (
-              <div key={i} className="h-[13px] text-[9px] text-[#8a8073] leading-none flex items-center">
+              <div key={i} className="h-[13px] text-[9px] text-(--ws-muted) leading-none flex items-center">
                 {label}
               </div>
             ))}
@@ -115,7 +115,7 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
               {weeks.map((_, wIdx) => {
                 const monthEntry = monthLabels.find((m) => m.weekIdx === wIdx);
                 return (
-                  <div key={wIdx} className="w-[13px] text-[9px] text-[#8a8073] leading-none">
+                  <div key={wIdx} className="w-[13px] text-[9px] text-(--ws-muted) leading-none">
                     {monthEntry?.label ?? ''}
                   </div>
                 );
@@ -131,7 +131,7 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
                     return (
                       <div
                         key={day.date}
-                        className={`w-[13px] h-[13px] rounded-xs ${day.isFuture ? 'bg-transparent' : level.bg} ${day.isToday ? 'ring-2 ring-[#193a2b]' : ''} transition-all`}
+                        className={`w-[13px] h-[13px] rounded-xs ${day.isFuture ? 'bg-transparent' : level.bg} ${day.isToday ? 'ring-2 ring-(--ws-accent)' : ''} transition-all`}
                         title={day.isFuture ? '' : t('activityHeatmap.day', { date: day.date, count: day.count })}
                       />
                     );
@@ -145,11 +145,11 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
 
       {/* Legend */}
       <div className="flex items-center justify-end gap-2 mt-3">
-        <span className="text-[10px] text-[#8a8073]">{t('activityHeatmap.less')}</span>
+        <span className="text-[10px] text-(--ws-muted)">{t('activityHeatmap.less')}</span>
         {LEVELS.map((l, i) => (
           <div key={i} className={`w-[13px] h-[13px] rounded-xs ${l.bg}`} title={t(l.titleKey)} />
         ))}
-        <span className="text-[10px] text-[#8a8073]">{t('activityHeatmap.more')}</span>
+        <span className="text-[10px] text-(--ws-muted)">{t('activityHeatmap.more')}</span>
       </div>
     </div>
   );

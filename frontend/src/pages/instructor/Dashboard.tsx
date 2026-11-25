@@ -59,32 +59,32 @@ export default function InstructorDashboard() {
   const recentSubmissions = submissions.slice(0, 5);
 
   const verdictColors: Record<string, string> = {
-    AC: 'text-emerald-700 bg-emerald-100 border-emerald-300',
-    WA: 'text-red-700 bg-red-100 border-red-300',
-    TLE: 'text-amber-700 bg-amber-100 border-amber-300',
-    MLE: 'text-amber-700 bg-amber-100 border-amber-300',
-    RTE: 'text-orange-700 bg-orange-100 border-orange-300',
-    CE: 'text-blue-700 bg-blue-100 border-blue-300',
-    PE: 'text-pink-700 bg-pink-100 border-pink-300',
-    PENDING: 'text-slate-700 bg-slate-100 border-slate-300',
+    AC: 'text-(--ws-ok) bg-(--ws-ok-soft) border-(--ws-ok)/35',
+    WA: 'text-(--ws-danger) bg-(--ws-danger-soft) border-(--ws-danger)/35',
+    TLE: 'text-(--ws-warn) bg-(--ws-warn-soft) border-(--ws-warn)/35',
+    MLE: 'text-(--ws-warn) bg-(--ws-warn-soft) border-(--ws-warn)/35',
+    RTE: 'text-(--ws-warn) bg-(--ws-warn-soft) border-(--ws-warn)/35',
+    CE: 'text-(--ws-info) bg-(--ws-info-soft) border-(--ws-info)/35',
+    PE: 'text-(--ws-danger) bg-(--ws-danger-soft) border-(--ws-danger)/35',
+    PENDING: 'text-(--ws-text) bg-(--ws-panel2) border-(--ws-border)',
   };
 
   return (
-    <div className="space-y-6 text-[#191919]">
+    <div className="space-y-6 text-(--ws-text)">
       {/* Welcome Banner */}
-      <div className="bg-white border border-[#e5dac9] rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold font-serif text-[#191919]">
+          <h2 className="text-2xl font-bold font-serif text-(--ws-text)">
             {t('instructorDashboard.welcome', { name: user?.fullName || user?.email })}
           </h2>
-          <p className="text-[#5c5446] text-sm mt-1">
+          <p className="text-(--ws-text) text-sm mt-1">
             {t('instructorDashboard.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-3">
           <Link
             to="/instructor/classes"
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#193a2b] text-white text-sm font-semibold hover:bg-[#143022] transition-colors shadow-xs"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-(--ws-accent) text-(--ws-on-accent) text-sm font-semibold hover:bg-(--ws-accent-strong) transition-colors shadow-xs"
           >
             <Plus size={16} />
             {t('instructorClass.pageTitle')}
@@ -97,58 +97,58 @@ export default function InstructorDashboard() {
 
       {/* Quick Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-[#e5dac9] rounded-xl p-5 shadow-xs hover:border-[#193a2b]/30 transition-all">
+        <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-5 shadow-xs hover:border-(--ws-accent)/30 transition-all">
           <div className="flex items-center justify-between mb-3">
-            <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
-              <Users size={20} className="text-purple-700" />
+            <div className="w-10 h-10 bg-(--ws-info-soft) rounded-lg flex items-center justify-center">
+              <Users size={20} className="text-(--ws-info)" />
             </div>
-            <span className="text-xs font-semibold text-[#8a8073] bg-[#f0ebd9] px-2 py-0.5 rounded-md">
+            <span className="text-xs font-semibold text-(--ws-muted) bg-(--ws-panel2) px-2 py-0.5 rounded-md">
               {t('instructorDashboard.totalStudents')}
             </span>
           </div>
-          <p className="text-2xl font-bold font-serif text-[#191919]">{totalStudents}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorDashboard.totalStudents')}</p>
+          <p className="text-2xl font-bold font-serif text-(--ws-text)">{totalStudents}</p>
+          <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorDashboard.totalStudents')}</p>
         </div>
 
-        <div className="bg-white border border-[#e5dac9] rounded-xl p-5 shadow-xs hover:border-[#193a2b]/30 transition-all">
+        <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-5 shadow-xs hover:border-(--ws-accent)/30 transition-all">
           <div className="flex items-center justify-between mb-3">
-            <div className="w-10 h-10 bg-[#193a2b]/10 rounded-lg flex items-center justify-center">
-              <BookOpen size={20} className="text-[#193a2b]" />
+            <div className="w-10 h-10 bg-(--ws-accent)/10 rounded-lg flex items-center justify-center">
+              <BookOpen size={20} className="text-(--ws-accent)" />
             </div>
-            <span className="text-xs font-semibold text-[#8a8073] bg-[#f0ebd9] px-2 py-0.5 rounded-md">
+            <span className="text-xs font-semibold text-(--ws-muted) bg-(--ws-panel2) px-2 py-0.5 rounded-md">
               {t('instructorDashboard.activeHomeworks')}
             </span>
           </div>
-          <p className="text-2xl font-bold font-serif text-[#191919]">{activeHomeworks}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorDashboard.activeHomeworks')}</p>
+          <p className="text-2xl font-bold font-serif text-(--ws-text)">{activeHomeworks}</p>
+          <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorDashboard.activeHomeworks')}</p>
         </div>
 
-        <div className="bg-white border border-[#e5dac9] rounded-xl p-5 shadow-xs hover:border-[#193a2b]/30 transition-all">
+        <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-5 shadow-xs hover:border-(--ws-accent)/30 transition-all">
           <div className="flex items-center justify-between mb-3">
-            <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center">
-              <Trophy size={20} className="text-amber-700" />
+            <div className="w-10 h-10 bg-(--ws-warn-soft) rounded-lg flex items-center justify-center">
+              <Trophy size={20} className="text-(--ws-warn)" />
             </div>
             {runningContests > 0 && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-(--ws-ok-soft) text-(--ws-ok) border border-(--ws-ok)/35">
+                <span className="w-1.5 h-1.5 rounded-full bg-(--ws-ok) animate-pulse" /> Live
               </span>
             )}
           </div>
-          <p className="text-2xl font-bold font-serif text-[#191919]">{runningContests}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorDashboard.runningContests')}</p>
+          <p className="text-2xl font-bold font-serif text-(--ws-text)">{runningContests}</p>
+          <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorDashboard.runningContests')}</p>
         </div>
 
-        <div className="bg-white border border-[#e5dac9] rounded-xl p-5 shadow-xs hover:border-[#193a2b]/30 transition-all">
+        <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-5 shadow-xs hover:border-(--ws-accent)/30 transition-all">
           <div className="flex items-center justify-between mb-3">
-            <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center">
-              <CheckCircle2 size={20} className="text-emerald-700" />
+            <div className="w-10 h-10 bg-(--ws-ok-soft) rounded-lg flex items-center justify-center">
+              <CheckCircle2 size={20} className="text-(--ws-ok)" />
             </div>
-            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+            <span className="text-xs font-semibold text-(--ws-ok) bg-(--ws-ok-soft) px-2 py-0.5 rounded-md border border-(--ws-ok)/35">
               {totalSubmissions} {t('instructorDashboard.submittedSuffix')}
             </span>
           </div>
-          <p className="text-2xl font-bold font-serif text-[#191919]">{acRate}%</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorDashboard.acRate')}</p>
+          <p className="text-2xl font-bold font-serif text-(--ws-text)">{acRate}%</p>
+          <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorDashboard.acRate')}</p>
         </div>
       </div>
 
@@ -157,13 +157,13 @@ export default function InstructorDashboard() {
         {/* Left Column (2/3) */}
         <div className="lg:col-span-2 space-y-6">
           {/* Classes Overview */}
-          <div className="bg-white border border-[#e5dac9] rounded-2xl p-6 shadow-xs">
+          <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-6 shadow-xs">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-bold font-serif text-[#191919]">{t('instructorDashboard.classesTitle')}</h3>
-                <p className="text-xs text-[#8a8073]">{t('instructorDashboard.subtitle')}</p>
+                <h3 className="text-base font-bold font-serif text-(--ws-text)">{t('instructorDashboard.classesTitle')}</h3>
+                <p className="text-xs text-(--ws-muted)">{t('instructorDashboard.subtitle')}</p>
               </div>
-              <Link to="/instructor/classes" className="text-xs text-[#193a2b] hover:text-[#2d5a3f] font-semibold flex items-center gap-1">
+              <Link to="/instructor/classes" className="text-xs text-(--ws-accent) hover:text-(--ws-accent) font-semibold flex items-center gap-1">
                 {t('instructorDashboard.viewAll')} <ArrowRight size={13} />
               </Link>
             </div>
@@ -173,27 +173,27 @@ export default function InstructorDashboard() {
                 <Link
                   key={cls.id}
                   to={`/instructor/class/${cls.id}`}
-                  className="block p-4 bg-[#f7f4eb] rounded-xl border border-[#e5dac9] hover:border-[#193a2b]/40 hover:bg-[#f0ebd9]/50 transition-all group"
+                  className="block p-4 bg-(--ws-panel2) rounded-xl border border-(--ws-border) hover:border-(--ws-accent)/40 hover:bg-(--ws-hover)/50 transition-all group"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 bg-[#193a2b] text-white rounded-lg flex items-center justify-center shrink-0 shadow-xs">
+                      <div className="w-9 h-9 bg-(--ws-accent) text-(--ws-on-accent) rounded-lg flex items-center justify-center shrink-0 shadow-xs">
                         <GraduationCap size={18} />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-[#191919] group-hover:text-[#193a2b] transition-colors truncate">
+                        <p className="text-sm font-semibold text-(--ws-text) group-hover:text-(--ws-accent) transition-colors truncate">
                           {cls.name}
                         </p>
-                        <p className="text-xs text-[#8a8073] mt-0.5">
+                        <p className="text-xs text-(--ws-muted) mt-0.5">
                           {cls.code}{cls.semester ? ` • ${cls.semester}` : ''}
                         </p>
                       </div>
                     </div>
-                    <span className="text-[11px] font-semibold text-[#5c5446] bg-[#f0ebd9] px-2 py-0.5 rounded-full border border-[#e5dac9] shrink-0">
+                    <span className="text-[11px] font-semibold text-(--ws-text) bg-(--ws-panel2) px-2 py-0.5 rounded-full border border-(--ws-border) shrink-0">
                       {cls.studentCount} {t('instructorDashboard.studentsAbbr')}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-[#8a8073] mt-3 pt-2.5 border-t border-[#e5dac9]/60">
+                  <div className="flex items-center gap-4 text-xs text-(--ws-muted) mt-3 pt-2.5 border-t border-(--ws-border)/60">
                     <span className="flex items-center gap-1">
                       <BookOpen size={12} /> {cls.homeworkCount} {t('instructorDashboard.homeworkCount')}
                     </span>
@@ -205,40 +205,40 @@ export default function InstructorDashboard() {
               ))}
 
               {myClasses.length === 0 && (
-                <div className="sm:col-span-2 py-8 text-center border border-dashed border-[#e5dac9] rounded-xl">
-                  <p className="text-sm text-[#8a8073]">{t('instructorDashboard.noClasses')}</p>
+                <div className="sm:col-span-2 py-8 text-center border border-dashed border-(--ws-border) rounded-xl">
+                  <p className="text-sm text-(--ws-muted)">{t('instructorDashboard.noClasses')}</p>
                 </div>
               )}
             </div>
           </div>
 
           {/* Recent Submissions */}
-          <div className="bg-white border border-[#e5dac9] rounded-2xl p-6 shadow-xs">
+          <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-6 shadow-xs">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-bold font-serif text-[#191919]">{t('instructorDashboard.recentStudentSubmissions')}</h3>
-                <p className="text-xs text-[#8a8073]">{t('instructorDashboard.recentSubmissionsSubtitle')}</p>
+                <h3 className="text-base font-bold font-serif text-(--ws-text)">{t('instructorDashboard.recentStudentSubmissions')}</h3>
+                <p className="text-xs text-(--ws-muted)">{t('instructorDashboard.recentSubmissionsSubtitle')}</p>
               </div>
-              <Link to="/instructor/submissions" className="text-xs text-[#193a2b] hover:text-[#2d5a3f] font-semibold flex items-center gap-1">
+              <Link to="/instructor/submissions" className="text-xs text-(--ws-accent) hover:text-(--ws-accent) font-semibold flex items-center gap-1">
                 {t('instructorDashboard.viewAll')} <ArrowRight size={13} />
               </Link>
             </div>
 
             <div className="space-y-2">
               {recentSubmissions.map((sub) => (
-                <div key={sub.id} className="flex items-center justify-between p-3 bg-[#f7f4eb] rounded-xl border border-[#e5dac9] hover:border-[#193a2b]/30 transition-all">
+                <div key={sub.id} className="flex items-center justify-between p-3 bg-(--ws-panel2) rounded-xl border border-(--ws-border) hover:border-(--ws-accent)/30 transition-all">
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className={`text-xs px-2.5 py-1 rounded-md font-bold font-mono border ${verdictColors[sub.verdict] || 'bg-slate-100 text-slate-800'}`}>
+                    <span className={`text-xs px-2.5 py-1 rounded-md font-bold font-mono border ${verdictColors[sub.verdict] || 'bg-(--ws-panel2) text-(--ws-text)'}`}>
                       {sub.verdict}
                     </span>
                     <div className="min-w-0">
-                      <p className="text-sm text-[#191919] font-semibold truncate">{sub.problemTitle}</p>
-                      <p className="text-xs text-[#8a8073] mt-0.5">
-                        <span className="font-medium text-[#5c5446]">@{sub.username}</span> • {formatLanguageName(sub.language)}
+                      <p className="text-sm text-(--ws-text) font-semibold truncate">{sub.problemTitle}</p>
+                      <p className="text-xs text-(--ws-muted) mt-0.5">
+                        <span className="font-medium text-(--ws-text)">@{sub.username}</span> • {formatLanguageName(sub.language)}
                       </p>
                     </div>
                   </div>
-                  <div className="text-right text-xs text-[#8a8073] shrink-0 pl-3">
+                  <div className="text-right text-xs text-(--ws-muted) shrink-0 pl-3">
                     <p className="font-mono">{sub.executionTime !== null && sub.executionTime !== undefined ? `${sub.executionTime}ms` : '—'}</p>
                     <p className="mt-0.5">{formatVNFull(sub.timestamp)}</p>
                   </div>
@@ -246,7 +246,7 @@ export default function InstructorDashboard() {
               ))}
 
               {recentSubmissions.length === 0 && (
-                <div className="py-6 text-center border border-dashed border-[#e5dac9] rounded-xl text-xs text-[#8a8073]">
+                <div className="py-6 text-center border border-dashed border-(--ws-border) rounded-xl text-xs text-(--ws-muted)">
                   {t('instructorDashboard.noSubmissionsFromStudents')}
                 </div>
               )}
@@ -260,38 +260,38 @@ export default function InstructorDashboard() {
           <TopRatedLeaderboard maxItems={5} showTitle={true} />
 
           {/* Upcoming Deadlines */}
-          <div className="bg-white border border-[#e5dac9] rounded-2xl p-5 shadow-xs">
-            <div className="flex items-center justify-between mb-3 pb-3 border-b border-[#e5dac9]">
+          <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-5 shadow-xs">
+            <div className="flex items-center justify-between mb-3 pb-3 border-b border-(--ws-border)">
               <div>
-                <h3 className="text-sm font-bold font-serif text-[#191919]">{t('instructorDashboard.homeworkDeadlines')}</h3>
-                <p className="text-[11px] text-[#8a8073]">{t('instructorDashboard.homeworkDeadlinesSubtitle')}</p>
+                <h3 className="text-sm font-bold font-serif text-(--ws-text)">{t('instructorDashboard.homeworkDeadlines')}</h3>
+                <p className="text-[11px] text-(--ws-muted)">{t('instructorDashboard.homeworkDeadlinesSubtitle')}</p>
               </div>
-              <Link to="/instructor/classes" className="text-xs text-[#193a2b] font-semibold hover:underline">
+              <Link to="/instructor/classes" className="text-xs text-(--ws-accent) font-semibold hover:underline">
                 {t('instructorDashboard.details')}
               </Link>
             </div>
 
             <div className="space-y-2.5">
               {allHomeworks.filter((h) => h.status === 'active').slice(0, 4).map((hw) => (
-                <div key={hw.id} className="p-3 bg-[#f7f4eb] rounded-xl border border-[#e5dac9]">
+                <div key={hw.id} className="p-3 bg-(--ws-panel2) rounded-xl border border-(--ws-border)">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-[#191919] truncate">{hw.title}</p>
-                      <p className="text-[11px] text-[#8a8073] mt-0.5">{hw.className}</p>
+                      <p className="text-xs font-semibold text-(--ws-text) truncate">{hw.title}</p>
+                      <p className="text-[11px] text-(--ws-muted) mt-0.5">{hw.className}</p>
                     </div>
-                    <span className="text-[10px] font-semibold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300 shrink-0 flex items-center gap-1">
+                    <span className="text-[10px] font-semibold text-(--ws-warn) bg-(--ws-warn-soft) px-2 py-0.5 rounded-md border border-(--ws-warn)/35 shrink-0 flex items-center gap-1">
                       <Clock size={10} /> {formatVN(hw.deadline)}
                     </span>
                   </div>
-                  <div className="mt-2 pt-2 border-t border-[#e5dac9]/60 flex items-center justify-between text-[11px] text-[#8a8073]">
+                  <div className="mt-2 pt-2 border-t border-(--ws-border)/60 flex items-center justify-between text-[11px] text-(--ws-muted)">
                     <span>{t('instructorDashboard.submissionProgress')}</span>
-                    <span className="font-semibold text-[#191919]">{hw.submittedStudents}/{hw.totalStudents} {t('instructorDashboard.studentsSuffix')}</span>
+                    <span className="font-semibold text-(--ws-text)">{hw.submittedStudents}/{hw.totalStudents} {t('instructorDashboard.studentsSuffix')}</span>
                   </div>
                 </div>
               ))}
 
               {allHomeworks.filter((h) => h.status === 'active').length === 0 && (
-                <p className="text-xs text-[#8a8073] text-center py-4">{t('instructorDashboard.noActiveHomework')}</p>
+                <p className="text-xs text-(--ws-muted) text-center py-4">{t('instructorDashboard.noActiveHomework')}</p>
               )}
             </div>
           </div>
@@ -299,16 +299,16 @@ export default function InstructorDashboard() {
       </div>
 
       {/* Submission Stats Breakdown */}
-      <div className="bg-white border border-[#e5dac9] rounded-2xl p-6 shadow-xs">
+      <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-6 shadow-xs">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <BarChart3 size={18} className="text-[#193a2b]" />
+            <BarChart3 size={18} className="text-(--ws-accent)" />
             <div>
-              <h3 className="text-base font-bold font-serif text-[#191919]">{t('instructorDashboard.verdictDistribution')}</h3>
-              <p className="text-xs text-[#8a8073]">{t('instructorDashboard.verdictDistributionSubtitle')}</p>
+              <h3 className="text-base font-bold font-serif text-(--ws-text)">{t('instructorDashboard.verdictDistribution')}</h3>
+              <p className="text-xs text-(--ws-muted)">{t('instructorDashboard.verdictDistributionSubtitle')}</p>
             </div>
           </div>
-          <span className="text-xs text-[#8a8073] font-semibold">
+          <span className="text-xs text-(--ws-muted) font-semibold">
             {t('instructorDashboard.totalSubmissionsLabel', { count: totalSubmissions })}
           </span>
         </div>
@@ -321,43 +321,43 @@ export default function InstructorDashboard() {
             }, {} as Record<string, number>)
           ).map(([verdict, count]) => {
             const vBarColors: Record<string, string> = {
-              AC: 'bg-emerald-600',
-              WA: 'bg-red-600',
-              TLE: 'bg-amber-500',
-              MLE: 'bg-amber-600',
-              RTE: 'bg-orange-500',
-              CE: 'bg-blue-500',
-              PE: 'bg-pink-500',
-              PENDING: 'bg-slate-500',
+              AC: 'bg-(--ws-ok)',
+              WA: 'bg-(--ws-danger)',
+              TLE: 'bg-(--ws-warn)',
+              MLE: 'bg-(--ws-warn)',
+              RTE: 'bg-(--ws-warn)',
+              CE: 'bg-(--ws-info)',
+              PE: 'bg-(--ws-danger)',
+              PENDING: 'bg-(--ws-faint)',
             };
             const vTextColors: Record<string, string> = {
-              AC: 'text-emerald-700',
-              WA: 'text-red-700',
-              TLE: 'text-amber-700',
-              MLE: 'text-amber-700',
-              RTE: 'text-orange-700',
-              CE: 'text-blue-700',
-              PE: 'text-pink-700',
-              PENDING: 'text-slate-700',
+              AC: 'text-(--ws-ok)',
+              WA: 'text-(--ws-danger)',
+              TLE: 'text-(--ws-warn)',
+              MLE: 'text-(--ws-warn)',
+              RTE: 'text-(--ws-warn)',
+              CE: 'text-(--ws-info)',
+              PE: 'text-(--ws-danger)',
+              PENDING: 'text-(--ws-text)',
             };
 
             const percentage = totalSubmissions > 0 ? Math.round((count / totalSubmissions) * 100) : 0;
 
             return (
-              <div key={verdict} className="p-3 bg-[#f7f4eb] rounded-xl border border-[#e5dac9] text-center">
-                <p className={`text-xl font-bold font-serif ${vTextColors[verdict] || 'text-[#191919]'}`}>
+              <div key={verdict} className="p-3 bg-(--ws-panel2) rounded-xl border border-(--ws-border) text-center">
+                <p className={`text-xl font-bold font-serif ${vTextColors[verdict] || 'text-(--ws-text)'}`}>
                   {count}
                 </p>
-                <p className="text-[11px] text-[#8a8073] mt-0.5 font-bold uppercase tracking-wider">
+                <p className="text-[11px] text-(--ws-muted) mt-0.5 font-bold uppercase tracking-wider">
                   {verdict}
                 </p>
-                <div className="w-full bg-[#e5dac9]/60 rounded-full h-1.5 mt-2 overflow-hidden">
+                <div className="w-full bg-(--ws-border)/60 rounded-full h-1.5 mt-2 overflow-hidden">
                   <div
-                    className={`${vBarColors[verdict] || 'bg-slate-400'} h-1.5 rounded-full transition-all`}
+                    className={`${vBarColors[verdict] || 'bg-(--ws-faint)'} h-1.5 rounded-full transition-all`}
                     style={{ width: `${percentage}%` }}
                   />
                 </div>
-                <span className="text-[10px] text-[#8a8073] mt-1 block">{percentage}%</span>
+                <span className="text-[10px] text-(--ws-muted) mt-1 block">{percentage}%</span>
               </div>
             );
           })}

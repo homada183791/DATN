@@ -4,36 +4,36 @@ import { useTopRatedUsersQuery } from '../api/users';
 import { useTranslation } from 'react-i18next';
 
 function getRatingBadgeColor(rating: number): string {
-  if (rating >= 1800) return 'text-purple-700 bg-purple-50 border-purple-200';
-  if (rating >= 1500) return 'text-blue-700 bg-blue-50 border-blue-200';
-  if (rating >= 1300) return 'text-emerald-700 bg-emerald-50 border-emerald-200';
-  return 'text-[#193a2b] bg-[#f0ebd9] border-[#e5dac9]';
+  if (rating >= 1800) return 'text-(--ws-info) bg-(--ws-info-soft) border-(--ws-info)/35';
+  if (rating >= 1500) return 'text-(--ws-info) bg-(--ws-info-soft) border-(--ws-info)/35';
+  if (rating >= 1300) return 'text-(--ws-ok) bg-(--ws-ok-soft) border-(--ws-ok)/35';
+  return 'text-(--ws-accent) bg-(--ws-panel2) border-(--ws-border)';
 }
 
 function getRankBadge(rank: number, t: (key: string) => string) {
   if (rank === 1) {
     return (
-      <div className="w-6 h-6 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center font-bold text-xs shadow-xs" title={t('widgets.rankGold')}>
+      <div className="w-6 h-6 rounded-full bg-(--ws-warn) text-(--ws-warn) flex items-center justify-center font-bold text-xs shadow-xs" title={t('widgets.rankGold')}>
         1
       </div>
     );
   }
   if (rank === 2) {
     return (
-      <div className="w-6 h-6 rounded-full bg-slate-300 text-slate-800 flex items-center justify-center font-bold text-xs shadow-xs" title={t('widgets.rankSilver')}>
+      <div className="w-6 h-6 rounded-full bg-(--ws-border) text-(--ws-text) flex items-center justify-center font-bold text-xs shadow-xs" title={t('widgets.rankSilver')}>
         2
       </div>
     );
   }
   if (rank === 3) {
     return (
-      <div className="w-6 h-6 rounded-full bg-amber-700 text-amber-100 flex items-center justify-center font-bold text-xs shadow-xs" title={t('widgets.rankBronze')}>
+      <div className="w-6 h-6 rounded-full bg-(--ws-warn) text-(--ws-on-accent) flex items-center justify-center font-bold text-xs shadow-xs" title={t('widgets.rankBronze')}>
         3
       </div>
     );
   }
   return (
-    <div className="w-6 h-6 rounded-full bg-[#f0ebd9] text-[#8a8073] flex items-center justify-center font-bold text-xs">
+    <div className="w-6 h-6 rounded-full bg-(--ws-panel2) text-(--ws-muted) flex items-center justify-center font-bold text-xs">
       {rank}
     </div>
   );
@@ -53,16 +53,16 @@ export default function TopRatedLeaderboard({ maxItems = 5, showTitle = true }: 
 
   if (isLoading) {
     return (
-      <div className="bg-white border border-[#e5dac9] rounded-2xl p-5 shadow-xs">
+      <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-5 shadow-xs">
         {showTitle && (
-          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#e5dac9]">
-            <Crown size={18} className="text-[#193a2b]" />
-            <h3 className="text-base font-bold text-[#191919]">{t('widgets.leaderboardTitle')}</h3>
+          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-(--ws-border)">
+            <Crown size={18} className="text-(--ws-accent)" />
+            <h3 className="text-base font-bold text-(--ws-text)">{t('widgets.leaderboardTitle')}</h3>
           </div>
         )}
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-12 bg-[#f7f4eb] rounded-xl animate-pulse" />
+            <div key={i} className="h-12 bg-(--ws-panel2) rounded-xl animate-pulse" />
           ))}
         </div>
       </div>
@@ -71,34 +71,34 @@ export default function TopRatedLeaderboard({ maxItems = 5, showTitle = true }: 
 
   if (error || users.length === 0) {
     return (
-      <div className="bg-white border border-[#e5dac9] rounded-2xl p-5 shadow-xs text-center">
+      <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-5 shadow-xs text-center">
         {showTitle && (
-          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#e5dac9] text-left">
-            <Crown size={18} className="text-[#193a2b]" />
-            <h3 className="text-base font-bold text-[#191919]">{t('widgets.leaderboardTitle')}</h3>
+          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-(--ws-border) text-left">
+            <Crown size={18} className="text-(--ws-accent)" />
+            <h3 className="text-base font-bold text-(--ws-text)">{t('widgets.leaderboardTitle')}</h3>
           </div>
         )}
-        <Award size={32} className="text-[#bfae99] mx-auto mb-2" />
-        <p className="text-xs text-[#8a8073]">{t('widgets.leaderboardEmpty')}</p>
+        <Award size={32} className="text-(--ws-faint) mx-auto mb-2" />
+        <p className="text-xs text-(--ws-muted)">{t('widgets.leaderboardEmpty')}</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-[#e5dac9] rounded-2xl p-5 shadow-xs">
+    <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-5 shadow-xs">
       {showTitle && (
-        <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-[#e5dac9]">
+        <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-(--ws-border)">
           <div className="flex items-center gap-2">
-            <Crown size={18} className="text-[#193a2b]" />
+            <Crown size={18} className="text-(--ws-accent)" />
             <div>
-              <h3 className="text-base font-bold text-[#191919] font-serif">{t('widgets.topRatedTitle')}</h3>
-              <p className="text-[11px] text-[#8a8073]">{t('widgets.topRatedSubtitle')}</p>
+              <h3 className="text-base font-bold text-(--ws-text) font-serif">{t('widgets.topRatedTitle')}</h3>
+              <p className="text-[11px] text-(--ws-muted)">{t('widgets.topRatedSubtitle')}</p>
             </div>
           </div>
           {users.length > maxItems && (
             <button
               onClick={() => setShowAll(!showAll)}
-              className="text-xs text-[#193a2b] hover:text-[#143022] font-semibold hover:underline"
+              className="text-xs text-(--ws-accent) hover:text-(--ws-accent) font-semibold hover:underline"
             >
               {showAll ? t('widgets.collapse') : t('widgets.showTop', { count: users.length })}
             </button>
@@ -117,33 +117,33 @@ export default function TopRatedLeaderboard({ maxItems = 5, showTitle = true }: 
               key={u.id}
               className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
                 rank <= 3
-                  ? 'bg-[#f7f4eb] border-amber-500/30 hover:border-amber-500/60 shadow-2xs'
-                  : 'bg-[#f7f4eb]/60 border-[#e5dac9] hover:border-[#193a2b]/40'
+                  ? 'bg-(--ws-panel2) border-(--ws-warn)/30 hover:border-(--ws-warn)/60 shadow-2xs'
+                  : 'bg-(--ws-panel2)/60 border-(--ws-border) hover:border-(--ws-accent)/40'
               }`}
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="shrink-0">{getRankBadge(rank, t)}</div>
 
-                <div className="w-8 h-8 rounded-full bg-linear-to-br from-[#193a2b] to-[#2d5a3f] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                <div className="w-8 h-8 rounded-full bg-linear-to-br from-(--ws-accent-strong) to-(--ws-accent) text-(--ws-on-accent) flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                   {initial}
                 </div>
 
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <p className="text-xs font-semibold text-[#191919] truncate">{displayName}</p>
+                    <p className="text-xs font-semibold text-(--ws-text) truncate">{displayName}</p>
                     {u.student_code && (
-                      <span className="text-[10px] font-mono font-medium px-1.5 py-0.2 rounded-md bg-[#f0ebd9] text-[#5c5446]">
+                      <span className="text-[10px] font-mono font-medium px-1.5 py-0.2 rounded-md bg-(--ws-panel2) text-(--ws-text)">
                         {u.student_code}
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 text-[11px] text-[#8a8073] mt-0.5">
+                  <div className="flex items-center gap-3 text-[11px] text-(--ws-muted) mt-0.5">
                     <span className="flex items-center gap-0.5">
-                      <CheckCircle2 size={11} className="text-emerald-600" /> {u.solved_count} AC
+                      <CheckCircle2 size={11} className="text-(--ws-ok)" /> {u.solved_count} AC
                     </span>
                     {u.current_streak > 0 && (
-                      <span className="flex items-center gap-0.5 text-amber-700 font-medium">
-                        <Flame size={11} className="text-amber-500 fill-amber-500" /> {u.current_streak}d
+                      <span className="flex items-center gap-0.5 text-(--ws-warn) font-medium">
+                        <Flame size={11} className="text-(--ws-warn) fill-(--ws-warn)" /> {u.current_streak}d
                       </span>
                     )}
                   </div>
@@ -158,7 +158,7 @@ export default function TopRatedLeaderboard({ maxItems = 5, showTitle = true }: 
                 >
                   {u.elo_rating}
                 </span>
-                <span className="block text-[9.5px] text-[#8a8073] mt-0.5">Rating</span>
+                <span className="block text-[9.5px] text-(--ws-muted) mt-0.5">Rating</span>
               </div>
             </div>
           );

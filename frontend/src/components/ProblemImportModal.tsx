@@ -299,19 +299,19 @@ export default function ProblemImportModal({ isOpen, onClose, onImported, inBank
       className="fixed inset-0 z-300 flex items-center justify-center bg-black/60 backdrop-blur-[2px] p-4"
       onClick={(e) => e.target === e.currentTarget && handleClose()}
     >
-      <div className="w-full max-w-2xl max-h-[90vh] flex flex-col bg-[#f7f4eb] border border-[#e5dac9] rounded-2xl shadow-2xl overflow-hidden text-[#191919]">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5dac9]">
+      <div className="w-full max-w-2xl max-h-[90vh] flex flex-col bg-(--ws-panel2) border border-(--ws-border) rounded-2xl shadow-2xl overflow-hidden text-(--ws-text)">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#e5dac9]/60 flex items-center justify-center">
-              <FileUp size={18} className="text-[#193a2b]" />
+            <div className="w-9 h-9 rounded-xl bg-(--ws-border)/60 flex items-center justify-center">
+              <FileUp size={18} className="text-(--ws-accent)" />
             </div>
             <div>
               <h3 className="font-bold font-serif text-base">{t('problemImport.title')}</h3>
-              <p className="text-xs text-[#8a8073]">{t('problemImport.subtitle')}</p>
+              <p className="text-xs text-(--ws-muted)">{t('problemImport.subtitle')}</p>
             </div>
           </div>
-          <button type="button" onClick={handleClose} disabled={running} className="text-[#8a8073] hover:text-[#191919] disabled:opacity-40">
-            <X size={18} />
+          <button aria-label={t('common.close')} type="button" onClick={handleClose} disabled={running} className="text-(--ws-muted) hover:text-(--ws-text) disabled:opacity-40">
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
 
@@ -330,17 +330,17 @@ export default function ProblemImportModal({ isOpen, onClose, onImported, inBank
                   if (!running) void addFiles(e.dataTransfer.files);
                 }}
                 className={`rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors ${
-                  dragOver ? 'border-[#193a2b] bg-[#193a2b]/5' : 'border-[#d9cdb8] bg-white/60'
+                  dragOver ? 'border-(--ws-accent) bg-(--ws-accent)/5' : 'border-(--ws-border) bg-(--ws-panel)/60'
                 }`}
               >
-                <UploadCloud size={28} className="mx-auto text-[#193a2b] mb-2" />
+                <UploadCloud size={28} className="mx-auto text-(--ws-accent) mb-2" />
                 <p className="text-sm font-semibold">{t('problemImport.dropHint')}</p>
-                <p className="text-xs text-[#8a8073] mt-1">{t('problemImport.formats')}</p>
+                <p className="text-xs text-(--ws-muted) mt-1">{t('problemImport.formats')}</p>
                 <button
                   type="button"
                   disabled={running}
                   onClick={() => inputRef.current?.click()}
-                  className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#122b1f] disabled:opacity-50"
+                  className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-(--ws-accent) text-(--ws-on-accent) text-xs font-semibold rounded-xl hover:bg-(--ws-accent-strong) disabled:opacity-50"
                 >
                   <FileUp size={14} /> {t('problemImport.chooseFiles')}
                 </button>
@@ -358,24 +358,24 @@ export default function ProblemImportModal({ isOpen, onClose, onImported, inBank
               </div>
 
               {/* Chú thích cấu trúc tệp tải lên */}
-              <div className="rounded-xl border border-[#e5dac9] bg-white/70">
+              <div className="rounded-xl border border-(--ws-border) bg-(--ws-panel)/70">
                 <button
                   type="button"
                   onClick={() => setShowGuide((v) => !v)}
                   className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left"
                 >
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#5c5446]">{t('problemImport.guideTitle')}</span>
-                  <ChevronDown size={16} className={`text-[#8a8073] transition-transform ${showGuide ? 'rotate-180' : ''}`} />
+                  <span className="text-xs font-bold uppercase tracking-wider text-(--ws-text)">{t('problemImport.guideTitle')}</span>
+                  <ChevronDown size={16} className={`text-(--ws-muted) transition-transform ${showGuide ? 'rotate-180' : ''}`} />
                 </button>
                 {showGuide && (
-                  <div className="px-4 pb-4 space-y-3 text-xs text-[#5c5446]">
-                    <div className="inline-flex rounded-lg border border-[#cbbd9f] overflow-hidden">
+                  <div className="px-4 pb-4 space-y-3 text-xs text-(--ws-text)">
+                    <div className="inline-flex rounded-lg border border-(--ws-faint) overflow-hidden">
                       {(['json', 'md'] as const).map((k) => (
                         <button
                           key={k}
                           type="button"
                           onClick={() => setGuideTab(k)}
-                          className={`px-3 py-1.5 text-[11px] font-semibold ${guideTab === k ? 'bg-[#193a2b] text-white' : 'bg-white text-[#5c5446] hover:bg-[#f0ebd9]'}`}
+                          className={`px-3 py-1.5 text-[11px] font-semibold ${guideTab === k ? 'bg-(--ws-accent) text-(--ws-on-accent)' : 'bg-(--ws-panel) text-(--ws-text) hover:bg-(--ws-hover)'}`}
                         >
                           {k === 'json' ? '.json' : '.md'}
                         </button>
@@ -385,19 +385,19 @@ export default function ProblemImportModal({ isOpen, onClose, onImported, inBank
                       <div className="space-y-3">
                       <p className="leading-relaxed">{t('problemImport.guideIntro')}</p>
 
-                      <div className="overflow-x-auto rounded-lg border border-[#e5dac9]">
+                      <div className="overflow-x-auto rounded-lg border border-(--ws-border)">
                         <table className="w-full text-left">
                           <thead>
-                            <tr className="bg-[#f0ebd9]/70 text-[11px] uppercase tracking-wider text-[#8a8073]">
+                            <tr className="bg-(--ws-panel2)/70 text-[11px] uppercase tracking-wider text-(--ws-muted)">
                               <th className="px-3 py-2">{t('problemImport.guideColField')}</th>
                               <th className="px-3 py-2">{t('problemImport.guideColRequired')}</th>
                               <th className="px-3 py-2">{t('problemImport.guideColMeaning')}</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-[#e5dac9]/70">
+                          <tbody className="divide-y divide-(--ws-border)/70">
                             {GUIDE_FIELDS.map((f) => (
                               <tr key={f.name} className="align-top">
-                                <td className="px-3 py-2 font-mono font-semibold text-[#193a2b]">{f.name}</td>
+                                <td className="px-3 py-2 font-mono font-semibold text-(--ws-accent)">{f.name}</td>
                                 <td className="px-3 py-2">{f.required ? t('problemImport.guideYes') : t('problemImport.guideNo')}</td>
                                 <td className="px-3 py-2 leading-relaxed">{t(`problemImport.${f.key}`)}</td>
                               </tr>
@@ -414,33 +414,33 @@ export default function ProblemImportModal({ isOpen, onClose, onImported, inBank
 
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
-                          <p className="font-semibold text-[#191919]">{t('problemImport.guideExample')}</p>
+                          <p className="font-semibold text-(--ws-text)">{t('problemImport.guideExample')}</p>
                           <button
                             type="button"
                             onClick={downloadSample}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#f0ebd9] border border-[#cbbd9f] text-[#191919] text-[11px] font-semibold rounded-lg hover:bg-[#e5dac9]"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-(--ws-panel2) border border-(--ws-faint) text-(--ws-text) text-[11px] font-semibold rounded-lg hover:bg-(--ws-hover)"
                           >
                             <Download size={12} /> {t('problemImport.guideDownloadSample')}
                           </button>
                         </div>
-                        <pre className="max-h-56 overflow-auto rounded-lg bg-[#191919] text-[#e8e2d4] p-3 text-[11px] leading-relaxed font-mono whitespace-pre">{SAMPLE_JSON}</pre>
+                        <pre className="max-h-56 overflow-auto rounded-lg bg-(--ws-text) text-(--ws-panel) p-3 text-[11px] leading-relaxed font-mono whitespace-pre">{SAMPLE_JSON}</pre>
                       </div>
                       </div>
                     ) : (
                       <div className="space-y-3">
                       <p className="leading-relaxed">{t('problemImport.guideMdIntro')}</p>
-                      <div className="overflow-x-auto rounded-lg border border-[#e5dac9]">
+                      <div className="overflow-x-auto rounded-lg border border-(--ws-border)">
                         <table className="w-full text-left">
                           <thead>
-                            <tr className="bg-[#f0ebd9]/70 text-[11px] uppercase tracking-wider text-[#8a8073]">
+                            <tr className="bg-(--ws-panel2)/70 text-[11px] uppercase tracking-wider text-(--ws-muted)">
                               <th className="px-3 py-2">{t('problemImport.guideMdColPart')}</th>
                               <th className="px-3 py-2">{t('problemImport.guideColMeaning')}</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-[#e5dac9]/70">
+                          <tbody className="divide-y divide-(--ws-border)/70">
                             {['Title', 'Body', 'Defaults'].map((k) => (
                               <tr key={k} className="align-top">
-                                <td className="px-3 py-2 font-semibold text-[#193a2b]">{t(`problemImport.guideMd${k}Name`)}</td>
+                                <td className="px-3 py-2 font-semibold text-(--ws-accent)">{t(`problemImport.guideMd${k}Name`)}</td>
                                 <td className="px-3 py-2 leading-relaxed">{t(`problemImport.guideMd${k}`)}</td>
                               </tr>
                             ))}
@@ -454,16 +454,16 @@ export default function ProblemImportModal({ isOpen, onClose, onImported, inBank
                       </ul>
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
-                          <p className="font-semibold text-[#191919]">{t('problemImport.guideMdExample')}</p>
+                          <p className="font-semibold text-(--ws-text)">{t('problemImport.guideMdExample')}</p>
                           <button
                             type="button"
                             onClick={downloadSampleMd}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#f0ebd9] border border-[#cbbd9f] text-[#191919] text-[11px] font-semibold rounded-lg hover:bg-[#e5dac9]"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-(--ws-panel2) border border-(--ws-faint) text-(--ws-text) text-[11px] font-semibold rounded-lg hover:bg-(--ws-hover)"
                           >
                             <Download size={12} /> {t('problemImport.guideDownloadSample')}
                           </button>
                         </div>
-                        <pre className="max-h-56 overflow-auto rounded-lg bg-[#191919] text-[#e8e2d4] p-3 text-[11px] leading-relaxed font-mono whitespace-pre">{SAMPLE_MD}</pre>
+                        <pre className="max-h-56 overflow-auto rounded-lg bg-(--ws-text) text-(--ws-panel) p-3 text-[11px] leading-relaxed font-mono whitespace-pre">{SAMPLE_MD}</pre>
                       </div>
                       </div>
                     )}
@@ -472,25 +472,25 @@ export default function ProblemImportModal({ isOpen, onClose, onImported, inBank
               </div>
 
               {reading && (
-                <p className="flex items-center gap-2 text-xs text-[#8a8073]">
+                <p className="flex items-center gap-2 text-xs text-(--ws-muted)">
                   <Loader2 size={14} className="animate-spin" /> {t('problemImport.reading')}
                 </p>
               )}
 
               {files.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs font-bold uppercase tracking-wider text-[#5c5446]">
+                  <p className="text-xs font-bold uppercase tracking-wider text-(--ws-text)">
                     {t('problemImport.fileList', { count: files.length })}
                   </p>
                   <ul className="space-y-2 max-h-64 overflow-y-auto">
                     {files.map((f) => (
                       <li
                         key={f.id}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border bg-white ${
-                          f.error ? 'border-red-300' : 'border-[#e5dac9]'
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border bg-(--ws-panel) ${
+                          f.error ? 'border-(--ws-danger)/35' : 'border-(--ws-border)'
                         }`}
                       >
-                        <FileText size={16} className={f.error ? 'text-red-500' : 'text-[#193a2b]'} />
+                        <FileText size={16} className={f.error ? 'text-(--ws-danger)' : 'text-(--ws-accent)'} />
                         <button
                           type="button"
                           onClick={() => openEditor(f)}
@@ -501,7 +501,7 @@ export default function ProblemImportModal({ isOpen, onClose, onImported, inBank
                           <p className="text-sm font-semibold truncate" title={f.name}>
                             {f.name}
                           </p>
-                          <p className={`text-xs ${f.error ? 'text-red-600' : 'text-[#8a8073]'}`}>
+                          <p className={`text-xs ${f.error ? 'text-(--ws-danger)' : 'text-(--ws-muted)'}`}>
                             {f.error
                               ? t(f.error === 'empty' ? 'problemImport.errorEmpty' : 'problemImport.errorParse')
                               : `${t('problemImport.problemCount', { count: f.problems.length })} · ${formatSize(f.size)}`}
@@ -511,7 +511,7 @@ export default function ProblemImportModal({ isOpen, onClose, onImported, inBank
                           type="button"
                           disabled={running}
                           onClick={() => openEditor(f)}
-                          className="text-[#8a8073] hover:text-[#193a2b] disabled:opacity-40"
+                          className="text-(--ws-muted) hover:text-(--ws-accent) disabled:opacity-40"
                           title={t('problemImport.viewEdit')}
                         >
                           <Pencil size={15} />
@@ -520,7 +520,7 @@ export default function ProblemImportModal({ isOpen, onClose, onImported, inBank
                           type="button"
                           disabled={running}
                           onClick={() => setFiles((prev) => prev.filter((x) => x.id !== f.id))}
-                          className="text-[#8a8073] hover:text-red-600 disabled:opacity-40"
+                          className="text-(--ws-muted) hover:text-(--ws-danger) disabled:opacity-40"
                           title={t('problemImport.remove')}
                         >
                           <Trash2 size={15} />
@@ -533,12 +533,12 @@ export default function ProblemImportModal({ isOpen, onClose, onImported, inBank
 
               {running && (
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs text-[#5c5446]">
+                  <div className="flex items-center justify-between text-xs text-(--ws-text)">
                     <span>{t('problemImport.importing', { done, total })}</span>
                     <span className="font-semibold">{pct}%</span>
                   </div>
-                  <div className="w-full h-2 bg-[#e5dac9] rounded-full overflow-hidden">
-                    <div className="h-full bg-[#193a2b] rounded-full transition-all" style={{ width: `${pct}%` }} />
+                  <div className="w-full h-2 bg-(--ws-border) rounded-full overflow-hidden">
+                    <div className="h-full bg-(--ws-accent) rounded-full transition-all" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
               )}
@@ -547,16 +547,16 @@ export default function ProblemImportModal({ isOpen, onClose, onImported, inBank
 
           {finished && (
             <div className="space-y-3">
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
-                <CheckCircle2 size={22} className="text-emerald-600 shrink-0" />
-                <p className="text-sm font-semibold text-emerald-800">{t('problemImport.resultOk', { count: created })}</p>
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-(--ws-ok-soft) border border-(--ws-ok)/35">
+                <CheckCircle2 size={22} className="text-(--ws-ok) shrink-0" />
+                <p className="text-sm font-semibold text-(--ws-ok)">{t('problemImport.resultOk', { count: created })}</p>
               </div>
               {failures.length > 0 && (
-                <div className="p-4 rounded-xl bg-red-50 border border-red-200 space-y-2">
-                  <p className="flex items-center gap-2 text-sm font-semibold text-red-700">
+                <div className="p-4 rounded-xl bg-(--ws-danger-soft) border border-(--ws-danger)/35 space-y-2">
+                  <p className="flex items-center gap-2 text-sm font-semibold text-(--ws-danger)">
                     <AlertCircle size={16} /> {t('problemImport.resultFail', { count: failures.length })}
                   </p>
-                  <ul className="text-xs text-red-700 space-y-1 max-h-40 overflow-y-auto">
+                  <ul className="text-xs text-(--ws-danger) space-y-1 max-h-40 overflow-y-auto">
                     {failures.slice(0, 50).map((f, i) => (
                       <li key={i}>
                         <span className="font-semibold">{f.title}</span>: {f.reason}
@@ -570,8 +570,8 @@ export default function ProblemImportModal({ isOpen, onClose, onImported, inBank
           )}
         </div>
 
-        <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-[#e5dac9] bg-[#eee8d8]/60">
-          <span className="text-xs text-[#8a8073]">
+        <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-(--ws-border) bg-(--ws-panel2)/60">
+          <span className="text-xs text-(--ws-muted)">
             {!finished && total > 0 ? t('problemImport.summary', { problems: total, files: files.length }) : ''}
           </span>
           <div className="flex items-center gap-3">
@@ -581,24 +581,24 @@ export default function ProblemImportModal({ isOpen, onClose, onImported, inBank
                 onClick={() => {
                   cancelRef.current = true;
                 }}
-                className="px-5 py-2 bg-white border border-[#e5dac9] text-xs font-semibold rounded-xl hover:bg-[#f0ebd9]"
+                className="px-5 py-2 bg-(--ws-panel) border border-(--ws-border) text-xs font-semibold rounded-xl hover:bg-(--ws-hover)"
               >
                 {t('problemImport.stop')}
               </button>
             ) : finished ? (
-              <button type="button" onClick={handleClose} className="px-6 py-2 bg-[#193a2b] text-white text-xs font-bold rounded-xl hover:bg-[#122b1f]">
+              <button type="button" onClick={handleClose} className="px-6 py-2 bg-(--ws-accent) text-(--ws-on-accent) text-xs font-bold rounded-xl hover:bg-(--ws-accent-strong)">
                 {t('problemImport.close')}
               </button>
             ) : (
               <>
-                <button type="button" onClick={handleClose} className="px-5 py-2 bg-white border border-[#e5dac9] text-xs font-semibold rounded-xl hover:bg-[#f0ebd9]">
+                <button type="button" onClick={handleClose} className="px-5 py-2 bg-(--ws-panel) border border-(--ws-border) text-xs font-semibold rounded-xl hover:bg-(--ws-hover)">
                   {t('problemImport.cancel')}
                 </button>
                 <button
                   type="button"
                   onClick={() => void handleComplete()}
                   disabled={total === 0 || reading}
-                  className="px-6 py-2 bg-[#193a2b] text-white text-xs font-bold rounded-xl hover:bg-[#122b1f] disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-(--ws-accent) text-(--ws-on-accent) text-xs font-bold rounded-xl hover:bg-(--ws-accent-strong) disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {t('problemImport.complete')}
                 </button>
@@ -615,18 +615,18 @@ export default function ProblemImportModal({ isOpen, onClose, onImported, inBank
       className="fixed inset-0 z-310 flex items-center justify-center bg-black/60 backdrop-blur-[2px] p-4"
       onClick={(e) => e.target === e.currentTarget && setEditingId(null)}
     >
-      <div className="w-full max-w-4xl h-[85vh] flex flex-col bg-[#f7f4eb] border border-[#e5dac9] rounded-2xl shadow-2xl overflow-hidden text-[#191919]">
-        <div className="flex items-center justify-between gap-3 px-6 py-4 border-b border-[#e5dac9]">
+      <div className="w-full max-w-4xl h-[85vh] flex flex-col bg-(--ws-panel2) border border-(--ws-border) rounded-2xl shadow-2xl overflow-hidden text-(--ws-text)">
+        <div className="flex items-center justify-between gap-3 px-6 py-4 border-b border-(--ws-border)">
           <div className="min-w-0">
             <h3 className="font-bold font-serif text-base truncate" title={editingFile.name}>{editingFile.name}</h3>
-            <p className={`text-xs ${draftParsed.error ? 'text-red-600' : 'text-[#8a8073]'}`}>
+            <p className={`text-xs ${draftParsed.error ? 'text-(--ws-danger)' : 'text-(--ws-muted)'}`}>
               {draftParsed.error
                 ? t(draftParsed.error === 'empty' ? 'problemImport.errorEmpty' : 'problemImport.errorParse')
                 : `${t('problemImport.problemCount', { count: draftParsed.problems.length })} · ${formatSize(new Blob([draft]).size)}`}
             </p>
           </div>
-          <button type="button" onClick={() => setEditingId(null)} className="text-[#8a8073] hover:text-[#191919]">
-            <X size={18} />
+          <button aria-label={t('common.close')} type="button" onClick={() => setEditingId(null)} className="text-(--ws-muted) hover:text-(--ws-text)">
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
         <div className="flex-1 min-h-0 p-4">
@@ -635,23 +635,23 @@ export default function ProblemImportModal({ isOpen, onClose, onImported, inBank
             onChange={(e) => setDraft(e.target.value)}
             spellCheck={false}
             wrap="off"
-            className="w-full h-full resize-none rounded-xl border border-[#d9cdb8] bg-white p-3 font-mono text-xs leading-relaxed text-[#191919] outline-none focus:border-[#193a2b] whitespace-pre overflow-auto"
+            className="w-full h-full resize-none rounded-xl border border-(--ws-border) bg-(--ws-panel) p-3 font-mono text-xs leading-relaxed text-(--ws-text) outline-none focus:border-(--ws-accent) whitespace-pre overflow-auto"
           />
         </div>
-        <div className="flex items-center justify-between gap-3 px-6 py-3 border-t border-[#e5dac9]">
-          <p className="text-xs text-[#8a8073]">{t('problemImport.editHint')}</p>
+        <div className="flex items-center justify-between gap-3 px-6 py-3 border-t border-(--ws-border)">
+          <p className="text-xs text-(--ws-muted)">{t('problemImport.editHint')}</p>
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => setEditingId(null)}
-              className="px-4 py-2 text-xs font-semibold rounded-xl border border-[#cbbd9f] bg-[#f0ebd9] text-[#191919] hover:bg-[#e5dac9]"
+              className="px-4 py-2 text-xs font-semibold rounded-xl border border-(--ws-faint) bg-(--ws-panel2) text-(--ws-text) hover:bg-(--ws-hover)"
             >
               {t('problemImport.editCancel')}
             </button>
             <button
               type="button"
               onClick={saveEditor}
-              className="px-4 py-2 text-xs font-semibold rounded-xl bg-[#193a2b] text-white hover:bg-[#122b1f]"
+              className="px-4 py-2 text-xs font-semibold rounded-xl bg-(--ws-accent) text-(--ws-on-accent) hover:bg-(--ws-accent-strong)"
             >
               {t('problemImport.editSave')}
             </button>

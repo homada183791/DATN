@@ -47,6 +47,7 @@ import {
   Download,
   RotateCcw,
   Award,
+  Lock,
 } from 'lucide-react';
 
 // Họ và tên hiển thị trong sổ điểm: ưu tiên Họ và tên, chưa có thì dùng Tên đăng nhập
@@ -545,20 +546,20 @@ export default function InstructorClassDetail() {
   if (isLoading && !classData) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-[#193a2b] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-(--ws-accent) border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!classData) {
     return (
-      <div className="text-center py-20 bg-white border border-[#e5dac9] rounded-2xl shadow-sm">
-        <GraduationCap size={48} className="text-[#bfae99] mx-auto mb-4" />
-        <h3 className="text-lg font-bold text-[#191919]">{t('instructorClassDetail.notFoundTitle')}</h3>
-        <p className="text-sm text-[#8a8073] mt-1 mb-5">{t('instructorClassDetail.notFoundSubtitle')}</p>
+      <div className="text-center py-20 bg-(--ws-panel) border border-(--ws-border) rounded-2xl shadow-sm">
+        <GraduationCap size={48} className="text-(--ws-faint) mx-auto mb-4" />
+        <h3 className="text-lg font-bold text-(--ws-text)">{t('instructorClassDetail.notFoundTitle')}</h3>
+        <p className="text-sm text-(--ws-muted) mt-1 mb-5">{t('instructorClassDetail.notFoundSubtitle')}</p>
         <button
           onClick={() => navigate('/instructor/classes')}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-sm font-medium rounded-xl hover:bg-[#143022] shadow-sm"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-(--ws-accent) text-(--ws-on-accent) text-sm font-medium rounded-xl hover:bg-(--ws-accent-strong) shadow-sm"
         >
           <ArrowLeft size={16} /> {t('instructorClassDetail.backToClassList')}
         </button>
@@ -567,42 +568,42 @@ export default function InstructorClassDetail() {
   }
 
   return (
-    <div className="space-y-6 text-[#191919] max-w-7xl mx-auto">
+    <div className="space-y-6 text-(--ws-text) max-w-7xl mx-auto">
       {/* Breadcrumb & Navigation */}
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-sm text-[#8a8073]">
+        <div className="flex items-center gap-2 text-sm text-(--ws-muted)">
           <button
             onClick={() => navigate('/instructor/classes')}
-            className="hover:text-[#193a2b] transition-colors flex items-center gap-1 font-medium"
+            className="hover:text-(--ws-accent) transition-colors flex items-center gap-1 font-medium"
           >
             <ArrowLeft size={16} /> {t('instructorClassDetail.backLabel')}
           </button>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[#f0ebd9] border border-[#e5dac9] rounded-xl text-xs font-mono text-[#5c5446]">
-            <Link2 size={13} className="text-[#193a2b]" />
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-(--ws-panel2) border border-(--ws-border) rounded-xl text-xs font-mono text-(--ws-text)">
+            <Link2 size={13} className="text-(--ws-accent)" />
             <span>{displayInviteUrl}</span>
           </div>
           <button
             onClick={() => copy(fullInviteUrl, 'link')}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-(--ws-accent) text-(--ws-on-accent) text-xs font-semibold rounded-xl hover:bg-(--ws-accent-strong) transition-colors shadow-sm"
             title={t('instructorClassDetail.copyFullInviteLinkTooltip')}
           >
-            {copied === 'link' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+            {copied === 'link' ? <Check size={14} className="text-(--ws-ok)" /> : <Copy size={14} />}
             <span>{copied === 'link' ? t('instructorClass.copiedLabel') : t('instructorClass.copyLinkLabel')}</span>
           </button>
           <button
             onClick={() => copy(classData.invite_code || '', 'code')}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#f0ebd9] border border-[#e5dac9] text-xs font-semibold text-[#193a2b] rounded-xl hover:bg-[#e5dac9] transition-colors"
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-(--ws-panel2) border border-(--ws-border) text-xs font-semibold text-(--ws-accent) rounded-xl hover:bg-(--ws-hover) transition-colors"
             title={t('instructorClass.copyClassCode')}
           >
-            {copied === 'code' ? <Check size={14} className="text-emerald-700" /> : <Hash size={14} />}
+            {copied === 'code' ? <Check size={14} className="text-(--ws-ok)" /> : <Hash size={14} />}
             <span className="font-mono">{displayCode}</span>
           </button>
           <button
             onClick={openEditModal}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#f0ebd9] border border-[#e5dac9] text-xs font-semibold text-[#193a2b] rounded-xl hover:bg-[#e5dac9] transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-(--ws-panel2) border border-(--ws-border) text-xs font-semibold text-(--ws-accent) rounded-xl hover:bg-(--ws-hover) transition-colors"
             title={t('instructorClassDetail.editClassInfoTooltip')}
           >
             <Edit3 size={13} />
@@ -612,51 +613,51 @@ export default function InstructorClassDetail() {
       </div>
 
       {/* Class Banner / Header Card */}
-      <div className="bg-white border border-[#e5dac9] rounded-2xl p-6 shadow-sm">
+      <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-6 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 bg-linear-to-br from-[#193a2b] to-[#2d5a3f] rounded-2xl flex items-center justify-center text-white shadow-md shrink-0">
+            <div className="w-14 h-14 bg-linear-to-br from-(--ws-accent-strong) to-(--ws-accent) rounded-2xl flex items-center justify-center text-(--ws-on-accent) shadow-md shrink-0">
               <GraduationCap size={28} />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2 mb-1">
-                <h1 className="text-2xl font-bold font-serif text-[#191919]">{classData.subject ? `${classData.subject} - ${classData.name}` : classData.name}</h1>
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-[#f0ebd9] text-[#193a2b] border border-[#e5dac9]">
+                <h1 className="text-2xl font-bold font-serif text-(--ws-text)">{classData.subject ? `${classData.subject} - ${classData.name}` : classData.name}</h1>
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-(--ws-panel2) text-(--ws-accent) border border-(--ws-border)">
                   {formatSemesterWithYear(classData.semester || t('instructorClassDetail.defaultSemesterLabel'))}
                 </span>
               </div>
-              <p className="text-sm text-[#5c5446] max-w-2xl leading-relaxed">
+              <p className="text-sm text-(--ws-text) max-w-2xl leading-relaxed">
                 {classData.description || t('instructorClassDetail.noDescriptionLong')}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-6 border-t md:border-t-0 md:border-l border-[#e5dac9] pt-4 md:pt-0 md:pl-6">
+          <div className="flex items-center gap-6 border-t md:border-t-0 md:border-l border-(--ws-border) pt-4 md:pt-0 md:pl-6">
             <div className="text-center md:text-left">
-              <p className="text-xs text-[#8a8073] font-medium">{t('instructorClassDetail.studentsStatLabel')}</p>
-              <p className="text-2xl font-bold text-[#193a2b]">{rawMembers.length}</p>
+              <p className="text-xs text-(--ws-muted) font-medium">{t('instructorClassDetail.studentsStatLabel')}</p>
+              <p className="text-2xl font-bold text-(--ws-accent)">{rawMembers.length}</p>
             </div>
             <div className="text-center md:text-left">
-              <p className="text-xs text-[#8a8073] font-medium">{t('instructorClassDetail.homeworkStatLabel')}</p>
-              <p className="text-2xl font-bold text-[#193a2b]">{apiHomeworks.length}</p>
+              <p className="text-xs text-(--ws-muted) font-medium">{t('instructorClassDetail.homeworkStatLabel')}</p>
+              <p className="text-2xl font-bold text-(--ws-accent)">{apiHomeworks.length}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex items-center gap-3 border-b border-[#e5dac9]">
+      <div className="flex items-center gap-3 border-b border-(--ws-border)">
         <button
           onClick={() => setActiveTab('homework')}
           className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all ${
             activeTab === 'homework'
-              ? 'border-[#193a2b] text-[#193a2b]'
-              : 'border-transparent text-[#8a8073] hover:text-[#191919]'
+              ? 'border-(--ws-accent) text-(--ws-accent)'
+              : 'border-transparent text-(--ws-muted) hover:text-(--ws-text)'
           }`}
         >
           <ClipboardList size={17} />
           {t('instructorClassDetail.homeworkStatLabel')}
-          <span className="px-2 py-0.5 text-xs rounded-full bg-[#f0ebd9] text-[#193a2b] font-mono">
+          <span className="px-2 py-0.5 text-xs rounded-full bg-(--ws-panel2) text-(--ws-accent) font-mono">
             {apiHomeworks.length}
           </span>
         </button>
@@ -665,13 +666,13 @@ export default function InstructorClassDetail() {
           onClick={() => setActiveTab('members')}
           className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all ${
             activeTab === 'members'
-              ? 'border-[#193a2b] text-[#193a2b]'
-              : 'border-transparent text-[#8a8073] hover:text-[#191919]'
+              ? 'border-(--ws-accent) text-(--ws-accent)'
+              : 'border-transparent text-(--ws-muted) hover:text-(--ws-text)'
           }`}
         >
           <Users size={17} />
           {t('instructorClassDetail.membersTab')}
-          <span className="px-2 py-0.5 text-xs rounded-full bg-[#f0ebd9] text-[#193a2b] font-mono">
+          <span className="px-2 py-0.5 text-xs rounded-full bg-(--ws-panel2) text-(--ws-accent) font-mono">
             {rawMembers.length}
           </span>
         </button>
@@ -680,14 +681,14 @@ export default function InstructorClassDetail() {
           onClick={() => setActiveTab('gradebook')}
           className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all ${
             activeTab === 'gradebook'
-              ? 'border-[#193a2b] text-[#193a2b]'
-              : 'border-transparent text-[#8a8073] hover:text-[#191919]'
+              ? 'border-(--ws-accent) text-(--ws-accent)'
+              : 'border-transparent text-(--ws-muted) hover:text-(--ws-text)'
           }`}
         >
           <GraduationCap size={17} />
           Sổ điểm (Gradebook)
           {gradebookData && (
-            <span className="px-2 py-0.5 text-xs rounded-full bg-[#f0ebd9] text-[#193a2b] font-mono">
+            <span className="px-2 py-0.5 text-xs rounded-full bg-(--ws-panel2) text-(--ws-accent) font-mono">
               {gradebookData.students.length}
             </span>
           )}
@@ -700,12 +701,12 @@ export default function InstructorClassDetail() {
           {/* Section Header (Tier 1: Synchronized with Members tab) */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#193a2b]/10 text-[#193a2b] flex items-center justify-center shadow-2xs shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-(--ws-accent)/10 text-(--ws-accent) flex items-center justify-center shadow-2xs shrink-0">
                 <ClipboardList size={20} />
               </div>
               <div>
-                <h2 className="text-base font-bold font-serif text-[#191919]">{t('instructorClassDetail.hwSectionTitle')}</h2>
-                <p className="text-xs text-[#8a8073]">{t('instructorClassDetail.hwSectionSubtitle')}</p>
+                <h2 className="text-base font-bold font-serif text-(--ws-text)">{t('instructorClassDetail.hwSectionTitle')}</h2>
+                <p className="text-xs text-(--ws-muted)">{t('instructorClassDetail.hwSectionSubtitle')}</p>
               </div>
             </div>
             <button
@@ -716,39 +717,39 @@ export default function InstructorClassDetail() {
                 setEditingHwId(null);
                 setShowCreateHw(true);
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm shrink-0"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-(--ws-accent) text-(--ws-on-accent) text-xs font-semibold rounded-xl hover:bg-(--ws-accent-strong) transition-colors shadow-sm shrink-0"
             >
               <Plus size={15} /> {t('instructorClassDetail.createHwBtn')}
             </button>
           </div>
 
           {/* Search & Filter Toolbar (Tier 2: Synchronized with Members tab) */}
-          <div className="bg-white border border-[#e5dac9] rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
             {/* Search */}
             <div className="relative flex-1">
-              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8a8073]" />
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-(--ws-muted)" />
               <input
                 value={hwSearchQuery}
                 onChange={(e) => setHwSearchQuery(e.target.value)}
                 placeholder={t('instructorClassDetail.hwSearchPlaceholder')}
-                className="w-full pl-10 pr-4 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-sm text-[#191919] placeholder:text-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                className="w-full pl-10 pr-4 py-2 bg-(--ws-panel2) border border-(--ws-border) rounded-xl text-sm text-(--ws-text) placeholder:text-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
               />
               {hwSearchQuery && (
-                <button
+                <button aria-label={t('common.close')}
                   onClick={() => setHwSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a8073] hover:text-[#191919]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-(--ws-muted) hover:text-(--ws-text)"
                 >
-                  <X size={14} />
+                  <X size={14} aria-hidden="true" />
                 </button>
               )}
             </div>
 
             {/* Filter buttons */}
-            <div className="flex items-center gap-1.5 p-1 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-xs font-semibold shrink-0">
+            <div className="flex items-center gap-1.5 p-1 bg-(--ws-panel2) border border-(--ws-border) rounded-xl text-xs font-semibold shrink-0">
               <button
                 onClick={() => setHwStatusFilter('all')}
                 className={`px-3 py-1.5 rounded-lg transition-colors ${
-                  hwStatusFilter === 'all' ? 'bg-[#193a2b] text-white shadow-xs' : 'text-[#8a8073] hover:text-[#191919]'
+                  hwStatusFilter === 'all' ? 'bg-(--ws-accent) text-(--ws-on-accent) shadow-xs' : 'text-(--ws-muted) hover:text-(--ws-text)'
                 }`}
               >
                 {t('instructorClassDetail.filterAll', { count: apiHomeworks.length })}
@@ -756,7 +757,7 @@ export default function InstructorClassDetail() {
               <button
                 onClick={() => setHwStatusFilter('active')}
                 className={`px-3 py-1.5 rounded-lg transition-colors ${
-                  hwStatusFilter === 'active' ? 'bg-[#193a2b] text-white shadow-xs' : 'text-[#8a8073] hover:text-[#191919]'
+                  hwStatusFilter === 'active' ? 'bg-(--ws-accent) text-(--ws-on-accent) shadow-xs' : 'text-(--ws-muted) hover:text-(--ws-text)'
                 }`}
               >
                 {t('instructorClassDetail.filterActive', { count: activeHwCount })}
@@ -764,7 +765,7 @@ export default function InstructorClassDetail() {
               <button
                 onClick={() => setHwStatusFilter('overdue')}
                 className={`px-3 py-1.5 rounded-lg transition-colors ${
-                  hwStatusFilter === 'overdue' ? 'bg-[#193a2b] text-white shadow-xs' : 'text-[#8a8073] hover:text-[#191919]'
+                  hwStatusFilter === 'overdue' ? 'bg-(--ws-accent) text-(--ws-on-accent) shadow-xs' : 'text-(--ws-muted) hover:text-(--ws-text)'
                 }`}
               >
                 {t('instructorClassDetail.filterOverdue', { count: overdueHwCount })}
@@ -773,28 +774,28 @@ export default function InstructorClassDetail() {
           </div>
 
           {/* List Header Summary Bar */}
-          <div className="px-5 py-3 border border-[#e5dac9] rounded-xl bg-[#f7f4eb] flex items-center justify-between text-xs">
-            <span className="font-bold uppercase tracking-wider text-[#5c5446]">
+          <div className="px-5 py-3 border border-(--ws-border) rounded-xl bg-(--ws-panel2) flex items-center justify-between text-xs">
+            <span className="font-bold uppercase tracking-wider text-(--ws-text)">
               {t('instructorClassDetail.hwListHeader', { count: filteredHomeworks.length })}
             </span>
-            <span className="text-[#8a8073]">
+            <span className="text-(--ws-muted)">
               {t('instructorClassDetail.hwShowingCount', { shown: filteredHomeworks.length, total: apiHomeworks.length })}
             </span>
           </div>
 
           {apiHomeworks.length === 0 ? (
-            <div className="bg-white border border-[#e5dac9] rounded-2xl p-12 text-center shadow-sm">
-              <ClipboardList size={42} className="text-[#bfae99] mx-auto mb-3" />
-              <h3 className="text-base font-bold text-[#191919]">{t('instructorClassDetail.hwEmptyTitle')}</h3>
-              <p className="text-sm text-[#8a8073] mt-1 mb-5 max-w-md mx-auto">
+            <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-12 text-center shadow-sm">
+              <ClipboardList size={42} className="text-(--ws-faint) mx-auto mb-3" />
+              <h3 className="text-base font-bold text-(--ws-text)">{t('instructorClassDetail.hwEmptyTitle')}</h3>
+              <p className="text-sm text-(--ws-muted) mt-1 mb-5 max-w-md mx-auto">
                 {t('instructorClassDetail.hwEmptySubtitle')}
               </p>
             </div>
           ) : filteredHomeworks.length === 0 ? (
-            <div className="bg-white border border-[#e5dac9] rounded-2xl p-10 text-center shadow-sm">
-              <Search size={36} className="text-[#bfae99] mx-auto mb-3" />
-              <h3 className="text-base font-bold text-[#191919]">{t('instructorClassDetail.hwNoMatchTitle')}</h3>
-              <p className="text-xs text-[#8a8073] mt-1">
+            <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-10 text-center shadow-sm">
+              <Search size={36} className="text-(--ws-faint) mx-auto mb-3" />
+              <h3 className="text-base font-bold text-(--ws-text)">{t('instructorClassDetail.hwNoMatchTitle')}</h3>
+              <p className="text-xs text-(--ws-muted) mt-1">
                 {t('instructorClassDetail.hwNoMatchSubtitle')}
               </p>
             </div>
@@ -808,37 +809,37 @@ export default function InstructorClassDetail() {
                 return (
                   <div
                     key={hw.id}
-                    className="bg-white border border-[#e5dac9] rounded-2xl p-5 hover:border-[#193a2b]/30 hover:shadow-sm transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+                    className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-5 hover:border-(--ws-accent)/30 hover:shadow-sm transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                        <h3 className="text-base font-bold text-[#191919] truncate">{hw.title}</h3>
+                        <h3 className="text-base font-bold text-(--ws-text) truncate">{hw.title}</h3>
                         <span
                           className={`text-xs font-semibold flex items-center gap-1 px-2.5 py-0.5 rounded-full border ${
                             p.overdue
-                              ? 'bg-red-50 text-red-700 border-red-200'
+                              ? 'bg-(--ws-danger-soft) text-(--ws-danger) border-(--ws-danger)/35'
                               : p.daysLeft <= 3
-                              ? 'bg-yellow-50 text-yellow-800 border-yellow-200'
-                              : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                              ? 'bg-(--ws-warn-soft) text-(--ws-warn) border-(--ws-warn)/35'
+                              : 'bg-(--ws-ok-soft) text-(--ws-ok) border-(--ws-ok)/35'
                           }`}
                         >
                           <Clock size={11} /> {p.label}
                         </span>
                       </div>
 
-                      <p className="text-xs text-[#8a8073] line-clamp-1 mb-3">
+                      <p className="text-xs text-(--ws-muted) line-clamp-1 mb-3">
                         {hw.description || t('instructorClassDetail.hwNoDescription')}
                       </p>
 
-                      <div className="flex flex-wrap items-center gap-5 text-xs text-[#5c5446]">
+                      <div className="flex flex-wrap items-center gap-5 text-xs text-(--ws-text)">
                         <span className="flex items-center gap-1">
-                          <BookOpen size={13} className="text-[#193a2b]" /> {t('instructorClass.problemsCountSuffix', { count: problemsCount })}
+                          <BookOpen size={13} className="text-(--ws-accent)" /> {t('instructorClass.problemsCountSuffix', { count: problemsCount })}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Calendar size={13} className="text-[#193a2b]" /> {t('instructorClassDetail.deadlineLabel', { date: formatVNFull(hw.deadline) })}
+                          <Calendar size={13} className="text-(--ws-accent)" /> {t('instructorClassDetail.deadlineLabel', { date: formatVNFull(hw.deadline) })}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Users size={13} className="text-[#193a2b]" /> {t('instructorClassDetail.progressLabel', { submitted: submittedCount, total: rawMembers.length })}
+                          <Users size={13} className="text-(--ws-accent)" /> {t('instructorClassDetail.progressLabel', { submitted: submittedCount, total: rawMembers.length })}
                         </span>
                       </div>
                     </div>
@@ -847,7 +848,7 @@ export default function InstructorClassDetail() {
                       {p.overdue && (
                         <button
                           onClick={() => setResultsHwId(hw.id)}
-                          className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
+                          className="inline-flex items-center gap-1.5 px-3 py-2 bg-(--ws-accent) text-(--ws-on-accent) text-xs font-semibold rounded-xl hover:bg-(--ws-accent-strong) transition-colors shadow-sm"
                         >
                           <Award size={14} /> Xem kết quả
                         </button>
@@ -864,7 +865,7 @@ export default function InstructorClassDetail() {
                           setHwError('');
                           setShowCreateHw(true);
                         }}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#f0ebd9] text-[#191919] text-xs font-semibold rounded-xl hover:bg-[#e5dac9] transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-(--ws-panel2) text-(--ws-text) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors"
                       >
                         <Edit3 size={14} /> {t('instructorClassDetail.editHwBtn')}
                       </button>
@@ -873,13 +874,13 @@ export default function InstructorClassDetail() {
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => handleDeleteHomework(hw.id)}
-                            className="px-2.5 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-500"
+                            className="px-2.5 py-1.5 bg-(--ws-danger) text-(--ws-on-accent) text-xs font-semibold rounded-lg hover:bg-(--ws-danger)"
                           >
                             {t('common.delete')}
                           </button>
                           <button
                             onClick={() => setConfirmDeleteHwId(null)}
-                            className="px-2.5 py-1.5 bg-[#f0ebd9] text-[#5c5446] text-xs font-semibold rounded-lg hover:bg-[#e5dac9]"
+                            className="px-2.5 py-1.5 bg-(--ws-panel2) text-(--ws-text) text-xs font-semibold rounded-lg hover:bg-(--ws-hover)"
                           >
                             {t('common.cancel')}
                           </button>
@@ -887,7 +888,7 @@ export default function InstructorClassDetail() {
                       ) : (
                         <button
                           onClick={() => setConfirmDeleteHwId(hw.id)}
-                          className="p-2 text-[#8a8073] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-(--ws-muted) hover:text-(--ws-danger) hover:bg-(--ws-danger-soft) rounded-lg transition-colors"
                           title={t('instructorClassDetail.deleteHwTooltip')}
                         >
                           <Trash2 size={16} />
@@ -908,18 +909,18 @@ export default function InstructorClassDetail() {
           {/* Section Header (Tier 1: Synchronized with Homework tab) */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#193a2b]/10 text-[#193a2b] flex items-center justify-center shadow-2xs shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-(--ws-accent)/10 text-(--ws-accent) flex items-center justify-center shadow-2xs shrink-0">
                 <Users size={20} />
               </div>
               <div>
-                <h2 className="text-base font-bold font-serif text-[#191919]">{t('instructorClassDetail.membersSectionTitle')}</h2>
-                <p className="text-xs text-[#8a8073]">{t('instructorClassDetail.membersSectionSubtitle')}</p>
+                <h2 className="text-base font-bold font-serif text-(--ws-text)">{t('instructorClassDetail.membersSectionTitle')}</h2>
+                <p className="text-xs text-(--ws-muted)">{t('instructorClassDetail.membersSectionSubtitle')}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => { setStudentEmail(''); setAddStudentError(''); setShowAddStudent(true); }}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-(--ws-accent) text-(--ws-on-accent) text-xs font-semibold rounded-xl hover:bg-(--ws-accent-strong) transition-colors shadow-sm"
                 title={t('instructorClassDetail.addStudentTooltip')}
               >
                 <UserPlus size={14} />
@@ -927,7 +928,7 @@ export default function InstructorClassDetail() {
               </button>
               <button
                 onClick={() => { resetRosterModal(); setShowRosterModal(true); }}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#f0ebd9] text-[#191919] border border-[#e5dac9] text-xs font-semibold rounded-xl hover:bg-[#e5dac9] transition-colors shadow-xs"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-(--ws-panel2) text-(--ws-text) border border-(--ws-border) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors shadow-xs"
                 title={t('instructorClassDetail.rosterUploadTooltip')}
               >
                 <Upload size={14} />
@@ -935,63 +936,63 @@ export default function InstructorClassDetail() {
               </button>
               <button
                 onClick={() => copy(classData.invite_code || '', 'code')}
-                className="inline-flex items-center gap-1 px-2.5 py-2 bg-[#f0ebd9] border border-[#e5dac9] text-xs font-semibold text-[#193a2b] rounded-xl hover:bg-[#e5dac9] transition-colors"
+                className="inline-flex items-center gap-1 px-2.5 py-2 bg-(--ws-panel2) border border-(--ws-border) text-xs font-semibold text-(--ws-accent) rounded-xl hover:bg-(--ws-hover) transition-colors"
                 title={t('instructorClass.copyClassCode')}
               >
-                {copied === 'code' ? <Check size={14} className="text-emerald-700" /> : <Hash size={14} />}
+                {copied === 'code' ? <Check size={14} className="text-(--ws-ok)" /> : <Hash size={14} />}
                 {t('instructorClassDetail.codeWithPrefix', { code: displayCode })}
               </button>
               <button
                 onClick={() => copy(fullInviteUrl, 'link')}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#f0ebd9] text-[#191919] border border-[#e5dac9] text-xs font-semibold rounded-xl hover:bg-[#e5dac9] transition-colors shadow-xs"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-(--ws-panel2) text-(--ws-text) border border-(--ws-border) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors shadow-xs"
                 title={t('instructorClassDetail.copyInviteLinkTooltip')}
               >
-                {copied === 'link' ? <Check size={14} className="text-emerald-700" /> : <Link2 size={14} />}
+                {copied === 'link' ? <Check size={14} className="text-(--ws-ok)" /> : <Link2 size={14} />}
                 {t('instructorClass.copyLinkLabel')}
               </button>
             </div>
           </div>
 
           {rosterInfo && rosterInfo.count > 0 && (
-            <div className="flex flex-wrap items-center justify-between gap-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl px-4 py-2.5 text-xs text-[#5c5446]">
+            <div className="flex flex-wrap items-center justify-between gap-2 bg-(--ws-panel2) border border-(--ws-border) rounded-xl px-4 py-2.5 text-xs text-(--ws-text)">
               <span>
                 {t('instructorClassDetail.rosterInfo', { count: rosterInfo.count, joined: rosterInfo.joined_count })}
               </span>
-              <button onClick={handleClearRoster} className="font-semibold text-red-600 hover:underline">
+              <button onClick={handleClearRoster} className="font-semibold text-(--ws-danger) hover:underline">
                 {t('instructorClassDetail.rosterClear')}
               </button>
             </div>
           )}
 
           {/* Search & Sort Toolbar (Tier 2: Synchronized with Homework tab) */}
-          <div className="bg-white border border-[#e5dac9] rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
             {/* Search */}
             <div className="relative flex-1">
-              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8a8073]" />
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-(--ws-muted)" />
               <input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t('instructorClassDetail.membersSearchPlaceholder')}
-                className="w-full pl-10 pr-4 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-sm text-[#191919] placeholder:text-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                className="w-full pl-10 pr-4 py-2 bg-(--ws-panel2) border border-(--ws-border) rounded-xl text-sm text-(--ws-text) placeholder:text-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
               />
               {searchQuery && (
-                <button
+                <button aria-label={t('common.close')}
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a8073] hover:text-[#191919]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-(--ws-muted) hover:text-(--ws-text)"
                 >
-                  <X size={14} />
+                  <X size={14} aria-hidden="true" />
                 </button>
               )}
             </div>
 
             {/* Sort */}
             <div className="flex items-center gap-2 shrink-0">
-              <ArrowUpDown size={15} className="text-[#8a8073]" />
-              <span className="text-xs font-semibold text-[#8a8073] uppercase tracking-wider">{t('instructorClassDetail.sortLabel')}</span>
+              <ArrowUpDown size={15} className="text-(--ws-muted)" />
+              <span className="text-xs font-semibold text-(--ws-muted) uppercase tracking-wider">{t('instructorClassDetail.sortLabel')}</span>
               <select
                 value={sortKey}
                 onChange={(e) => setSortKey(e.target.value as any)}
-                className="px-3 py-2 bg-[#f7f4eb] border border-[#e5dac9] rounded-xl text-xs font-semibold text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                className="px-3 py-2 bg-(--ws-panel2) border border-(--ws-border) rounded-xl text-xs font-semibold text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
               >
                 <option value="stt">{t('instructorClassDetail.sortJoinOrder')}</option>
                 <option value="name_asc">{t('instructorClassDetail.sortNameAsc')}</option>
@@ -1003,23 +1004,23 @@ export default function InstructorClassDetail() {
           </div>
 
           {/* Members Table Card */}
-          <div className="bg-white border border-[#e5dac9] rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-5 py-3 border-b border-[#e5dac9] bg-[#f7f4eb] flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#5c5446]">
+          <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-5 py-3 border-b border-(--ws-border) bg-(--ws-panel2) flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-(--ws-text)">
                 {t('instructorClassDetail.membersListHeader', { count: filteredMembers.length })}
               </span>
-              <span className="text-xs text-[#8a8073]">
+              <span className="text-xs text-(--ws-muted)">
                 {t('instructorClassDetail.membersShowingCount', { shown: filteredMembers.length, total: rawMembers.length })}
               </span>
             </div>
 
             {filteredMembers.length === 0 ? (
               <div className="p-12 text-center">
-                <Users size={36} className="text-[#bfae99] mx-auto mb-3" />
-                <p className="font-semibold text-[#191919]">
+                <Users size={36} className="text-(--ws-faint) mx-auto mb-3" />
+                <p className="font-semibold text-(--ws-text)">
                   {searchQuery ? t('instructorClassDetail.noStudentsFound') : t('instructorClassDetail.noStudentsYet')}
                 </p>
-                <p className="text-xs text-[#8a8073] mt-1">
+                <p className="text-xs text-(--ws-muted) mt-1">
                   {searchQuery
                     ? t('instructorClassDetail.noStudentsFoundHint')
                     : t('instructorClassDetail.noStudentsYetHint')}
@@ -1029,7 +1030,7 @@ export default function InstructorClassDetail() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-[#e5dac9] bg-[#faf8f2] text-[11px] font-bold text-[#8a8073] uppercase tracking-wider">
+                    <tr className="border-b border-(--ws-border) bg-(--ws-panel) text-[11px] font-bold text-(--ws-muted) uppercase tracking-wider">
                       <th className="py-3 px-4 w-12 text-center">{t('instructorClassDetail.colStt')}</th>
                       <th className="py-3 px-4">{t('instructorClassDetail.colMssv')}</th>
                       <th className="py-3 px-4">{t('instructorClassDetail.colFullName')}</th>
@@ -1040,46 +1041,46 @@ export default function InstructorClassDetail() {
                       <th className="py-3 px-4 text-right">{t('instructorClassDetail.colActions')}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#e5dac9] text-sm">
+                  <tbody className="divide-y divide-(--ws-border) text-sm">
                     {filteredMembers.map((m, idx) => (
-                      <tr key={m.id} className="hover:bg-[#f7f4eb]/60 transition-colors">
-                        <td className="py-3.5 px-4 text-center text-xs font-semibold text-[#8a8073]">
+                      <tr key={m.id} className="hover:bg-(--ws-hover)/60 transition-colors">
+                        <td className="py-3.5 px-4 text-center text-xs font-semibold text-(--ws-muted)">
                           {idx + 1}
                         </td>
-                        <td className="py-3.5 px-4 text-xs font-mono text-[#5c5446]">
+                        <td className="py-3.5 px-4 text-xs font-mono text-(--ws-text)">
                           {m.studentCode || '—'}
                         </td>
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-linear-to-br from-[#193a2b] to-[#2d5a3f] text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">
+                            <div className="w-8 h-8 rounded-full bg-linear-to-br from-(--ws-accent-strong) to-(--ws-accent) text-(--ws-on-accent) flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">
                               {m.displayName.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <p className="font-semibold text-xs text-[#191919]">{m.displayName}</p>
-                              <p className="text-[11px] text-[#8a8073]">@{m.username}</p>
+                              <p className="font-semibold text-xs text-(--ws-text)">{m.displayName}</p>
+                              <p className="text-[11px] text-(--ws-muted)">@{m.username}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3.5 px-4 text-xs font-mono text-[#5c5446]">
+                        <td className="py-3.5 px-4 text-xs font-mono text-(--ws-text)">
                           {m.email}
                         </td>
                         <td className="py-3.5 px-4 text-center">
-                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#f0ebd9] text-[#193a2b]">
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-(--ws-panel2) text-(--ws-accent)">
                             {t('instructorClassDetail.submissionsCountSuffix', { count: m.submissionsCount })}
                           </span>
                         </td>
                         <td className="py-3.5 px-4 text-center">
-                          <span className="text-xs font-bold text-[#193a2b]">
+                          <span className="text-xs font-bold text-(--ws-accent)">
                             {m.rating}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 text-xs text-[#8a8073]">
+                        <td className="py-3.5 px-4 text-xs text-(--ws-muted)">
                           {m.joinedAt ? formatVN(m.joinedAt, { time: false }) : '—'}
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <button
                             onClick={() => setConfirmKickStudent({ id: m.id, name: m.displayName })}
-                            className="p-1.5 text-[#8a8073] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-1.5 text-(--ws-muted) hover:text-(--ws-danger) hover:bg-(--ws-danger-soft) rounded-lg transition-colors"
                             title={t('instructorClassDetail.removeStudentTooltip')}
                           >
                             <UserX size={15} />
@@ -1101,18 +1102,18 @@ export default function InstructorClassDetail() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-800 flex items-center justify-center shadow-2xs shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-(--ws-warn)/10 text-(--ws-warn) flex items-center justify-center shadow-2xs shrink-0">
                 <GraduationCap size={20} />
               </div>
               <div>
-                <h2 className="text-base font-bold font-serif text-[#191919]">Sổ điểm tổng hợp lớp học</h2>
-                <p className="text-xs text-[#8a8073]">Theo dõi ma trận tiến độ nộp bài, điểm số tự động và điểm giảng viên chấm cho từng bài tập.</p>
+                <h2 className="text-base font-bold font-serif text-(--ws-text)">Sổ điểm tổng hợp lớp học</h2>
+                <p className="text-xs text-(--ws-muted)">Theo dõi ma trận tiến độ nộp bài, điểm số tự động và điểm giảng viên chấm cho từng bài tập.</p>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => refetchGradebook()}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-[#e5dac9] text-xs font-semibold rounded-xl text-[#5c5446] hover:text-[#191919] hover:bg-[#f7f4eb] transition-all shadow-2xs"
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-(--ws-panel) border border-(--ws-border) text-xs font-semibold rounded-xl text-(--ws-text) hover:text-(--ws-text) hover:bg-(--ws-hover) transition-all shadow-2xs"
                 title="Tải lại dữ liệu sổ điểm"
               >
                 <RotateCcw size={13} className={isGradebookLoading ? 'animate-spin' : ''} />
@@ -1121,7 +1122,7 @@ export default function InstructorClassDetail() {
               {gradebookData && gradebookData.students.length > 0 && (
                 <button
                   onClick={() => exportGradebookCsv(gradebookData)}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-(--ws-accent) text-(--ws-on-accent) text-xs font-semibold rounded-xl hover:bg-(--ws-accent-strong) transition-colors shadow-sm"
                   title="Xuất bảng điểm ra file .csv"
                 >
                   <Download size={14} />
@@ -1133,58 +1134,58 @@ export default function InstructorClassDetail() {
 
           {/* Gradebook Matrix Table */}
           {isGradebookLoading ? (
-            <div className="p-16 text-center text-sm text-[#8a8073]">Đang tổng hợp dữ liệu sổ điểm...</div>
+            <div className="p-16 text-center text-sm text-(--ws-muted)">Đang tổng hợp dữ liệu sổ điểm...</div>
           ) : !gradebookData || gradebookData.students.length === 0 ? (
-            <div className="p-12 text-center bg-white border border-[#e5dac9] rounded-2xl">
-              <GraduationCap size={40} className="text-[#bfae99] mx-auto mb-3" />
-              <p className="text-sm font-semibold text-[#191919]">Chưa có dữ liệu sổ điểm</p>
-              <p className="text-xs text-[#8a8073] mt-1">Lớp học chưa có sinh viên hoặc chưa được giao bài tập nào.</p>
+            <div className="p-12 text-center bg-(--ws-panel) border border-(--ws-border) rounded-2xl">
+              <GraduationCap size={40} className="text-(--ws-faint) mx-auto mb-3" />
+              <p className="text-sm font-semibold text-(--ws-text)">Chưa có dữ liệu sổ điểm</p>
+              <p className="text-xs text-(--ws-muted) mt-1">Lớp học chưa có sinh viên hoặc chưa được giao bài tập nào.</p>
             </div>
           ) : (
-            <div className="bg-white border border-[#e5dac9] rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl overflow-hidden shadow-sm">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr className="bg-[#f0ebd9]/60 border-b border-[#e5dac9]">
-                      <th className="py-3 px-3 font-bold text-[#5c5446] uppercase tracking-wider text-center w-14 min-w-14">
+                    <tr className="bg-(--ws-panel2)/60 border-b border-(--ws-border)">
+                      <th className="py-3 px-3 font-bold text-(--ws-text) uppercase tracking-wider text-center w-14 min-w-14">
                         STT
                       </th>
-                      <th className="py-3 px-4 font-bold text-[#5c5446] uppercase tracking-wider min-w-[110px]">
+                      <th className="py-3 px-4 font-bold text-(--ws-text) uppercase tracking-wider min-w-[110px]">
                         MSSV
                       </th>
-                      <th className="py-3 px-4 font-bold text-[#5c5446] uppercase tracking-wider min-w-[200px]">
+                      <th className="py-3 px-4 font-bold text-(--ws-text) uppercase tracking-wider min-w-[200px]">
                         Họ và tên
                       </th>
                       {gradebookData.homework_columns.map((hw) => (
                         <th
                           key={hw.homework_id}
-                          className="py-3 px-3 font-semibold text-[#5c5446] text-center border-l border-[#e5dac9]/60 min-w-[130px]"
+                          className="py-3 px-3 font-semibold text-(--ws-text) text-center border-l border-(--ws-border)/60 min-w-[130px]"
                           title={hw.homework_title}
                         >
-                          <span className="block mx-auto text-center font-bold text-[#191919] truncate max-w-[140px]">{hw.homework_title}</span>
+                          <span className="block mx-auto text-center font-bold text-(--ws-text) truncate max-w-[140px]">{hw.homework_title}</span>
                         </th>
                       ))}
-                      <th className="py-3 px-3 font-bold text-[#5c5446] uppercase tracking-wider text-center border-l border-[#e5dac9]/60 min-w-[110px]">
+                      <th className="py-3 px-3 font-bold text-(--ws-text) uppercase tracking-wider text-center border-l border-(--ws-border)/60 min-w-[110px]">
                         Tổng điểm
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#e5dac9]/60">
+                  <tbody className="divide-y divide-(--ws-border)/60">
                     {sortGradebookStudents(gradebookData.students).map((st, index) => {
                       const scores = homeworkScores(gradebookData, st);
                       return (
-                      <tr key={st.id} className="hover:bg-[#f7f4eb]/60 transition-colors">
-                        <td className="py-3 px-3 text-center text-[#8a8073]">{index + 1}</td>
-                        <td className="py-3 px-4 font-mono text-[#5c5446]">{st.student_code || '—'}</td>
-                        <td className="py-3 px-4 border-r border-[#e5dac9]/40">
-                          <p className="font-bold text-[#191919]">{gradebookStudentName(st)}</p>
+                      <tr key={st.id} className="hover:bg-(--ws-hover)/60 transition-colors">
+                        <td className="py-3 px-3 text-center text-(--ws-muted)">{index + 1}</td>
+                        <td className="py-3 px-4 font-mono text-(--ws-text)">{st.student_code || '—'}</td>
+                        <td className="py-3 px-4 border-r border-(--ws-border)/40">
+                          <p className="font-bold text-(--ws-text)">{gradebookStudentName(st)}</p>
                         </td>
                         {scores.perHomework.map((h) => (
-                          <td key={h.id} className="py-3 px-3 text-center border-l border-[#e5dac9]/40 font-semibold text-[#191919]">
+                          <td key={h.id} className="py-3 px-3 text-center border-l border-(--ws-border)/40 font-semibold text-(--ws-text)">
                             {fmtScore(h.earned)}/{fmtScore(h.total)}
                           </td>
                         ))}
-                        <td className="py-3 px-3 text-center border-l border-[#e5dac9]/40 font-bold text-[#193a2b]">
+                        <td className="py-3 px-3 text-center border-l border-(--ws-border)/40 font-bold text-(--ws-accent)">
                           {fmtScore(scores.earned)}/{fmtScore(scores.total)}
                         </td>
                       </tr>
@@ -1207,7 +1208,7 @@ export default function InstructorClassDetail() {
                 <h3 className="font-bold font-serif text-[16px]">{editingHwId ? t('instructorClassDetail.editHwTitle') : t('instructorClassDetail.createHwBtn')}</h3>
                 <p className="text-xs text-(--ws-muted) mt-0.5">{classData.subject ? `${classData.subject} - ${classData.name}` : classData.name}</p>
               </div>
-              <button onClick={() => setShowCreateHw(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
+              <button aria-label={t('common.close')} onClick={() => setShowCreateHw(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} aria-hidden="true" /></button>
             </div>
 
             <div className="p-6 space-y-4">
@@ -1217,7 +1218,7 @@ export default function InstructorClassDetail() {
                   value={hwForm.title}
                   onChange={(e) => setHwForm({ ...hwForm, title: e.target.value })}
                   placeholder={t('instructorClassDetail.fieldHwTitlePlaceholder')}
-                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
                 />
               </div>
 
@@ -1227,7 +1228,7 @@ export default function InstructorClassDetail() {
                   type="datetime-local"
                   value={hwForm.deadline}
                   onChange={(e) => setHwForm({ ...hwForm, deadline: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
                 />
               </div>
 
@@ -1238,16 +1239,16 @@ export default function InstructorClassDetail() {
                   onChange={(e) => setHwForm({ ...hwForm, description: e.target.value })}
                   rows={2}
                   placeholder={t('instructorClassDetail.fieldHwDescriptionPlaceholder')}
-                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent) resize-none"
                 />
               </div>
 
               {/* Problem Manager */}
               <ProblemManager problems={hwProblems} onChange={setHwProblems} />
 
-              {hwError && <p className="text-xs text-red-600 font-medium">{hwError}</p>}
-              <p className="text-[11.5px] text-[#8a8073] bg-[#f0ebd9] border border-[#e5dac9] rounded-lg px-3 py-2">
-                🔒 {t('instructorHomework.visibilityHint')}
+              {hwError && <p className="text-xs text-(--ws-danger) font-medium">{hwError}</p>}
+              <p className="text-[11.5px] text-(--ws-muted) bg-(--ws-panel2) border border-(--ws-border) rounded-lg px-3 py-2">
+                <Lock size={12} className="inline-block align-[-2px] mr-1" aria-hidden="true" />{t('instructorHomework.visibilityHint')}
               </p>
 
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-(--ws-border)">
@@ -1263,9 +1264,9 @@ export default function InstructorClassDetail() {
                   type="button"
                   onClick={handleSaveHomework}
                   disabled={isSavingHw}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-(--ws-accent) text-(--ws-on-accent) text-xs font-semibold rounded-xl hover:bg-(--ws-accent-strong) shadow-sm disabled:opacity-50 transition-colors"
                 >
-                  {isSavingHw && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  {isSavingHw && <span className="w-3.5 h-3.5 border-2 border-(--ws-panel)/30 border-t-white rounded-full animate-spin" />}
                   {editingHwId ? t('instructorClassDetail.saveHwChanges') : t('instructorClassDetail.saveAndAssignHw')}
                 </button>
               </div>
@@ -1277,13 +1278,13 @@ export default function InstructorClassDetail() {
       {/* ================= MODAL: CONFIRM KICK SINH VIÊN ================= */}
       {confirmKickStudent && hasDocument && createPortal((
         <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setConfirmKickStudent(null)}>
-          <div className="bg-white border border-[#e5dac9] rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center space-y-4" onClick={(e) => e.stopPropagation()}>
-            <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
+          <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div className="w-12 h-12 rounded-full bg-(--ws-danger-soft) text-(--ws-danger) flex items-center justify-center mx-auto">
               <UserX size={24} />
             </div>
             <div>
-              <h3 className="font-bold text-base text-[#191919]">{t('instructorClassDetail.kickConfirmTitle')}</h3>
-              <p className="text-xs text-[#8a8073] mt-1">
+              <h3 className="font-bold text-base text-(--ws-text)">{t('instructorClassDetail.kickConfirmTitle')}</h3>
+              <p className="text-xs text-(--ws-muted) mt-1">
                 {t('instructorClassDetail.kickConfirmBody', { name: confirmKickStudent.name })}
               </p>
             </div>
@@ -1291,16 +1292,16 @@ export default function InstructorClassDetail() {
               <button
                 onClick={() => setConfirmKickStudent(null)}
                 disabled={isKicking}
-                className="flex-1 py-2 bg-[#f0ebd9] border border-[#cbbd9f] text-[#191919] text-xs font-semibold rounded-xl hover:bg-[#e5dac9] transition-colors"
+                className="flex-1 py-2 bg-(--ws-panel2) border border-(--ws-faint) text-(--ws-text) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors"
               >
                 {t('common.cancel')}
               </button>
               <button
                 onClick={handleKickStudent}
                 disabled={isKicking}
-                className="flex-1 py-2 bg-red-600 text-white text-xs font-semibold rounded-xl hover:bg-red-700 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className="flex-1 py-2 bg-(--ws-danger) text-(--ws-on-accent) text-xs font-semibold rounded-xl hover:bg-(--ws-danger) disabled:opacity-50 flex items-center justify-center gap-1.5"
               >
-                {isKicking && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                {isKicking && <span className="w-3.5 h-3.5 border-2 border-(--ws-panel)/30 border-t-white rounded-full animate-spin" />}
                 {t('instructorClassDetail.kickConfirmBtn')}
               </button>
             </div>
@@ -1317,7 +1318,7 @@ export default function InstructorClassDetail() {
                 <h3 className="font-bold font-serif text-[16px]">{t('instructorClass.editModalTitle')}</h3>
                 <p className="text-xs text-(--ws-muted) mt-0.5">{classData.subject ? `${classData.subject} - ${classData.name}` : classData.name}</p>
               </div>
-              <button onClick={() => setShowEditClass(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
+              <button aria-label={t('common.close')} onClick={() => setShowEditClass(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} aria-hidden="true" /></button>
             </div>
             <div className="p-6 space-y-4">
               <div>
@@ -1326,7 +1327,7 @@ export default function InstructorClassDetail() {
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                   placeholder={t('instructorClass.fieldClassNamePlaceholder')}
-                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
                 />
               </div>
               <div>
@@ -1335,7 +1336,7 @@ export default function InstructorClassDetail() {
                   value={editForm.subject}
                   onChange={(e) => setEditForm({ ...editForm, subject: e.target.value })}
                   placeholder={t('instructorClass.fieldSubjectPlaceholder')}
-                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
                 />
               </div>
               <div>
@@ -1345,7 +1346,7 @@ export default function InstructorClassDetail() {
                   onChange={(e) => setEditForm({ ...editForm, semester: e.target.value })}
                   placeholder={t('instructorClass.fieldSemesterPlaceholder')}
                   list="semester-suggestions-classdetail-edit"
-                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
                 />
                 <datalist id="semester-suggestions-classdetail-edit">
                   {semesterSuggestions.map((s) => (
@@ -1360,10 +1361,10 @@ export default function InstructorClassDetail() {
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                   rows={3}
                   placeholder={t('instructorClass.fieldDescriptionPlaceholder')}
-                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent) resize-none"
                 />
               </div>
-              {editError && <p className="text-xs text-red-600 font-medium">{editError}</p>}
+              {editError && <p className="text-xs text-(--ws-danger) font-medium">{editError}</p>}
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-(--ws-border)">
                 <button
                   type="button"
@@ -1377,9 +1378,9 @@ export default function InstructorClassDetail() {
                   type="button"
                   onClick={handleUpdateClass}
                   disabled={isUpdatingClass}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-(--ws-accent) text-(--ws-on-accent) text-xs font-semibold rounded-xl hover:bg-(--ws-accent-strong) shadow-sm disabled:opacity-50 transition-colors"
                 >
-                  {isUpdatingClass && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  {isUpdatingClass && <span className="w-3.5 h-3.5 border-2 border-(--ws-panel)/30 border-t-white rounded-full animate-spin" />}
                   {t('instructorClass.saveChanges')}
                 </button>
               </div>
@@ -1397,7 +1398,7 @@ export default function InstructorClassDetail() {
                 <h3 className="font-bold font-serif text-[16px]">{t('instructorClassDetail.rosterModalTitle')}</h3>
                 <p className="text-xs text-(--ws-muted) mt-0.5">{classData.subject ? `${classData.subject} - ${classData.name}` : classData.name}</p>
               </div>
-              <button onClick={closeRosterModal} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
+              <button aria-label={t('common.close')} onClick={closeRosterModal} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} aria-hidden="true" /></button>
             </div>
             <div className="p-6 space-y-4">
               <label
@@ -1409,10 +1410,10 @@ export default function InstructorClassDetail() {
                   void pickRosterFiles(e.dataTransfer.files);
                 }}
                 className={`flex flex-col items-center justify-center gap-2 text-center px-4 py-8 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
-                  isDraggingRoster ? 'border-[#193a2b] bg-[#193a2b]/5' : 'border-(--ws-border) hover:border-[#193a2b]/60'
+                  isDraggingRoster ? 'border-(--ws-accent) bg-(--ws-accent)/5' : 'border-(--ws-border) hover:border-(--ws-accent)/60'
                 }`}
               >
-                <Upload size={28} className="text-[#193a2b]" />
+                <Upload size={28} className="text-(--ws-accent)" />
                 <p className="text-sm font-semibold">{t('instructorClassDetail.rosterDropHere')}</p>
                 <p className="text-xs text-(--ws-muted)">{t('instructorClassDetail.rosterOrBrowse')}</p>
                 <input
@@ -1435,15 +1436,15 @@ export default function InstructorClassDetail() {
                       <li
                         key={f.key}
                         className={`flex items-start justify-between gap-3 px-3 py-2 rounded-lg border text-xs ${
-                          f.error ? 'border-red-200 bg-red-50' : 'border-emerald-200 bg-emerald-50'
+                          f.error ? 'border-(--ws-danger)/35 bg-(--ws-danger-soft)' : 'border-(--ws-ok)/35 bg-(--ws-ok-soft)'
                         }`}
                       >
                         <div className="min-w-0">
                           <p className="font-semibold text-(--ws-text) break-all">{f.name}</p>
                           {f.error ? (
-                            <p className="text-red-600 mt-0.5">{f.error}</p>
+                            <p className="text-(--ws-danger) mt-0.5">{f.error}</p>
                           ) : (
-                            <p className="text-emerald-700 mt-0.5">
+                            <p className="text-(--ws-ok) mt-0.5">
                               {t('instructorClassDetail.rosterPreview', { count: f.codes?.length ?? 0, invalid: f.invalidCount ?? 0 })}
                             </p>
                           )}
@@ -1451,7 +1452,7 @@ export default function InstructorClassDetail() {
                         <button
                           type="button"
                           onClick={() => setRosterFiles((prev) => prev.filter((p) => p.key !== f.key))}
-                          className="text-(--ws-muted) hover:text-red-600 shrink-0"
+                          className="text-(--ws-muted) hover:text-(--ws-danger) shrink-0"
                           title={t('instructorClassDetail.rosterRemoveFile')}
                         >
                           <X size={14} />
@@ -1460,13 +1461,13 @@ export default function InstructorClassDetail() {
                     ))}
                   </ul>
                   {rosterAllCodes.length > 0 && (
-                    <p className="text-xs font-semibold text-emerald-700">
+                    <p className="text-xs font-semibold text-(--ws-ok)">
                       {t('instructorClassDetail.rosterTotal', { count: rosterAllCodes.length, files: rosterValidFiles.length })}
                     </p>
                   )}
                 </div>
               )}
-              {rosterError && <p className="text-xs font-medium text-red-600">{rosterError}</p>}
+              {rosterError && <p className="text-xs font-medium text-(--ws-danger)">{rosterError}</p>}
 
               <div className="rounded-xl border border-(--ws-border) bg-(--ws-editor) p-4 space-y-2">
                 <p className="text-xs font-bold">{t('instructorClassDetail.rosterGuideTitle')}</p>
@@ -1482,7 +1483,7 @@ export default function InstructorClassDetail() {
                       <tr className="bg-(--ws-panel)">
                         <th className="px-2 py-1 text-left border-b border-(--ws-border)">STT</th>
                         <th className="px-2 py-1 text-left border-b border-(--ws-border)">Họ và tên</th>
-                        <th className="px-2 py-1 text-left border-b border-(--ws-border) text-[#193a2b]">MSSV</th>
+                        <th className="px-2 py-1 text-left border-b border-(--ws-border) text-(--ws-accent)">MSSV</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1502,7 +1503,7 @@ export default function InstructorClassDetail() {
                 <button
                   onClick={submitRoster}
                   disabled={rosterAllCodes.length === 0 || isUploadingRoster}
-                  className="px-5 py-2 bg-[#193a2b] text-white text-sm font-semibold rounded-xl hover:bg-[#143022] disabled:opacity-50"
+                  className="px-5 py-2 bg-(--ws-accent) text-(--ws-on-accent) text-sm font-semibold rounded-xl hover:bg-(--ws-accent-strong) disabled:opacity-50"
                 >
                   {isUploadingRoster ? t('instructorClassDetail.rosterUploading') : t('instructorClassDetail.rosterSubmit')}
                 </button>
@@ -1520,7 +1521,7 @@ export default function InstructorClassDetail() {
                 <h3 className="font-bold font-serif text-[16px]">{t('instructorClassDetail.addStudentModalTitle')}</h3>
                 <p className="text-xs text-(--ws-muted) mt-0.5">{classData.subject ? `${classData.subject} - ${classData.name}` : classData.name}</p>
               </div>
-              <button onClick={() => setShowAddStudent(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
+              <button aria-label={t('common.close')} onClick={() => setShowAddStudent(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} aria-hidden="true" /></button>
             </div>
             <div className="p-6 space-y-4">
               <div>
@@ -1531,14 +1532,14 @@ export default function InstructorClassDetail() {
                   onChange={(e) => setStudentEmail(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddStudent()}
                   placeholder={t('instructorClassDetail.fieldStudentEmailPlaceholder')}
-                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                  className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
                   autoFocus
                 />
                 <p className="text-xs text-(--ws-muted) mt-1.5">
                   {t('instructorClassDetail.addStudentHint')}
                 </p>
               </div>
-              {addStudentError && <p className="text-xs text-red-600 font-medium">{addStudentError}</p>}
+              {addStudentError && <p className="text-xs text-(--ws-danger) font-medium">{addStudentError}</p>}
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-(--ws-border)">
                 <button
                   type="button"
@@ -1552,9 +1553,9 @@ export default function InstructorClassDetail() {
                   type="button"
                   onClick={handleAddStudent}
                   disabled={isAddingStudent}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] shadow-sm disabled:opacity-50 transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-(--ws-accent) text-(--ws-on-accent) text-xs font-semibold rounded-xl hover:bg-(--ws-accent-strong) shadow-sm disabled:opacity-50 transition-colors"
                 >
-                  {isAddingStudent && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  {isAddingStudent && <span className="w-3.5 h-3.5 border-2 border-(--ws-panel)/30 border-t-white rounded-full animate-spin" />}
                   {t('instructorClassDetail.addStudentBtn')}
                 </button>
               </div>
@@ -1567,58 +1568,58 @@ export default function InstructorClassDetail() {
       {resultsHwId && hasDocument && createPortal((
         <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setResultsHwId(null)}>
           <div
-            className="bg-white border border-[#e5dac9] rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl"
+            className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5dac9]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
               <div>
-                <h3 className="font-bold font-serif text-lg text-[#191919]">Kết quả: {resultsHwTitle}</h3>
-                <p className="text-xs text-[#8a8073] mt-0.5">Bấm nút "Xem bài nộp" để xem chi tiết bài nộp của sinh viên.</p>
+                <h3 className="font-bold font-serif text-lg text-(--ws-text)">Kết quả: {resultsHwTitle}</h3>
+                <p className="text-xs text-(--ws-muted) mt-0.5">Bấm nút "Xem bài nộp" để xem chi tiết bài nộp của sinh viên.</p>
               </div>
-              <button onClick={() => setResultsHwId(null)} className="text-[#8a8073] hover:text-[#191919]"><X size={20} /></button>
+              <button aria-label={t('common.close')} onClick={() => setResultsHwId(null)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={20} aria-hidden="true" /></button>
             </div>
             <div className="overflow-auto p-6">
               {isGradebookLoading || !gradebookData ? (
-                <div className="p-12 text-center text-sm text-[#8a8073]">Đang tổng hợp kết quả...</div>
+                <div className="p-12 text-center text-sm text-(--ws-muted)">Đang tổng hợp kết quả...</div>
               ) : !resultsHwColumn ? (
-                <div className="p-12 text-center text-sm text-[#8a8073]">Không có dữ liệu kết quả cho bài tập này.</div>
+                <div className="p-12 text-center text-sm text-(--ws-muted)">Không có dữ liệu kết quả cho bài tập này.</div>
               ) : gradebookData.students.length === 0 ? (
-                <div className="p-12 text-center text-sm text-[#8a8073]">Lớp chưa có sinh viên nào.</div>
+                <div className="p-12 text-center text-sm text-(--ws-muted)">Lớp chưa có sinh viên nào.</div>
               ) : (
-                <div className="border border-[#e5dac9] rounded-xl overflow-x-auto">
+                <div className="border border-(--ws-border) rounded-xl overflow-x-auto">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr className="bg-[#f0ebd9]/60 border-b border-[#e5dac9]">
-                      <th className="py-3 px-3 font-bold text-[#5c5446] uppercase tracking-wider text-center w-14 min-w-14">STT</th>
-                      <th className="py-3 px-4 font-bold text-[#5c5446] uppercase tracking-wider min-w-[180px]">Sinh viên</th>
+                    <tr className="bg-(--ws-panel2)/60 border-b border-(--ws-border)">
+                      <th className="py-3 px-3 font-bold text-(--ws-text) uppercase tracking-wider text-center w-14 min-w-14">STT</th>
+                      <th className="py-3 px-4 font-bold text-(--ws-text) uppercase tracking-wider min-w-[180px]">Sinh viên</th>
                       {resultsHwColumn.tasks.map((task) => (
                         <th
                           key={task.task_id}
-                          className="py-3 px-3 font-semibold text-[#5c5446] text-center border-l border-[#e5dac9]/60 min-w-[170px]"
+                          className="py-3 px-3 font-semibold text-(--ws-text) text-center border-l border-(--ws-border)/60 min-w-[170px]"
                         >
-                          <span className="block mx-auto text-center font-bold text-[#191919] whitespace-normal wrap-break-word">{task.title}</span>
+                          <span className="block mx-auto text-center font-bold text-(--ws-text) whitespace-normal wrap-break-word">{task.title}</span>
                         </th>
                       ))}
-                      <th className="py-3 px-3 font-bold text-[#5c5446] uppercase tracking-wider text-center border-l border-[#e5dac9]/60 min-w-[110px]">Tổng điểm</th>
+                      <th className="py-3 px-3 font-bold text-(--ws-text) uppercase tracking-wider text-center border-l border-(--ws-border)/60 min-w-[110px]">Tổng điểm</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#e5dac9]/60">
+                  <tbody className="divide-y divide-(--ws-border)/60">
                     {sortGradebookStudents(gradebookData.students).map((st, index) => {
                       const grades = st.grades.filter((g) => g.homework_id === resultsHwColumn.homework_id);
                       const earned = grades.reduce((sum, g) => sum + gradeEarned(g), 0);
                       const total = grades.reduce((sum, g) => sum + (Number(g.points) || 0), 0);
                       return (
                         <tr key={st.id}>
-                          <td className="py-3 px-3 text-center text-[#8a8073]">{index + 1}</td>
-                          <td className="py-3 px-4 font-bold text-[#191919]">{gradebookStudentName(st)}</td>
+                          <td className="py-3 px-3 text-center text-(--ws-muted)">{index + 1}</td>
+                          <td className="py-3 px-4 font-bold text-(--ws-text)">{gradebookStudentName(st)}</td>
                           {resultsHwColumn.tasks.map((task, ti) => {
                             const g = grades[ti];
                             const canGrade = !!g?.latest_submission_id;
                             return (
                               <td
                                 key={task.task_id}
-                                className={`py-3 px-3 text-center border-l border-[#e5dac9]/40 font-semibold ${
-                                  canGrade ? 'text-[#191919]' : 'text-[#bfae99]'
+                                className={`py-3 px-3 text-center border-l border-(--ws-border)/40 font-semibold ${
+                                  canGrade ? 'text-(--ws-text)' : 'text-(--ws-faint)'
                                 }`}
                               >
                                 <span className="inline-flex items-center justify-center gap-1.5">
@@ -1629,7 +1630,7 @@ export default function InstructorClassDetail() {
                                     <button
                                       type="button"
                                       onClick={() => openGrading(st, g)}
-                                      className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-[#e5dac9] bg-[#f7f4eb] text-[10px] font-semibold text-[#5c5446] hover:text-[#193a2b] hover:bg-[#f0ebd9] hover:border-[#193a2b]/30 transition-colors whitespace-nowrap"
+                                      className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-(--ws-border) bg-(--ws-panel2) text-[10px] font-semibold text-(--ws-text) hover:text-(--ws-accent) hover:bg-(--ws-hover) hover:border-(--ws-accent)/30 transition-colors whitespace-nowrap"
                                       title="Xem bài nộp gần nhất & chấm lại"
                                     >
                                       <Eye size={12} /> Xem bài nộp
@@ -1639,7 +1640,7 @@ export default function InstructorClassDetail() {
                               </td>
                             );
                           })}
-                          <td className="py-3 px-3 text-center border-l border-[#e5dac9]/40 font-bold text-[#193a2b]">
+                          <td className="py-3 px-3 text-center border-l border-(--ws-border)/40 font-bold text-(--ws-accent)">
                             {fmtScore(earned)}/{fmtScore(total)}
                           </td>
                         </tr>

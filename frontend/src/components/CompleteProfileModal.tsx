@@ -59,18 +59,18 @@ export default function CompleteProfileModal() {
   }
 
   const inputClass =
-    'w-full px-4 py-2.5 bg-[#f7f4eb]/50 border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]';
-  const labelClass = 'block text-sm font-medium text-[#5c5446] mb-1.5';
+    'w-full px-4 py-2.5 bg-(--ws-panel2)/50 border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)';
+  const labelClass = 'block text-sm font-medium text-(--ws-text) mb-1.5';
 
   return (
     <div className="fixed inset-0 z-1000 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md bg-white rounded-2xl border border-[#e5dac9] shadow-2xl p-6 space-y-4"
+        className="w-full max-w-md bg-(--ws-panel) rounded-2xl border border-(--ws-border) shadow-2xl p-6 space-y-4"
       >
         <div>
-          <h2 className="text-xl font-bold text-[#191919] font-serif">{t('completeProfile.title')}</h2>
-          <p className="text-sm text-[#8a8073] mt-1">{t('completeProfile.subtitle')}</p>
+          <h2 className="text-xl font-bold text-(--ws-text) font-serif">{t('completeProfile.title')}</h2>
+          <p className="text-sm text-(--ws-muted) mt-1">{t('completeProfile.subtitle')}</p>
         </div>
 
         {missing.fullName && (
@@ -83,7 +83,7 @@ export default function CompleteProfileModal() {
         {missing.username && (
           <div>
             <label className={labelClass}>
-              {t('completeProfile.username')} <span className="text-[#cc5a37]">*</span>
+              {t('completeProfile.username')} <span className="text-(--ws-danger)">*</span>
             </label>
             <input className={inputClass} value={username} onChange={(e) => setUsername(e.target.value)} />
           </div>
@@ -92,7 +92,7 @@ export default function CompleteProfileModal() {
         {missingStudentCode && (
           <div>
             <label className={labelClass}>
-              {t('completeProfile.studentId')} <span className="text-[#cc5a37]">*</span>
+              {t('completeProfile.studentId')} <span className="text-(--ws-danger)">*</span>
             </label>
             <input
               className={inputClass}
@@ -102,20 +102,20 @@ export default function CompleteProfileModal() {
               value={studentCode}
               onChange={(e) => setStudentCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
             />
-            <p className="text-xs text-[#8a8073] mt-1">{t('completeProfile.studentIdHint')}</p>
+            <p className="text-xs text-(--ws-muted) mt-1">{t('completeProfile.studentIdHint')}</p>
           </div>
         )}
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-(--ws-danger)">{error}</p>}
 
         <div className="flex items-center justify-between gap-3 pt-1">
-          <button type="button" onClick={logout} className="text-sm text-[#8a8073] hover:text-[#191919] cursor-pointer">
+          <button type="button" onClick={logout} className="text-sm text-(--ws-muted) hover:text-(--ws-text) cursor-pointer">
             {t('completeProfile.logout')}
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="px-5 py-2.5 rounded-xl bg-[#193a2b] text-white text-sm font-semibold hover:bg-[#244d39] disabled:opacity-60 cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-(--ws-accent) text-(--ws-on-accent) text-sm font-semibold hover:bg-(--ws-accent) disabled:opacity-60 cursor-pointer"
           >
             {saving ? t('completeProfile.saving') : t('completeProfile.submit')}
           </button>

@@ -351,9 +351,9 @@ export default function InstructorContest() {
   const selectedContestData = contests.find((c) => c.id === selectedContest);
 
   const statusColors: Record<string, string> = {
-    upcoming: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    running: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-    ended: 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]',
+    upcoming: 'bg-(--ws-warn-soft) text-(--ws-warn) border-(--ws-warn)/35',
+    running: 'bg-(--ws-ok-soft) text-(--ws-ok) border-(--ws-ok)/35',
+    ended: 'bg-(--ws-panel2) text-(--ws-muted) border-(--ws-border)',
   };
 
   const statusLabels: Record<string, string> = {
@@ -373,12 +373,12 @@ export default function InstructorContest() {
   );
 
   return (
-    <div className="space-y-6 text-[#191919]">
+    <div className="space-y-6 text-(--ws-text)">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold font-serif text-[#191919]">{t('instructorContest.pageTitle')}</h2>
+        <h2 className="text-2xl font-bold font-serif text-(--ws-text)">{t('instructorContest.pageTitle')}</h2>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] transition-all shadow-md"
+          className="flex items-center gap-2 px-4 py-2.5 bg-(--ws-accent) text-(--ws-on-accent) font-medium rounded-xl hover:bg-(--ws-accent-strong) transition-all shadow-md"
         >
           <Plus size={18} /> {t('instructorContest.createNew')}
         </button>
@@ -386,30 +386,30 @@ export default function InstructorContest() {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white border border-[#e5dac9] rounded-xl p-4 text-center shadow-sm">
-          <p className="text-2xl font-bold font-serif text-yellow-600">{contests.filter((c) => c.status === 'upcoming').length}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorContest.statUpcoming')}</p>
+        <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-4 text-center shadow-sm">
+          <p className="text-2xl font-bold font-serif text-(--ws-warn)">{contests.filter((c) => c.status === 'upcoming').length}</p>
+          <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorContest.statUpcoming')}</p>
         </div>
-        <div className="bg-white border border-[#e5dac9] rounded-xl p-4 text-center shadow-sm">
-          <p className="text-2xl font-bold font-serif text-emerald-700">{contests.filter((c) => c.status === 'running').length}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorContest.statRunning')}</p>
+        <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-4 text-center shadow-sm">
+          <p className="text-2xl font-bold font-serif text-(--ws-ok)">{contests.filter((c) => c.status === 'running').length}</p>
+          <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorContest.statRunning')}</p>
         </div>
-        <div className="bg-white border border-[#e5dac9] rounded-xl p-4 text-center shadow-sm">
-          <p className="text-2xl font-bold font-serif text-[#8a8073]">{contests.filter((c) => c.status === 'ended').length}</p>
-          <p className="text-xs text-[#8a8073] mt-0.5">{t('instructorContest.statEnded')}</p>
+        <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-4 text-center shadow-sm">
+          <p className="text-2xl font-bold font-serif text-(--ws-muted)">{contests.filter((c) => c.status === 'ended').length}</p>
+          <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorContest.statEnded')}</p>
         </div>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a8073]" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-(--ws-muted)" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('instructorContest.searchPlaceholder')}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+            className="w-full pl-10 pr-4 py-2.5 bg-(--ws-panel) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
           />
         </div>
         <div className="flex gap-2">
@@ -419,8 +419,8 @@ export default function InstructorContest() {
               onClick={() => setFilter(f)}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                 filter === f
-                  ? 'bg-[#193a2b] text-white shadow-sm'
-                  : 'bg-white text-[#5c5446] hover:text-[#191919] border border-[#e5dac9]'
+                  ? 'bg-(--ws-accent) text-(--ws-on-accent) shadow-sm'
+                  : 'bg-(--ws-panel) text-(--ws-text) hover:text-(--ws-text) border border-(--ws-border)'
               }`}
             >
               {f === 'all' ? t('instructorContest.filterAll') : statusLabels[f]}
@@ -435,8 +435,8 @@ export default function InstructorContest() {
           <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-(--ws-border)">
               <h3 className="text-lg font-serif font-bold text-(--ws-text)">{selectedContestData.title}{selectedContestData.visibility === 'private' && selectedContestData.classLabel && (<span className="ml-2 align-middle text-xs font-semibold text-(--ws-muted) bg-(--ws-editor) border border-(--ws-border) rounded-full px-2.5 py-0.5">{selectedContestData.classLabel}</span>)}</h3>
-              <button onClick={() => setSelectedContest(null)} className="text-(--ws-muted) hover:text-(--ws-text)">
-                <X size={20} />
+              <button aria-label={t('common.close')} onClick={() => setSelectedContest(null)} className="text-(--ws-muted) hover:text-(--ws-text)">
+                <X size={20} aria-hidden="true" />
               </button>
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
@@ -445,11 +445,11 @@ export default function InstructorContest() {
                   {statusLabels[selectedContestData.status]}
                 </span>
                 {selectedContestData.visibility === 'private' ? (
-                  <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border font-medium bg-purple-50 text-purple-700 border-purple-200">
+                  <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border font-medium bg-(--ws-info-soft) text-(--ws-info) border-(--ws-info)/35">
                     <Lock size={10} /> {t('instructorContest.visibilityPrivate')}
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border font-medium bg-sky-50 text-sky-700 border-sky-200">
+                  <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border font-medium bg-(--ws-info-soft) text-(--ws-info) border-(--ws-info)/35">
                     <Globe size={10} /> {t('instructorContest.visibilityPublic')}
                   </span>
                 )}
@@ -475,7 +475,7 @@ export default function InstructorContest() {
               </div>
 
               {selectedContestData.lockdownEnabled && selectedContestData.status !== 'ended' && (
-                <div className="mb-4 flex flex-wrap items-center gap-3 px-4 py-3 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-sm">
+                <div className="mb-4 flex flex-wrap items-center gap-3 px-4 py-3 rounded-xl border border-(--ws-warn)/35 bg-(--ws-warn-soft) text-(--ws-warn) text-sm">
                   <Lock size={14} />
                   <span className="font-semibold">{t('instructorContest.lockdownOn')}</span>
                   <span className="text-xs">{t('instructorContest.lockdownCodeLabel')}</span>
@@ -506,7 +506,7 @@ export default function InstructorContest() {
                       <tr key={s.user_id ?? s.rank} className="border-b border-(--ws-border) hover:bg-(--ws-hover)">
                         <td className="py-2.5 px-3 text-sm text-(--ws-muted)">{s.rank}</td>
                         <td className="py-2.5 px-3 text-sm text-(--ws-text) font-semibold">{s.fullName ?? s.username ?? s.email}</td>
-                        <td className="py-2.5 px-3 text-sm text-emerald-700 font-bold text-right">{s.solvedCount ?? s.solved}/{selectedContestData.problemCount}</td>
+                        <td className="py-2.5 px-3 text-sm text-(--ws-ok) font-bold text-right">{s.solvedCount ?? s.solved}/{selectedContestData.problemCount}</td>
                         <td className="py-2.5 px-3 text-sm text-(--ws-text) font-bold text-right">{s.score ?? 0}</td>
                         <td className="py-2.5 px-3 text-sm text-(--ws-muted) text-right">{s.score ? `${s.runtime ?? 0} ms` : '—'}</td>
                         <td className="py-2.5 px-3 text-sm text-(--ws-muted) text-right">{s.penalty ?? '—'}</td>
@@ -524,7 +524,7 @@ export default function InstructorContest() {
                     // Use setTimeout so the detail modal fully unmounts first
                     setTimeout(() => openEdit(snapshot), 50);
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-sm font-medium rounded-xl hover:bg-[#143022] transition-colors shadow-sm"
+                  className="flex items-center gap-2 px-4 py-2 bg-(--ws-accent) text-(--ws-on-accent) text-sm font-medium rounded-xl hover:bg-(--ws-accent-strong) transition-colors shadow-sm"
                 >
                   <Edit3 size={14} /> {t('common.edit')}
                 </button>
@@ -540,7 +540,7 @@ export default function InstructorContest() {
                 </button>
                 <button
                   onClick={() => setShowResultsModal(selectedContestData.id)}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-800 border border-blue-200 text-sm font-medium rounded-xl hover:bg-blue-100 transition-colors shadow-sm"
+                  className="flex items-center gap-2 px-4 py-2 bg-(--ws-info-soft) text-(--ws-info) border border-(--ws-info)/35 text-sm font-medium rounded-xl hover:bg-(--ws-info-soft) transition-colors shadow-sm"
                   title={t('instructorContest.resultsTooltip')}
                 >
                   <FileText size={14} /> {t('instructorContest.resultsBtn')}
@@ -548,7 +548,7 @@ export default function InstructorContest() {
                 {!selectedContestData.lockdownEnabled && (
                   <button
                     onClick={() => setShowMonitorModal(selectedContestData.id)}
-                    className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-800 border border-amber-200 text-sm font-medium rounded-xl hover:bg-amber-100 transition-colors shadow-sm"
+                    className="flex items-center gap-2 px-4 py-2 bg-(--ws-warn-soft) text-(--ws-warn) border border-(--ws-warn)/35 text-sm font-medium rounded-xl hover:bg-(--ws-warn-soft) transition-colors shadow-sm"
                     title={t('instructorContest.monitorTooltip')}
                   >
                     <ShieldAlert size={14} /> {t('instructorContest.monitorBtn')}
@@ -569,20 +569,20 @@ export default function InstructorContest() {
                 <h3 className="text-lg font-serif font-bold text-(--ws-text)">{t('instructorContest.manageProblems')}</h3>
                 <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorContest.manageProblemsModalSubtitle')}</p>
               </div>
-              <button onClick={() => setShowProblemManager(null)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={20} /></button>
+              <button aria-label={t('common.close')} onClick={() => setShowProblemManager(null)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={20} aria-hidden="true" /></button>
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)] space-y-6">
               {/* Current contest problems */}
               <div>
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <h4 className="text-sm font-bold text-(--ws-text) flex items-center gap-2">
-                    <CheckCircle2 size={16} className="text-emerald-600" />
+                    <CheckCircle2 size={16} className="text-(--ws-ok)" />
                     {t('instructorContest.currentProblemsHeading', { count: loadingContestProblems ? '...' : contestProblems.length })}
                   </h4>
                   <button
                     type="button"
                     onClick={() => setShowCompose(true)}
-                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] transition-colors"
+                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-(--ws-accent) text-(--ws-on-accent) text-xs font-semibold rounded-xl hover:bg-(--ws-accent-strong) transition-colors"
                   >
                     <Plus size={12} />
                     {t('instructorContest.composeNew')}
@@ -590,7 +590,7 @@ export default function InstructorContest() {
                 </div>
                 {loadingContestProblems ? (
                   <div className="flex items-center justify-center h-16">
-                    <div className="w-6 h-6 border-2 border-[#193a2b] border-t-transparent rounded-full animate-spin" />
+                    <div className="w-6 h-6 border-2 border-(--ws-accent) border-t-transparent rounded-full animate-spin" />
                   </div>
                 ) : contestProblems.length === 0 ? (
                   <div className="bg-(--ws-panel2) border border-(--ws-border) rounded-xl p-6 text-center text-sm text-(--ws-muted)">
@@ -607,7 +607,7 @@ export default function InstructorContest() {
                         Medium: t('instructorHomework.difficultyMediumFull'),
                         Hard: t('instructorHomework.difficultyHard'),
                       };
-                      const diffColor: Record<string, string> = { EASY: 'bg-emerald-100 text-emerald-700', MEDIUM: 'bg-yellow-100 text-yellow-700', HARD: 'bg-red-100 text-red-700', Easy: 'bg-emerald-100 text-emerald-700', Medium: 'bg-yellow-100 text-yellow-700', Hard: 'bg-red-100 text-red-700' };
+                      const diffColor: Record<string, string> = { EASY: 'bg-(--ws-ok-soft) text-(--ws-ok)', MEDIUM: 'bg-(--ws-warn-soft) text-(--ws-warn)', HARD: 'bg-(--ws-danger-soft) text-(--ws-danger)', Easy: 'bg-(--ws-ok-soft) text-(--ws-ok)', Medium: 'bg-(--ws-warn-soft) text-(--ws-warn)', Hard: 'bg-(--ws-danger-soft) text-(--ws-danger)' };
                       return (
                         <div key={cp.problem_id} className="flex items-center gap-3 px-4 py-3 bg-(--ws-panel2) border border-(--ws-border) rounded-xl">
                           <button
@@ -619,12 +619,12 @@ export default function InstructorContest() {
                             <span className="text-sm font-mono text-(--ws-muted) w-5 text-center shrink-0">{i + 1}</span>
                             <span className="flex-1 text-sm font-semibold text-(--ws-text) group-hover:underline truncate">{cp.problem.title}</span>
                           </button>
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${diffColor[cp.problem.difficulty] ?? 'bg-gray-100 text-gray-600'}`}>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${diffColor[cp.problem.difficulty] ?? 'bg-(--ws-panel2) text-(--ws-muted)'}`}>
                             {diffMap[cp.problem.difficulty] ?? cp.problem.difficulty}
                           </span>
                           <button
                             onClick={() => handleRemoveProblem(showProblemManager!, cp.problem_id)}
-                            className="shrink-0 p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            className="shrink-0 p-1.5 text-(--ws-danger) hover:bg-(--ws-danger-soft) rounded-lg transition-colors"
                             title={t('instructorContest.removeProblemTooltip')}
                           >
                             <Trash2 size={14} />
@@ -639,7 +639,7 @@ export default function InstructorContest() {
               {/* Bank problems picker */}
               <div>
                 <h4 className="text-sm font-bold text-(--ws-text) mb-3 flex items-center gap-2">
-                  <BookOpen size={16} className="text-blue-600" />
+                  <BookOpen size={16} className="text-(--ws-info)" />
                   {t('instructorContest.problemBankHeading')}
                 </h4>
                 <div className="relative mb-3">
@@ -648,7 +648,7 @@ export default function InstructorContest() {
                     value={problemSearch}
                     onChange={(e) => setProblemSearch(e.target.value)}
                     placeholder={t('instructorContest.searchProblemPlaceholder')}
-                    className="w-full pl-9 pr-4 py-2 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-sm text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                    className="w-full pl-9 pr-4 py-2 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-sm text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
                   />
                 </div>
                 {availableProblems.length === 0 ? (
@@ -663,21 +663,21 @@ export default function InstructorContest() {
                         MEDIUM: t('instructorHomework.difficultyMediumFull'),
                         HARD: t('instructorHomework.difficultyHard'),
                       };
-                      const diffColor: Record<string, string> = { EASY: 'bg-emerald-100 text-emerald-700', MEDIUM: 'bg-yellow-100 text-yellow-700', HARD: 'bg-red-100 text-red-700' };
+                      const diffColor: Record<string, string> = { EASY: 'bg-(--ws-ok-soft) text-(--ws-ok)', MEDIUM: 'bg-(--ws-warn-soft) text-(--ws-warn)', HARD: 'bg-(--ws-danger-soft) text-(--ws-danger)' };
                       const isAdding = addingProblemId === p.id;
                       return (
                         <div key={p.id} className="flex items-center gap-3 px-4 py-3 bg-(--ws-panel2) border border-(--ws-border) rounded-xl hover:bg-(--ws-hover) transition-colors">
                           <p className="flex-1 text-sm font-semibold text-(--ws-text) truncate">{p.title}</p>
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold shrink-0 ${diffColor[p.difficulty] ?? 'bg-gray-100 text-gray-600'}`}>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold shrink-0 ${diffColor[p.difficulty] ?? 'bg-(--ws-panel2) text-(--ws-muted)'}`}>
                             {diffMap[p.difficulty] ?? p.difficulty}
                           </span>
                           <button
                             onClick={() => handleAddProblem(showProblemManager!, p.id)}
                             disabled={isAdding}
-                            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-[#193a2b] text-white text-xs font-semibold rounded-xl hover:bg-[#143022] disabled:opacity-60 transition-colors"
+                            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-(--ws-accent) text-(--ws-on-accent) text-xs font-semibold rounded-xl hover:bg-(--ws-accent-strong) disabled:opacity-60 transition-colors"
                           >
                             {isAdding ? (
-                              <span className="w-3.5 h-3.5 border border-white border-t-transparent rounded-full animate-spin" />
+                              <span className="w-3.5 h-3.5 border border-(--ws-panel) border-t-transparent rounded-full animate-spin" />
                             ) : (
                               <Plus size={12} />
                             )}
@@ -714,46 +714,46 @@ export default function InstructorContest() {
               <h3 className="text-lg font-serif font-bold text-(--ws-text)">
                 {editingContest ? t('instructorContest.editContestModalTitle') : t('instructorContest.createContestModalTitle')}
               </h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-(--ws-muted) hover:text-(--ws-text)">
-                <X size={20} />
+              <button aria-label={t('common.close')} onClick={() => setShowCreateModal(false)} className="text-(--ws-muted) hover:text-(--ws-text)">
+                <X size={20} aria-hidden="true" />
               </button>
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)] space-y-4">
               <div>
-                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorContest.fieldName')} <span className="text-red-500">*</span></label>
-                <input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} type="text" className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]" placeholder={t('instructorContest.fieldNamePlaceholder')} />
+                <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorContest.fieldName')} <span className="text-(--ws-danger)">*</span></label>
+                <input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} type="text" className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)" placeholder={t('instructorContest.fieldNamePlaceholder')} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorClass.fieldDescription')}</label>
-                <textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} rows={3} className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b] resize-none" placeholder={t('instructorContest.fieldDescPlaceholder')} />
+                <textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} rows={3} className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent) resize-none" placeholder={t('instructorContest.fieldDescPlaceholder')} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorContest.fieldStartAt')} <span className="text-red-500">*</span></label>
-                  <input value={form.startTime} onChange={(event) => setForm({ ...form, startTime: event.target.value })} type="datetime-local" className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
+                  <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorContest.fieldStartAt')} <span className="text-(--ws-danger)">*</span></label>
+                  <input value={form.startTime} onChange={(event) => setForm({ ...form, startTime: event.target.value })} type="datetime-local" className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorContest.fieldEndAt')} <span className="text-red-500">*</span></label>
-                  <input value={form.endTime} onChange={(event) => setForm({ ...form, endTime: event.target.value })} type="datetime-local" className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b]" />
+                  <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorContest.fieldEndAt')} <span className="text-(--ws-danger)">*</span></label>
+                  <input value={form.endTime} onChange={(event) => setForm({ ...form, endTime: event.target.value })} type="datetime-local" className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">{t('instructorContest.fieldVisibility')}</label>
-                  <select value={form.visibility} onChange={(event) => setForm({ ...form, visibility: event.target.value as ContestForm['visibility'], classId: event.target.value === 'public' ? '' : form.classId })} className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b]">
+                  <select value={form.visibility} onChange={(event) => setForm({ ...form, visibility: event.target.value as ContestForm['visibility'], classId: event.target.value === 'public' ? '' : form.classId })} className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)">
                     <option value="public">{t('instructorContest.visibilityPublicOption')}</option>
                     <option value="private">{t('instructorContest.visibilityPrivateOption')}</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-(--ws-muted) mb-1.5">
-                    {t('instructorContest.fieldClassLabel')} {form.visibility === 'private' && <span className="text-red-500">*</span>}
+                    {t('instructorContest.fieldClassLabel')} {form.visibility === 'private' && <span className="text-(--ws-danger)">*</span>}
                   </label>
                   <select
                     value={form.classId}
                     onChange={(event) => setForm({ ...form, classId: event.target.value })}
                     disabled={form.visibility !== 'private'}
-                    className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b] disabled:opacity-50"
+                    className="w-full px-4 py-2.5 bg-(--ws-editor) border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-(--ws-accent) disabled:opacity-50"
                   >
                     <option value="">{t('instructorContest.selectClassPlaceholderOption')}</option>
                     {classes.map((classItem) => <option key={classItem.id} value={classItem.id}>{classItem.subject ? `${classItem.subject} - ${classItem.name}` : classItem.name}</option>)}
@@ -761,7 +761,7 @@ export default function InstructorContest() {
                 </div>
               </div>
               {form.visibility === 'private' && !form.classId && (
-                <p className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 px-3 py-2 rounded-xl">
+                <p className="text-xs text-(--ws-warn) bg-(--ws-warn-soft) border border-(--ws-warn)/35 px-3 py-2 rounded-xl">
                   {t('instructorContest.privateClassWarning')}
                 </p>
               )}
@@ -770,13 +770,13 @@ export default function InstructorContest() {
               <div className="rounded-xl border border-(--ws-border) bg-(--ws-panel2) p-4 space-y-3">
                 <label className="block text-sm font-medium text-(--ws-muted)">{t('instructorContest.fieldExamMode')}</label>
 
-                <label className={`flex items-start gap-3 cursor-pointer rounded-xl border p-3 ${!form.lockdownEnabled ? 'border-[#193a2b] bg-(--ws-hover)' : 'border-(--ws-border)'}`}>
+                <label className={`flex items-start gap-3 cursor-pointer rounded-xl border p-3 ${!form.lockdownEnabled ? 'border-(--ws-accent) bg-(--ws-hover)' : 'border-(--ws-border)'}`}>
                   <input
                     type="radio"
                     name="examMode"
                     checked={!form.lockdownEnabled}
                     onChange={() => setForm({ ...form, lockdownEnabled: false })}
-                    className="mt-0.5 w-4 h-4 accent-[#193a2b]"
+                    className="mt-0.5 w-4 h-4 accent-(--ws-accent)"
                   />
                   <span className="flex-1">
                     <span className="block text-sm font-semibold text-(--ws-text)">{t('instructorContest.modeMonitor')}</span>
@@ -799,7 +799,7 @@ export default function InstructorContest() {
                           step={1}
                           value={form.maxCheatWarnings}
                           onChange={(event) => setForm({ ...form, maxCheatWarnings: event.target.value })}
-                          className="w-16 px-2 py-1.5 text-center bg-(--ws-editor) border border-(--ws-border) rounded-lg text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                          className="w-16 px-2 py-1.5 text-center bg-(--ws-editor) border border-(--ws-border) rounded-lg text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
                         />
                         <button
                           type="button"
@@ -815,13 +815,13 @@ export default function InstructorContest() {
                   </span>
                 </label>
 
-                <label className={`flex items-start gap-3 cursor-pointer rounded-xl border p-3 ${form.lockdownEnabled ? 'border-[#193a2b] bg-(--ws-hover)' : 'border-(--ws-border)'}`}>
+                <label className={`flex items-start gap-3 cursor-pointer rounded-xl border p-3 ${form.lockdownEnabled ? 'border-(--ws-accent) bg-(--ws-hover)' : 'border-(--ws-border)'}`}>
                   <input
                     type="radio"
                     name="examMode"
                     checked={form.lockdownEnabled}
                     onChange={() => setForm({ ...form, lockdownEnabled: true, lockdownCode: form.lockdownCode || generateLockdownCode() })}
-                    className="mt-0.5 w-4 h-4 accent-[#193a2b]"
+                    className="mt-0.5 w-4 h-4 accent-(--ws-accent)"
                   />
                   <span className="flex-1">
                     <span className="block text-sm font-semibold text-(--ws-text)">{t('instructorContest.modeLockdown')}</span>
@@ -850,9 +850,9 @@ export default function InstructorContest() {
                 <button
                   onClick={saveContest}
                   disabled={isSaving}
-                  className="flex-1 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] transition-colors shadow-md disabled:opacity-60 flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 bg-(--ws-accent) text-(--ws-on-accent) font-medium rounded-xl hover:bg-(--ws-accent-strong) transition-colors shadow-md disabled:opacity-60 flex items-center justify-center gap-2"
                 >
-                  {isSaving && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                  {isSaving && <span className="w-4 h-4 border-2 border-(--ws-panel) border-t-transparent rounded-full animate-spin" />}
                   {editingContest ? t('instructorHomework.saveChanges') : t('instructorContest.createSubmitBtn')}
                 </button>
                 <button
@@ -869,36 +869,36 @@ export default function InstructorContest() {
 
       {/* ── Contest List ─────────────────────────────────────────────────── */}
       {filteredContests.length === 0 ? (
-        <div className="bg-white border border-[#e5dac9] rounded-2xl p-14 text-center shadow-sm">
-          <Trophy size={48} className="text-[#bfae99] mx-auto mb-4" />
-          <p className="text-[#8a8073]">{t('instructorContest.noContestsFound')}</p>
+        <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-14 text-center shadow-sm">
+          <Trophy size={48} className="text-(--ws-faint) mx-auto mb-4" />
+          <p className="text-(--ws-muted)">{t('instructorContest.noContestsFound')}</p>
         </div>
       ) : (
         <div className="space-y-4">
           {filteredContests.map((contest) => (
             <div
               key={contest.id}
-              className="bg-white border border-[#e5dac9] rounded-xl p-6 hover:shadow-md transition-all shadow-sm"
+              className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-6 hover:shadow-md transition-all shadow-sm"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    contest.status === 'running' ? 'bg-emerald-100' : contest.status === 'upcoming' ? 'bg-yellow-100' : 'bg-[#f0ebd9]'
+                    contest.status === 'running' ? 'bg-(--ws-ok-soft)' : contest.status === 'upcoming' ? 'bg-(--ws-warn-soft)' : 'bg-(--ws-panel2)'
                   }`}>
                     <Trophy size={20} className={
-                      contest.status === 'running' ? 'text-emerald-700' : contest.status === 'upcoming' ? 'text-yellow-700' : 'text-[#8a8073]'
+                      contest.status === 'running' ? 'text-(--ws-ok)' : contest.status === 'upcoming' ? 'text-(--ws-warn)' : 'text-(--ws-muted)'
                     } />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold font-serif text-[#191919]">{contest.title}{contest.visibility === 'private' && contest.classLabel && (<span className="ml-2 align-middle text-xs font-semibold text-[#5c5446] bg-[#f0ebd9] border border-[#e5dac9] rounded-full px-2.5 py-0.5">{contest.classLabel}</span>)}</h3>
-                    <div className="flex items-center gap-3 text-sm text-[#8a8073] mt-1 flex-wrap">
+                    <h3 className="text-lg font-bold font-serif text-(--ws-text)">{contest.title}{contest.visibility === 'private' && contest.classLabel && (<span className="ml-2 align-middle text-xs font-semibold text-(--ws-text) bg-(--ws-panel2) border border-(--ws-border) rounded-full px-2.5 py-0.5">{contest.classLabel}</span>)}</h3>
+                    <div className="flex items-center gap-3 text-sm text-(--ws-muted) mt-1 flex-wrap">
                       {/* Visibility badge */}
                       {contest.visibility === 'private' ? (
-                        <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase bg-purple-50 text-purple-700 border-purple-200">
+                        <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase bg-(--ws-info-soft) text-(--ws-info) border-(--ws-info)/35">
                           <Lock size={9} /> {t('instructorContest.visibilityPrivate')}
                         </span>
                       ) : (
-                        <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase bg-sky-50 text-sky-700 border-sky-200">
+                        <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase bg-(--ws-info-soft) text-(--ws-info) border-(--ws-info)/35">
                           <Globe size={9} /> {t('instructorContest.visibilityPublic')}
                         </span>
                       )}
@@ -915,21 +915,21 @@ export default function InstructorContest() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => setSelectedContest(contest.id)}
-                      className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-[#191919] hover:bg-[#f7f4eb] transition-colors"
+                      className="p-2 bg-(--ws-panel) border border-(--ws-border) rounded-lg text-(--ws-text) hover:text-(--ws-text) hover:bg-(--ws-hover) transition-colors"
                       title={t('instructorContest.viewDetail')}
                     >
                       <Eye size={16} />
                     </button>
                     <button
                       onClick={() => openEdit(contest)}
-                      className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-blue-600 hover:bg-[#f7f4eb] transition-colors"
+                      className="p-2 bg-(--ws-panel) border border-(--ws-border) rounded-lg text-(--ws-text) hover:text-(--ws-info) hover:bg-(--ws-hover) transition-colors"
                       title={t('common.edit')}
                     >
                       <Edit3 size={16} />
                     </button>
                     <button
                       onClick={() => openProblemManager(contest.id)}
-                      className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-emerald-600 hover:bg-[#f7f4eb] transition-colors"
+                      className="p-2 bg-(--ws-panel) border border-(--ws-border) rounded-lg text-(--ws-text) hover:text-(--ws-ok) hover:bg-(--ws-hover) transition-colors"
                       title={t('instructorContest.manageProblems')}
                     >
                       <BookOpen size={16} />
@@ -937,7 +937,7 @@ export default function InstructorContest() {
                     {!contest.lockdownEnabled && (
                       <button
                         onClick={() => setShowMonitorModal(contest.id)}
-                        className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-amber-600 hover:bg-[#f7f4eb] transition-colors"
+                        className="p-2 bg-(--ws-panel) border border-(--ws-border) rounded-lg text-(--ws-text) hover:text-(--ws-warn) hover:bg-(--ws-hover) transition-colors"
                         title={t('instructorContest.monitorBtn')}
                       >
                         <ShieldAlert size={16} />
@@ -945,7 +945,7 @@ export default function InstructorContest() {
                     )}
                     <button
                       onClick={() => removeContest(contest.id)}
-                      className="p-2 bg-white border border-[#e5dac9] rounded-lg text-[#5c5446] hover:text-red-600 hover:bg-[#f7f4eb] transition-colors"
+                      className="p-2 bg-(--ws-panel) border border-(--ws-border) rounded-lg text-(--ws-text) hover:text-(--ws-danger) hover:bg-(--ws-hover) transition-colors"
                       title={t('common.delete')}
                     >
                       <Trash2 size={16} />
@@ -965,7 +965,7 @@ export default function InstructorContest() {
             <div className="flex items-center justify-between gap-3 p-6 border-b border-(--ws-border)">
               <div className="min-w-0">
                 <h3 className="text-lg font-serif font-bold text-(--ws-text) flex items-center gap-2">
-                  <FileText size={20} className="text-blue-600" /> {t('instructorContest.resultsModalTitle')}
+                  <FileText size={20} className="text-(--ws-info)" /> {t('instructorContest.resultsModalTitle')}
                 </h3>
                 {resultsData && (
                   <p className="text-xs text-(--ws-muted) mt-0.5 truncate">
@@ -977,19 +977,19 @@ export default function InstructorContest() {
                 <button
                   onClick={exportResultsCsv}
                   disabled={!resultsData || resultsData.results.length === 0}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#193a2b] text-white text-sm font-medium rounded-xl hover:bg-[#143022] transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2 bg-(--ws-accent) text-(--ws-on-accent) text-sm font-medium rounded-xl hover:bg-(--ws-accent-strong) transition-colors disabled:opacity-50"
                 >
                   <Download size={14} /> {t('instructorContest.exportCsv')}
                 </button>
-                <button onClick={() => setShowResultsModal(null)} className="text-(--ws-muted) hover:text-(--ws-text)">
-                  <X size={20} />
+                <button aria-label={t('common.close')} onClick={() => setShowResultsModal(null)} className="text-(--ws-muted) hover:text-(--ws-text)">
+                  <X size={20} aria-hidden="true" />
                 </button>
               </div>
             </div>
             <div className="p-6 overflow-auto">
               {loadingResults ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 size={28} className="animate-spin text-[#193a2b]" />
+                  <Loader2 size={28} className="animate-spin text-(--ws-accent)" />
                 </div>
               ) : !resultsData || resultsData.results.length === 0 ? (
                 <div className="bg-(--ws-panel2) border border-(--ws-border) rounded-xl p-8 text-center text-sm text-(--ws-muted)">
@@ -1039,7 +1039,7 @@ export default function InstructorContest() {
                             <td className="py-2.5 px-3 text-sm text-(--ws-text) font-bold text-right">{r.score}/{resultsData.problems.length * 100}</td>
                             <td className="py-2.5 px-3 text-xs">
                               {note ? (
-                                <span className={r.is_disqualified ? 'text-red-700 font-semibold' : 'text-amber-700'}>{note}</span>
+                                <span className={r.is_disqualified ? 'text-(--ws-danger) font-semibold' : 'text-(--ws-warn)'}>{note}</span>
                               ) : null}
                             </td>
                           </tr>

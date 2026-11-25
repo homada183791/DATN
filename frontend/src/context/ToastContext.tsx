@@ -52,18 +52,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={toast.id}
             className={`min-w-[280px] max-w-[420px] rounded-2xl border px-4 py-3.5 shadow-xl backdrop-blur-md text-sm font-medium animate-fade-in flex items-start gap-3 pointer-events-auto transition-all ${
               toast.type === 'success'
-                ? 'bg-emerald-50/95 text-emerald-900 border-emerald-300 shadow-emerald-950/10'
+                ? 'bg-(--ws-ok-soft)/95 text-(--ws-ok) border-(--ws-ok)/35 shadow-emerald-950/10'
                 : toast.type === 'info'
-                ? 'bg-blue-50/95 text-blue-900 border-blue-300 shadow-blue-950/10'
-                : 'bg-rose-50/95 text-rose-900 border-rose-300 shadow-rose-950/10'
+                ? 'bg-(--ws-info-soft)/95 text-(--ws-info) border-(--ws-info)/35 shadow-blue-950/10'
+                : 'bg-(--ws-danger-soft)/95 text-(--ws-danger) border-(--ws-danger)/35 shadow-rose-950/10'
             }`}
           >
             {toast.type === 'success' ? (
-              <CheckCircle2 size={18} className="text-emerald-600 flex-shrink-0 mt-0.5" />
+              <CheckCircle2 size={18} className="text-(--ws-ok) flex-shrink-0 mt-0.5" />
             ) : toast.type === 'info' ? (
-              <AlertCircle size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle size={18} className="text-(--ws-info) flex-shrink-0 mt-0.5" />
             ) : (
-              <XCircle size={18} className="text-rose-600 flex-shrink-0 mt-0.5" />
+              <XCircle size={18} className="text-(--ws-danger) flex-shrink-0 mt-0.5" />
             )}
             <div className="flex-1 min-w-0 leading-snug whitespace-pre-wrap">{toast.message}</div>
           </div>

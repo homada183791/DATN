@@ -12,6 +12,7 @@ import {
   Send,
   AlertTriangle,
   MessageSquare,
+  Star,
 } from 'lucide-react';
 import { formatLanguageName } from '../../config/languages';
 
@@ -44,14 +45,14 @@ const verdictByStatus: Record<string, string> = {
 };
 
 const verdictColors: Record<string, string> = {
-  AC: 'text-emerald-700 bg-emerald-100 border-emerald-300',
-  WA: 'text-red-700 bg-red-100 border-red-300',
-  TLE: 'text-amber-700 bg-amber-100 border-amber-300',
-  MLE: 'text-amber-700 bg-amber-100 border-amber-300',
-  RTE: 'text-orange-700 bg-orange-100 border-orange-300',
-  CE: 'text-blue-700 bg-blue-100 border-blue-300',
-  PENDING: 'text-slate-700 bg-slate-100 border-slate-300',
-  IN_QUEUE: 'text-slate-700 bg-slate-100 border-slate-300',
+  AC: 'text-(--ws-ok) bg-(--ws-ok-soft) border-(--ws-ok)/35',
+  WA: 'text-(--ws-danger) bg-(--ws-danger-soft) border-(--ws-danger)/35',
+  TLE: 'text-(--ws-warn) bg-(--ws-warn-soft) border-(--ws-warn)/35',
+  MLE: 'text-(--ws-warn) bg-(--ws-warn-soft) border-(--ws-warn)/35',
+  RTE: 'text-(--ws-warn) bg-(--ws-warn-soft) border-(--ws-warn)/35',
+  CE: 'text-(--ws-info) bg-(--ws-info-soft) border-(--ws-info)/35',
+  PENDING: 'text-(--ws-text) bg-(--ws-panel2) border-(--ws-border)',
+  IN_QUEUE: 'text-(--ws-text) bg-(--ws-panel2) border-(--ws-border)',
 };
 
 export default function Submission() {
@@ -98,35 +99,35 @@ export default function Submission() {
   const handleOpenDetail = (sub: SubmissionRow) => setSelectedSubmission(sub.id);
 
   if (isLoading) {
-    return <div className="p-10 text-center text-sm text-[#8a8073]">{t('submission.loading')}</div>;
+    return <div className="p-10 text-center text-sm text-(--ws-muted)">{t('submission.loading')}</div>;
   }
 
   if (error instanceof ApiError) {
     return (
-      <div className="rounded-2xl border border-[#e5dac9] bg-white p-10 text-center shadow-sm">
-        <AlertTriangle size={40} className="text-[#bfae99] mx-auto mb-3" />
-        <h2 className="text-xl font-bold text-[#191919]">{t('submission.loadError')}</h2>
-        <p className="mt-2 text-sm text-[#8a8073]">{error.message}</p>
+      <div className="rounded-2xl border border-(--ws-border) bg-(--ws-panel) p-10 text-center shadow-sm">
+        <AlertTriangle size={40} className="text-(--ws-faint) mx-auto mb-3" />
+        <h2 className="text-xl font-bold text-(--ws-text)">{t('submission.loadError')}</h2>
+        <p className="mt-2 text-sm text-(--ws-muted)">{error.message}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 text-[#191919]">
+    <div className="space-y-6 text-(--ws-text)">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold font-serif text-[#191919]">
+          <h2 className="text-2xl font-bold font-serif text-(--ws-text)">
             {isInstructor
               ? t('submission.instructorTitle', 'Quản lý bài nộp & Chấm điểm')
               : t('submission.studentTitle', 'Lịch sử nộp bài')}
           </h2>
-          <p className="text-xs text-[#8a8073] mt-0.5">
+          <p className="text-xs text-(--ws-muted) mt-0.5">
             {isInstructor
               ? t('submission.instructorSubtitle', 'Theo dõi, chấm điểm thủ công và chấm lại các bài nộp của học viên')
               : t('submission.studentSubtitle', 'Theo dõi kết quả chấm tự động và nhận xét từ giảng viên')}
           </p>
         </div>
-        <span className="text-sm font-semibold text-[#8a8073] bg-[#f7f4eb] border border-[#e5dac9] px-3 py-1 rounded-full">
+        <span className="text-sm font-semibold text-(--ws-muted) bg-(--ws-panel2) border border-(--ws-border) px-3 py-1 rounded-full">
           {t('submission.resultCount', { count: filteredSubmissions.length })}
         </span>
       </div>
@@ -134,21 +135,21 @@ export default function Submission() {
       {/* Search & Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a8073]" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-(--ws-muted)" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('submission.searchPlaceholder')}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+            className="w-full pl-10 pr-4 py-2.5 bg-(--ws-panel) border border-(--ws-border) rounded-xl text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
           />
         </div>
         <button
           onClick={() => setShowFilters(!showFilters)}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all border ${
             showFilters
-              ? 'bg-[#193a2b]/10 border-[#193a2b]/30 text-[#193a2b]'
-              : 'bg-white border-[#e5dac9] text-[#5c5446] hover:text-[#191919]'
+              ? 'bg-(--ws-accent)/10 border-(--ws-accent)/30 text-(--ws-accent)'
+              : 'bg-(--ws-panel) border-(--ws-border) text-(--ws-text) hover:text-(--ws-text)'
           }`}
         >
           <Filter size={16} /> {t('instructorStudent.filterButton', 'Bộ lọc')}{' '}
@@ -157,15 +158,15 @@ export default function Submission() {
       </div>
 
       {showFilters && (
-        <div className="flex flex-wrap gap-4 p-4 bg-white border border-[#e5dac9] rounded-xl shadow-sm">
+        <div className="flex flex-wrap gap-4 p-4 bg-(--ws-panel) border border-(--ws-border) rounded-xl shadow-sm">
           <div>
-            <label className="block text-xs text-[#8a8073] mb-1.5 font-semibold uppercase tracking-wider">
+            <label className="block text-xs text-(--ws-muted) mb-1.5 font-semibold uppercase tracking-wider">
               {t('submission.colVerdict', 'Kết quả')}
             </label>
             <select
               value={verdictFilter}
               onChange={(e) => setVerdictFilter(e.target.value)}
-              className="px-3 py-1.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-lg text-sm text-[#191919] focus:outline-none focus:ring-1 focus:ring-[#193a2b]"
+              className="px-3 py-1.5 bg-(--ws-panel2) border border-(--ws-border) rounded-lg text-sm text-(--ws-text) focus:outline-none focus:ring-1 focus:ring-(--ws-accent)"
             >
               <option value="all">{t('instructorContest.filterAll', 'Tất cả')}</option>
               <option value="AC">Accepted (AC)</option>
@@ -178,13 +179,13 @@ export default function Submission() {
             </select>
           </div>
           <div>
-            <label className="block text-xs text-[#8a8073] mb-1.5 font-semibold uppercase tracking-wider">
+            <label className="block text-xs text-(--ws-muted) mb-1.5 font-semibold uppercase tracking-wider">
               {t('submission.colLanguage', 'Ngôn ngữ')}
             </label>
             <select
               value={languageFilter}
               onChange={(e) => setLanguageFilter(e.target.value)}
-              className="px-3 py-1.5 bg-[#f7f4eb] border border-[#e5dac9] rounded-lg text-sm text-[#191919] focus:outline-none focus:ring-1 focus:ring-[#193a2b]"
+              className="px-3 py-1.5 bg-(--ws-panel2) border border-(--ws-border) rounded-lg text-sm text-(--ws-text) focus:outline-none focus:ring-1 focus:ring-(--ws-accent)"
             >
               <option value="all">{t('instructorContest.filterAll', 'Tất cả')}</option>
               {languages.map((l) => (
@@ -203,38 +204,38 @@ export default function Submission() {
       )}
 
       {/* Submissions Table */}
-      <div className="bg-white border border-[#e5dac9] rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#e5dac9] bg-[#f0ebd9]/50">
-                <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">
+              <tr className="border-b border-(--ws-border) bg-(--ws-panel2)/50">
+                <th className="text-left text-xs font-semibold text-(--ws-text) py-3.5 px-4 uppercase tracking-wider">
                   ID
                 </th>
-                <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">
+                <th className="text-left text-xs font-semibold text-(--ws-text) py-3.5 px-4 uppercase tracking-wider">
                   {t('submission.colProblem', 'Bài tập')}
                 </th>
                 {isInstructor && (
-                  <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">
+                  <th className="text-left text-xs font-semibold text-(--ws-text) py-3.5 px-4 uppercase tracking-wider">
                     {t('submission.colSubmitter', 'Người nộp')}
                   </th>
                 )}
-                <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">
+                <th className="text-left text-xs font-semibold text-(--ws-text) py-3.5 px-4 uppercase tracking-wider">
                   {t('submission.colVerdict', 'Kết quả')}
                 </th>
-                <th className="text-center text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">
+                <th className="text-center text-xs font-semibold text-(--ws-text) py-3.5 px-4 uppercase tracking-wider">
                   {t('submission.instructorScoreColLabel')}
                 </th>
-                <th className="text-left text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">
+                <th className="text-left text-xs font-semibold text-(--ws-text) py-3.5 px-4 uppercase tracking-wider">
                   {t('submission.colLanguage', 'Ngôn ngữ')}
                 </th>
-                <th className="text-right text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">
+                <th className="text-right text-xs font-semibold text-(--ws-text) py-3.5 px-4 uppercase tracking-wider">
                   {t('submission.colTime', 'Thời gian')}
                 </th>
-                <th className="text-right text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">
+                <th className="text-right text-xs font-semibold text-(--ws-text) py-3.5 px-4 uppercase tracking-wider">
                   {t('submission.colMemory', 'Bộ nhớ')}
                 </th>
-                <th className="text-right text-xs font-semibold text-[#5c5446] py-3.5 px-4 uppercase tracking-wider">
+                <th className="text-right text-xs font-semibold text-(--ws-text) py-3.5 px-4 uppercase tracking-wider">
                   {t('submission.colSubmittedAt', 'Thời điểm')}
                 </th>
               </tr>
@@ -243,20 +244,20 @@ export default function Submission() {
               {filteredSubmissions.map((sub) => (
                 <tr
                   key={sub.id}
-                  className="border-b border-[#e5dac9]/50 hover:bg-[#f7f4eb]/60 cursor-pointer transition-colors"
+                  className="border-b border-(--ws-border)/50 hover:bg-(--ws-hover)/60 cursor-pointer transition-colors"
                   onClick={() => handleOpenDetail(sub)}
                 >
-                  <td className="py-3 px-4 text-sm text-[#8a8073] font-mono" title={sub.id}>
+                  <td className="py-3 px-4 text-sm text-(--ws-muted) font-mono" title={sub.id}>
                     #{sub.id.slice(0, 8)}
                   </td>
-                  <td className="py-3 px-4 text-sm text-[#191919] font-semibold">{sub.problemTitle}</td>
+                  <td className="py-3 px-4 text-sm text-(--ws-text) font-semibold">{sub.problemTitle}</td>
                   {isInstructor && (
-                    <td className="py-3 px-4 text-sm text-[#5c5446]">@{sub.username}</td>
+                    <td className="py-3 px-4 text-sm text-(--ws-text)">@{sub.username}</td>
                   )}
                   <td className="py-3 px-4">
                     <span
                       className={`text-xs px-2.5 py-1 rounded-full font-bold border ${
-                        verdictColors[sub.verdict] ?? 'text-gray-700 bg-gray-100 border-gray-300'
+                        verdictColors[sub.verdict] ?? 'text-(--ws-text) bg-(--ws-panel2) border-(--ws-border)'
                       }`}
                     >
                       {sub.verdict}
@@ -264,22 +265,22 @@ export default function Submission() {
                   </td>
                   <td className="py-3 px-4 text-center">
                     {sub.instructorScore != null ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-900 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full">
-                        ⭐ {sub.instructorScore}/10
-                        {sub.instructorFeedback && <MessageSquare size={11} className="text-amber-700" />}
+                      <span className="inline-flex items-center gap-1 text-xs font-bold text-(--ws-warn) bg-(--ws-warn-soft) border border-(--ws-warn)/35 px-2 py-0.5 rounded-full">
+                        <Star size={11} className="inline-block align-[-2px] fill-current" aria-hidden="true" /> {sub.instructorScore}/10
+                        {sub.instructorFeedback && <MessageSquare size={11} className="text-(--ws-warn)" />}
                       </span>
                     ) : (
-                      <span className="text-xs text-[#8a8073]">—</span>
+                      <span className="text-xs text-(--ws-muted)">—</span>
                     )}
                   </td>
-                  <td className="py-3 px-4 text-sm text-[#5c5446]">{formatLanguageName(sub.language)}</td>
-                  <td className="py-3 px-4 text-sm text-[#5c5446] text-right">
+                  <td className="py-3 px-4 text-sm text-(--ws-text)">{formatLanguageName(sub.language)}</td>
+                  <td className="py-3 px-4 text-sm text-(--ws-text) text-right">
                     {sub.executionTime != null ? `${sub.executionTime}ms` : '—'}
                   </td>
-                  <td className="py-3 px-4 text-sm text-[#5c5446] text-right">
+                  <td className="py-3 px-4 text-sm text-(--ws-text) text-right">
                     {sub.memory != null ? `${sub.memory}MB` : '—'}
                   </td>
-                  <td className="py-3 px-4 text-sm text-[#8a8073] text-right">
+                  <td className="py-3 px-4 text-sm text-(--ws-muted) text-right">
                     {formatVNFull(sub.timestamp)}
                   </td>
                 </tr>
@@ -289,8 +290,8 @@ export default function Submission() {
         </div>
         {filteredSubmissions.length === 0 && (
           <div className="p-12 text-center">
-            <Send size={48} className="text-[#bfae99] mx-auto mb-4" />
-            <p className="text-[#8a8073]">{t('submission.emptyState')}</p>
+            <Send size={48} className="text-(--ws-faint) mx-auto mb-4" />
+            <p className="text-(--ws-muted)">{t('submission.emptyState')}</p>
           </div>
         )}
       </div>

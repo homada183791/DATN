@@ -18,10 +18,10 @@ function deadlineInfo(deadline: string, t: (key: string, options?: Record<string
   const end = new Date(deadline).getTime();
   const diff = end - now;
   const days = Math.ceil(diff / 86_400_000);
-  if (diff < 0) return { label: t('studentContest.closed'), chipClass: 'bg-[#f0ebd9] text-[#8a8073] border-[#e5dac9]', closed: true, daysLeft: -1 };
-  if (days <= 1) return { label: ((w) => t(w.key, { count: w.count }))(timeLeftWithinDay(diff)), chipClass: 'bg-red-50 text-red-700 border-red-200', closed: false, daysLeft: days };
-  if (days <= 3) return { label: t('studentContest.dueDays', { count: days }), chipClass: 'bg-yellow-50 text-yellow-700 border-yellow-200', closed: false, daysLeft: days };
-  return { label: t('studentContest.dueDays', { count: days }), chipClass: 'bg-emerald-50 text-emerald-700 border-emerald-200', closed: false, daysLeft: days };
+  if (diff < 0) return { label: t('studentContest.closed'), chipClass: 'bg-(--ws-panel2) text-(--ws-muted) border-(--ws-border)', closed: true, daysLeft: -1 };
+  if (days <= 1) return { label: ((w) => t(w.key, { count: w.count }))(timeLeftWithinDay(diff)), chipClass: 'bg-(--ws-danger-soft) text-(--ws-danger) border-(--ws-danger)/35', closed: false, daysLeft: days };
+  if (days <= 3) return { label: t('studentContest.dueDays', { count: days }), chipClass: 'bg-(--ws-warn-soft) text-(--ws-warn) border-(--ws-warn)/35', closed: false, daysLeft: days };
+  return { label: t('studentContest.dueDays', { count: days }), chipClass: 'bg-(--ws-ok-soft) text-(--ws-ok) border-(--ws-ok)/35', closed: false, daysLeft: days };
 }
 
 type SortKey = 'deadline_asc' | 'deadline_desc' | 'name_az' | 'name_za';
@@ -85,21 +85,21 @@ export default function HomeworkList() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-[#193a2b] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-(--ws-accent) border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 text-[#191919]">
+    <div className="space-y-6 text-(--ws-text)">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold font-serif text-[#191919]">{t('studentContest.allHomeworksTitle')}</h2>
-          <p className="text-sm text-[#8a8073] mt-1">
+          <h2 className="text-2xl font-bold font-serif text-(--ws-text)">{t('studentContest.allHomeworksTitle')}</h2>
+          <p className="text-sm text-(--ws-muted) mt-1">
             {t('studentContest.homeworksFromClasses', { count: enrolledClasses.length })}
             {openCount > 0 && (
-              <span className="ml-2 text-emerald-700 font-medium">• {t('studentContest.homeworksOpen', { count: openCount })}</span>
+              <span className="ml-2 text-(--ws-ok) font-medium">• {t('studentContest.homeworksOpen', { count: openCount })}</span>
             )}
           </p>
         </div>
@@ -112,10 +112,10 @@ export default function HomeworkList() {
           { label: t('studentContest.open'), value: openCount, icon: <Clock size={18} /> },
           { label: t('studentContest.classLabel'), value: enrolledClasses.length, icon: <GraduationCap size={18} /> },
         ].map((s) => (
-          <div key={s.label} className="bg-white border border-[#e5dac9] rounded-xl p-4 text-center shadow-sm">
-            <div className="text-[#193a2b] flex justify-center mb-2">{s.icon}</div>
+          <div key={s.label} className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-4 text-center shadow-sm">
+            <div className="text-(--ws-accent) flex justify-center mb-2">{s.icon}</div>
             <p className="text-2xl font-bold font-serif">{s.value}</p>
-            <p className="text-xs text-[#8a8073] mt-0.5">{s.label}</p>
+            <p className="text-xs text-(--ws-muted) mt-0.5">{s.label}</p>
           </div>
         ))}
       </div>
@@ -124,12 +124,12 @@ export default function HomeworkList() {
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Search */}
         <div className="relative flex-1">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a8073]" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-(--ws-muted)" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t('studentContest.searchHomework')}
-            className="w-full pl-9 pr-4 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-sm text-[#191919] placeholder-[#bfae99] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+            className="w-full pl-9 pr-4 py-2.5 bg-(--ws-panel) border border-(--ws-border) rounded-xl text-sm text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
           />
         </div>
 
@@ -138,7 +138,7 @@ export default function HomeworkList() {
           <select
             value={classFilter}
             onChange={(e) => setClassFilter(e.target.value)}
-            className="px-3 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-sm text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+            className="px-3 py-2.5 bg-(--ws-panel) border border-(--ws-border) rounded-xl text-sm text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
           >
             <option value="all">{t('calendar.allClasses')}</option>
             {enrolledClasses.map((c) => (
@@ -148,13 +148,13 @@ export default function HomeworkList() {
         )}
 
         {/* Status */}
-        <div className="flex gap-1 bg-white border border-[#e5dac9] rounded-xl p-1">
+        <div className="flex gap-1 bg-(--ws-panel) border border-(--ws-border) rounded-xl p-1">
           {(['all', 'open', 'closed'] as StatusFilter[]).map((s) => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                statusFilter === s ? 'bg-[#193a2b] text-white' : 'text-[#5c5446] hover:bg-[#f0ebd9]'
+                statusFilter === s ? 'bg-(--ws-accent) text-(--ws-on-accent)' : 'text-(--ws-text) hover:bg-(--ws-hover)'
               }`}
             >
               {s === 'all' ? t('calendar.all') : s === 'open' ? t('studentContest.open') : t('studentContest.closed')}
@@ -166,7 +166,7 @@ export default function HomeworkList() {
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as SortKey)}
-          className="px-3 py-2.5 bg-white border border-[#e5dac9] rounded-xl text-sm text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+          className="px-3 py-2.5 bg-(--ws-panel) border border-(--ws-border) rounded-xl text-sm text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
         >
           <option value="deadline_asc">{t('studentContest.sortDeadlineAsc')}</option>
           <option value="deadline_desc">{t('studentContest.sortDeadlineDesc')}</option>
@@ -177,14 +177,14 @@ export default function HomeworkList() {
 
       {/* List */}
       {filtered.length === 0 ? (
-        <div className="bg-white border border-[#e5dac9] rounded-2xl p-14 text-center shadow-sm">
-          <BookOpen size={48} className="text-[#bfae99] mx-auto mb-4" />
-          <p className="font-semibold text-[#191919]">
+        <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-14 text-center shadow-sm">
+          <BookOpen size={48} className="text-(--ws-faint) mx-auto mb-4" />
+          <p className="font-semibold text-(--ws-text)">
             {allHomeworks.filter((h) => enrolledIds.has(h.class_id)).length === 0
               ? t('studentContest.emptyHomework')
               : t('studentContest.noHomeworkMatches')}
           </p>
-          <p className="text-sm text-[#8a8073] mt-1">
+          <p className="text-sm text-(--ws-muted) mt-1">
             {enrolledClasses.length === 0
               ? t('studentContest.joinClassForHomework')
               : t('studentContest.changeHomeworkFilters')}
@@ -200,22 +200,22 @@ export default function HomeworkList() {
               <Link
                 key={hw.id}
                 to={`/student/class/${hw.class_id}/homework/${hw.id}`}
-                className="flex items-center gap-4 bg-white border border-[#e5dac9] rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#193a2b]/30 transition-all shadow-sm group"
+                className="flex items-center gap-4 bg-(--ws-panel) border border-(--ws-border) rounded-2xl px-5 py-4 hover:shadow-md hover:border-(--ws-accent)/30 transition-all shadow-sm group"
               >
                 {/* Left accent */}
-                <div className={`w-1 h-10 rounded-full shrink-0 ${dl.closed ? 'bg-[#e5dac9]' : 'bg-[#193a2b]'}`} />
+                <div className={`w-1 h-10 rounded-full shrink-0 ${dl.closed ? 'bg-(--ws-border)' : 'bg-(--ws-accent)'}`} />
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <p className="font-bold text-[#191919] group-hover:text-[#193a2b] transition-colors truncate">
+                    <p className="font-bold text-(--ws-text) group-hover:text-(--ws-accent) transition-colors truncate">
                       {hw.title}
                     </p>
                     <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold shrink-0 ${dl.chipClass}`}>
                       {dl.closed && <Lock size={9} className="inline mr-0.5" />}{dl.label}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-[#8a8073] flex-wrap">
+                  <div className="flex items-center gap-3 text-xs text-(--ws-muted) flex-wrap">
                     <span className="flex items-center gap-1">
                       <GraduationCap size={11} /> {hw.class?.name}
                     </span>
@@ -228,7 +228,7 @@ export default function HomeworkList() {
                   </div>
                 </div>
 
-                <ChevronRight size={16} className="text-[#bfae99] group-hover:text-[#193a2b] shrink-0 transition-colors" />
+                <ChevronRight size={16} className="text-(--ws-faint) group-hover:text-(--ws-accent) shrink-0 transition-colors" />
               </Link>
             );
           })}

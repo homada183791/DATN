@@ -51,6 +51,7 @@ import {
   ChevronRight,
   AlertTriangle,
   Info,
+  Ban, ShieldAlert, ShieldCheck, Unlock,
 } from 'lucide-react';
 import {
   getAllowedLanguagesList,
@@ -2034,7 +2035,7 @@ export default function ProblemSolve() {
           <p className="mt-3 text-sm text-(--ws-muted)">{t('problemSolve.homeworkClosedSubtitle')}</p>
           <button
             onClick={() => navigate(`/student/class/${classId}/homework/${homeworkId}`)}
-            className="mt-6 px-5 py-2 rounded-xl bg-(--ws-accent) text-white text-sm font-semibold"
+            className="mt-6 px-5 py-2 rounded-xl bg-(--ws-accent) text-(--ws-on-accent) text-sm font-semibold"
           >
             {t('problemSolve.homeworkClosedBack')}
           </button>
@@ -2102,41 +2103,41 @@ export default function ProblemSolve() {
                       onKeyDown={(e) => { if (e.key === 'Enter') void submitLockdownCode(); }}
                       maxLength={12}
                       placeholder={t('problemSolve.lockdownCodePlaceholder')}
-                      className="w-32 px-2.5 py-1 rounded-md border border-(--ws-border) bg-(--ws-editor) text-center font-mono text-[12px] tracking-[0.2em] text-(--ws-text) placeholder:tracking-normal placeholder:text-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-[#193a2b]"
+                      className="w-32 px-2.5 py-1 rounded-md border border-(--ws-border) bg-(--ws-editor) text-center font-mono text-[12px] tracking-[0.2em] text-(--ws-text) placeholder:tracking-normal placeholder:text-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
                     />
                     <button
                       onClick={() => void submitLockdownCode()}
                       disabled={verifyingCode || !lockdownCodeInput.trim()}
-                      className="px-3 py-1 rounded-md bg-[#193a2b] text-white text-[12px] font-semibold hover:bg-[#143022] disabled:opacity-50 transition-colors"
+                      className="px-3 py-1 rounded-md bg-(--ws-accent) text-(--ws-on-accent) text-[12px] font-semibold hover:bg-(--ws-accent-strong) disabled:opacity-50 transition-colors"
                     >
                       {t('problemSolve.lockdownCodeSubmit')}
                     </button>
-                    {lockdownCodeError && <span className="text-[11px] text-red-600">{lockdownCodeError}</span>}
+                    {lockdownCodeError && <span className="text-[11px] text-(--ws-danger)">{lockdownCodeError}</span>}
                   </div>
                 ) : (
-                  <span className="text-[11px] font-semibold px-2.5 py-1 rounded-md border bg-gray-100 text-gray-700 border-gray-300">
-                    🔓 {t('problemSolve.lockdownEndedBadge')}
+                  <span className="text-[11px] font-semibold px-2.5 py-1 rounded-md border bg-(--ws-panel2) text-(--ws-text) border-(--ws-border)">
+                    <Unlock size={12} className="inline-block align-[-2px] mr-1" aria-hidden="true" />{t('problemSolve.lockdownEndedBadge')}
                   </span>
                 )
               ) : contestModeReady && (
               <span className={`flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-md border ${
                 isDisqualified
-                  ? 'bg-red-100 text-red-800 border-red-300'
+                  ? 'bg-(--ws-danger-soft) text-(--ws-danger) border-(--ws-danger)/35'
                   : cheatWarnings > 0
-                  ? 'bg-amber-100 text-amber-800 border-amber-300 animate-pulse'
-                  : 'bg-purple-100 text-purple-800 border-purple-200'
+                  ? 'bg-(--ws-warn-soft) text-(--ws-warn) border-(--ws-warn)/35 animate-pulse'
+                  : 'bg-(--ws-info-soft) text-(--ws-info) border-(--ws-info)/35'
               }`}>
-                🛡️ {isDisqualified ? t('problemSolve.cheatDisqualifiedBadge') : cheatWarnings > 0 ? t('problemSolve.cheatWarningBadge', { count: cheatWarnings, max: maxWarnings }) : t('problemSolve.onlineExamBadge')}
+                <ShieldCheck size={12} className="inline-block align-[-2px] mr-1" aria-hidden="true" />{isDisqualified ? t('problemSolve.cheatDisqualifiedBadge') : cheatWarnings > 0 ? t('problemSolve.cheatWarningBadge', { count: cheatWarnings, max: maxWarnings }) : t('problemSolve.onlineExamBadge')}
               </span>
               )}
               {remainingSec !== null && (
                 <span
                   className={`flex items-center gap-1.5 text-[12px] font-mono font-bold px-2.5 py-1 rounded-md border tabular-nums ${
                     remainingSec === 0
-                      ? 'bg-gray-200 text-gray-700 border-gray-300'
+                      ? 'bg-(--ws-border) text-(--ws-text) border-(--ws-border)'
                       : remainingSec <= 300
-                        ? 'bg-red-100 text-red-700 border-red-300 animate-pulse'
-                        : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                        ? 'bg-(--ws-danger-soft) text-(--ws-danger) border-(--ws-danger)/35 animate-pulse'
+                        : 'bg-(--ws-ok-soft) text-(--ws-ok) border-(--ws-ok)/35'
                   }`}
                   title={t('problemSolve.countdownTitle')}
                 >
@@ -2260,7 +2261,7 @@ export default function ProblemSolve() {
                   >
                     <Sparkles size={14} />
                     <span>{t('problemSolve.aiTutorTab')}</span>
-                    {contestId && <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-bold">{t('problemSolve.aiTutorLockedBadge')}</span>}
+                    {contestId && <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-(--ws-warn-soft) text-(--ws-warn) font-bold">{t('problemSolve.aiTutorLockedBadge')}</span>}
                   </button>
                   <button
                     onClick={() => setLeftTab('resources')}
@@ -2272,7 +2273,7 @@ export default function ProblemSolve() {
                   >
                     <BookOpen size={14} />
                     <span>{t('problemSolve.allowedResourcesTab')}</span>
-                    {contestId && <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold">{t('problemSolve.allowedBadge')}</span>}
+                    {contestId && <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-(--ws-ok-soft) text-(--ws-ok) font-bold">{t('problemSolve.allowedBadge')}</span>}
                   </button>
                 </div>
 
@@ -2412,21 +2413,21 @@ export default function ProblemSolve() {
                             const isCe = statusUpper === 'COMPILE_ERROR' || statusUpper === 'CE';
 
                             const badgeClass = isAc
-                              ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                              ? 'bg-(--ws-ok-soft) text-(--ws-ok) border-(--ws-ok)/35'
                               : isWa
-                              ? 'bg-rose-100 text-rose-800 border-rose-300'
+                              ? 'bg-(--ws-danger-soft) text-(--ws-danger) border-(--ws-danger)/35'
                               : isTle
-                              ? 'bg-amber-100 text-amber-800 border-amber-300'
+                              ? 'bg-(--ws-warn-soft) text-(--ws-warn) border-(--ws-warn)/35'
                               : isCe
-                              ? 'bg-blue-100 text-blue-800 border-blue-300'
-                              : 'bg-orange-100 text-orange-800 border-orange-300';
+                              ? 'bg-(--ws-info-soft) text-(--ws-info) border-(--ws-info)/35'
+                              : 'bg-(--ws-warn-soft) text-(--ws-warn) border-(--ws-warn)/35';
 
                             const badgeIcon = isAc ? (
-                              <CheckCircle2 size={13} className="text-emerald-700" />
+                              <CheckCircle2 size={13} className="text-(--ws-ok)" />
                             ) : isWa ? (
-                              <XCircle size={13} className="text-rose-700" />
+                              <XCircle size={13} className="text-(--ws-danger)" />
                             ) : (
-                              <Clock size={13} className="text-amber-700" />
+                              <Clock size={13} className="text-(--ws-warn)" />
                             );
 
                             return (
@@ -2467,12 +2468,12 @@ export default function ProblemSolve() {
                                   </div>
 
                                   {sub.instructor_score != null && (
-                                    <div className="flex flex-col gap-1 text-xs bg-amber-50 border border-amber-200 text-amber-900 p-2.5 rounded-lg">
+                                    <div className="flex flex-col gap-1 text-xs bg-(--ws-warn-soft) border border-(--ws-warn)/35 text-(--ws-warn) p-2.5 rounded-lg">
                                       <div className="flex items-center gap-1.5 font-bold">
                                         <span>{t('problemSolve.instructorScoreLabel', { score: sub.instructor_score })}</span>
                                       </div>
                                       {sub.instructor_feedback && (
-                                        <p className="text-[11px] text-amber-800 italic bg-white/70 p-1.5 rounded border border-amber-100">
+                                        <p className="text-[11px] text-(--ws-warn) italic bg-(--ws-panel)/70 p-1.5 rounded border border-(--ws-warn)/35">
                                           "{sub.instructor_feedback}"
                                         </p>
                                       )}
@@ -2489,7 +2490,7 @@ export default function ProblemSolve() {
                                     </button>
                                     <button
                                       onClick={() => restoreCodeFromSubmission(sub)}
-                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-(--ws-accent) text-white text-xs font-semibold hover:opacity-90 transition-opacity"
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-(--ws-accent) text-(--ws-on-accent) text-xs font-semibold hover:opacity-90 transition-opacity"
                                       title={t('problemSolve.loadIntoEditorTitle')}
                                     >
                                       <ClipboardPaste size={13} />
@@ -2540,15 +2541,15 @@ export default function ProblemSolve() {
                   {leftTab === 'ai_tutor' && (
                     <div className="p-6 max-w-3xl">
                       {contestId ? (
-                        <div className="rounded-2xl border border-amber-300 bg-amber-50/70 p-8 text-center text-amber-900 shadow-sm">
-                          <div className="w-16 h-16 rounded-full bg-amber-200/80 flex items-center justify-center mx-auto mb-4 text-2xl">
-                            🛡️
+                        <div className="rounded-2xl border border-(--ws-warn)/35 bg-(--ws-warn-soft)/70 p-8 text-center text-(--ws-warn) shadow-sm">
+                          <div className="w-16 h-16 rounded-full bg-(--ws-warn-soft)/80 flex items-center justify-center mx-auto mb-4 text-2xl">
+                            <ShieldAlert size={28} className="inline-block align-[-2px]" aria-hidden="true" />
                           </div>
                           <h3 className="font-bold text-lg mb-2">{t('problemSolve.aiTutorDisabledTitle')}</h3>
-                          <p className="text-xs text-amber-800/90 max-w-md mx-auto leading-relaxed mb-4">
+                          <p className="text-xs text-(--ws-warn)/90 max-w-md mx-auto leading-relaxed mb-4">
                             {t('problemSolve.aiTutorDisabledDesc')}
                           </p>
-                          <p className="text-xs font-semibold text-amber-900">
+                          <p className="text-xs font-semibold text-(--ws-warn)">
                             {t('problemSolve.aiTutorDisabledHint', { statement: t('problemSolve.statementTab'), resources: t('problemSolve.allowedResourcesTab') })}
                           </p>
                         </div>
@@ -2721,7 +2722,7 @@ export default function ProblemSolve() {
                     <div className="p-6 max-w-3xl space-y-6">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <BookOpen size={20} className="text-emerald-600" />
+                          <BookOpen size={20} className="text-(--ws-ok)" />
                           <h2 className="text-lg font-bold text-(--ws-text)">{t('problemSolve.resourcesHeading')}</h2>
                         </div>
                         <p className="text-xs text-(--ws-muted)">
@@ -2801,7 +2802,7 @@ export default function ProblemSolve() {
                   </select>
                   {apiProblem?.allowed_languages && apiProblem.allowed_languages.length > 0 && (
                     <span
-                      className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/25 text-amber-500 text-[11px] font-medium"
+                      className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-md bg-(--ws-warn)/10 border border-(--ws-warn)/25 text-(--ws-warn) text-[11px] font-medium"
                       title="This problem restricts allowed languages"
                     >
                       <Lock size={11} /> Allowed: {allowedLangConfigs.length} languages
@@ -2841,7 +2842,7 @@ export default function ProblemSolve() {
                     onClick={() => setIntelli(!intelli)}
                     className={`relative w-9 h-5 rounded-full transition-colors ${intelli ? 'bg-(--ws-accent)' : 'bg-(--ws-border)'}`}
                   >
-                    <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all ${intelli ? 'left-[18px]' : 'left-0.5'}`} />
+                    <span className={`absolute top-0.5 w-4 h-4 bg-(--ws-panel) rounded-full transition-all ${intelli ? 'left-[18px]' : 'left-0.5'}`} />
                   </button>
                 </label>
                 {intelli && (
@@ -2908,12 +2909,12 @@ export default function ProblemSolve() {
                     >
                       <span className="inline-flex">{icon}</span>{label}
                       {tab === 'console' && diagnostics.some((d) => d.severity === 'error') && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/15 text-(--ws-danger)">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-(--ws-danger)/15 text-(--ws-danger)">
                           {diagnostics.filter((d) => d.severity === 'error').length}
                         </span>
                       )}
                       {tab === 'results' && finalVerdict && (
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded ${finalVerdict === 'AC' ? 'bg-(--ws-accent-soft) text-(--ws-ok)' : 'bg-red-500/15 text-(--ws-danger)'}`}>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded ${finalVerdict === 'AC' ? 'bg-(--ws-accent-soft) text-(--ws-ok)' : 'bg-(--ws-danger)/15 text-(--ws-danger)'}`}>
                           {finalVerdict}
                         </span>
                       )}
@@ -2931,7 +2932,7 @@ export default function ProblemSolve() {
                     <button
                       onClick={submit}
                       disabled={isSubmitLocked}
-                      className="flex items-center gap-1.5 px-3 py-1.5 whitespace-nowrap rounded-lg bg-[#193a2b] text-white text-[12.5px] font-bold hover:bg-[#122c26] transition-all disabled:opacity-50 shadow-[0_0_20px_rgba(25,58,43,0.22)]"
+                      className="flex items-center gap-1.5 px-3 py-1.5 whitespace-nowrap rounded-lg bg-(--ws-accent) text-(--ws-on-accent) text-[12.5px] font-bold hover:bg-(--ws-accent-strong) transition-all disabled:opacity-50 shadow-[0_0_20px_rgba(25,58,43,0.22)]"
                     >
                       {judging ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />} {cooldownSeconds > 0 ? t('problemSolve.submitCooldown', { seconds: cooldownSeconds }) : t('problemSolve.submitBtn')}
                     </button>
@@ -2984,22 +2985,22 @@ export default function ProblemSolve() {
                                 rows={Math.min(12, Math.max(3, s.input.split('\n').length))}
                                 className="block w-full px-3 py-2.5 bg-transparent font-mono text-[12.5px] leading-5 resize-none outline-none whitespace-pre overflow-auto text-(--ws-text)"
                               />
-                              <button
+                              <button aria-label={t('common.copy')}
                                 id={`copy-in-${i}`}
                                 onClick={() => copyText(s.input, `copy-in-${i}`)}
                                 className="absolute top-2 right-2 p-1.5 rounded-md bg-(--ws-panel2) text-(--ws-muted) opacity-0 group-hover:opacity-100 transition-opacity"
                               >
-                                <Copy size={12} />
+                                <Copy size={12} aria-hidden="true" />
                               </button>
                             </div>
                             <div className="relative rounded-lg border border-(--ws-border) bg-(--ws-editor) overflow-hidden group">
                               <pre className="px-3 py-2.5 font-mono text-[12.5px] leading-5 whitespace-pre overflow-x-auto max-h-60 overflow-y-auto text-(--ws-text)">{displayOutput(s)}</pre>
-                              <button
+                              <button aria-label={t('common.copy')}
                                 id={`copy-out-${i}`}
                                 onClick={() => copyText(displayOutput(s), `copy-out-${i}`)}
                                 className="absolute top-2 right-2 p-1.5 rounded-md bg-(--ws-panel2) text-(--ws-muted) opacity-0 group-hover:opacity-100 transition-opacity"
                               >
-                                <Copy size={12} />
+                                <Copy size={12} aria-hidden="true" />
                               </button>
                             </div>
                           </div>
@@ -3052,7 +3053,7 @@ export default function ProblemSolve() {
                       ) : (
                         <>
                           <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg mb-4 font-bold text-[13px] ${
-                            finalVerdict === 'AC' ? 'bg-(--ws-accent-soft) text-(--ws-ok)' : 'bg-red-500/10 text-(--ws-danger)'
+                            finalVerdict === 'AC' ? 'bg-(--ws-accent-soft) text-(--ws-ok)' : 'bg-(--ws-danger)/10 text-(--ws-danger)'
                           }`}>
                             {finalVerdict === 'AC' ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
                             {finalVerdict === 'AC' ? t('problemSolve.acceptedLabel', { points: detail.points }) : finalVerdict === 'TLE' ? t('problemSolve.verdictTLE') : t('problemSolve.verdictWA')}
@@ -3111,18 +3112,18 @@ export default function ProblemSolve() {
                     <p className="text-[11px] text-(--ws-faint)">{t('problemSolve.assistantSubtitle')}</p>
                   </div>
                 </div>
-                <button
+                <button aria-label={t('common.close')}
                   onClick={() => setShowAssistant(false)}
                   className="rounded-lg p-1.5 text-(--ws-muted) hover:bg-(--ws-panel) hover:text-(--ws-text)"
                 >
-                  <X size={16} />
+                  <X size={16} aria-hidden="true" />
                 </button>
               </div>
 
               <div className="flex-1 overflow-y-auto ws-editor-scroll p-3 space-y-2 bg-(--ws-bg)">
                 {assistantMessages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-(--ws-accent) text-[#062a25]' : 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border)'}`}>
+                    <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-(--ws-accent) text-(--ws-accent)' : 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border)'}`}>
                       {msg.content}
                     </div>
                   </div>
@@ -3145,8 +3146,8 @@ export default function ProblemSolve() {
                     placeholder={t('problemSolve.askPlaceholder')}
                     className="flex-1 bg-transparent text-[13px] text-(--ws-text) outline-none placeholder:text-(--ws-faint)"
                   />
-                  <button type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-(--ws-accent) p-2 text-[#062a25] disabled:opacity-50">
-                    <Send size={14} />
+                  <button aria-label={t('common.send')} type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-(--ws-accent) p-2 text-(--ws-accent) disabled:opacity-50">
+                    <Send size={14} aria-hidden="true" />
                   </button>
                 </div>
               </form>
@@ -3156,7 +3157,7 @@ export default function ProblemSolve() {
 
       <button
         onClick={() => setShowAssistantMobile(true)}
-        className="fixed bottom-4 right-4 z-85 flex lg:hidden items-center gap-2 rounded-full bg-[#193a2b] px-4 py-3 text-[13px] font-semibold text-white shadow-xl transition-transform hover:scale-105 hover:bg-[#122c26]"
+        className="fixed bottom-4 right-4 z-85 flex lg:hidden items-center gap-2 rounded-full bg-(--ws-accent) px-4 py-3 text-[13px] font-semibold text-(--ws-on-accent) shadow-xl transition-transform hover:scale-105 hover:bg-(--ws-accent-strong)"
       >
         <MessageCircle size={16} />
         {t('problemSolve.aiAssistantTitle')}
@@ -3170,14 +3171,14 @@ export default function ProblemSolve() {
                 <MessageCircle size={15} className="text-(--ws-accent)" />
                 <p className="text-[13px] font-semibold">Leet Coach</p>
               </div>
-              <button onClick={() => setShowAssistantMobile(false)} className="rounded-lg p-1.5 text-(--ws-muted) hover:bg-(--ws-panel2) hover:text-(--ws-text)">
-                <X size={16} />
+              <button aria-label={t('common.close')} onClick={() => setShowAssistantMobile(false)} className="rounded-lg p-1.5 text-(--ws-muted) hover:bg-(--ws-panel2) hover:text-(--ws-text)">
+                <X size={16} aria-hidden="true" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto ws-editor-scroll p-3 space-y-2 bg-(--ws-bg)">
               {assistantMessages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-(--ws-accent) text-[#062a25]' : 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border)'}`}>
+                  <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-(--ws-accent) text-(--ws-accent)' : 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border)'}`}>
                     {msg.content}
                   </div>
                 </div>
@@ -3199,8 +3200,8 @@ export default function ProblemSolve() {
                   placeholder={t('problemSolve.askPlaceholder')}
                   className="flex-1 bg-transparent text-[13px] text-(--ws-text) outline-none placeholder:text-(--ws-faint)"
                 />
-                <button type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-(--ws-accent) p-2 text-[#062a25] disabled:opacity-50">
-                  <Send size={14} />
+                <button aria-label={t('common.send')} type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-(--ws-accent) p-2 text-(--ws-accent) disabled:opacity-50">
+                  <Send size={14} aria-hidden="true" />
                 </button>
               </div>
             </form>
@@ -3219,7 +3220,7 @@ export default function ProblemSolve() {
                 </span>
                 {t('problemSolve.usageGuide')}
               </h3>
-              <button onClick={() => setShowGuide(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
+              <button aria-label={t('common.close')} onClick={() => setShowGuide(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} aria-hidden="true" /></button>
             </div>
             <div className="p-6 space-y-3 text-[13.5px] leading-6 text-(--ws-muted)">
               {[
@@ -3243,20 +3244,20 @@ export default function ProblemSolve() {
 
       {/* ============ LOCKDOWN OVERLAY (bật bởi giảng viên) ============ */}
       {lockdownActive && !isFullscreen && hasDocument && createPortal((
-        <div className="fixed inset-0 z-9998 bg-[#0f1f17] flex flex-col items-center justify-center p-8 text-center text-white select-none">
-          <div className="w-20 h-20 rounded-full bg-emerald-900/60 border-2 border-emerald-500 flex items-center justify-center text-4xl mb-6 shadow-2xl">
-            🔒
+        <div className="fixed inset-0 z-9998 bg-(--ws-accent-strong) flex flex-col items-center justify-center p-8 text-center text-(--ws-on-accent) select-none">
+          <div className="w-20 h-20 rounded-full bg-(--ws-ok)/60 border-2 border-(--ws-ok) flex items-center justify-center text-4xl mb-6 shadow-2xl">
+            <Lock size={34} className="inline-block align-[-2px]" aria-hidden="true" />
           </div>
           <h1 className="text-2xl font-extrabold mb-3">{t('problemSolve.lockdownTitle')}</h1>
-          <p className="text-sm text-emerald-100/80 max-w-lg mb-4 leading-relaxed">{t('problemSolve.lockdownDesc')}</p>
+          <p className="text-sm text-white/80 max-w-lg mb-4 leading-relaxed">{t('problemSolve.lockdownDesc')}</p>
           {lockdownLeft && (
-            <p className="text-xs text-amber-300 bg-amber-900/30 border border-amber-700/60 rounded-lg px-4 py-2 max-w-lg mb-4">
+            <p className="text-xs text-white bg-(--ws-warn)/30 border border-(--ws-warn)/60 rounded-lg px-4 py-2 max-w-lg mb-4">
               {t('problemSolve.lockdownLeftNote')}
             </p>
           )}
           <button
             onClick={enterLockdown}
-            className="px-6 py-3 bg-white text-emerald-950 font-bold rounded-xl shadow-lg hover:bg-emerald-100 transition-colors mb-8"
+            className="px-6 py-3 bg-(--ws-panel) text-(--ws-ok) font-bold rounded-xl shadow-lg hover:bg-(--ws-ok-soft) transition-colors mb-8"
           >
             {lockdownLeft ? t('problemSolve.lockdownReenter') : t('problemSolve.lockdownEnter')}
           </button>
@@ -3267,14 +3268,14 @@ export default function ProblemSolve() {
       {showTimeUp && hasDocument && createPortal((
         <div className="fixed inset-0 z-9999 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 select-none">
           <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-md p-8 text-center shadow-2xl">
-            <div className="w-16 h-16 mx-auto rounded-full bg-amber-100 border-2 border-amber-400 flex items-center justify-center text-3xl mb-4">
+            <div className="w-16 h-16 mx-auto rounded-full bg-(--ws-warn-soft) border-2 border-(--ws-warn)/35 flex items-center justify-center text-3xl mb-4">
               ⏰
             </div>
             <h2 className="text-xl font-extrabold mb-2">{t('problemSolve.timeUpTitle')}</h2>
             <p className="text-sm text-(--ws-muted) leading-relaxed mb-6">{t('problemSolve.timeUpDesc')}</p>
             <button
               onClick={() => navigate('/student/contest')}
-              className="w-full px-6 py-3 bg-[#193a2b] text-white font-bold rounded-xl shadow-md hover:bg-[#143022] transition-colors"
+              className="w-full px-6 py-3 bg-(--ws-accent) text-(--ws-on-accent) font-bold rounded-xl shadow-md hover:bg-(--ws-accent-strong) transition-colors"
             >
               {t('problemSolve.timeUpExit')}
             </button>
@@ -3284,22 +3285,22 @@ export default function ProblemSolve() {
 
       {/* ============ DISQUALIFIED FULLSCREEN OVERLAY ============ */}
       {isDisqualified && hasDocument && createPortal((
-        <div className="fixed inset-0 z-9999 bg-red-950/95 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center text-white select-none">
-          <div className="w-20 h-20 rounded-full bg-red-900 border-2 border-red-500 flex items-center justify-center text-4xl mb-6 shadow-2xl animate-pulse">
-            🚫
+        <div className="fixed inset-0 z-9999 bg-(--ws-danger)/95 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center text-(--ws-on-accent) select-none">
+          <div className="w-20 h-20 rounded-full bg-(--ws-danger) border-2 border-(--ws-danger) flex items-center justify-center text-4xl mb-6 shadow-2xl animate-pulse">
+            <Ban size={36} className="inline-block align-[-2px]" aria-hidden="true" />
           </div>
-          <h1 className="text-3xl font-extrabold mb-3 text-red-100">
+          <h1 className="text-3xl font-extrabold mb-3 text-(--ws-on-accent)">
             BÀI THI CỦA BẠN ĐÃ BỊ HỦY BỎ
           </h1>
-          <p className="text-sm text-red-300 max-w-lg mb-6 leading-relaxed">
+          <p className="text-sm text-(--ws-on-accent) max-w-lg mb-6 leading-relaxed">
             Hệ thống giám sát ghi nhận bạn đã vi phạm quy chế thi cử quá {maxWarnings} lần (rời khỏi màn hình làm bài thi). Quyền nộp bài đã bị vô hiệu hóa.
           </p>
-          <div className="bg-red-900/60 border border-red-700/80 rounded-xl px-6 py-3 text-xs font-mono text-red-200 mb-8">
+          <div className="bg-(--ws-danger)/60 border border-(--ws-danger)/80 rounded-xl px-6 py-3 text-xs font-mono text-(--ws-on-accent) mb-8">
             Số lần vi phạm: {cheatWarnings}/{maxWarnings} • Trạng thái: DISQUALIFIED
           </div>
           <button
             onClick={() => navigate('/student/contest')}
-            className="px-6 py-3 bg-white text-red-900 font-bold rounded-xl shadow-lg hover:bg-red-100 transition-colors"
+            className="px-6 py-3 bg-(--ws-panel) text-(--ws-danger) font-bold rounded-xl shadow-lg hover:bg-(--ws-danger-soft) transition-colors"
           >
             Quay về trang Kỳ thi
           </button>
@@ -3316,7 +3317,7 @@ export default function ProblemSolve() {
                 <h3 className="font-bold text-[15px] text-(--ws-text)">{t('problemSolve.uploadPreviewTitle')}</h3>
                 <p className="text-xs text-(--ws-muted) mt-0.5">{uploadPreview.fileName}</p>
               </div>
-              <button onClick={() => setUploadPreview(null)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} /></button>
+              <button aria-label={t('common.close')} onClick={() => setUploadPreview(null)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} aria-hidden="true" /></button>
             </div>
             <div className="p-6 flex-1 min-h-0 flex flex-col">
               <div className="flex-1 min-h-0 overflow-auto ws-editor-scroll rounded-xl border border-(--ws-border) bg-(--ws-editor)">

@@ -91,7 +91,7 @@
 }
 
 .required {
-  color: #ef4444;
+  color: var(--ws-danger);
 }
 
 .field input {
@@ -114,7 +114,7 @@
 
 .errorMessage {
   margin: 18px 0 0;
-  color: #ef4444;
+  color: var(--ws-danger);
   font-size: 13px;
 }
 
@@ -207,7 +207,7 @@
 
 .submitBtn {
   background: var(--ws-accent);
-  color: #ffffff;
+  color: var(--ws-on-accent, #ffffff);
   font-size: 14px;
   font-weight: 600;
   border: none;

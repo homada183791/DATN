@@ -80,11 +80,11 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
               </h3>
             </div>
           </div>
-          <button
+          <button aria-label={t('common.close')}
             onClick={onClose}
             className="p-1.5 rounded-lg text-(--ws-muted) hover:text-(--ws-text) hover:bg-(--ws-hover) transition-colors"
           >
-            <X size={18} />
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
 
@@ -152,7 +152,7 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
 
           <a
             href={event.link}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--ws-accent) text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-xs"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--ws-accent) text-(--ws-on-accent) text-xs font-bold hover:opacity-90 transition-opacity shadow-xs"
           >
             {isContest
               ? userRole === 'instructor'

@@ -78,7 +78,7 @@
 
 .errorMessage {
   margin: 0 0 10px;
-  color: #ef4444;
+  color: var(--ws-danger);
   font-size: 13px;
 }
 
@@ -90,7 +90,7 @@
 }
 
 .required {
-  color: #ef4444;
+  color: var(--ws-danger);
 }
 
 .field input {
@@ -139,7 +139,7 @@
 .submitBtn {
   width: 100%;
   background: var(--ws-accent);
-  color: #ffffff;
+  color: var(--ws-on-accent, #ffffff);
   font-size: 15px;
   font-weight: 600;
   border: none;
