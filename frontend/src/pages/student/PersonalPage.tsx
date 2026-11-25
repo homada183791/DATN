@@ -249,7 +249,7 @@ export default function PersonalPage() {
               <h3 className="text-lg font-bold text-[#191919] font-serif mb-4 flex items-center justify-between">
                 <span>{t('personal.solvedProblems')}</span>
                 <span className="text-xs px-2 py-0.5 bg-[#193a2b]/10 text-[#193a2b] font-semibold rounded-full">
-                  {t('personal.solvedCountLabel', { count: stats?.solved_problems.length || 0 })}
+                  {t('personal.solvedCountLabel', { count: stats?.solved_problems?.length ?? 0 })}
                 </span>
               </h3>
 

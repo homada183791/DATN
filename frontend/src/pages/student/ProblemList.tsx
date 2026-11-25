@@ -27,6 +27,19 @@ const sortOptions: { value: SortKey; label: string }[] = [
   { value: 'diff_desc', label: 'Khó → Dễ' },
 ];
 
+/** Đoạn xem trước trong danh sách: bỏ ký hiệu markdown (**, `, #, link, $...$) để không hiện chữ thô. */
+function markdownToPlainText(md: string): string {
+  return md
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/^\s{0,3}(#{1,6}|>|[-*+]|\d+\.)\s+/gm, '')
+    .replace(/(\*\*|__|\*|_|~~|`)(?=\S)([^\n]*?\S)\1/g, '$2')
+    .replace(/\$+([^$]+)\$+/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export default function ProblemList() {
   const { t, i18n } = useTranslation();
   const currentLang = (i18n.resolvedLanguage || i18n.language || 'vi').toLowerCase();
@@ -284,7 +297,7 @@ export default function ProblemList() {
                     {difficultyLabels[problem.difficulty]}
                   </span>
                 </div>
-                <p className="mt-1 line-clamp-2 text-sm text-[#8a8073]">{locDesc}</p>
+                <p className="mt-1 line-clamp-2 text-sm text-[#8a8073]">{markdownToPlainText(locDesc)}</p>
               </div>
             <div className="flex items-center gap-4 text-sm text-[#8a8073] shrink-0">
               <div className="flex flex-col items-end gap-0.5">

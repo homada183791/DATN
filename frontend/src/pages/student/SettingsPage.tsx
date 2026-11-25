@@ -329,7 +329,7 @@ export default function SettingsPage() {
                       type="email"
                       value={profileForm.email}
                       disabled
-                      className="w-full px-4 py-2.5 bg-gray-100 border border-[#e5dac9] rounded-xl text-gray-500 cursor-not-allowed"
+                      className="w-full px-4 py-2.5 bg-(--ws-panel2) border border-(--ws-border) rounded-xl text-(--ws-muted) cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -343,7 +343,7 @@ export default function SettingsPage() {
                       type="text"
                       value={profileForm.studentCode || t('settings.studentIdEmpty')}
                       disabled
-                      className="w-full px-4 py-2.5 bg-gray-100 border border-[#e5dac9] rounded-xl text-gray-500 cursor-not-allowed"
+                      className="w-full px-4 py-2.5 bg-(--ws-panel2) border border-(--ws-border) rounded-xl text-(--ws-muted) cursor-not-allowed"
                     />
                   </div>
                 )}

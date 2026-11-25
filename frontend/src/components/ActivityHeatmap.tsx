@@ -11,7 +11,7 @@ interface ActivityHeatmapProps {
 }
 
 const LEVELS = [
-  { min: 0, max: 0, bg: 'bg-[#ebedf0]', titleKey: 'activityHeatmap.zero' },
+  { min: 0, max: 0, bg: 'bg-(--ws-border)', titleKey: 'activityHeatmap.zero' },
   { min: 1, max: 2, bg: 'bg-emerald-200', titleKey: 'activityHeatmap.oneToTwo' },
   { min: 3, max: 5, bg: 'bg-emerald-400', titleKey: 'activityHeatmap.threeToFive' },
   { min: 6, max: 9, bg: 'bg-emerald-600', titleKey: 'activityHeatmap.sixToNine' },

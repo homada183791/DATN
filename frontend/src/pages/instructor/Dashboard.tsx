@@ -16,9 +16,10 @@ import { useClass } from '../../context/ClassContext';
 import { useHomework } from '../../context/HomeworkContext';
 import { useSubmissionsQuery } from '../../api/submissions';
 import { useContestsQuery } from '../../api/contests';
-import { formatVNFull } from '../../utils/dateTime';
+import { formatVN, formatVNFull } from '../../utils/dateTime';
 import UpcomingContestCountdown from '../../components/UpcomingContestCountdown';
 import TopRatedLeaderboard from '../../components/TopRatedLeaderboard';
+import { formatLanguageName } from '../../config/languages';
 
 export default function InstructorDashboard() {
   const { t } = useTranslation();
@@ -233,7 +234,7 @@ export default function InstructorDashboard() {
                     <div className="min-w-0">
                       <p className="text-sm text-[#191919] font-semibold truncate">{sub.problemTitle}</p>
                       <p className="text-xs text-[#8a8073] mt-0.5">
-                        <span className="font-medium text-[#5c5446]">@{sub.username}</span> • {sub.language}
+                        <span className="font-medium text-[#5c5446]">@{sub.username}</span> • {formatLanguageName(sub.language)}
                       </p>
                     </div>
                   </div>
@@ -279,7 +280,7 @@ export default function InstructorDashboard() {
                       <p className="text-[11px] text-[#8a8073] mt-0.5">{hw.className}</p>
                     </div>
                     <span className="text-[10px] font-semibold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300 shrink-0 flex items-center gap-1">
-                      <Clock size={10} /> {hw.deadline}
+                      <Clock size={10} /> {formatVN(hw.deadline)}
                     </span>
                   </div>
                   <div className="mt-2 pt-2 border-t border-[#e5dac9]/60 flex items-center justify-between text-[11px] text-[#8a8073]">

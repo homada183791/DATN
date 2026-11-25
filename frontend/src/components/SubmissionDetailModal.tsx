@@ -24,6 +24,7 @@ import {
   Cpu,
   Layers,
 } from 'lucide-react';
+import { formatLanguageName } from '../config/languages';
 
 const verdictByStatus: Record<string, string> = {
   PENDING: 'PENDING',
@@ -251,7 +252,7 @@ export default function SubmissionDetailModal({
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-3 bg-white rounded-xl border border-[#e5dac9] text-center shadow-sm">
                   <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">{t('submission.colLanguage', 'Ngôn ngữ')}</p>
-                  <p className="text-sm text-[#191919] font-bold">{selectedSub.language}</p>
+                  <p className="text-sm text-[#191919] font-bold">{formatLanguageName(selectedSub.language)}</p>
                 </div>
                 <div className="p-3 bg-white rounded-xl border border-[#e5dac9] text-center shadow-sm">
                   <p className="text-xs text-[#8a8073] mb-1 font-semibold uppercase tracking-wider">{t('submission.colTime')}</p>

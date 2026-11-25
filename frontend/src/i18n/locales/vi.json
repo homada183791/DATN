@@ -136,7 +136,7 @@
     "logout": "Đăng xuất"
   },
   "instructorDashboard": {
-    "welcome": "Xin chào, {{name}}! 👋",
+    "welcome": "Xin chào, {{name}}",
     "subtitle": "Quản lý học thuật, theo dõi tiến độ nộp bài và giám sát kỳ thi trực tuyến của sinh viên.",
     "totalStudents": "Tổng sinh viên",
     "activeHomeworks": "Bài tập đang mở",
@@ -675,7 +675,7 @@
     "12": "T12"
   },
   "studentDashboard": {
-    "welcome": "Xin chào, {{name}}! 👋",
+    "welcome": "Xin chào, {{name}}",
     "practiceBtn": "Luyện tập bài tập",
     "goal": "Mục tiêu",
     "solvedCount": "Bài đã giải (AC)",
@@ -704,7 +704,24 @@
     "recentSubmissionsSubtitle": "Nhật ký nộp mã nguồn gần nhất của bạn",
     "loadingSubmissions": "Đang tải bài nộp...",
     "submissionsError": "Không thể tải dữ liệu bài nộp.",
-    "noSubmissions": "Chưa có bài nộp nào. Hãy thử giải một bài tập ngay hôm nay!"
+    "noSubmissions": "Chưa có bài nộp nào. Hãy thử giải một bài tập ngay hôm nay!",
+    "nextUpTitle": "Việc cần làm tiếp",
+    "nextUpProgress": "{{done}}/{{total}} bài",
+    "nextUpContinue": "Làm tiếp",
+    "nextUpTimeLeft": "còn lại",
+    "nextUpNone": "Không có bài tập nào sắp đến hạn",
+    "nextUpNoneDesc": "Tranh thủ luyện thêm một bài trong kho để giữ phong độ.",
+    "timeDaysHours": "{{d}} ngày {{h}} giờ",
+    "timeHoursMinutes": "{{h}} giờ {{m}} phút",
+    "dueAt": "Hạn chót {{date}}",
+    "contests": "Kỳ thi",
+    "thProblem": "Bài",
+    "thVerdict": "Kết quả",
+    "thLanguage": "Ngôn ngữ",
+    "thTime": "Thời gian",
+    "thSubmittedAt": "Nộp lúc",
+    "submissionHistory": "Lịch sử nộp bài",
+    "acOfTotal": "{{ac}} / {{total}} lượt"
   },
   "studentHomework": {
     "activeCount": "{{count}} bài tập đang mở",
@@ -1297,7 +1314,13 @@
     "guideUploadPasteLabel": "Tải file / Dán vào",
     "guideUploadPaste": "Nạp code từ file hoặc clipboard vào editor.",
     "guideModeLabel": "3 nút góc phải",
-    "guideMode": "Chuyển giữa chế độ chia đôi / chỉ đề / chỉ code."
+    "guideMode": "Chuyển giữa chế độ chia đôi / chỉ đề / chỉ code.",
+    "editorAriaLabel": "Khung soạn code",
+    "problemsShowRaw": "Xem thông báo gốc",
+    "problemsHideRaw": "Ẩn thông báo gốc",
+    "problemsNoLocation": "Không xác định được dòng lỗi. Bấm \"Xem thông báo gốc\" để đọc đầy đủ.",
+    "problemsJumpHint": "Bấm để tới chỗ lỗi trong code",
+    "problemsLocation": "[Dòng {{line}}, Cột {{col}}]"
   },
   "auth": {
     "login": "Đăng nhập",

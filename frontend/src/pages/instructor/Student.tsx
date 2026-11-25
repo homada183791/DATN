@@ -15,6 +15,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { formatVNFull } from '../../utils/dateTime';
+import { formatLanguageName } from '../../config/languages';
 
 export default function InstructorStudent() {
   const { t } = useTranslation();
@@ -293,7 +294,7 @@ export default function InstructorStudent() {
                       </span>
                       <div>
                         <p className="text-sm text-(--ws-text) font-semibold">{sub.problemTitle}</p>
-                        <p className="text-xs text-(--ws-muted) mt-0.5">{sub.language} • {sub.executionTime}ms</p>
+                        <p className="text-xs text-(--ws-muted) mt-0.5">{formatLanguageName(sub.language)} • {sub.executionTime}ms</p>
                       </div>
                     </div>
                     <span className="text-xs text-(--ws-muted)">{formatVNFull(sub.timestamp)}</span>

@@ -424,3 +424,26 @@ export function mapVersionToApi(id: string): {
     language_version: cfg.id,
   };
 }
+const LANGUAGE_DISPLAY: Record<string, string> = {
+  CPP: 'C++',
+  'C++': 'C++',
+  C: 'C',
+  PYTHON: 'Python',
+  JAVA: 'Java',
+  GO: 'Go',
+  NODE: 'JavaScript',
+  JAVASCRIPT: 'JavaScript',
+};
+
+/**
+ * Tên ngôn ngữ dễ đọc cho bảng bài nộp: "CPP" → "C++", "PYTHON" → "Python".
+ * Có language_version (vd "CPP17") thì hiện kèm phiên bản: "C++ 17".
+ */
+export function formatLanguageName(language?: string | null, version?: string | null): string {
+  if (version) {
+    const cfg = SUPPORTED_LANGUAGES.find((l) => l.id.toUpperCase() === version.toUpperCase());
+    if (cfg) return getLanguageLabel(cfg);
+  }
+  if (!language) return '—';
+  return LANGUAGE_DISPLAY[language.toUpperCase()] ?? language;
+}

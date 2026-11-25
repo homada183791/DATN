@@ -654,3 +654,50 @@ tr, .group { transition: background-color .14s ease; }
 .verdict-wa  { color: var(--ws-verdict-wa-fg, #a11f1f);  background: var(--ws-verdict-wa-bg, #fbeaea); }
 .verdict-tle { color: var(--ws-verdict-tle-fg, #8a4b08); background: var(--ws-verdict-tle-bg, #fbf0e0); }
 .verdict-ce  { color: var(--ws-verdict-ce-fg, #2b4c8c);  background: var(--ws-verdict-ce-bg, #e9eef7); }
+
+/* ===== Khung code Monaco: mũi tên chỉ lỗi ("con trỏ ảo") + dòng lỗi ===== */
+.jh-error-pointer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: none;
+  z-index: 20;
+  animation: jh-pointer-in 0.25s ease-out, jh-pointer-out 0.4s ease-in 5.6s forwards;
+}
+.jh-error-pointer-arrow {
+  color: var(--ws-danger);
+  font-size: 13px;
+  line-height: 1;
+  margin-left: -5px;
+  animation: jh-pointer-bob 0.9s ease-in-out infinite;
+}
+.jh-error-pointer-label {
+  margin-top: 1px;
+  max-width: 460px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--ws-danger);
+  color: #fff;
+  font: 600 12px/1.4 'Be Vietnam Pro', system-ui, sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.2);
+}
+.jh-error-pointer-warning .jh-error-pointer-arrow { color: var(--ws-warn); }
+.jh-error-pointer-warning .jh-error-pointer-label { background: var(--ws-warn); color: #1b1b1b; }
+.jh-error-line-error { background: color-mix(in srgb, var(--ws-danger) 12%, transparent); }
+/* nháy dòng lỗi 2 lần khi vừa nhảy tới: dùng lớp phủ đổi độ mờ (đổi trực tiếp màu nền trong keyframes bị Chrome tô đặc) */
+.jh-error-line-error::after { content: ''; position: absolute; inset: 0; background: var(--ws-danger); opacity: 0; animation: jh-line-flash 0.6s ease-out 2; pointer-events: none; }
+.jh-error-line-warning { background: color-mix(in srgb, var(--ws-warn) 16%, transparent); }
+.jh-error-glyph { display: flex; align-items: center; justify-content: center; }
+.jh-error-glyph::before { content: '▶'; font-size: 10px; color: var(--ws-danger); animation: jh-pointer-nudge 0.9s ease-in-out infinite; }
+.jh-error-glyph-warning::before { color: var(--ws-warn); }
+@keyframes jh-pointer-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes jh-pointer-out { to { opacity: 0; } }
+@keyframes jh-pointer-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes jh-pointer-nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(2px); } }
+@keyframes jh-line-flash { 0% { opacity: 0.3; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .jh-error-pointer, .jh-error-pointer-arrow, .jh-error-glyph::before, .jh-error-line-error::after { animation: none; }
+}

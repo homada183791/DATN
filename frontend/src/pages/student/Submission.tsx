@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   MessageSquare,
 } from 'lucide-react';
+import { formatLanguageName } from '../../config/languages';
 
 interface SubmissionRow {
   id: string;
@@ -188,7 +189,7 @@ export default function Submission() {
               <option value="all">{t('instructorContest.filterAll', 'Tất cả')}</option>
               {languages.map((l) => (
                 <option key={l} value={l}>
-                  {l}
+                  {formatLanguageName(l)}
                 </option>
               ))}
             </select>
@@ -271,7 +272,7 @@ export default function Submission() {
                       <span className="text-xs text-[#8a8073]">—</span>
                     )}
                   </td>
-                  <td className="py-3 px-4 text-sm text-[#5c5446]">{sub.language}</td>
+                  <td className="py-3 px-4 text-sm text-[#5c5446]">{formatLanguageName(sub.language)}</td>
                   <td className="py-3 px-4 text-sm text-[#5c5446] text-right">
                     {sub.executionTime != null ? `${sub.executionTime}ms` : '—'}
                   </td>

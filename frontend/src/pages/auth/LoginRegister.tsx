@@ -6,10 +6,20 @@ import { ForgotPasswordCodeModal } from './forgot-password-code-modal';
 import { ForgotPasswordNewPasswordModal } from './forgot-password-new-password-modal';
 import { LoginModal } from './login-modal';
 import { RegisterModal } from './register-modal';
+import AuthBackdrop from './AuthBackdrop';
 
 type AuthView = 'login' | 'register' | 'forgot-email' | 'forgot-code' | 'forgot-password';
 
 export default function LoginRegister() {
+  return (
+    <>
+      <AuthBackdrop />
+      <AuthModals />
+    </>
+  );
+}
+
+function AuthModals() {
   const [view, setView] = useState<AuthView>('login');
   const [resetEmail, setResetEmail] = useState('');
   const [resetCode, setResetCode] = useState('');

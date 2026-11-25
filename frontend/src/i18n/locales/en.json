@@ -136,7 +136,7 @@
     "logout": "Log out"
   },
   "instructorDashboard": {
-    "welcome": "Hello, {{name}}! 👋",
+    "welcome": "Hello, {{name}}",
     "subtitle": "Manage academics, track submission progress, and monitor students' online contests.",
     "totalStudents": "Total Students",
     "activeHomeworks": "Active Homework",
@@ -675,7 +675,7 @@
     "12": "Dec"
   },
   "studentDashboard": {
-    "welcome": "Hello, {{name}}! 👋",
+    "welcome": "Hello, {{name}}",
     "practiceBtn": "Practice Problems",
     "goal": "Goal",
     "solvedCount": "Problems solved (AC)",
@@ -704,7 +704,24 @@
     "recentSubmissionsSubtitle": "Your latest code submission history",
     "loadingSubmissions": "Loading submissions...",
     "submissionsError": "Could not load submission data.",
-    "noSubmissions": "No submissions yet. Try solving a problem today!"
+    "noSubmissions": "No submissions yet. Try solving a problem today!",
+    "nextUpTitle": "Up next",
+    "nextUpProgress": "{{done}}/{{total}} problems",
+    "nextUpContinue": "Continue",
+    "nextUpTimeLeft": "left",
+    "nextUpNone": "No homework due soon",
+    "nextUpNoneDesc": "Solve one more problem from the bank to keep your streak going.",
+    "timeDaysHours": "{{d}}d {{h}}h",
+    "timeHoursMinutes": "{{h}}h {{m}}m",
+    "dueAt": "Due {{date}}",
+    "contests": "Contests",
+    "thProblem": "Problem",
+    "thVerdict": "Verdict",
+    "thLanguage": "Language",
+    "thTime": "Time",
+    "thSubmittedAt": "Submitted",
+    "submissionHistory": "Submission history",
+    "acOfTotal": "{{ac}} / {{total}} submissions"
   },
   "studentHomework": {
     "activeCount": "{{count}} active homework",
@@ -1297,7 +1314,13 @@
     "guideUploadPasteLabel": "Upload / Paste In",
     "guideUploadPaste": "Load code into the editor from a file or your clipboard.",
     "guideModeLabel": "3 top-right buttons",
-    "guideMode": "Switch between split / statement-only / code-only view."
+    "guideMode": "Switch between split / statement-only / code-only view.",
+    "editorAriaLabel": "Code editor",
+    "problemsShowRaw": "Show raw output",
+    "problemsHideRaw": "Hide raw output",
+    "problemsNoLocation": "Could not find the error location. Open \"Show raw output\" for the full message.",
+    "problemsJumpHint": "Click to jump to the error in your code",
+    "problemsLocation": "[Ln {{line}}, Col {{col}}]"
   },
   "auth": {
     "login": "Sign in",

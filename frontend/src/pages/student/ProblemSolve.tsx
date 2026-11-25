@@ -9,7 +9,9 @@ import { getDetail, Lang, ProblemDetail } from '../../data/problemDetails';
 import { ApiError, apiFetch } from '../../api/http';
 import { useProblemQuery } from '../../api/problems';
 import { useClassHomeworkQuery } from '../../api/homeworks';
-import { useProblemSubmissionsQuery, type SubmissionDto } from '../../api/submissions';
+import { useProblemSubmissionsQuery, fetchSubmissionDetail, type SubmissionDto } from '../../api/submissions';
+import CodeEditor, { type CodeEditorHandle } from '../../components/CodeEditor';
+import { parseCompilerOutput, type Diagnostic } from '../../utils/compilerDiagnostics';
 import { formatVNFull } from '../../utils/dateTime';
 import { joinContest, fetchContestDetail, verifyLockdownCode } from '../../api/contests';
 import { setLockdownActive } from '../../context/lockdownStore';
@@ -45,15 +47,17 @@ import {
   ThumbsDown,
   BookOpen,
   Lock,
-  Languages,
   ChevronLeft,
   ChevronRight,
+  AlertTriangle,
+  Info,
 } from 'lucide-react';
 import {
   getAllowedLanguagesList,
   getLanguageConfig,
   getLanguageLabel,
   mapVersionToApi,
+  formatLanguageName,
 } from '../../config/languages';
 import { getLocalizedProblemTitle, getLocalizedProblemDescription } from '../../utils/problemTranslation';
 import { getAiTutorHint, explainSubmissionError, sendAiFeedback, type AiMeta } from '../../api/ai';
@@ -868,7 +872,14 @@ function asciiTableToJson(text: string): string | null {
 type LayoutMode = 'split' | 'statement' | 'editor';
 type LeftTab = 'statement' | 'submissions' | 'ai_tutor' | 'resources';
 type BottomTab = 'tests' | 'console' | 'results' | 'debug';
-interface ConsoleLine { time: string; msg: string; kind: 'info' | 'ok' | 'err' | 'sys' }
+interface ConsoleLine {
+  time: string;
+  msg: string;
+  kind: 'info' | 'ok' | 'err' | 'sys' | 'diag';
+  /** kind === 'diag': danh sách lỗi đã tách dòng/cột + văn bản gốc của trình biên dịch. */
+  diagnostics?: Diagnostic[];
+  raw?: string;
+}
 interface TestVerdict { id: number; status: 'AC' | 'WA' | 'TLE'; time: number; memory: number }
 interface AssistantMessage { id: number; role: 'user' | 'assistant'; content: string }
 interface SubmissionStatusPayload {
@@ -888,6 +899,74 @@ const MIN_BOTTOM_PANEL_HEIGHT = 44;
 const DEFAULT_BOTTOM_PANEL_HEIGHT = 256;
 const COLLAPSED_BOTTOM_PANEL_HEIGHT = 48;
 const BOTTOM_RESIZE_HANDLE_HEIGHT = 6;
+
+/* ---------------- bảng lỗi kiểu "Problems" của VS Code ---------------- */
+
+function ProblemsList({ line, onJump }: { line: ConsoleLine; onJump: (d: Diagnostic) => void }) {
+  const { t } = useTranslation();
+  const [showRaw, setShowRaw] = useState(false);
+  const diags = line.diagnostics ?? [];
+  const errors = diags.filter((d) => d.severity === 'error').length;
+  const warnings = diags.filter((d) => d.severity === 'warning').length;
+
+  return (
+    <div className="my-1.5 rounded-lg border border-(--ws-border) bg-(--ws-editor) overflow-hidden animate-slide-up font-sans">
+      <div className="flex items-center gap-2 px-3 py-1.5 border-b border-(--ws-border-soft) text-[12px]">
+        <span className="font-mono text-(--ws-faint)">[{line.time}]</span>
+        <span className="font-semibold text-(--ws-text)">{line.msg}</span>
+        <span className="inline-flex items-center gap-1 text-(--ws-danger)">
+          <XCircle size={12} aria-hidden="true" /> {errors}
+        </span>
+        <span className="inline-flex items-center gap-1 text-(--ws-warn)">
+          <AlertTriangle size={12} aria-hidden="true" /> {warnings}
+        </span>
+        <div className="flex-1" />
+        {line.raw && (
+          <button
+            type="button"
+            onClick={() => setShowRaw((v) => !v)}
+            className="text-[11.5px] font-semibold text-(--ws-accent) hover:underline"
+            aria-expanded={showRaw}
+          >
+            {showRaw ? t('problemSolve.problemsHideRaw') : t('problemSolve.problemsShowRaw')}
+          </button>
+        )}
+      </div>
+      {diags.length === 0 ? (
+        <p className="px-3 py-2 text-[12px] text-(--ws-muted)">{t('problemSolve.problemsNoLocation')}</p>
+      ) : (
+        <ul>
+          {diags.map((d, k) => {
+            const Icon = d.severity === 'error' ? XCircle : d.severity === 'warning' ? AlertTriangle : Info;
+            const tone =
+              d.severity === 'error' ? 'text-(--ws-danger)' : d.severity === 'warning' ? 'text-(--ws-warn)' : 'text-(--ws-muted)';
+            return (
+              <li key={k}>
+                <button
+                  type="button"
+                  onClick={() => onJump(d)}
+                  title={t('problemSolve.problemsJumpHint')}
+                  className="w-full flex items-start gap-2 px-3 py-1.5 text-left text-[12.5px] leading-5 hover:bg-(--ws-hover) focus-visible:bg-(--ws-hover) outline-none"
+                >
+                  <Icon size={14} className={`mt-0.5 shrink-0 ${tone}`} aria-hidden="true" />
+                  <span className="flex-1 min-w-0 text-(--ws-text) wrap-anywhere">{d.message}</span>
+                  <span className="shrink-0 font-mono text-[11.5px] text-(--ws-faint)">
+                    {t('problemSolve.problemsLocation', { line: d.line, col: d.column ?? 1 })}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {showRaw && line.raw && (
+        <pre className="m-0 px-3 py-2 border-t border-(--ws-border-soft) font-mono text-[12px] leading-5 text-(--ws-muted) whitespace-pre overflow-x-auto max-h-64">
+          {line.raw}
+        </pre>
+      )}
+    </div>
+  );
+}
 
 export default function ProblemSolve() {
   const { t, i18n } = useTranslation();
@@ -1167,9 +1246,8 @@ export default function ProblemSolve() {
     },
   ]);
 
-  const taRef = useRef<HTMLTextAreaElement>(null);
-  const preRef = useRef<HTMLPreElement>(null);
-  const gutterRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<CodeEditorHandle>(null);
+  const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<number | null>(null);
   const submissionSocketRef = useRef<Socket | null>(null);
@@ -1496,7 +1574,7 @@ export default function ProblemSolve() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [assistantMessages, showAssistant]);
 
-  const pushConsole = useCallback((msg: string, kind: ConsoleLine['kind'] = 'info') => {
+  const pushConsole = useCallback((msg: string, kind: Exclude<ConsoleLine['kind'], 'diag'> = 'info') => {
     setConsoleLines((prev) => [...prev, { time: now(), msg, kind }]);
   }, []);
 
@@ -1511,28 +1589,19 @@ export default function ProblemSolve() {
     }, 700);
   };
 
-  const syncScroll = () => {
-    const ta = taRef.current;
-    if (!ta) return;
-    if (preRef.current) {
-      preRef.current.scrollTop = ta.scrollTop;
-      preRef.current.scrollLeft = ta.scrollLeft;
-    }
-    if (gutterRef.current) gutterRef.current.scrollTop = ta.scrollTop;
-  };
-
-  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      const ta = e.currentTarget;
-      const { selectionStart: s, selectionEnd: en } = ta;
-      const next = code.slice(0, s) + '    ' + code.slice(en);
-      onCodeChange(next);
-      requestAnimationFrame(() => {
-        ta.selectionStart = ta.selectionEnd = s + 4;
-      });
-    }
-  };
+  /** Tách lỗi biên dịch/chạy, gạch chân trong khung code và in bảng lỗi kiểu VS Code ra Console. */
+  const reportCompilerOutput = useCallback(
+    (text: string, source: string) => {
+      const parsed = parseCompilerOutput(text, code);
+      setDiagnostics(parsed.diagnostics);
+      setConsoleLines((prev) => [
+        ...prev,
+        { time: now(), msg: source, kind: 'diag', diagnostics: parsed.diagnostics, raw: parsed.raw },
+      ]);
+      return parsed;
+    },
+    [code],
+  );
 
   /* -------- real custom run via API + Socket -------- */
   const runOneSample = (
@@ -1573,6 +1642,7 @@ export default function ProblemSolve() {
     setRunning(true);
     setBottomTab('console');
     setConsoleLines([]);
+    setDiagnostics([]);
     setSampleOutputs({});
     pushConsole(`$ run --lang ${currentLangConfig.name} (${currentLangConfig.compiler}) --samples ${samples.length}`, 'sys');
 
@@ -1617,11 +1687,17 @@ export default function ProblemSolve() {
         setSampleOutputs({ ...newOutputs });
         if (isCorrect) {
           pushConsole(`Test ${i + 1}: OK${result.time !== undefined ? ` (${result.time}ms)` : ''}`, 'ok');
+        } else if (/^\[[A-Z_]+\]/.test(result.output)) {
+          // Lỗi biên dịch / lỗi chạy: hiện bảng lỗi có dòng, cột thay vì một dòng chữ dài.
+          const status = /^\[([A-Z_]+)\]/.exec(result.output)?.[1] ?? 'ERROR';
+          pushConsole(`Test ${i + 1}: ${status.replace(/_/g, ' ')}`, 'err');
+          reportCompilerOutput(result.output, `Test ${i + 1}`);
+          // Lỗi biên dịch thì các test sau cũng lỗi y hệt, dừng luôn cho đỡ chờ.
+          if (status === 'COMPILE_ERROR') break;
         } else {
           pushConsole(`Test ${i + 1}: WRONG ANSWER`, 'err');
           pushConsole(`  Expected: ${expected.slice(0, 100)}${expected.length > 100 ? '…' : ''}`, 'info');
-          const gotLimit = /^\[[A-Z_]+\]/.test(result.output) ? 800 : 100; // thông báo lỗi biên dịch/chạy cần dài hơn
-          pushConsole(`  Got:      ${result.output.slice(0, gotLimit)}${result.output.length > gotLimit ? '…' : ''}`, 'err');
+          pushConsole(`  Got:      ${result.output.slice(0, 100)}${result.output.length > 100 ? '…' : ''}`, 'err');
         }
       } catch (err) {
         const msg = err instanceof ApiError ? err.message : t('problemSolve.unknownError');
@@ -1645,6 +1721,7 @@ export default function ProblemSolve() {
     setJudging(true);
     setBottomTab('console');
     setConsoleLines([]);
+    setDiagnostics([]);
     setFinalVerdict(null);
     setTestVerdicts([]);
     setJudgeProgress(0);
@@ -1737,7 +1814,17 @@ export default function ProblemSolve() {
 
       window.clearTimeout(watchdogTimer);
       setFinalVerdict(verdict);
-      setBottomTab('results');
+      if (verdict === 'CE' || verdict === 'RTE') {
+        // Lấy thông báo lỗi của test đầu tiên để chỉ ra dòng lỗi; ở lại tab Console để xem.
+        void fetchSubmissionDetail(submissionId)
+          .then((detail) => {
+            const out = detail.test_results?.find((r) => r.actual_output)?.actual_output;
+            if (out) reportCompilerOutput(`[${status}] ${out}`, `Submission ${submissionId.slice(0, 8)}`);
+          })
+          .catch(() => undefined);
+      } else {
+        setBottomTab('results');
+      }
       setJudging(false);
       socket.disconnect();
       submissionSocketRef.current = null;
@@ -1864,7 +1951,6 @@ export default function ProblemSolve() {
   const solved = false;
 
   const lineCount = code.split('\n').length;
-  const highlighted = useMemo(() => highlight(code, lang), [code, lang]);
 
   const diffChip =
     problemDifficulty === 'EASY'
@@ -2159,44 +2245,6 @@ export default function ProblemSolve() {
                         </div>
                       </div>
 
-                      <div className="mt-5 flex items-center justify-between flex-wrap gap-3">
-                        <button
-                          onClick={downloadStatement}
-                          className="flex items-center gap-1.5 text-[13px] font-medium text-(--ws-accent) hover:underline"
-                        >
-                          <Download size={14} /> {t('problemSolve.downloadOriginal')}
-                        </button>
-
-                        {/* Nút chuyển ngôn ngữ nội dung đề bài (Tiếng Việt / English) */}
-                        {bilingualDescription && (
-                          <div className="flex items-center gap-1 bg-(--ws-panel2) border border-(--ws-border) rounded-lg p-1 text-xs">
-                            <Languages size={13} className="text-(--ws-accent) ml-1 mr-0.5" />
-                            <button
-                              type="button"
-                              onClick={() => setDescLang('vi')}
-                              className={`px-2.5 py-1 rounded-md text-[11.5px] font-semibold transition-all ${
-                                descLang === 'vi'
-                                  ? 'bg-(--ws-accent) text-white shadow-xs'
-                                  : 'text-(--ws-muted) hover:text-(--ws-text)'
-                              }`}
-                            >
-                              Tiếng Việt
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setDescLang('en')}
-                              className={`px-2.5 py-1 rounded-md text-[11.5px] font-semibold transition-all ${
-                                descLang === 'en'
-                                  ? 'bg-(--ws-accent) text-white shadow-xs'
-                                  : 'text-(--ws-muted) hover:text-(--ws-text)'
-                              }`}
-                            >
-                              English
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
                       <h2 className="mt-6 mb-5 text-[26px] font-extrabold leading-tight">{localizedTitle}</h2>
 
                       {displayedDescription && (
@@ -2256,6 +2304,16 @@ export default function ProblemSolve() {
                         </div>
                       ))}
 
+                      {/* Tải đề gốc: đặt cuối đề để không chen giữa phần giới hạn và tiêu đề */}
+                      <div className="mt-2 pt-5 border-t border-(--ws-border)">
+                        <button
+                          type="button"
+                          onClick={downloadStatement}
+                          className="inline-flex items-center gap-1.5 min-h-9 text-[13px] font-medium text-(--ws-accent) hover:underline"
+                        >
+                          <Download size={14} aria-hidden="true" /> {t('problemSolve.downloadOriginal')}
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -2338,8 +2396,8 @@ export default function ProblemSolve() {
                                         {badgeIcon}
                                         {sub.status}
                                       </span>
-                                      <span className="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-(--ws-panel2) text-(--ws-muted) font-semibold">
-                                        {sub.language_version || sub.language}
+                                      <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-(--ws-panel2) text-(--ws-muted) font-semibold">
+                                        {formatLanguageName(sub.language, sub.language_version)}
                                       </span>
                                     </div>
                                     <span className="text-xs text-(--ws-muted) flex items-center gap-1">
@@ -2411,7 +2469,7 @@ export default function ProblemSolve() {
                                   {isInspecting && (
                                     <div className="mt-2 rounded-lg bg-(--ws-panel2) p-3 border border-(--ws-border) overflow-hidden">
                                       <div className="flex items-center justify-between text-[11px] text-(--ws-muted) mb-2 pb-1.5 border-b border-(--ws-border)">
-                                        <span>{t('problemSolve.submissionSourceHeader', { id: sub.id.slice(0, 8), lang: sub.language })}</span>
+                                        <span>{t('problemSolve.submissionSourceHeader', { id: sub.id.slice(0, 8), lang: formatLanguageName(sub.language, sub.language_version) })}</span>
                                         <span>{t('problemSolve.lineCountSuffix', { count: sub.source_code.split('\n').length })}</span>
                                       </div>
                                       <pre className="text-xs font-mono text-(--ws-text) overflow-x-auto whitespace-pre p-1">
@@ -2743,39 +2801,17 @@ export default function ProblemSolve() {
               </div>
 
               {/* code area */}
-              <div ref={codeAreaRef} className="relative flex-1 min-h-0 overflow-hidden" style={{ fontSize }}>
-                {/* gutter */}
-                <div
-                  ref={gutterRef}
-                  className="absolute left-0 top-0 bottom-0 w-12 overflow-hidden py-3 text-right pr-3 select-none font-mono leading-6 text-(--ws-gutter)"
-                  aria-hidden
-                >
-                  {Array.from({ length: lineCount }, (_, i) => (
-                    <div key={i}>{i + 1}</div>
-                  ))}
-                </div>
-                {/* highlight layer */}
-                <pre
-                  ref={preRef}
-                  aria-hidden
-                  className={`absolute inset-0 left-12 m-0 py-3 pr-4 font-mono leading-6 pointer-events-none overflow-hidden text-(--ws-text) ${
-                    wrap ? 'whitespace-pre-wrap wrap-break-word' : 'whitespace-pre'
-                  }`}
-                  dangerouslySetInnerHTML={{ __html: highlighted + '\n' }}
-                />
-                {/* textarea */}
-                <textarea
-                  ref={taRef}
+              <div ref={codeAreaRef} className="relative flex-1 min-h-0 overflow-hidden bg-(--ws-editor)">
+                <CodeEditor
+                  ref={editorRef}
                   value={code}
-                  onChange={(e) => onCodeChange(e.target.value)}
-                  onScroll={syncScroll}
-                  onKeyDown={onKeyDown}
-                  spellCheck={false}
-                  autoCapitalize="off"
-                  autoCorrect="off"
-                  className={`ws-editor-scroll absolute inset-0 left-12 w-[calc(100%-3rem)] h-full py-3 pr-4 bg-transparent font-mono leading-6 resize-none outline-none text-transparent caret-(--ws-accent) selection:bg-(--ws-accent-soft) ${
-                    wrap ? 'whitespace-pre-wrap wrap-break-word' : 'whitespace-pre overflow-auto'
-                  }`}
+                  onChange={onCodeChange}
+                  language={currentLangConfig.monacoLang || 'cpp'}
+                  fontSize={fontSize}
+                  wordWrap={wrap}
+                  suggestions={intelli}
+                  diagnostics={diagnostics}
+                  ariaLabel={t('problemSolve.editorAriaLabel')}
                 />
               </div>
 
@@ -2820,6 +2856,11 @@ export default function ProblemSolve() {
                       }`}
                     >
                       <span className="inline-flex">{icon}</span>{label}
+                      {tab === 'console' && diagnostics.some((d) => d.severity === 'error') && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/15 text-(--ws-danger)">
+                          {diagnostics.filter((d) => d.severity === 'error').length}
+                        </span>
+                      )}
                       {tab === 'results' && finalVerdict && (
                         <span className={`text-[10px] px-1.5 py-0.5 rounded ${finalVerdict === 'AC' ? 'bg-(--ws-accent-soft) text-(--ws-ok)' : 'bg-red-500/15 text-(--ws-danger)'}`}>
                           {finalVerdict}
@@ -2933,14 +2974,22 @@ export default function ProblemSolve() {
                   {bottomTab === 'console' && (
                     <div className="font-mono text-[12.5px] leading-6 space-y-0.5">
                       {consoleLines.length === 0 && <p className="text-(--ws-faint)">{t('problemSolve.consoleEmpty')}</p>}
-                      {consoleLines.map((l, i) => (
-                        <p key={i} className="animate-slide-up">
-                          <span className="text-(--ws-faint) mr-2">[{l.time}]</span>
-                          <span className={l.kind === 'ok' ? 'text-(--ws-ok)' : l.kind === 'err' ? 'text-(--ws-danger)' : l.kind === 'sys' ? 'text-(--ws-accent)' : 'text-(--ws-text)'}>
-                            {l.msg}
-                          </span>
-                        </p>
-                      ))}
+                      {consoleLines.map((l, i) =>
+                        l.kind === 'diag' ? (
+                          <ProblemsList
+                            key={i}
+                            line={l}
+                            onJump={(d) => editorRef.current?.revealDiagnostic(d)}
+                          />
+                        ) : (
+                          <p key={i} className="animate-slide-up whitespace-pre-wrap wrap-anywhere">
+                            <span className="text-(--ws-faint) mr-2">[{l.time}]</span>
+                            <span className={l.kind === 'ok' ? 'text-(--ws-ok)' : l.kind === 'err' ? 'text-(--ws-danger)' : l.kind === 'sys' ? 'text-(--ws-accent)' : 'text-(--ws-text)'}>
+                              {l.msg}
+                            </span>
+                          </p>
+                        ),
+                      )}
                       {(running || judging) && <span className="inline-block w-2 h-4 bg-(--ws-accent) animate-pulse-dot align-middle" />}
                     </div>
                   )}
