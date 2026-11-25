@@ -345,7 +345,7 @@ export default function ClassPage() {
                       <ClipboardList size={15} /> {t('studentClass.homeworkCountHeading', { count: selectedClassHws.length })}
                     </h4>
                     <Link
-                      to={`/student/homework?class=${selectedClassData?.id}`}
+                      to={`/student/class/${selectedClassData?.id}`}
                       onClick={() => setSelectedClass(null)}
                       className="text-xs text-[#193a2b] font-semibold hover:underline flex items-center gap-1"
                     >

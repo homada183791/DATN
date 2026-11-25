@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
+import { Link, useLocation, Navigate, useNavigate, matchPath } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -40,6 +40,43 @@ interface SidebarItem {
   label: string;
   icon: React.ReactNode;
   path: string;
+}
+
+/** Các trang có thật (giữ khớp với App.tsx) — dùng để breadcrumb không tạo link dẫn ra 404. */
+const ROUTE_PATTERNS = [
+  '/student', '/student/dashboard', '/student/homeworks', '/student/class', '/student/class/:classId',
+  '/student/class/:classId/homework/:homeworkId', '/student/class/:classId/homework/:homeworkId/problem/:problemId',
+  '/student/contest/:contestId/problem/:problemId', '/student/problem/:id', '/student/problems', '/student/contest',
+  '/student/calendar', '/student/submission', '/student/submissions', '/student/profile', '/student/settings',
+  '/instructor', '/instructor/dashboard', '/instructor/classes', '/instructor/class/:classId', '/instructor/classes/:classId',
+  '/instructor/calendar', '/instructor/contest', '/instructor/students', '/instructor/homework', '/instructor/problems',
+  '/instructor/problem/:id', '/instructor/submission', '/instructor/submissions', '/instructor/profile', '/instructor/settings',
+];
+const isRealRoute = (path: string) => ROUTE_PATTERNS.some((pattern) => matchPath({ path: pattern, end: true }, path));
+
+/** Mục "danh sách" ngay sau vai trò mà địa chỉ ghép ra không có trang (vd /instructor/class) → trang danh sách thật. */
+const LIST_ALIASES: Record<string, Record<string, string>> = {
+  student: { class: '/student/class', classes: '/student/class', problem: '/student/problems', homework: '/student/homeworks' },
+  instructor: { class: '/instructor/classes', classes: '/instructor/classes', problem: '/instructor/problems', homework: '/instructor/homework', homeworks: '/instructor/homework' },
+};
+
+/**
+ * Link cho mục thứ `index` của breadcrumb, hoặc null nếu không có trang tương ứng (khi đó chỉ hiện chữ).
+ * - Địa chỉ ghép ra là trang thật → dùng luôn.
+ * - Mục danh sách ngay sau vai trò → trang danh sách thật (class → classes, problem → problems...).
+ * - Mục danh sách nằm sâu bên trong (vd .../class/<id>/homework) → về trang cha nếu trang cha có thật.
+ */
+export function breadcrumbHref(segments: string[], index: number): string | null {
+  const prefix = '/' + segments.slice(0, index + 1).join('/');
+  if (isRealRoute(prefix)) return prefix;
+  const role = segments[0];
+  if (index === 1 && LIST_ALIASES[role]?.[segments[1]]) return LIST_ALIASES[role][segments[1]];
+  const isIdLike = /^[0-9a-f-]{8,}$/i.test(segments[index]) || /\d/.test(segments[index]);
+  if (!isIdLike && index >= 2) {
+    const parent = '/' + segments.slice(0, index).join('/');
+    if (isRealRoute(parent)) return parent;
+  }
+  return null;
 }
 
 function Breadcrumbs() {
@@ -99,15 +136,17 @@ function Breadcrumbs() {
         <span key={index} className="flex items-center">
           <ChevronRight size={14} className="mx-2 text-[#bfae99]" />
           {index === pathSegments.length - 1 ? (
-            <span className="text-[#191919] font-medium">{formatSegment(segment)}</span>
-          ) : (
-            <Link
-              to={'/' + pathSegments.slice(0, index + 1).join('/')}
-              className="hover:text-[#193a2b] transition-colors"
-            >
-              {formatSegment(segment)}
-            </Link>
-          )}
+            <span className="text-[#191919] font-medium" aria-current="page">{formatSegment(segment)}</span>
+          ) : (() => {
+            const href = breadcrumbHref(pathSegments, index);
+            return href ? (
+              <Link to={href} className="hover:text-[#193a2b] transition-colors">
+                {formatSegment(segment)}
+              </Link>
+            ) : (
+              <span>{formatSegment(segment)}</span>
+            );
+          })()}
         </span>
       ))}
     </nav>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Calendar, ChevronRight, Clock, Search, Trophy, Users, X, Lock, Globe, BookOpen, Play, CheckCircle2 } from 'lucide-react';
 import { ApiError } from '../../api/http';
@@ -104,6 +104,19 @@ export default function Contest() {
       setLoadingProblems(false);
     }
   };
+
+  // Mở thẳng một kỳ thi từ link ngoài (vd Tổng quan): /student/contest?open=<id>
+  const [searchParams, setSearchParams] = useSearchParams();
+  const openParam = searchParams.get('open');
+  useEffect(() => {
+    if (!openParam || !data?.some((c) => c.id === openParam)) return;
+    void openContest(openParam);
+    setSearchParams((prev) => {
+      prev.delete('open');
+      return prev;
+    }, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openParam, data]);
 
   const registerForContest = async (contest: ContestDto) => {
     if (isRegistered(contest.id)) return;

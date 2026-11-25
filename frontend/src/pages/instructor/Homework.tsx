@@ -203,7 +203,7 @@ export default function InstructorHomework() {
           </p>
           {myClasses.length === 0 && (
             <Link
-              to="/instructor/class"
+              to="/instructor/classes"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#193a2b] text-white font-medium rounded-xl hover:bg-[#143022] shadow-md"
             >
               <GraduationCap size={16} /> {t('instructorHomework.goCreateClassBtn')}

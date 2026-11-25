@@ -239,7 +239,7 @@ export default function StudentDashboard() {
               {[...runningContests, ...upcomingContests].slice(0, 4).map((contest) => (
                 <li key={contest.id} className="border-b border-(--ws-border-soft) last:border-b-0">
                   <Link
-                    to={`/student/contest/${contest.id}`}
+                    to={`/student/contest?open=${contest.id}`}
                     className="block px-5 py-4 hover:bg-(--ws-hover) transition-colors"
                   >
                     <div className="flex items-center justify-between gap-2">
@@ -328,7 +328,7 @@ export default function StudentDashboard() {
                 <h2 id="dash-lb" className="text-sm font-bold">BXH kỳ thi hiện tại</h2>
                 <p className="text-xs text-(--ws-muted) truncate">{activeContest.title}</p>
               </div>
-              <Link to={`/student/contest/${activeContest.id}`} className="text-[13px] font-semibold text-(--ws-accent) hover:underline">
+              <Link to={`/student/contest?open=${activeContest.id}`} className="text-[13px] font-semibold text-(--ws-accent) hover:underline">
                 {t('instructorDashboard.viewAll')}
               </Link>
             </div>
