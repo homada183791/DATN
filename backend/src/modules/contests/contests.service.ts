@@ -11,6 +11,7 @@ import { EventsGateway } from '../../events/events.gateway';
 import { CreateContestDto } from './dto/create-contest.dto';
 import { UpdateContestDto } from './dto/update-contest.dto';
 import { AddProblemDto } from './dto/add-problem.dto';
+import type { ViolationReason } from './dto/report-violation.dto';
 import { randomInt } from 'crypto';
 
 const DEFAULT_MAX_CHEAT_WARNINGS = 3;
@@ -348,7 +349,10 @@ export class ContestsService {
     return { valid: false };
   }
 
-  /** Danh sách sinh viên vi phạm (số lần cảnh báo rời màn hình) cho màn hình giám sát của giảng viên */
+  /**
+   * Màn hình giám sát của giảng viên: mọi sinh viên đã vào kỳ thi, kèm số lần cảnh báo
+   * và lần vi phạm gần nhất (lý do, giờ). Sắp xếp người vi phạm nhiều lên đầu.
+   */
   async getSessions(contestId: string) {
     const contest = await this.prisma.contest.findUnique({
       where: { id: contestId },
@@ -356,29 +360,63 @@ export class ContestsService {
     });
     if (!contest) throw new NotFoundException('Không tìm thấy kỳ thi');
 
-    const sessions = await this.prisma.contestSession.findMany({
-      // Chỉ trả về sinh viên có vi phạm (rời màn hình ít nhất 1 lần hoặc đã bị loại)
-      where: {
-        contest_id: contestId,
-        OR: [{ cheat_warnings: { gt: 0 } }, { is_disqualified: true }],
-      },
-      include: {
-        student: { select: { id: true, email: true, username: true } },
-      },
-      orderBy: [{ cheat_warnings: 'desc' }, { updated_at: 'desc' }],
-    });
+    const [sessions, lastViolations] = await Promise.all([
+      this.prisma.contestSession.findMany({
+        where: { contest_id: contestId },
+        include: {
+          student: { select: { id: true, email: true, username: true, full_name: true } },
+        },
+        orderBy: [{ cheat_warnings: 'desc' }, { updated_at: 'desc' }],
+      }),
+      this.prisma.contestViolation.findMany({
+        where: { contest_id: contestId },
+        orderBy: { created_at: 'desc' },
+        distinct: ['student_id'],
+        select: { student_id: true, reason: true, created_at: true },
+      }),
+    ]);
+    const lastByStudent = new Map(lastViolations.map((v) => [v.student_id, v]));
 
     return {
       max_warnings: contest.max_cheat_warnings,
-      sessions: sessions.map((s) => ({
-        student_id: s.student_id,
-        username: s.student.username ?? s.student.email.split('@')[0],
-        email: s.student.email,
-        cheat_warnings: s.cheat_warnings,
-        is_disqualified: s.is_disqualified,
-        updated_at: s.updated_at,
-      })),
+      sessions: sessions.map((s) => {
+        const last = lastByStudent.get(s.student_id);
+        return {
+          student_id: s.student_id,
+          username: s.student.username ?? s.student.email.split('@')[0],
+          full_name: s.student.full_name ?? null,
+          email: s.student.email,
+          cheat_warnings: s.cheat_warnings,
+          is_disqualified: s.is_disqualified,
+          updated_at: s.updated_at,
+          last_violation: last ? { reason: last.reason, at: last.created_at } : null,
+        };
+      }),
     };
+  }
+
+  /** Nhật ký vi phạm của kỳ thi (mới nhất trước), có thể lọc theo một sinh viên. */
+  async getViolations(contestId: string, studentId?: string, limit = 200) {
+    const contest = await this.prisma.contest.findUnique({
+      where: { id: contestId },
+      select: { id: true },
+    });
+    if (!contest) throw new NotFoundException('Không tìm thấy kỳ thi');
+    const rows = await this.prisma.contestViolation.findMany({
+      where: { contest_id: contestId, ...(studentId ? { student_id: studentId } : {}) },
+      orderBy: { created_at: 'desc' },
+      take: Math.min(Math.max(limit, 1), 500),
+      include: { student: { select: { email: true, username: true } } },
+    });
+    return rows.map((v) => ({
+      id: v.id,
+      student_id: v.student_id,
+      username: v.student.username ?? v.student.email.split('@')[0],
+      reason: v.reason,
+      problem_id: v.problem_id,
+      warnings_after: v.warnings_after,
+      at: v.created_at,
+    }));
   }
 
   /** Cấp lại quyền thi tiếp: đưa số lần rời màn hình về 0 và bỏ trạng thái bị loại */
@@ -411,7 +449,12 @@ export class ContestsService {
     return { success: true, cheat_warnings: 0, is_disqualified: false };
   }
 
-  async reportCheatWarning(contestId: string, studentId: string) {
+  async reportCheatWarning(
+    contestId: string,
+    studentId: string,
+    detail: { reason?: ViolationReason; problem_id?: string } = {},
+  ) {
+    const reason: ViolationReason = detail.reason ?? 'OTHER';
     const contest = await this.prisma.contest.findUnique({
       where: { id: contestId },
     });
@@ -453,13 +496,29 @@ export class ContestsService {
       });
     }
 
+    // Lưu từng lần vi phạm để xem lại sau kỳ thi; lỗi ghi nhật ký không chặn việc cảnh báo.
+    const violation = await this.prisma.contestViolation
+      .create({
+        data: {
+          contest_id: contestId,
+          student_id: studentId,
+          reason,
+          problem_id: detail.problem_id ?? null,
+          warnings_after: session.cheat_warnings,
+        },
+      })
+      .catch(() => null);
+
     this.eventsGateway.emitAdminDashboardUpdate(contestId, {
       student_id: studentId,
       username: session.student.username ?? session.student.email.split('@')[0],
       email: session.student.email,
       cheat_warnings: session.cheat_warnings,
       is_disqualified: isDisqualified,
-      at: new Date().toISOString(),
+      reason,
+      problem_id: detail.problem_id ?? null,
+      violation_id: violation?.id ?? null,
+      at: (violation?.created_at ?? new Date()).toISOString(),
     });
 
     return {

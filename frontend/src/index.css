@@ -701,3 +701,11 @@ tr, .group { transition: background-color .14s ease; }
 @media (prefers-reduced-motion: reduce) {
   .jh-error-pointer, .jh-error-pointer-arrow, .jh-error-glyph::before, .jh-error-line-error::after { animation: none; }
 }
+
+/* Bảng giám sát kỳ thi: ô sinh viên nháy viền đỏ khi vừa vi phạm */
+.jh-monitor-flash { animation: jh-monitor-flash 0.8s ease-in-out 3; }
+@keyframes jh-monitor-flash {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--ws-danger) 55%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) { .jh-monitor-flash { animation: none; } }

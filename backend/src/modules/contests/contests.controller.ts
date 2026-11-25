@@ -8,11 +8,13 @@ import {
   Delete,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { ContestsService } from './contests.service';
 import { CreateContestDto } from './dto/create-contest.dto';
 import { UpdateContestDto } from './dto/update-contest.dto';
 import { AddProblemDto } from './dto/add-problem.dto';
+import { ReportViolationDto } from './dto/report-violation.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -148,6 +150,19 @@ export class ContestsController {
     return this.contestsService.getSessions(id);
   }
 
+  @Get(':id/violations')
+  @Roles(Role.INSTRUCTOR)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Giám sát kỳ thi: nhật ký từng lần vi phạm (lý do, giờ)' })
+  @ApiResponse({ status: 200, description: 'Danh sách vi phạm, mới nhất trước.' })
+  getViolations(
+    @Param('id') id: string,
+    @Query('student_id') studentId?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.contestsService.getViolations(id, studentId, limit ? Number(limit) || 200 : 200);
+  }
+
   @Post(':id/sessions/:studentId/reset')
   @Roles(Role.INSTRUCTOR)
   @ApiBearerAuth()
@@ -198,8 +213,12 @@ export class ContestsController {
   reportCheatWarning(
     @Param('id') id: string,
     @Request() req: { user: { userId: string } },
+    @Body() body: ReportViolationDto,
   ) {
-    return this.contestsService.reportCheatWarning(id, req.user.userId);
+    return this.contestsService.reportCheatWarning(id, req.user.userId, {
+      reason: body?.reason,
+      problem_id: body?.problem_id,
+    });
   }
 
   @Post(':id/calculate-elo')

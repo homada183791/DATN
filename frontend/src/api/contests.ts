@@ -238,13 +238,42 @@ export function fetchContestResults(contestId: string) {
   return apiFetch<ContestResultsDto>(`/api/v1/contests/${contestId}/results`);
 }
 
+export type ViolationReason = 'TAB_HIDDEN' | 'WINDOW_BLUR' | 'FULLSCREEN_EXIT' | 'OTHER';
+
 export interface ContestSessionDto {
   student_id: string;
   username: string;
+  full_name?: string | null;
   email: string;
   cheat_warnings: number;
   is_disqualified: boolean;
   updated_at: string;
+  last_violation?: { reason: ViolationReason | string; at: string } | null;
+}
+
+export interface ContestViolationDto {
+  id: string;
+  student_id: string;
+  username: string;
+  reason: ViolationReason | string;
+  problem_id: string | null;
+  warnings_after: number;
+  at: string;
+}
+
+/** Trạng thái trực tiếp của một sinh viên do backend gửi qua socket (contest_presence_*). */
+export interface ContestPresenceDto {
+  student_id: string;
+  username: string;
+  full_name: string | null;
+  state: 'active' | 'away' | 'offline';
+  problem_id: string | null;
+  since: number;
+  last_seen: number;
+}
+
+export function fetchContestViolations(contestId: string, limit = 150) {
+  return apiFetch<ContestViolationDto[]>(`/api/v1/contests/${contestId}/violations?limit=${limit}`);
 }
 
 export function resetContestSession(contestId: string, studentId: string) {

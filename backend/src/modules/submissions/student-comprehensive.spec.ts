@@ -57,6 +57,10 @@ describe('Student Role - Comprehensive Business Logic & Edge Cases', () => {
         upsert: jest.fn(),
         update: jest.fn(),
       },
+      contestViolation: {
+        create: jest.fn().mockResolvedValue({ id: 'v-1', created_at: new Date() }),
+        findMany: jest.fn().mockResolvedValue([]),
+      },
       class: {
         findUnique: jest.fn(),
         findMany: jest.fn(),

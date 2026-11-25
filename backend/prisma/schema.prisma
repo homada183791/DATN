@@ -39,6 +39,7 @@ model User {
   managed_classes  Class[]
   enrolled_classes ClassStudent[]
   contest_sessions ContestSession[]
+  contest_violations ContestViolation[]
   activity_logs    UserActivityLog[]
   notifications    Notification[]
   ai_interactions  AiInteraction[]
@@ -164,6 +165,7 @@ model Contest {
   problems           ContestProblem[]
   class              Class?             @relation(fields: [class_id], references: [id], onDelete: SetNull)
   contest_sessions   ContestSession[]
+  contest_violations ContestViolation[]
   plagiarism_reports PlagiarismReport[]
 
   @@map("contests")
@@ -257,6 +259,23 @@ model ContestSession {
 
   @@unique([contest_id, student_id])
   @@map("contest_sessions")
+}
+
+/// Từng lần vi phạm khi thi (rời tab, rời cửa sổ...) để giảng viên xem lại sau kỳ thi.
+model ContestViolation {
+  id             String   @id @default(uuid())
+  contest_id     String
+  student_id     String
+  reason         String // TAB_HIDDEN | WINDOW_BLUR | FULLSCREEN_EXIT | OTHER
+  problem_id     String?
+  warnings_after Int // số lần cảnh báo sau lần vi phạm này
+  created_at     DateTime @default(now())
+
+  contest Contest @relation(fields: [contest_id], references: [id], onDelete: Cascade)
+  student User    @relation(fields: [student_id], references: [id], onDelete: Cascade)
+
+  @@index([contest_id, created_at])
+  @@map("contest_violations")
 }
 
 model PlagiarismReport {

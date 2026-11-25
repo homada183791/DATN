@@ -872,6 +872,8 @@ function asciiTableToJson(text: string): string | null {
 type LayoutMode = 'split' | 'statement' | 'editor';
 type LeftTab = 'statement' | 'submissions' | 'ai_tutor' | 'resources';
 type BottomTab = 'tests' | 'console' | 'results' | 'debug';
+type ViolationCode = 'TAB_HIDDEN' | 'WINDOW_BLUR' | 'FULLSCREEN_EXIT' | 'OTHER';
+
 interface ConsoleLine {
   time: string;
   msg: string;
@@ -1011,7 +1013,7 @@ export default function ProblemSolve() {
   const lockdownActiveRef = useRef(lockdownActive);
   lockdownActiveRef.current = lockdownActive;
   const lastCheatReportTime = useRef(0);
-  const reportCheatRef = useRef<((reason: string) => Promise<void>) | null>(null);
+  const reportCheatRef = useRef<((reason: string, code?: ViolationCode) => Promise<void>) | null>(null);
 
   /* AI Tutor state */
   const [aiTutorHintType, setAiTutorHintType] = useState<'HINT' | 'COMPLEXITY' | 'EDGE_CASE' | 'EXPLAIN_LOGIC'>('HINT');
@@ -1045,6 +1047,8 @@ export default function ProblemSolve() {
   const goToContestProblem = (targetId: string) => navigate(`/student/contest/${contestId}/problem/${targetId}`);
 
   const problemId = apiProblem?.id ?? resolvedId ?? 'unknown-problem';
+  const problemIdRef = useRef<string | null>(null);
+  problemIdRef.current = apiProblem?.id ?? resolvedId ?? null;
   const problemTitle = apiProblem?.title ?? t('problemSolve.fallbackProblemTitle');
   const problemDifficulty = apiProblem?.difficulty ?? 'MEDIUM';
   const problemDescription = apiProblem?.description ?? '';
@@ -1423,12 +1427,57 @@ export default function ProblemSolve() {
     }
   };
 
+  // ── Báo trạng thái trực tiếp cho màn hình giám sát của giảng viên ─────────────
+  // Gửi khi mở trang, khi chuyển tab/quay lại, khi đổi bài và nhịp 15 giây/lần.
+  // Cả chế độ Giám sát lẫn Lockdown đều gửi (giảng viên cần biết ai đang online).
+  const presenceSocketRef = useRef<Socket | null>(null);
+  useEffect(() => {
+    if (!contestId || user?.role !== 'student' || !contestModeReady) return;
+    const socket = createSocket();
+    presenceSocketRef.current = socket;
+    const send = () => {
+      if (!socket.connected) return;
+      const away = document.visibilityState === 'hidden' || !document.hasFocus();
+      socket.emit('contest_presence', {
+        contest_id: contestId,
+        state: away ? 'away' : 'active',
+        problem_id: problemIdRef.current,
+      });
+    };
+    // blur/focus đến trước khi document.hasFocus() đổi giá trị → đợi một nhịp
+    const sendSoon = () => window.setTimeout(send, 0);
+    socket.on('connect', send);
+    document.addEventListener('visibilitychange', send);
+    window.addEventListener('blur', sendSoon);
+    window.addEventListener('focus', sendSoon);
+    const heartbeat = window.setInterval(send, 15_000);
+    return () => {
+      window.clearInterval(heartbeat);
+      document.removeEventListener('visibilitychange', send);
+      window.removeEventListener('blur', sendSoon);
+      window.removeEventListener('focus', sendSoon);
+      socket.disconnect();
+      presenceSocketRef.current = null;
+    };
+  }, [contestId, user?.role, contestModeReady]);
+
+  // Đổi bài trong cùng kỳ thi → báo ngay bài mới
+  useEffect(() => {
+    const socket = presenceSocketRef.current;
+    if (!socket?.connected || !contestId || !apiProblem?.id) return;
+    socket.emit('contest_presence', {
+      contest_id: contestId,
+      state: document.visibilityState === 'hidden' || !document.hasFocus() ? 'away' : 'active',
+      problem_id: apiProblem.id,
+    });
+  }, [apiProblem?.id, contestId]);
+
   // ── Anti-cheat monitoring khi đang làm bài trong phòng thi ─────────────────────
   // Chế độ Giám sát: ghi nhận rời màn hình/chuyển tab. Chế độ Lockdown: KHÔNG giám sát, chỉ khóa màn hình.
   useEffect(() => {
     if (!contestId || user?.role !== 'student' || isDisqualified || !contestModeReady) return;
 
-    const reportCheat = async (reason: string) => {
+    const reportCheat = async (reason: string, code: ViolationCode = 'OTHER') => {
       const currentTime = Date.now();
       if (currentTime - lastCheatReportTime.current < 4000) return;
       lastCheatReportTime.current = currentTime;
@@ -1441,6 +1490,8 @@ export default function ProblemSolve() {
           max_warnings?: number;
         }>(`/api/v1/contests/${contestId}/anti-cheat/warning`, {
           method: 'POST',
+          // Gửi kèm loại vi phạm và bài đang làm để giảng viên thấy trên màn hình giám sát
+          body: JSON.stringify({ reason: code, problem_id: problemIdRef.current }),
         });
 
         setCheatWarnings(res.cheat_warnings);
@@ -1460,12 +1511,12 @@ export default function ProblemSolve() {
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        reportCheat(t('problemSolve.cheatReasonTabSwitch'));
+        reportCheat(t('problemSolve.cheatReasonTabSwitch'), 'TAB_HIDDEN');
       }
     };
 
     const handleBlur = () => {
-      reportCheat(t('problemSolve.cheatReasonBlur'));
+      reportCheat(t('problemSolve.cheatReasonBlur'), 'WINDOW_BLUR');
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {

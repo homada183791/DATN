@@ -131,3 +131,55 @@ describe('EventsGateway authorization', () => {
     expect(owner.join).toHaveBeenCalledWith('custom_run_sess-1');
   });
 });
+
+describe('EventsGateway contest presence', () => {
+  const contestId = '11111111-1111-4111-8111-111111111111';
+  const makeGateway = (session: unknown) => {
+    const prisma = { contestSession: { findUnique: jest.fn().mockResolvedValue(session) } };
+    const gateway = new EventsGateway(undefined, prisma as never);
+    const roomEmit = jest.fn();
+    gateway.server = { to: jest.fn().mockReturnValue({ emit: roomEmit }) } as unknown as Server;
+    return { gateway, prisma, roomEmit };
+  };
+  const studentSocket = (id = 'sock-1') =>
+    ({ id, data: { user: { userId: 'stu-1', role: 'STUDENT' } }, emit: jest.fn(), join: jest.fn() }) as unknown as Socket;
+
+  it('thí sinh hợp lệ: báo trạng thái cho phòng giám sát, nhịp lặp lại không phát thêm', async () => {
+    const { gateway, roomEmit, prisma } = makeGateway({ student: { username: 'an', email: 'an@x.vn', full_name: 'An' } });
+    const sock = studentSocket();
+    await gateway.handleContestPresence(sock, { contest_id: contestId, state: 'active', problem_id: 'p1' });
+    await gateway.handleContestPresence(sock, { contest_id: contestId, state: 'active', problem_id: 'p1' });
+    expect(gateway.server.to).toHaveBeenCalledWith(`admin_dashboard_${contestId}`);
+    expect(roomEmit).toHaveBeenCalledTimes(1);
+    expect(roomEmit).toHaveBeenCalledWith(
+      'contest_presence_update',
+      expect.objectContaining({ student_id: 'stu-1', state: 'active', problem_id: 'p1', username: 'an' }),
+    );
+    // lần 2 dùng cache, không hỏi DB nữa
+    expect(prisma.contestSession.findUnique).toHaveBeenCalledTimes(1);
+
+    gateway.handleDisconnect(sock);
+    expect(roomEmit).toHaveBeenLastCalledWith('contest_presence_update', expect.objectContaining({ state: 'offline' }));
+  });
+
+  it('không phải thí sinh của kỳ thi thì bỏ qua', async () => {
+    const { gateway, roomEmit } = makeGateway(null);
+    await expect(
+      gateway.handleContestPresence(studentSocket(), { contest_id: contestId, state: 'active' }),
+    ).resolves.toEqual({ success: false });
+    expect(roomEmit).not.toHaveBeenCalled();
+  });
+
+  it('giảng viên vào phòng giám sát nhận ngay ảnh chụp trạng thái', async () => {
+    const { gateway } = makeGateway({ student: { username: 'an', email: 'an@x.vn', full_name: null } });
+    await gateway.handleContestPresence(studentSocket(), { contest_id: contestId, state: 'away' });
+    const teacher = {
+      id: 't', data: { user: { userId: 'gv', role: 'INSTRUCTOR' } }, join: jest.fn(), emit: jest.fn(),
+    } as unknown as Socket;
+    await gateway.handleJoinAdminDashboard(teacher, { contest_id: contestId });
+    expect(teacher.emit).toHaveBeenCalledWith(
+      'contest_presence_snapshot',
+      expect.objectContaining({ students: [expect.objectContaining({ student_id: 'stu-1', state: 'away' })] }),
+    );
+  });
+});

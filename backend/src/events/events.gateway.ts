@@ -10,12 +10,13 @@ import {
   WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger, Optional } from '@nestjs/common';
+import { Logger, OnModuleDestroy, Optional } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { JoinSubmissionRoomDto } from './dto/join-submission-room.dto';
 import { JoinAdminDashboardDto } from './dto/join-admin-dashboard.dto';
 import { isAllowedOrigin, requireSecret } from '../common/config/secrets';
+import { ContestPresenceTracker, type PresenceEntry } from './contest-presence';
 
 export type SocketUser = { userId: string; role: string };
 
@@ -27,7 +28,7 @@ export type SocketUser = { userId: string; role: string };
   },
 })
 export class EventsGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect, OnModuleDestroy
 {
   private static readonly SUBMISSION_SNAPSHOT_TTL_MS = 5 * 60 * 1000;
   private static readonly MAX_SUBMISSION_SNAPSHOTS = 1000;
@@ -54,6 +55,16 @@ export class EventsGateway
   private readonly customRunOwners = new Map<string, { userId: string; expiresAt: number }>();
   private static readonly CUSTOM_RUN_TTL_MS = 10 * 60 * 1000;
 
+  /** Trạng thái trực tiếp của sinh viên trong kỳ thi (màn hình giám sát). */
+  readonly presence = new ContestPresenceTracker(45_000);
+  private presenceSweepTimer?: ReturnType<typeof setInterval>;
+  /** (kỳ thi|sinh viên) đã kiểm tra là thí sinh hợp lệ, để nhịp 15 giây không phải hỏi DB mỗi lần. */
+  private readonly presenceAllowed = new Map<
+    string,
+    { username: string; full_name: string | null; expiresAt: number }
+  >();
+  private static readonly PRESENCE_ALLOW_TTL_MS = 10 * 60 * 1000;
+
   constructor(
     @Optional() private readonly jwtService?: JwtService,
     @Optional() private readonly prisma?: PrismaService,
@@ -61,6 +72,14 @@ export class EventsGateway
 
   afterInit() {
     this.logger.log('Websocket Gateway Initialized');
+    this.presenceSweepTimer = setInterval(() => {
+      for (const change of this.presence.sweep()) this.emitPresence(change.contest_id, change.entry);
+    }, 15_000);
+    this.presenceSweepTimer.unref?.();
+  }
+
+  onModuleDestroy() {
+    if (this.presenceSweepTimer) clearInterval(this.presenceSweepTimer);
   }
 
   /** Xác thực JWT ngay khi kết nối; token sai hoặc thiếu thì ngắt kết nối. */
@@ -89,6 +108,9 @@ export class EventsGateway
 
   handleDisconnect(client: Socket) {
     this.logger.log(`[EventsGateway] Client disconnected: ${client.id}`);
+    for (const change of this.presence.disconnect(client.id)) {
+      this.emitPresence(change.contest_id, change.entry);
+    }
   }
 
   private requireUser(client: Socket): SocketUser {
@@ -148,7 +170,70 @@ export class EventsGateway
     }
     const roomName = `admin_dashboard_${payload.contest_id}`;
     await client.join(roomName);
+    // Gửi ngay ảnh chụp trạng thái hiện tại để màn hình giám sát không phải chờ nhịp kế tiếp.
+    client.emit('contest_presence_snapshot', {
+      contest_id: payload.contest_id,
+      server_time: Date.now(),
+      students: this.presence.snapshot(payload.contest_id),
+    });
     return { success: true, event: 'joined_admin', room: roomName };
+  }
+
+  // ─── Contest presence (sinh viên báo trạng thái khi đang thi) ───────────────
+
+  /**
+   * Sinh viên đang ở trang làm bài thi gửi trạng thái: khi mở trang, khi chuyển tab/quay lại,
+   * khi đổi bài, và nhịp 15 giây/lần. Chỉ thí sinh đã vào kỳ thi mới được ghi nhận.
+   */
+  @SubscribeMessage('contest_presence')
+  async handleContestPresence(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { contest_id?: string; state?: string; problem_id?: string | null },
+  ) {
+    const user = this.requireUser(client);
+    const contestId = typeof payload?.contest_id === 'string' ? payload.contest_id : '';
+    const state = payload?.state === 'away' ? 'away' : 'active';
+    const problemId =
+      typeof payload?.problem_id === 'string' && payload.problem_id.length <= 64 ? payload.problem_id : null;
+    if (!/^[0-9a-f-]{36}$/i.test(contestId)) return { success: false };
+
+    const student = await this.resolvePresenceStudent(contestId, user.userId);
+    if (!student) return { success: false };
+
+    const changed = this.presence.update(contestId, student, client.id, state, problemId);
+    if (changed) this.emitPresence(contestId, changed);
+    return { success: true };
+  }
+
+  private async resolvePresenceStudent(contestId: string, userId: string) {
+    const key = `${contestId}|${userId}`;
+    const cached = this.presenceAllowed.get(key);
+    const now = Date.now();
+    if (cached && cached.expiresAt > now) return { id: userId, ...cached };
+    const session = await this.prisma?.contestSession.findUnique({
+      where: { contest_id_student_id: { contest_id: contestId, student_id: userId } },
+      select: { student: { select: { username: true, email: true, full_name: true } } },
+    });
+    if (!session) return null;
+    const info = {
+      username: session.student.username ?? session.student.email.split('@')[0],
+      full_name: session.student.full_name ?? null,
+      expiresAt: now + EventsGateway.PRESENCE_ALLOW_TTL_MS,
+    };
+    this.presenceAllowed.set(key, info);
+    return { id: userId, ...info };
+  }
+
+  private emitPresence(contestId: string, entry: PresenceEntry) {
+    try {
+      this.server?.to(`admin_dashboard_${contestId}`).emit('contest_presence_update', {
+        contest_id: contestId,
+        server_time: Date.now(),
+        ...entry,
+      });
+    } catch (error: any) {
+      this.logger.error(`[EventsGateway] Error emitting presence: ${error.message}`);
+    }
   }
 
   // ─── Custom run room ────────────────────────────────────────────────────────
