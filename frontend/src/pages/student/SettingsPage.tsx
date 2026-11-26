@@ -209,6 +209,7 @@ export default function SettingsPage() {
       });
 
       window.localStorage.setItem('user_preferences', JSON.stringify(preferences));
+      window.dispatchEvent(new CustomEvent('jh-editor-preferences-changed', { detail: preferences }));
       updateUser({ preferences });
       triggerSavedFeedback(t('settings.savedSuccess'));
     } catch (err: any) {
