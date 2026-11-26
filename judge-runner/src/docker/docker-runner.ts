@@ -39,6 +39,28 @@ export interface CustomRunPayload {
   custom_input: string;
 }
 
+/** Chạy MỘT chương trình trên nhiều input (sinh test: chạy generator / lời giải mẫu / bài AC cũ). */
+export interface BatchRunPayload {
+  language: Language;
+  language_version?: string;
+  source_code: string;
+  inputs: string[];
+  time_limit_ms: number;
+  memory_limit_mb?: number;
+}
+
+export interface BatchRunItem {
+  status: 'OK' | 'TIME_LIMIT_EXCEEDED' | 'RUNTIME_ERROR';
+  stdout: string;
+  stderr: string;
+  execution_time: number;
+}
+
+export interface BatchRunResult {
+  compile_error?: string;
+  results: BatchRunItem[];
+}
+
 export interface TestResultItem {
   testcase_index: number;
   status: string;
@@ -194,6 +216,52 @@ export class DockerRunner {
         execution_time: result.executionTime,
         memory_used: result.memoryUsed,
       };
+    } finally {
+      await this.destroySandbox(sandbox);
+    }
+  }
+
+  /**
+   * Biên dịch một lần rồi chạy chương trình với từng input (stdin) — trả nguyên stdout để backend so sánh.
+   * Dùng cho sinh test: chạy generator (input = seed), lời giải mẫu (lấy output), và bài AC cũ (tìm test làm sai).
+   */
+  static async runBatch(payload: BatchRunPayload): Promise<BatchRunResult> {
+    const { language, language_version, source_code, inputs, time_limit_ms } = payload;
+    const config = getCompilerConfig(language, language_version);
+    if (!config) throw new Error(`Unsupported language: ${language}`);
+    const memoryMb = Math.min(Math.max(payload.memory_limit_mb ?? 256, 64), 1024);
+    const timeLimit = Math.min(Math.max(time_limit_ms || 2000, 200), 15000);
+
+    const sandbox = await this.createSandbox(
+      [
+        { name: config.filename, data: Buffer.from(source_code, 'utf8') },
+        ...inputs.map((input, i) => ({ name: `.in_${i}.txt`, data: Buffer.from(input || '', 'utf8') })),
+      ],
+      Math.max(memoryMb, COMPILE_MEMORY_MB),
+    );
+    try {
+      if (config.compileCmd) {
+        const compileResult = await this.execInSandbox(sandbox, config.compileCmd, COMPILE_TIMEOUT_MS, null);
+        if (compileResult.exitCode !== 0) {
+          return { compile_error: compileResult.stderr.slice(0, 2000), results: [] };
+        }
+      }
+      if (memoryMb < COMPILE_MEMORY_MB) {
+        await sandbox.container
+          .update({ Memory: memoryMb * 1024 * 1024, MemorySwap: memoryMb * 1024 * 1024 } as any)
+          .catch(() => {});
+      }
+      const results: BatchRunItem[] = [];
+      for (let i = 0; i < inputs.length; i++) {
+        const r = await this.execInSandbox(sandbox, config.runCmd, timeLimit, `.in_${i}.txt`);
+        results.push({
+          status: r.isTle ? 'TIME_LIMIT_EXCEEDED' : r.exitCode !== 0 ? 'RUNTIME_ERROR' : 'OK',
+          stdout: r.stdout,
+          stderr: r.stderr.slice(0, 1000),
+          execution_time: r.executionTime,
+        });
+      }
+      return { results };
     } finally {
       await this.destroySandbox(sandbox);
     }

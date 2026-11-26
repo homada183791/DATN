@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, ChevronRight, Search, Plus, Edit, Trash2, ArrowUpDown, Tags } from 'lucide-react';
+import { BookOpen, ChevronRight, Search, Plus, Edit, Trash2, ArrowUpDown, Tags, FlaskConical } from 'lucide-react';
 import SkillTagModal from '../../components/skills/SkillTagModal';
+import TestGenModal from '../../components/testgen/TestGenModal';
 import SkillChips from '../../components/skills/SkillChips';
 import { useProblemSkillMapQuery, useSkillCatalogQuery } from '../../api/skills';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -49,6 +50,7 @@ export default function ProblemList() {
   const { user } = useAuth();
   const isInstructor = user?.role === 'instructor';
   const [taggingProblem, setTaggingProblem] = useState<{ id: string; title: string } | null>(null);
+  const [testgenProblem, setTestgenProblem] = useState<{ id: string; title: string } | null>(null);
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useProblemsQuery();
 
@@ -377,6 +379,19 @@ export default function ProblemList() {
                     <Tags size={16} aria-hidden="true" />
                   </button>
                   <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setTestgenProblem({ id: problem.id, title: problem.title });
+                    }}
+                    className="p-1 text-(--ws-muted) hover:text-(--ws-accent) transition-colors"
+                    title={t('testgen.openBtn')}
+                    aria-label={t('testgen.openBtn')}
+                  >
+                    <FlaskConical size={16} aria-hidden="true" />
+                  </button>
+                  <button
                     onClick={(e) => handleOpenEditModal(e, problem)}
                     className="p-1 text-(--ws-muted) hover:text-(--ws-accent) transition-colors"
                     title={t('problemList.editTitle')}
@@ -415,6 +430,14 @@ export default function ProblemList() {
           problemId={taggingProblem.id}
           problemTitle={taggingProblem.title}
           onClose={() => setTaggingProblem(null)}
+        />
+      )}
+
+      {testgenProblem && (
+        <TestGenModal
+          problemId={testgenProblem.id}
+          problemTitle={testgenProblem.title}
+          onClose={() => setTestgenProblem(null)}
         />
       )}
 

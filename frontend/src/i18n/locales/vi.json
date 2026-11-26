@@ -1549,5 +1549,62 @@
       "all": "Tất cả",
       "trains": "Bài này rèn kỹ năng:"
     }
+  },
+  "testgen": {
+    "title": "Sinh test có kiểm chứng",
+    "step1": "AI viết chương trình sinh input (ngẫu nhiên, biên, đối kháng)",
+    "step2": "Chạy generator trong sandbox ra input thật",
+    "step3": "Chạy lời giải mẫu của bạn để lấy output",
+    "step4": "Chạy lại các bài AC cũ để tìm bài thực ra sai",
+    "refLanguage": "Ngôn ngữ lời giải mẫu",
+    "refCode": "Lời giải mẫu",
+    "refHint": "Lời giải đúng của bạn. Hệ thống chạy nó trên bộ test hiện có trước; nếu sai thì dừng, vì output của test mới lấy từ lời giải này.",
+    "kind": {
+      "random": "Ngẫu nhiên",
+      "edge": "Biên",
+      "adversarial": "Đối kháng"
+    },
+    "needCode": "Hãy dán lời giải mẫu trước.",
+    "startFailed": "Không bắt đầu được lượt sinh test.",
+    "applyFailed": "Không thêm được test.",
+    "applied": "Đã thêm {{n}} test ẩn vào bài (bỏ {{dup}} test trùng).",
+    "status": {
+      "PENDING": "Đang xếp hàng…",
+      "REFERENCE": "Đang chạy lời giải mẫu…",
+      "GENERATORS": "AI đang viết chương trình sinh input…",
+      "INPUTS": "Đang chạy generator trong sandbox…",
+      "CHECKING": "Đang chạy lại các bài AC cũ…",
+      "DONE": "Xong",
+      "FAILED": "Thất bại"
+    },
+    "runningHint": "Có thể mất 1–3 phút. Bạn có thể đóng cửa sổ, mở lại sau vẫn thấy kết quả.",
+    "failed": "Lượt sinh test thất bại",
+    "weakTitle": "Bộ test cũ đang yếu: {{n}}/{{total}} bài AC thực ra sai",
+    "weakBody": "Các bài này qua bộ test hiện tại nhưng sai trên test mới. Thêm các test đánh dấu đỏ để chấm chặt hơn (bài cũ không bị chấm lại tự động).",
+    "strong": "Không bài AC nào trong {{total}} bài bị sai trên test mới.",
+    "noAccepted": "Bài này chưa có bài nộp AC nào để kiểm tra lại.",
+    "stats": "Sinh {{gen}} input, giữ {{kept}} test, bỏ {{dropped}} (lời giải mẫu lỗi hoặc quá giờ). Bài đang có {{existing}} test.",
+    "generators": "Chương trình sinh input do AI viết",
+    "genError": "lỗi",
+    "produced": "{{n}} input",
+    "candidates": "Test sinh ra",
+    "selectAll": "Chọn tất cả",
+    "selectNone": "Bỏ chọn",
+    "selectBreaking": "Chỉ chọn test bắt lỗi",
+    "selectOne": "Chọn test {{id}}",
+    "col": {
+      "kind": "Loại",
+      "input": "Input",
+      "output": "Output (lời giải mẫu)",
+      "time": "Thời gian",
+      "breaks": "Bài AC bị sai"
+    },
+    "heavy": "nặng",
+    "breaksN": "{{n}} bài",
+    "start": "Bắt đầu sinh test",
+    "again": "Sinh lại",
+    "backToResult": "Xem kết quả cũ",
+    "apply": "Thêm {{n}} test vào bài",
+    "openBtn": "Sinh test bằng AI"
   }
 }

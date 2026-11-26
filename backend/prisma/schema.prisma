@@ -71,6 +71,7 @@ model Problem {
   contests           ContestProblem[]
   plagiarism_reports PlagiarismReport[]
   skills             ProblemSkill[]
+  testgen_jobs       TestGenJob[]
 
   @@map("problems")
 }
@@ -417,4 +418,29 @@ model SkillMastery {
   @@unique([student_id, skill_id, scope])
   @@index([scope, skill_id])
   @@map("skill_masteries")
+}
+
+// ─── Sinh test bằng AI có kiểm chứng (HardTestGen + TrickCatcher) ──────────────
+/// Một lần sinh test cho một bài: AI viết chương trình sinh input (ngẫu nhiên / biên / đối kháng),
+/// chạy trong sandbox để ra input, chạy lời giải mẫu để ra output, rồi chạy lại các bài AC cũ để tìm bài
+/// thực ra sai. Giảng viên chọn test nào thêm vào bài.
+model TestGenJob {
+  id                 String   @id @default(uuid())
+  problem_id         String
+  created_by         String
+  status             String   @default("PENDING") // PENDING | GENERATORS | INPUTS | REFERENCE | CHECKING | DONE | FAILED
+  error              String?  @db.Text
+  reference_language String
+  reference_code     String   @db.Text
+  generators         Json?
+  candidates         Json?
+  summary            Json?
+  applied_count      Int      @default(0)
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  problem Problem @relation(fields: [problem_id], references: [id], onDelete: Cascade)
+
+  @@index([problem_id, created_at])
+  @@map("testgen_jobs")
 }

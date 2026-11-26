@@ -1549,5 +1549,62 @@
       "all": "All",
       "trains": "Skills practiced:"
     }
+  },
+  "testgen": {
+    "title": "Verified test generation",
+    "step1": "AI writes input generators (random, edge, adversarial)",
+    "step2": "Run the generators in the sandbox to get real inputs",
+    "step3": "Run your reference solution to get outputs",
+    "step4": "Re-run old accepted submissions to find wrong ones",
+    "refLanguage": "Reference language",
+    "refCode": "Reference solution",
+    "refHint": "Your correct solution. It is first run on the existing tests; if it fails, generation stops, because new outputs come from it.",
+    "kind": {
+      "random": "Random",
+      "edge": "Edge",
+      "adversarial": "Adversarial"
+    },
+    "needCode": "Paste the reference solution first.",
+    "startFailed": "Could not start test generation.",
+    "applyFailed": "Could not add tests.",
+    "applied": "Added {{n}} hidden tests ({{dup}} duplicates skipped).",
+    "status": {
+      "PENDING": "Queued…",
+      "REFERENCE": "Running the reference solution…",
+      "GENERATORS": "AI is writing input generators…",
+      "INPUTS": "Running generators in the sandbox…",
+      "CHECKING": "Re-running old accepted submissions…",
+      "DONE": "Done",
+      "FAILED": "Failed"
+    },
+    "runningHint": "This can take 1–3 minutes. You can close this window and come back later.",
+    "failed": "Test generation failed",
+    "weakTitle": "Existing tests are weak: {{n}}/{{total}} accepted submissions are actually wrong",
+    "weakBody": "These passed the current tests but fail the new ones. Add the tests marked red to judge more strictly (old submissions are not rejudged automatically).",
+    "strong": "None of the {{total}} accepted submissions fail the new tests.",
+    "noAccepted": "This problem has no accepted submissions to re-check yet.",
+    "stats": "Generated {{gen}} inputs, kept {{kept}}, dropped {{dropped}} (reference failed or too slow). The problem has {{existing}} tests.",
+    "generators": "Input generators written by AI",
+    "genError": "error",
+    "produced": "{{n}} inputs",
+    "candidates": "Generated tests",
+    "selectAll": "Select all",
+    "selectNone": "Clear",
+    "selectBreaking": "Only tests that catch bugs",
+    "selectOne": "Select test {{id}}",
+    "col": {
+      "kind": "Kind",
+      "input": "Input",
+      "output": "Output (reference)",
+      "time": "Time",
+      "breaks": "Accepted that fail"
+    },
+    "heavy": "heavy",
+    "breaksN": "{{n}} subs",
+    "start": "Start generating",
+    "again": "Generate again",
+    "backToResult": "Back to last result",
+    "apply": "Add {{n}} tests to problem",
+    "openBtn": "Generate tests with AI"
   }
 }

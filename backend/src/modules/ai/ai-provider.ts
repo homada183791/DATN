@@ -9,6 +9,8 @@ export interface AiCompletionRequest {
   messages: AiMessage[];
   maxTokens: number;
   temperature?: number;
+  /** Ghi đè AI_TIMEOUT_MS cho lượt gọi dài (vd. viết chương trình sinh test). */
+  timeoutMs?: number;
 }
 
 export interface AiCompletionResult {
@@ -75,7 +77,7 @@ export class AiProvider {
     req: AiCompletionRequest,
   ): Promise<AiCompletionResult> {
     const base = process.env.AI_BASE_URL!.trim().replace(/\/+$/, '');
-    const timeoutMs = Number(process.env.AI_TIMEOUT_MS) || 30_000;
+    const timeoutMs = req.timeoutMs ?? (Number(process.env.AI_TIMEOUT_MS) || 30_000);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     const started = Date.now();

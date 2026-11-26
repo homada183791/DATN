@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { json } from 'express';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -22,6 +23,9 @@ async function bootstrap() {
   });
 
   app.setGlobalPrefix('api/v1');
+  // Kết quả sinh test từ máy chấm có thể vài MB; chỉ nới giới hạn cho đúng đường dẫn này
+  // (đăng ký trước bộ đọc JSON mặc định 100 KB của Nest).
+  app.use('/api/v1/webhook/judge/batch', json({ limit: '40mb' }));
 
   app.useGlobalPipes(
     new ValidationPipe({
