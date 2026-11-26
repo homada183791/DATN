@@ -3,7 +3,7 @@ import { mkdtempSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { TestGenService } from './testgen.service';
-import { parseGenerators, sameOutput } from './testgen-prompt';
+import { parseGenerators, parseSolveResponse, sameOutput } from './testgen-prompt';
 import type { BatchRequest, BatchResult } from '../sandbox/sandbox-batch.service';
 
 /**
@@ -87,8 +87,9 @@ function makePrisma() {
     },
     testGenJob: {
       findFirst: jest.fn(async () => null),
+      count: jest.fn(async () => 0),
       create: jest.fn(async ({ data }) => {
-        const job = { id: 'job1', status: 'PENDING', error: null, generators: null, candidates: null,
+        const job = { id: 'job1', status: 'PENDING', mode: 'REFERENCE', spec: null, solutions: null, problem_id: null, error: null, generators: null, candidates: null,
           applied_count: 0, created_at: new Date(), updated_at: new Date(), ...data };
         jobs.set(job.id, job);
         return job;
@@ -177,12 +178,88 @@ describe('TestGenService (quy trình 4 bước)', () => {
   }, 30_000);
 });
 
+// Lời giải nhanh viết sai (in thêm 1) ở lần đầu → AI được báo lỗi và sửa ở lần sau.
+const SOLVE_BAD = JSON.stringify({
+  samples: [{ input: '3\n1 2 3\n', output: '6\n' }],
+  fast: { language: 'CPP', code: REF.replace('s<<', 's+1<<') },
+  brute: { language: 'PYTHON', code: GOOD_PY },
+});
+// Lời giải trâu cố tình chậm khi N lớn → test lớn chỉ có lời giải nhanh chạy kịp.
+const SLOW_BRUTE = 'import time\nn=int(input())\na=list(map(int,input().split()))\nif n>100: time.sleep(5)\nprint(sum(a))';
+const SOLVE_OK = JSON.stringify({
+  samples: [{ input: '3\n1 2 3\n', output: '6\n' }],
+  fast: { language: 'CPP', code: REF },
+  brute: { language: 'PYTHON', code: SLOW_BRUTE },
+});
+
+describe('TestGenService — chế độ AI (giảng viên không có lời giải mẫu, bài chưa lưu)', () => {
+  it('AI viết 2 lời giải, sửa sau khi sai ví dụ, chấm chéo ra output; test lớn giữ khi đã khớp đủ', async () => {
+    const { prisma, jobs } = makePrisma();
+    const sb = localSandbox();
+    const replies = [SOLVE_BAD, SOLVE_OK, LLM_REPLY];
+    const ai: any = { isConfigured: () => true, complete: jest.fn(async () => ({ text: replies.shift() })) };
+    const svc = new TestGenService(prisma, ai, sb as any);
+
+    await svc.startDraft('gv1', {
+      title: 'Tổng dãy',
+      description: 'Cho N (1≤N≤1000) và N số nguyên |a_i|≤1e9. In tổng. Ví dụ: 3 / 1 2 3 → 6',
+      time_limit: 2000,
+      memory_limit: 256,
+      samples: [],
+      random_count: 3,
+      edge_count: 2,
+      adversarial_count: 2,
+    });
+    await waitDone(jobs);
+    const job = jobs.get('job1');
+    expect(job.error).toBeNull();
+    expect(job.mode).toBe('AI');
+    expect(job.solutions.attempts).toBe(2);
+    expect(job.solutions.samples_source).toBe('statement');
+    // lần 2 AI nhận được phản hồi lỗi của lần 1
+    expect(ai.complete.mock.calls[1][0].messages[1].content).toMatch(/wrong answer/);
+
+    const c = job.candidates as any[];
+    expect(c.filter((x) => x.verified_by === 'both').length).toBeGreaterThanOrEqual(3);
+    // test đối kháng N=1000: lời giải trâu quá giờ → chỉ lời giải nhanh, vẫn giữ vì đã khớp đủ
+    const adv = c.filter((x) => x.kind === 'adversarial');
+    expect(adv.length).toBe(2);
+    expect(adv.every((x) => x.verified_by === 'fast')).toBe(true);
+    expect(job.summary.mismatch).toBe(0);
+    // bài chưa lưu: không soi bài AC cũ, không thêm thẳng vào DB, chỉ trả test cho form
+    expect(prisma.submission.findMany).not.toHaveBeenCalled();
+    await expect(svc.apply('job1', 'gv1', [c[0].id])).rejects.toThrow('Bài chưa lưu');
+    const tests = await svc.exportTests('job1', 'gv1', [adv[0].id]);
+    expect(tests[0].input.length).toBeGreaterThan(400); // nguyên văn, không bị cắt như bản xem trước
+    await expect(svc.get('job1', 'gv2')).rejects.toThrow();
+  }, 90_000);
+
+  it('dừng và báo rõ khi đề không có ví dụ nào để kiểm lời giải', async () => {
+    const { prisma, jobs } = makePrisma();
+    const ai: any = {
+      isConfigured: () => true,
+      complete: jest.fn(async () => ({ text: JSON.stringify({ samples: [], fast: { language: 'CPP', code: REF }, brute: { language: 'PYTHON', code: GOOD_PY } }) })),
+    };
+    const svc = new TestGenService(prisma, ai, localSandbox() as any);
+    await svc.startDraft('gv1', { title: 'Tổng dãy', description: 'Cho N số, in tổng của chúng nhé các bạn.', time_limit: 1000, memory_limit: 256 });
+    await waitDone(jobs);
+    expect(jobs.get('job1').status).toBe('FAILED');
+    expect(jobs.get('job1').error).toMatch(/chưa có ví dụ/);
+  }, 30_000);
+});
+
 describe('testgen-prompt', () => {
   it('đọc JSON generator, bỏ loại lạ / code rỗng, giới hạn count', () => {
     const g = parseGenerators('```json\n{"generators":[{"kind":"EDGE","name":"a","count":99,"code":"print(1)  # đủ hai mươi ký tự"},{"kind":"weird","code":"print(1)................"}]}\n```');
     expect(g).toHaveLength(1);
     expect(g[0]).toMatchObject({ kind: 'edge', count: 8 });
     expect(parseGenerators('không có json')).toEqual([]);
+  });
+  it('đọc 2 lời giải + ví dụ trích từ đề', () => {
+    const r = parseSolveResponse('{"samples":[{"input":"1","output":"2"},{"input":"x"}],"fast":{"language":"c++","code":"int main(){return 0;} // ok"},"brute":{"code":"print(2)"}}');
+    expect(r.samples).toEqual([{ input: '1', expected_output: '2' }]);
+    expect(r.fast?.language).toBe('CPP');
+    expect(r.brute).toBeNull(); // code quá ngắn
   });
   it('so output như máy chấm', () => {
     expect(sameOutput('6\r\n', ' 6 ')).toBe(true);

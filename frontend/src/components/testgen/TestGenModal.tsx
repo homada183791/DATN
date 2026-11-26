@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Check, ChevronDown, FlaskConical, Loader2, RotateCcw, X } from 'lucide-react';
+import { AlertTriangle, Bot, Check, ChevronDown, FlaskConical, Info, Loader2, RotateCcw, X } from 'lucide-react';
 import { ApiError } from '../../api/http';
 import {
+  exportTestGen,
   isTestGenRunning,
   useApplyTestGen,
   useLatestTestGen,
   useStartTestGen,
   useTestGenJob,
+  type DraftSpec,
+  type TestGenCandidate,
   type TestGenKind,
   type TestGenStatus,
 } from '../../api/testgen';
@@ -16,7 +19,12 @@ import { SUPPORTED_LANGUAGES, getLanguageLabel, mapVersionToApi } from '../../co
 import { notifyGlobalToast } from '../../context/ToastContext';
 import CodeEditor from '../CodeEditor';
 
-const STEPS: TestGenStatus[] = ['REFERENCE', 'GENERATORS', 'INPUTS', 'CHECKING', 'DONE'];
+const STEPS: TestGenStatus[] = ['SOLVING', 'GENERATORS', 'INPUTS', 'REFERENCE', 'CHECKING', 'DONE'];
+const VERIFY_STYLE: Record<TestGenCandidate['verified_by'], string> = {
+  reference: 'text-(--ws-ok)',
+  both: 'text-(--ws-ok)',
+  fast: 'text-(--ws-warn)',
+};
 const KIND_STYLE: Record<TestGenKind, string> = {
   random: 'bg-(--ws-info-soft) text-(--ws-info)',
   edge: 'bg-(--ws-warn-soft) text-(--ws-warn)',
@@ -25,24 +33,38 @@ const KIND_STYLE: Record<TestGenKind, string> = {
 const fmtBytes = (n: number) => (n < 1024 ? `${n} B` : n < 1024 * 1024 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(2)} MB`);
 
 /**
- * Sinh test có kiểm chứng cho một bài (giảng viên):
- * AI viết chương trình sinh input → chạy trong sandbox → lời giải mẫu cho output → chạy lại bài AC cũ.
+ * Sinh test có kiểm chứng (giảng viên):
+ * lời giải (của GV, hoặc AI viết 2 lời giải tự chấm chéo) → AI viết chương trình sinh input → chạy trong sandbox
+ * → lấy output → chạy lại bài AC cũ.
+ * Hai chỗ dùng: bài đã lưu (problemId, thêm thẳng vào bài) và form tạo đề (draft, trả test về form).
  */
 export default function TestGenModal({
   problemId,
   problemTitle,
   onClose,
+  draft,
 }: {
-  problemId: string;
+  problemId?: string;
   problemTitle: string;
   onClose: () => void;
+  draft?: {
+    spec: DraftSpec;
+    jobId: string | null;
+    onJobId: (id: string) => void;
+    onAddTests: (tests: Array<{ input: string; expected_output: string; is_hidden: boolean }>) => void;
+  };
 }) {
   const { t } = useTranslation();
-  const latest = useLatestTestGen(problemId);
-  const [jobId, setJobId] = useState<string | null>(null);
+  const latest = useLatestTestGen(draft ? undefined : problemId);
+  const [jobId, setJobIdState] = useState<string | null>(draft?.jobId ?? null);
+  const setJobId = (id: string) => {
+    setJobIdState(id);
+    draft?.onJobId(id);
+  };
+  const [exporting, setExporting] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const job = useTestGenJob(jobId);
-  const start = useStartTestGen(problemId);
+  const start = useStartTestGen(draft ? undefined : problemId);
   const apply = useApplyTestGen(jobId);
 
   const [versionId, setVersionId] = useState('CPP17');
@@ -63,26 +85,28 @@ export default function TestGenModal({
 
   const data = job.data;
   const running = isTestGenRunning(data?.status);
-  const formVisible = showForm || (!latest.isLoading && !latest.data && !jobId);
+  const formVisible = showForm || (!jobId && (draft ? true : !latest.isLoading && !latest.data));
   const lang = SUPPORTED_LANGUAGES.find((l) => l.id === versionId) ?? SUPPORTED_LANGUAGES[0];
 
-  // Chọn sẵn mọi test khi kết quả về
+  // Chọn sẵn các test đã kiểm chứng chắc chắn; test chỉ có lời giải nhanh của AI để giảng viên tự quyết
   const candidates = useMemo(() => data?.candidates ?? [], [data]);
   useEffect(() => {
-    if (data?.status === 'DONE') setSelected(new Set(candidates.map((c) => c.id)));
+    if (data?.status === 'DONE') setSelected(new Set(candidates.filter((c) => c.verified_by !== 'fast').map((c) => c.id)));
   }, [data?.status, candidates]);
 
   const runStart = async () => {
-    if (code.trim().length < 10) return notifyGlobalToast(t('testgen.needCode'));
+    const hasCode = code.trim().length > 0;
+    if (hasCode && code.trim().length < 10) return notifyGlobalToast(t('testgen.needCode'));
     try {
       const api = mapVersionToApi(versionId);
       const res = await start.mutateAsync({
-        reference_language: api.language,
-        reference_version: api.language_version,
-        reference_code: code,
+        ...(hasCode
+          ? { reference_language: api.language, reference_version: api.language_version, reference_code: code }
+          : {}),
         random_count: counts.random,
         edge_count: counts.edge,
         adversarial_count: counts.adversarial,
+        ...(draft ? draft.spec : {}),
       });
       setJobId(res.id);
       setShowForm(false);
@@ -92,6 +116,20 @@ export default function TestGenModal({
   };
 
   const runApply = async () => {
+    if (draft && jobId) {
+      setExporting(true);
+      try {
+        const tests = await exportTestGen(jobId, [...selected]);
+        draft.onAddTests(tests);
+        notifyGlobalToast(t('testgen.addedToForm', { n: tests.length }), 'success');
+        onClose();
+      } catch (err) {
+        notifyGlobalToast(err instanceof ApiError ? err.message : t('testgen.applyFailed'));
+      } finally {
+        setExporting(false);
+      }
+      return;
+    }
     try {
       const res = await apply.mutateAsync([...selected]);
       notifyGlobalToast(t('testgen.applied', { n: res.added, dup: res.skipped_duplicates }), 'success');
@@ -110,9 +148,10 @@ export default function TestGenModal({
 
   const s = data?.summary ?? {};
   const stepIndex = data ? STEPS.indexOf(data.status) : -1;
+  const [openSol, setOpenSol] = useState<'fast' | 'brute' | null>(null);
 
   return createPortal(
-    <div className="fixed inset-0 bg-black/60 z-90 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 z-300 flex items-center justify-center p-4" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
@@ -170,8 +209,16 @@ export default function TestGenModal({
                 ))}
               </div>
               <div>
-                <p className="text-sm font-semibold mb-1">{t('testgen.refCode')}</p>
+                <p className="text-sm font-semibold mb-1">
+                  {t('testgen.refCode')} <span className="font-normal text-(--ws-muted)">{t('testgen.optional')}</span>
+                </p>
                 <p className="text-xs text-(--ws-muted) mb-2">{t('testgen.refHint')}</p>
+                {!code.trim() && (
+                  <p className="flex gap-2 text-xs rounded-lg bg-(--ws-info-soft) text-(--ws-text) px-3 py-2 mb-2">
+                    <Bot size={14} className="text-(--ws-info) shrink-0 mt-0.5" aria-hidden="true" />
+                    {t('testgen.aiModeHint')}
+                  </p>
+                )}
                 <div className="h-72 rounded-lg overflow-hidden border border-(--ws-border)">
                   <CodeEditor
                     value={code}
@@ -195,7 +242,7 @@ export default function TestGenModal({
                     <p className="text-(--ws-muted) text-xs">{t('testgen.runningHint')}</p>
                   </div>
                   <div className="ml-auto flex gap-1" aria-hidden="true">
-                    {STEPS.slice(0, 4).map((st, i) => (
+                    {STEPS.slice(0, 5).map((st, i) => (
                       <span key={st} className={`h-1.5 w-8 rounded-full ${i <= stepIndex ? 'bg-(--ws-accent)' : 'bg-(--ws-border)'}`} />
                     ))}
                   </div>
@@ -211,7 +258,12 @@ export default function TestGenModal({
 
               {data.status === 'DONE' && (
                 <>
-                  {(s.accepted_broken ?? 0) > 0 ? (
+                  {s.draft ? (
+                    <div className="flex gap-3 rounded-xl border border-(--ws-border) bg-(--ws-info-soft) px-4 py-3 text-sm">
+                      <Info size={20} className="text-(--ws-info) shrink-0" aria-hidden="true" />
+                      <p>{t('testgen.draftNote')}</p>
+                    </div>
+                  ) : (s.accepted_broken ?? 0) > 0 ? (
                     <div role="alert" className="flex gap-3 rounded-xl border border-(--ws-warn) bg-(--ws-warn-soft) px-4 py-3">
                       <AlertTriangle size={20} className="text-(--ws-warn) shrink-0 mt-0.5" aria-hidden="true" />
                       <div className="text-sm">
@@ -227,8 +279,42 @@ export default function TestGenModal({
                   )}
                   <p className="text-sm text-(--ws-muted)">
                     {t('testgen.stats', { gen: s.generated ?? 0, kept: s.kept ?? 0, dropped: s.dropped ?? 0, existing: s.existing_tests ?? 0 })}
+                    {data.mode === 'AI' && ` ${t('testgen.statsAi', { agree: s.agree ?? 0, mismatch: s.mismatch ?? 0, unverified: s.unverified ?? 0 })}`}
                   </p>
                 </>
+              )}
+
+              {data.solutions && (
+                <section>
+                  <h4 className="text-sm font-bold mb-1">{t('testgen.aiSolutions')}</h4>
+                  <p className="text-xs text-(--ws-muted) mb-2">
+                    {t('testgen.aiSolutionsNote', {
+                      n: data.solutions.samples_checked,
+                      k: data.solutions.attempts,
+                      src: t(`testgen.src.${data.solutions.samples_source}`),
+                    })}
+                  </p>
+                  <ul className="space-y-1.5">
+                    {(['fast', 'brute'] as const).map((k) => (
+                      <li key={k} className="rounded-lg border border-(--ws-border-soft)">
+                        <button
+                          type="button"
+                          onClick={() => setOpenSol(openSol === k ? null : k)}
+                          aria-expanded={openSol === k}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm"
+                        >
+                          <Bot size={15} className="text-(--ws-accent)" aria-hidden="true" />
+                          <span className="font-semibold">{t(`testgen.sol.${k}`)}</span>
+                          <span className="text-xs text-(--ws-muted)">{data.solutions![k].language === 'CPP' ? 'C++' : 'Python'}</span>
+                          <ChevronDown size={16} className={`ml-auto transition-transform ${openSol === k ? 'rotate-180' : ''}`} aria-hidden="true" />
+                        </button>
+                        {openSol === k && (
+                          <pre className="mx-3 mb-3 max-h-60 overflow-auto rounded-md bg-(--ws-panel2) p-3 text-xs font-mono">{data.solutions![k].code}</pre>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               )}
 
               {data.generators?.length > 0 && (
@@ -276,13 +362,15 @@ export default function TestGenModal({
                     >
                       {selected.size === candidates.length ? t('testgen.selectNone') : t('testgen.selectAll')}
                     </button>
-                    <button
-                      type="button"
-                      className="text-xs text-(--ws-accent) font-semibold"
-                      onClick={() => setSelected(new Set(candidates.filter((c) => c.breaks.length).map((c) => c.id)))}
-                    >
-                      {t('testgen.selectBreaking')}
-                    </button>
+                    {!s.draft && (
+                      <button
+                        type="button"
+                        className="text-xs text-(--ws-accent) font-semibold"
+                        onClick={() => setSelected(new Set(candidates.filter((c) => c.breaks.length).map((c) => c.id)))}
+                      >
+                        {t('testgen.selectBreaking')}
+                      </button>
+                    )}
                   </div>
                   <div className="overflow-x-auto rounded-lg border border-(--ws-border)">
                     <table className="w-full text-xs">
@@ -292,8 +380,9 @@ export default function TestGenModal({
                           <th className="px-2 py-2 text-left">{t('testgen.col.kind')}</th>
                           <th className="px-2 py-2 text-left">{t('testgen.col.input')}</th>
                           <th className="px-2 py-2 text-left">{t('testgen.col.output')}</th>
+                          <th className="px-2 py-2 text-left">{t('testgen.col.verified')}</th>
                           <th className="px-2 py-2 text-right">{t('testgen.col.time')}</th>
-                          <th className="px-2 py-2 text-left">{t('testgen.col.breaks')}</th>
+                          {!s.draft && <th className="px-2 py-2 text-left">{t('testgen.col.breaks')}</th>}
                         </tr>
                       </thead>
                       <tbody>
@@ -318,10 +407,13 @@ export default function TestGenModal({
                             <td className="px-2 py-2 max-w-[12rem]">
                               <pre className="max-h-20 overflow-hidden whitespace-pre-wrap break-all font-mono">{c.expected_output}</pre>
                             </td>
+                            <td className={`px-2 py-2 whitespace-nowrap font-semibold ${VERIFY_STYLE[c.verified_by] ?? ''}`} title={t(`testgen.verify.${c.verified_by}Hint`)}>
+                              {t(`testgen.verify.${c.verified_by}`)}
+                            </td>
                             <td className={`px-2 py-2 text-right whitespace-nowrap ${c.heavy ? 'text-(--ws-warn) font-semibold' : ''}`}>
                               {c.reference_time_ms} ms{c.heavy ? ` · ${t('testgen.heavy')}` : ''}
                             </td>
-                            <td className="px-2 py-2">
+                            {!s.draft && <td className="px-2 py-2">
                               {c.breaks.length ? (
                                 <span className="font-semibold text-(--ws-danger)">
                                   {t('testgen.breaksN', { n: c.breaks.length })}
@@ -332,7 +424,7 @@ export default function TestGenModal({
                               ) : (
                                 <span className="text-(--ws-faint)">—</span>
                               )}
-                            </td>
+                            </td>}
                           </tr>
                         ))}
                       </tbody>
@@ -381,11 +473,11 @@ export default function TestGenModal({
                 <button
                   type="button"
                   onClick={runApply}
-                  disabled={apply.isPending || selected.size === 0}
+                  disabled={apply.isPending || exporting || selected.size === 0}
                   className="ml-auto inline-flex items-center gap-2 min-h-10 px-5 rounded-lg bg-(--ws-accent) text-(--ws-on-accent) text-sm font-semibold disabled:opacity-60"
                 >
-                  {apply.isPending ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Check size={16} aria-hidden="true" />}
-                  {t('testgen.apply', { n: selected.size })}
+                  {apply.isPending || exporting ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Check size={16} aria-hidden="true" />}
+                  {draft ? t('testgen.addToForm', { n: selected.size }) : t('testgen.apply', { n: selected.size })}
                 </button>
               )}
             </>

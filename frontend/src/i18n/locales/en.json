@@ -982,7 +982,8 @@
     "cancel": "Cancel",
     "saving": "Saving...",
     "saveChanges": "Save changes",
-    "create": "Create problem"
+    "create": "Create problem",
+    "testGenNeedStatement": "Enter the title and statement (at least 20 characters) before generating tests."
   },
   "problemManager": {
     "duplicate": "This problem is already in the list.",
@@ -1552,13 +1553,13 @@
   },
   "testgen": {
     "title": "Verified test generation",
-    "step1": "AI writes input generators (random, edge, adversarial)",
-    "step2": "Run the generators in the sandbox to get real inputs",
-    "step3": "Run your reference solution to get outputs",
-    "step4": "Re-run old accepted submissions to find wrong ones",
+    "step1": "Solution: yours, or AI writes 2 solutions (fast + brute force)",
+    "step2": "AI writes input generators (random, edge, adversarial)",
+    "step3": "Run in the sandbox for real inputs and verified outputs",
+    "step4": "Re-run old accepted submissions to find wrong ones (saved problems)",
     "refLanguage": "Reference language",
     "refCode": "Reference solution",
-    "refHint": "Your correct solution. It is first run on the existing tests; if it fails, generation stops, because new outputs come from it.",
+    "refHint": "If you have a correct solution, paste it here: it is run on the existing tests first and generation stops if it fails. This is the most reliable option.",
     "kind": {
       "random": "Random",
       "edge": "Edge",
@@ -1575,7 +1576,8 @@
       "INPUTS": "Running generators in the sandbox…",
       "CHECKING": "Re-running old accepted submissions…",
       "DONE": "Done",
-      "FAILED": "Failed"
+      "FAILED": "Failed",
+      "SOLVING": "AI is writing and checking 2 solutions…"
     },
     "runningHint": "This can take 1–3 minutes. You can close this window and come back later.",
     "failed": "Test generation failed",
@@ -1583,7 +1585,7 @@
     "weakBody": "These passed the current tests but fail the new ones. Add the tests marked red to judge more strictly (old submissions are not rejudged automatically).",
     "strong": "None of the {{total}} accepted submissions fail the new tests.",
     "noAccepted": "This problem has no accepted submissions to re-check yet.",
-    "stats": "Generated {{gen}} inputs, kept {{kept}}, dropped {{dropped}} (reference failed or too slow). The problem has {{existing}} tests.",
+    "stats": "Generated {{gen}} inputs, kept {{kept}}, dropped {{dropped}} (solution failed or too slow). The problem has {{existing}} tests.",
     "generators": "Input generators written by AI",
     "genError": "error",
     "produced": "{{n}} inputs",
@@ -1595,9 +1597,10 @@
     "col": {
       "kind": "Kind",
       "input": "Input",
-      "output": "Output (reference)",
+      "output": "Output",
       "time": "Time",
-      "breaks": "Accepted that fail"
+      "breaks": "Accepted that fail",
+      "verified": "Verified by"
     },
     "heavy": "heavy",
     "breaksN": "{{n}} subs",
@@ -1605,6 +1608,30 @@
     "again": "Generate again",
     "backToResult": "Back to last result",
     "apply": "Add {{n}} tests to problem",
-    "openBtn": "Generate tests with AI"
+    "openBtn": "Generate tests with AI",
+    "optional": "(optional)",
+    "aiModeHint": "Leave empty: AI writes 2 independent solutions (an efficient one and a brute force). Both must pass the statement's examples, and only tests where they agree are kept. The statement needs at least one input/output example.",
+    "draftNote": "The problem is not saved yet, so old accepted submissions can't be checked. After saving and once students get accepted, open \"Generate tests with AI\" in the problem bank to check the test set.",
+    "statsAi": "The two AI solutions agreed on {{agree}} tests, disagreed on {{mismatch}} (dropped), {{unverified}} large tests could not be verified (dropped).",
+    "aiSolutions": "Solutions written by AI",
+    "aiSolutionsNote": "Both passed {{n}} examples ({{src}}) after {{k}} attempt(s).",
+    "src": {
+      "instructor": "your sample tests",
+      "statement": "examples from the statement"
+    },
+    "sol": {
+      "fast": "Fast solution",
+      "brute": "Brute-force solution"
+    },
+    "verify": {
+      "reference": "Reference",
+      "both": "2 solutions agree",
+      "fast": "Fast solution only",
+      "referenceHint": "Output from your reference solution",
+      "bothHint": "AI fast and brute-force solutions gave the same output",
+      "fastHint": "Large test, brute force too slow. The fast solution matched brute force on every small test, but review it"
+    },
+    "addToForm": "Add {{n}} tests to the form",
+    "addedToForm": "Added {{n}} hidden tests to the form. Click Save to save the problem."
   }
 }

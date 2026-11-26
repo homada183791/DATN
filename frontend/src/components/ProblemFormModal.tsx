@@ -6,7 +6,8 @@ import {
   AlertCircle, Upload, CheckCheck, FileCode, Sparkles, FileUp,
 } from 'lucide-react';
 import { CreateProblemDto, ProblemDifficulty, ProblemDto } from '../api/problems';
-import { generateAiTestCases } from '../api/ai';
+import TestGenModal from './testgen/TestGenModal';
+import { notifyGlobalToast } from '../context/ToastContext';
 import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LANGUAGES, LANGUAGE_CATEGORIES } from '../config/languages';
 import ProblemImportModal from './ProblemImportModal';
@@ -69,13 +70,9 @@ export default function ProblemFormModal({
   const [bulkError,   setBulkError]   = useState('');
 
   // ── AI Testcase Generation States ──
-  const [showAiModal, setShowAiModal] = useState(false);
-  const [aiStrategy, setAiStrategy] = useState<'FROM_DESCRIPTION' | 'FROM_SOLUTION'>('FROM_DESCRIPTION');
-  const [aiSolutionCode, setAiSolutionCode] = useState('');
-  const [aiSolutionLang, setAiSolutionLang] = useState('python');
-  const [aiCount, setAiCount] = useState(5);
-  const [isAiGenerating, setIsAiGenerating] = useState(false);
-  const [aiError, setAiError] = useState('');
+  const [showTestGen, setShowTestGen] = useState(false);
+  /** Lượt sinh test gần nhất trong lần mở form này (mở lại cửa sổ vẫn thấy kết quả). */
+  const [testGenJobId, setTestGenJobId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -103,6 +100,8 @@ export default function ProblemFormModal({
         setTestCases([]);
       }
       setPoints(initialPoints);
+      setTestGenJobId(null);
+      setShowTestGen(false);
       setErrors({});
       setActiveTab('desc');
     }
@@ -342,38 +341,14 @@ Output: 6
     }
   };
 
-  /* ── Sinh Test cases tự động bằng AI ── */
-  const handleGenerateAiTestCases = async () => {
-    setIsAiGenerating(true);
-    setAiError('');
-    try {
-      const res = await generateAiTestCases({
-        title,
-        description,
-        solution_code: aiStrategy === 'FROM_SOLUTION' ? aiSolutionCode : undefined,
-        language: aiSolutionLang,
-        count: aiCount,
-        strategy: aiStrategy,
-      });
-      if (res.test_cases?.length) {
-        setTestCases((prev) => [
-          ...prev,
-          ...res.test_cases.map((tc) => ({
-            input: tc.input,
-            expected_output: tc.expected_output,
-            is_hidden: tc.is_hidden,
-          })),
-        ]);
-        setShowAiModal(false);
-        setActiveTab('cases');
-      } else {
-        setAiError('AI không trả về test case nào.');
-      }
-    } catch (err: any) {
-      setAiError(err.message || 'Không thể sinh testcase bằng AI');
-    } finally {
-      setIsAiGenerating(false);
+  /* ── Sinh test có kiểm chứng (AI viết generator + lời giải, chạy trong sandbox) ── */
+  const openTestGen = () => {
+    if (title.trim().length < 3 || description.trim().length < 20) {
+      notifyGlobalToast(t('problemForm.testGenNeedStatement'));
+      setActiveTab('desc');
+      return;
     }
+    setShowTestGen(true);
   };
 
   const markAllHidden = (hidden: boolean) => {
@@ -856,12 +831,12 @@ Output: 6
                   <div className="flex items-center gap-2 flex-wrap">
                     <button
                       type="button"
-                      onClick={() => setShowAiModal(true)}
+                      onClick={openTestGen}
                       className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-(--ws-ok)/35 bg-(--ws-ok-soft) text-(--ws-ok) hover:bg-(--ws-ok-soft) text-xs font-semibold transition-colors shadow-2xs"
-                      title="Sử dụng AI tự động sinh các bộ test cases mẫu và biên"
+                      title="AI viết chương trình sinh input và lời giải, chạy trong sandbox để ra test đã kiểm chứng"
                     >
                       <Sparkles size={14} className="text-(--ws-ok)" />
-                      Sinh Test Cases với AI
+                      Tự sinh test bằng AI
                     </button>
                     <button
                       type="button"
@@ -1165,146 +1140,28 @@ Output: 6
         </div>
       )}
 
-      {/* ─── AI TESTCASE GENERATOR MODAL ─── */}
-      {showAiModal && (
-        <div
-          className="fixed inset-0 z-260 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-in fade-in"
-          onClick={() => !isAiGenerating && setShowAiModal(false)}
-        >
-          <div
-            className="w-full max-w-2xl bg-(--ws-panel2) border border-(--ws-border) rounded-2xl p-6 shadow-2xl space-y-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b border-(--ws-border) pb-3">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-(--ws-ok-soft) text-(--ws-ok)">
-                  <Sparkles size={18} />
-                </div>
-                <div>
-                  <h3 className="font-serif font-bold text-base text-(--ws-text)">Trợ lý AI Sinh Test Cases</h3>
-                  <p className="text-xs text-(--ws-muted)">Tự động suy luận và sinh các bộ test kiểm thử chất lượng cao</p>
-                </div>
-              </div>
-              <button aria-label={t('common.close')}
-                type="button"
-                onClick={() => setShowAiModal(false)}
-                disabled={isAiGenerating}
-                className="p-1.5 rounded-lg text-(--ws-muted) hover:text-(--ws-text) hover:bg-(--ws-hover) transition-colors disabled:opacity-50"
-              >
-                <X size={18} aria-hidden="true" />
-              </button>
-            </div>
-
-            {/* Strategy selector */}
-            <div>
-              <label className="block text-xs font-bold text-(--ws-text) mb-1.5 uppercase tracking-wide">
-                Phương thức sinh Test Cases:
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setAiStrategy('FROM_DESCRIPTION')}
-                  className={`p-3 rounded-xl border text-left text-xs transition-all ${
-                    aiStrategy === 'FROM_DESCRIPTION'
-                      ? 'border-(--ws-accent) bg-(--ws-panel) ring-2 ring-(--ws-accent)/20 text-(--ws-text)'
-                      : 'border-(--ws-border) bg-(--ws-panel2) text-(--ws-text) hover:bg-(--ws-panel)'
-                  }`}
-                >
-                  <div className="font-bold mb-0.5">Option 1: Từ Đề bài</div>
-                  <div className="text-[11px] text-(--ws-muted)">AI đọc Tiêu đề & Mô tả đề bài để tự suy luận các trường hợp test.</div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAiStrategy('FROM_SOLUTION')}
-                  className={`p-3 rounded-xl border text-left text-xs transition-all ${
-                    aiStrategy === 'FROM_SOLUTION'
-                      ? 'border-(--ws-accent) bg-(--ws-panel) ring-2 ring-(--ws-accent)/20 text-(--ws-text)'
-                      : 'border-(--ws-border) bg-(--ws-panel2) text-(--ws-text) hover:bg-(--ws-panel)'
-                  }`}
-                >
-                  <div className="font-bold mb-0.5">Option 2: Từ Code giải mẫu</div>
-                  <div className="text-[11px] text-(--ws-muted)">Dán mã nguồn đáp án chuẩn của giảng viên để AI chạy sinh Output chính xác.</div>
-                </button>
-              </div>
-            </div>
-
-            {/* If Option 2: Provide solution code */}
-            {aiStrategy === 'FROM_SOLUTION' && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-(--ws-text)">Mã nguồn đáp án của giảng viên:</label>
-                  <select
-                    value={aiSolutionLang}
-                    onChange={(e) => setAiSolutionLang(e.target.value)}
-                    className="text-xs border border-(--ws-border) bg-(--ws-panel) rounded-lg px-2 py-1 text-(--ws-text) outline-none"
-                  >
-                    <option value="python">Python 3</option>
-                    <option value="cpp">C++ (GCC)</option>
-                    <option value="java">Java</option>
-                  </select>
-                </div>
-                <textarea
-                  rows={6}
-                  value={aiSolutionCode}
-                  onChange={(e) => setAiSolutionCode(e.target.value)}
-                  placeholder="Dán code giải mẫu hoàn chỉnh vào đây..."
-                  className="w-full rounded-xl border border-(--ws-border) bg-(--ws-panel) p-3 font-mono text-xs text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
-                />
-              </div>
-            )}
-
-            {/* Test count slider */}
-            <div>
-              <div className="flex items-center justify-between mb-1 text-xs">
-                <span className="font-semibold text-(--ws-text)">Số lượng Test Cases cần sinh:</span>
-                <span className="font-bold text-(--ws-accent) bg-(--ws-accent)/10 px-2 py-0.5 rounded-full">{aiCount} bộ test</span>
-              </div>
-              <input
-                type="range"
-                min={2}
-                max={10}
-                value={aiCount}
-                onChange={(e) => setAiCount(Number(e.target.value))}
-                className="w-full accent-(--ws-accent) cursor-pointer"
-              />
-            </div>
-
-            {aiError && (
-              <p className="text-xs text-(--ws-danger) font-medium bg-(--ws-danger-soft) p-2.5 rounded-xl border border-(--ws-danger)/35">
-                {aiError}
-              </p>
-            )}
-
-            <div className="flex items-center justify-end gap-3 pt-2 border-t border-(--ws-border)">
-              <button
-                type="button"
-                onClick={() => setShowAiModal(false)}
-                disabled={isAiGenerating}
-                className="px-4 py-2 border border-(--ws-border) bg-(--ws-panel) rounded-xl text-xs font-semibold text-(--ws-text) hover:bg-(--ws-hover) transition-colors disabled:opacity-50"
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                onClick={handleGenerateAiTestCases}
-                disabled={isAiGenerating || (aiStrategy === 'FROM_SOLUTION' && !aiSolutionCode.trim())}
-                className="px-5 py-2 bg-(--ws-ok) text-(--ws-on-accent) rounded-xl text-xs font-semibold hover:bg-(--ws-ok) transition-colors shadow-sm flex items-center gap-1.5 disabled:opacity-50"
-              >
-                {isAiGenerating ? (
-                  <>
-                    <Loader2 size={14} className="animate-spin" />
-                    AI đang phân tích &amp; sinh test...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={14} />
-                    Bắt đầu sinh Test Cases
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
+      {showTestGen && (
+        <TestGenModal
+          problemTitle={title}
+          onClose={() => setShowTestGen(false)}
+          draft={{
+            spec: {
+              title: title.trim(),
+              description: description.trim(),
+              time_limit: timeLimit,
+              memory_limit: memoryLimit,
+              samples: testCases
+                .filter((tc) => tc.input.trim() && tc.expected_output.trim())
+                .map((tc) => ({ input: tc.input, expected_output: tc.expected_output })),
+            },
+            jobId: testGenJobId,
+            onJobId: setTestGenJobId,
+            onAddTests: (tests) => {
+              setTestCases((prev) => [...prev, ...tests]);
+              setActiveTab('cases');
+            },
+          }}
+        />
       )}
     </div>
   );
