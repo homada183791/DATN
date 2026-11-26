@@ -57,6 +57,8 @@ interface CodeEditorProps {
   diagnostics: Diagnostic[];
   /** Bật/tắt gợi ý code khi gõ (công tắc IntelliSense). */
   suggestions?: boolean;
+  /** Chỉ cho phép xem code, không cho chỉnh sửa. */
+  readOnly?: boolean;
   ariaLabel?: string;
 }
 
@@ -235,7 +237,7 @@ function toMarkerRange(model: monaco.editor.ITextModel, d: Diagnostic) {
 }
 
 const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEditor(
-  { value, onChange, language, fontSize, tabSize = 4, editorTheme, wordWrap, diagnostics, suggestions = true, ariaLabel },
+  { value, onChange, language, fontSize, tabSize = 4, editorTheme, wordWrap, diagnostics, suggestions = true, readOnly = false, ariaLabel },
   ref,
 ) {
   const editorRef = useRef<IEditor | null>(null);
@@ -378,6 +380,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
         automaticLayout: true,
         tabSize,
         insertSpaces: true,
+        readOnly,
         renderLineHighlight: 'line',
         glyphMargin: true,
         lineNumbersMinChars: 3,
