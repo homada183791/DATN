@@ -1456,5 +1456,92 @@
       "FULLSCREEN_EXIT": "Thoát toàn màn hình",
       "OTHER": "Khác"
     }
+  },
+  "skills": {
+    "category": {
+      "BASICS": "Nền tảng",
+      "DATA_STRUCTURES": "Cấu trúc dữ liệu",
+      "ALGORITHMS": "Thuật toán",
+      "DYNAMIC_PROGRAMMING": "Quy hoạch động",
+      "GRAPHS": "Đồ thị",
+      "MATH": "Toán"
+    },
+    "level": {
+      "insufficient": "Chưa đủ dữ liệu",
+      "not_yet": "Chưa nắm",
+      "learning": "Đang học",
+      "proficient": "Khá",
+      "mastered": "Thành thạo"
+    },
+    "tag": {
+      "openBtn": "Nhãn kỹ năng",
+      "title": "Nhãn kỹ năng của bài",
+      "suggestBtn": "AI đề xuất",
+      "suggesting": "AI đang đọc đề và lời giải…",
+      "suggestHint": "AI đọc đề bài và tối đa 3 lời giải đúng của sinh viên, rồi chọn 2–6 kỹ năng trong danh mục. Bạn kiểm tra và bấm Lưu.",
+      "pendingTitle": "AI đề xuất (chưa duyệt) — lý do:",
+      "selected": "Đã chọn ({{n}}/10):",
+      "remove": "Bỏ {{name}}",
+      "search": "Tìm kỹ năng…",
+      "aiMark": "AI đề xuất",
+      "saveHint": "Chỉ nhãn đã lưu mới được dùng để tính điểm kỹ năng.",
+      "cancel": "Huỷ",
+      "save": "Lưu nhãn",
+      "saved": "Đã lưu nhãn kỹ năng.",
+      "saveFailed": "Không lưu được nhãn.",
+      "suggestedAi": "AI đề xuất {{n}} kỹ năng — kiểm tra rồi bấm Lưu.",
+      "suggestedKeywords": "Chưa kết nối AI nên đoán theo từ khoá — nhớ kiểm tra kỹ.",
+      "suggestFailed": "Không lấy được đề xuất."
+    },
+    "map": {
+      "title": "Bản đồ kỹ năng",
+      "scope": "Xem theo",
+      "scopeGlobal": "Tất cả bài đã làm",
+      "emptyTitle": "Chưa có dữ liệu kỹ năng",
+      "emptyDesc": "Làm các bài đã được giảng viên gắn nhãn kỹ năng để bắt đầu có điểm.",
+      "emptyClassDesc": "Bạn chưa làm bài có gắn nhãn kỹ năng nào trong lớp này.",
+      "sumGood": "Khá trở lên: {{n}}",
+      "sumLearning": "Đang học: {{n}}",
+      "sumWeak": "Chưa nắm: {{n}}",
+      "attemptsTitle": "Số bài làm đúng ngay lần đầu / số bài đã làm",
+      "untried": "{{n}} kỹ năng chưa làm bài nào",
+      "howItWorks": "Điểm tính bằng Bayesian Knowledge Tracing từ lần nộp đầu tiên của mỗi bài (không tính lỗi biên dịch). Dưới 3 bài thì chưa xếp mức. Điểm dùng để tham khảo, không phải điểm chính thức."
+    },
+    "rec": {
+      "title": "Nên làm tiếp",
+      "empty": "Chưa có gợi ý — làm thêm vài bài có nhãn kỹ năng nhé.",
+      "weak": "Luyện kỹ năng còn yếu",
+      "new": "Thử kỹ năng mới"
+    },
+    "class": {
+      "tab": "Kỹ năng",
+      "title": "Kỹ năng của lớp",
+      "subtitle": "Điểm nắm vững từng kỹ năng (0–100%) và điểm lớp thang 10 theo trọng số bài tập.",
+      "evalBtn": "Đánh giá mô hình",
+      "recomputeBtn": "Tính lại điểm",
+      "recomputed": "Đã tính lại từ {{n}} lượt làm bài.",
+      "actionFailed": "Thao tác không thành công.",
+      "loadFailed": "Không tải được dữ liệu kỹ năng.",
+      "untagged": "{{n}}/{{total}} bài của lớp chưa có nhãn kỹ năng được duyệt nên chưa được tính. Gắn nhãn ở Ngân hàng bài tập.",
+      "noSkills": "Bài tập của lớp chưa có nhãn kỹ năng nào. Vào Ngân hàng bài tập, bấm biểu tượng nhãn ở từng bài để gắn.",
+      "noStudents": "Lớp chưa có sinh viên.",
+      "student": "Sinh viên",
+      "score10": "Điểm /10",
+      "weight": "Trọng số",
+      "classAvg": "Trung bình lớp",
+      "attempts": "lượt trong lớp",
+      "from_class": "tính từ bài trong lớp",
+      "from_global": "chưa làm trong lớp, lấy điểm chung",
+      "from_prior": "chưa có dữ liệu, điểm xuất phát",
+      "legend": "Ô đậm: có làm bài trong lớp. Ô nhạt: chưa làm trong lớp (lấy điểm chung hoặc điểm xuất phát 30%). Trọng số w = tổng điểm các bài trong lớp có kỹ năng đó."
+    },
+    "eval": {
+      "title": "Đánh giá mô hình trên lịch sử nộp bài",
+      "majority": "Mốc đoán đa số",
+      "samples": "Mẫu / SV",
+      "curve": "Đường cong học tập: tỉ lệ sai theo lần thử thứ k của một kỹ năng",
+      "attempt": "Lần thử",
+      "note": "Dự đoán lần nộp đầu của mỗi bài đúng/sai từ điểm trước đó (giống cách đánh giá của bài báo KCGen-KT). AUC > 0,5 và cao hơn mốc đoán đa số nghĩa là điểm kỹ năng có ý nghĩa."
+    }
   }
 }

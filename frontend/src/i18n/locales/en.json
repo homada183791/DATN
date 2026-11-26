@@ -1456,5 +1456,92 @@
       "FULLSCREEN_EXIT": "Exited fullscreen",
       "OTHER": "Other"
     }
+  },
+  "skills": {
+    "category": {
+      "BASICS": "Basics",
+      "DATA_STRUCTURES": "Data structures",
+      "ALGORITHMS": "Algorithms",
+      "DYNAMIC_PROGRAMMING": "Dynamic programming",
+      "GRAPHS": "Graphs",
+      "MATH": "Math"
+    },
+    "level": {
+      "insufficient": "Not enough data",
+      "not_yet": "Not yet",
+      "learning": "Learning",
+      "proficient": "Proficient",
+      "mastered": "Mastered"
+    },
+    "tag": {
+      "openBtn": "Skill tags",
+      "title": "Problem skill tags",
+      "suggestBtn": "Suggest with AI",
+      "suggesting": "AI is reading the problem and solutions…",
+      "suggestHint": "AI reads the statement and up to 3 accepted student solutions, then picks 2–6 skills from the catalog. Review and press Save.",
+      "pendingTitle": "AI suggestions (not approved) — why:",
+      "selected": "Selected ({{n}}/10):",
+      "remove": "Remove {{name}}",
+      "search": "Search skills…",
+      "aiMark": "Suggested by AI",
+      "saveHint": "Only saved tags are used to compute skill mastery.",
+      "cancel": "Cancel",
+      "save": "Save tags",
+      "saved": "Skill tags saved.",
+      "saveFailed": "Could not save tags.",
+      "suggestedAi": "AI suggested {{n}} skills — review and Save.",
+      "suggestedKeywords": "AI is not connected, guessed from keywords — please review.",
+      "suggestFailed": "Could not get suggestions."
+    },
+    "map": {
+      "title": "Skill map",
+      "scope": "Scope",
+      "scopeGlobal": "All my submissions",
+      "emptyTitle": "No skill data yet",
+      "emptyDesc": "Solve problems your instructors have tagged with skills to start building a profile.",
+      "emptyClassDesc": "You have not attempted any tagged problem in this class yet.",
+      "sumGood": "Proficient+: {{n}}",
+      "sumLearning": "Learning: {{n}}",
+      "sumWeak": "Not yet: {{n}}",
+      "attemptsTitle": "Correct on first try / problems attempted",
+      "untried": "{{n}} skills not attempted yet",
+      "howItWorks": "Computed with Bayesian Knowledge Tracing from the first submission of each problem (compile errors ignored). Fewer than 3 problems: no level yet. For guidance only, not an official grade."
+    },
+    "rec": {
+      "title": "Try next",
+      "empty": "No suggestions yet — solve a few tagged problems first.",
+      "weak": "Practice a weak skill",
+      "new": "Try a new skill"
+    },
+    "class": {
+      "tab": "Skills",
+      "title": "Class skills",
+      "subtitle": "Mastery per skill (0–100%) and a weighted class score out of 10.",
+      "evalBtn": "Evaluate model",
+      "recomputeBtn": "Recompute",
+      "recomputed": "Recomputed from {{n}} attempts.",
+      "actionFailed": "Action failed.",
+      "loadFailed": "Could not load skill data.",
+      "untagged": "{{n}}/{{total}} class problems have no approved skill tags and are not counted. Tag them in the problem bank.",
+      "noSkills": "No class problem has skill tags yet. Open the problem bank and use the tag icon on each problem.",
+      "noStudents": "No students in this class.",
+      "student": "Student",
+      "score10": "Score /10",
+      "weight": "Weight",
+      "classAvg": "Class average",
+      "attempts": "attempts in class",
+      "from_class": "from class work",
+      "from_global": "not attempted in class, using overall score",
+      "from_prior": "no data, prior",
+      "legend": "Solid cells: attempted in this class. Faint cells: not attempted here (overall score or 30% prior). Weight w = total points of class problems with that skill."
+    },
+    "eval": {
+      "title": "Model evaluation on submission history",
+      "majority": "Majority baseline",
+      "samples": "Samples / students",
+      "curve": "Learning curve: error rate by k-th attempt of a skill",
+      "attempt": "Attempt",
+      "note": "Predicts whether each first submission passes from the mastery before it (as evaluated in the KCGen-KT paper). AUC above 0.5 and above the majority baseline means the skill scores carry signal."
+    }
   }
 }

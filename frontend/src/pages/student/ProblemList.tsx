@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, ChevronRight, Search, Plus, Edit, Trash2, ArrowUpDown } from 'lucide-react';
+import { BookOpen, ChevronRight, Search, Plus, Edit, Trash2, ArrowUpDown, Tags } from 'lucide-react';
+import SkillTagModal from '../../components/skills/SkillTagModal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '../../api/http';
 import { useProblemsQuery, createProblem, updateProblem, deleteProblem, type ProblemDto, type CreateProblemDto } from '../../api/problems';
@@ -45,6 +46,7 @@ export default function ProblemList() {
   const currentLang = (i18n.resolvedLanguage || i18n.language || 'vi').toLowerCase();
   const { user } = useAuth();
   const isInstructor = user?.role === 'instructor';
+  const [taggingProblem, setTaggingProblem] = useState<{ id: string; title: string } | null>(null);
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useProblemsQuery();
 
@@ -314,6 +316,19 @@ export default function ProblemList() {
               {isInstructor && (
                 <div className="flex items-center gap-2 border-l border-(--ws-border) pl-4">
                   <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setTaggingProblem({ id: problem.id, title: problem.title });
+                    }}
+                    className="p-1 text-(--ws-muted) hover:text-(--ws-accent) transition-colors"
+                    title={t('skills.tag.openBtn')}
+                    aria-label={t('skills.tag.openBtn')}
+                  >
+                    <Tags size={16} aria-hidden="true" />
+                  </button>
+                  <button
                     onClick={(e) => handleOpenEditModal(e, problem)}
                     className="p-1 text-(--ws-muted) hover:text-(--ws-accent) transition-colors"
                     title={t('problemList.editTitle')}
@@ -346,6 +361,14 @@ export default function ProblemList() {
           </div>
         )}
       </div>
+
+      {taggingProblem && (
+        <SkillTagModal
+          problemId={taggingProblem.id}
+          problemTitle={taggingProblem.title}
+          onClose={() => setTaggingProblem(null)}
+        />
+      )}
 
       <ProblemFormModal
         isOpen={isModalOpen}

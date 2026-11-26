@@ -21,6 +21,7 @@ import { PlagiarismModule } from './modules/plagiarism/plagiarism.module';
 import { HomeworksModule } from './modules/homeworks/homeworks.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AiModule } from './modules/ai/ai.module';
+import { SkillsModule } from './modules/skills/skills.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { AiModule } from './modules/ai/ai.module';
     HomeworksModule,
     NotificationsModule,
     AiModule,
+    SkillsModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: UserThrottlerGuard }],

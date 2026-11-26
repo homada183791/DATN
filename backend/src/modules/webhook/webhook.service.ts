@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger, Optional } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JudgeResultDto } from './dto/judge-result.dto';
 import { JudgeProgressDto } from './dto/judge-progress.dto';
 import { EventsGateway } from '../../events/events.gateway';
 import { UsersService } from '../users/users.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { SkillsService } from '../skills/skills.service';
 
 type SubmissionWithContests = {
   id: string;
@@ -81,6 +82,7 @@ export class WebhookService {
     private readonly eventsGateway: EventsGateway,
     private readonly usersService: UsersService,
     private readonly notificationsService: NotificationsService,
+    @Optional() private readonly skillsService?: SkillsService,
   ) {}
 
   processJudgeProgress(progress: JudgeProgressDto) {
@@ -216,6 +218,13 @@ export class WebhookService {
           );
         });
     }
+
+    // Cập nhật điểm kỹ năng (BKT) — chạy nền, lỗi không ảnh hưởng kết quả chấm
+    this.skillsService
+      ?.onSubmissionJudged(submission_id)
+      .catch((err: any) =>
+        this.logger.error(`[Judge Webhook] Failed to update skill mastery: ${err.message}`),
+      );
 
     // Bắn sự kiện realtime xuống Frontend qua Socket.io
     this.eventsGateway.emitSubmissionUpdate(submission_id, {
