@@ -77,7 +77,7 @@ export function parseSkillResponse(text: string, validCodes: Set<string>): Sugge
  * Chế độ không có API AI: đoán kỹ năng theo từ khoá trong đề và code.
  * Kém chính xác hơn nhiều — chỉ để app vẫn dùng được và giảng viên sửa lại.
  */
-const KEYWORDS: Array<[string, RegExp]> = [
+export const SKILL_KEYWORDS: Array<[string, RegExp]> = [
   ['BINARY_SEARCH_ANSWER', /chặt nhị phân|binary search (on|the) answer|lớn nhất có thể|nhỏ nhất có thể|maximi[sz]e the minimum|minimi[sz]e the maximum/i],
   ['BINARY_SEARCH', /tìm kiếm nhị phân|binary ?search|lower_bound|upper_bound|bisect/i],
   ['PREFIX_SUM', /tổng đoạn|prefix|cộng dồn|range sum/i],
@@ -88,12 +88,14 @@ const KEYWORDS: Array<[string, RegExp]> = [
   ['DP_KNAPSACK', /cái túi|knapsack|đổi tiền|coin change/i],
   ['DP_SUBSEQUENCE', /dãy con tăng|\blis\b|longest increasing|dãy con.*tổng lớn nhất/i],
   ['DP_2D', /dp\[\w+\]\[\w+\]|lưới|grid|lcs|edit distance/i],
-  ['DP_1D', /quy hoạch động|dynamic programming|\bdp\[/i],
+  ['DP_1D', /quy hoạch động|dynamic programming|\bdp\[|\bdp\s*=\s*\[|memo(?:ize|ization)?\b|lru_cache/i],
   ['BFS', /\bbfs\b|chiều rộng|queue<|deque\(/i],
   ['DFS', /\bdfs\b|chiều sâu|liên thông|connected component/i],
   ['SHORTEST_PATH', /đường đi ngắn nhất|dijkstra|shortest path|bellman|floyd/i],
   ['GRAPH_REPRESENTATION', /đồ thị|graph|đỉnh|cạnh|vertex|edge/i],
-  ['TREES', /\bcây\b|binary tree|\btree\b/i],
+  ['TREES', /\bcây\b|binary tree|\btree\b|TreeNode/i],
+  ['LINKED_LIST', /ListNode|linked list|danh sách liên kết|->next\b|\.next\b/i],
+  ['BIT_MANIPULATION', /bitmask|bit manipulation|thao tác bit|\(1\s*<<|1\s*<<\s*\w/i],
   ['HASH_MAP', /unordered_map|\bmap<|dict\(|hashmap|tần suất|frequency/i],
   ['SET', /\bset<|\bset\(|unordered_set|hashset|phân biệt|distinct/i],
   ['STACK', /\bstack\b|ngăn xếp|dấu ngoặc|parenthes/i],
@@ -113,7 +115,7 @@ const KEYWORDS: Array<[string, RegExp]> = [
 
 export function suggestByKeywords(text: string, validCodes: Set<string>): SuggestedSkill[] {
   const out: SuggestedSkill[] = [];
-  for (const [code, re] of KEYWORDS) {
+  for (const [code, re] of SKILL_KEYWORDS) {
     if (!validCodes.has(code) || !re.test(text)) continue;
     out.push({ code, reason: 'Đoán theo từ khoá (chưa có AI) — cần giảng viên kiểm tra lại.' });
     if (out.length >= 4) break;

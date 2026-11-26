@@ -12,6 +12,8 @@ import { useClassHomeworkQuery } from '../../api/homeworks';
 import { useProblemSubmissionsQuery, fetchSubmissionDetail, type SubmissionDto } from '../../api/submissions';
 import CodeEditor, { type CodeEditorHandle } from '../../components/CodeEditor';
 import { parseCompilerOutput, type Diagnostic } from '../../utils/compilerDiagnostics';
+import SkillChips from '../../components/skills/SkillChips';
+import { useProblemSkillsQuery } from '../../api/skills';
 import { formatVNFull } from '../../utils/dateTime';
 import { joinContest, fetchContestDetail, verifyLockdownCode } from '../../api/contests';
 import { setLockdownActive } from '../../context/lockdownStore';
@@ -1048,6 +1050,9 @@ export default function ProblemSolve() {
   const goToContestProblem = (targetId: string) => navigate(`/student/contest/${contestId}/problem/${targetId}`);
 
   const problemId = apiProblem?.id ?? resolvedId ?? 'unknown-problem';
+  // Nhãn kỹ năng của bài (đã duyệt). Ẩn khi đang thi để không lộ gợi ý cách giải.
+  const { data: problemSkills = [] } = useProblemSkillsQuery(contestId ? undefined : apiProblem?.id);
+  const approvedSkillCodes = problemSkills.filter((s) => s.approved).map((s) => s.code);
   const problemIdRef = useRef<string | null>(null);
   problemIdRef.current = apiProblem?.id ?? resolvedId ?? null;
   const problemTitle = apiProblem?.title ?? t('problemSolve.fallbackProblemTitle');
@@ -2298,6 +2303,12 @@ export default function ProblemSolve() {
                       </div>
 
                       <h2 className="mt-6 mb-5 text-[26px] font-extrabold leading-tight">{localizedTitle}</h2>
+                      {!contestId && approvedSkillCodes.length > 0 && (
+                        <div className="-mt-2 mb-5 flex flex-wrap items-center gap-2">
+                          <span className="text-xs font-semibold text-(--ws-muted)">{t('skills.chips.trains')}</span>
+                          <SkillChips codes={approvedSkillCodes} max={6} size="md" linkBase={user?.role === 'instructor' ? '/instructor/problems' : '/student/problems'} />
+                        </div>
+                      )}
 
                       {displayedDescription && (
                         <div className="mb-7 rounded-xl border border-(--ws-border) bg-(--ws-panel) p-6">

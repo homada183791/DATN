@@ -134,3 +134,12 @@ export const useClassSkillHeatmapQuery = (classId?: string, enabled = true) =>
 
 export const fetchSkillEvaluation = () => apiFetch<SkillEvaluationDto>('/api/v1/skills/evaluation');
 export const recomputeSkills = () => apiFetch<SkillEvaluationDto>('/api/v1/skills/recompute', { method: 'POST' });
+
+/** { problemId: [mã kỹ năng đã duyệt] } — dùng để hiện nhãn và lọc trong Kho bài tập. */
+export const useProblemSkillMapQuery = (enabled = true) =>
+  useQuery({
+    queryKey: ['skills', 'problem-map'],
+    queryFn: () => apiFetch<Record<string, string[]>>('/api/v1/skills/problem-map'),
+    enabled,
+    staleTime: 300_000,
+  });

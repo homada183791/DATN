@@ -1542,6 +1542,12 @@
       "curve": "Đường cong học tập: tỉ lệ sai theo lần thử thứ k của một kỹ năng",
       "attempt": "Lần thử",
       "note": "Dự đoán lần nộp đầu của mỗi bài đúng/sai từ điểm trước đó (giống cách đánh giá của bài báo KCGen-KT). AUC > 0,5 và cao hơn mốc đoán đa số nghĩa là điểm kỹ năng có ý nghĩa."
+    },
+    "chips": {
+      "label": "Kỹ năng",
+      "filter": "Kỹ năng",
+      "all": "Tất cả",
+      "trains": "Bài này rèn kỹ năng:"
     }
   }
 }

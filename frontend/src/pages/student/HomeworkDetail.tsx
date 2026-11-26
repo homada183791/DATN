@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useClassHomeworkQuery } from '../../api/homeworks';
 import { useSubmissionsQuery } from '../../api/submissions';
+import { useProblemSkillMapQuery } from '../../api/skills';
+import SkillChips from '../../components/skills/SkillChips';
 import { formatVNFull, timeLeftWithinDay } from '../../utils/dateTime';
 import { useTranslation } from 'react-i18next';
 import {
@@ -36,6 +38,7 @@ function deadlineInfo(deadline: string, t: (key: string, options?: Record<string
 
 export default function HomeworkDetail() {
   const { t } = useTranslation();
+  const { data: skillMap = {} } = useProblemSkillMapQuery();
   const { classId, homeworkId } = useParams<{ classId: string; homeworkId: string }>();
   const navigate = useNavigate();
 
@@ -190,6 +193,11 @@ export default function HomeworkDetail() {
                     <p className="text-xs text-(--ws-muted) truncate mt-0.5">
                       {statementPreview}...
                     </p>
+                    {task.problem_id && skillMap[task.problem_id] && (
+                      <div className="mt-1.5">
+                        <SkillChips codes={skillMap[task.problem_id]} />
+                      </div>
+                    )}
                   </div>
 
                   {/* Difficulty */}

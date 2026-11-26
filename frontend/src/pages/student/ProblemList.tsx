@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { BookOpen, ChevronRight, Search, Plus, Edit, Trash2, ArrowUpDown, Tags } from 'lucide-react';
 import SkillTagModal from '../../components/skills/SkillTagModal';
+import SkillChips from '../../components/skills/SkillChips';
+import { useProblemSkillMapQuery, useSkillCatalogQuery } from '../../api/skills';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '../../api/http';
 import { useProblemsQuery, createProblem, updateProblem, deleteProblem, type ProblemDto, type CreateProblemDto } from '../../api/problems';
@@ -51,6 +53,22 @@ export default function ProblemList() {
   const { data, isLoading, error } = useProblemsQuery();
 
   const [query, setQuery] = useState('');
+  // Lọc theo kỹ năng (đồng bộ với URL ?skill=CODE để link từ trang làm bài mở thẳng)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const skillFilter = searchParams.get('skill') ?? '';
+  const setSkillFilter = (code: string) =>
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (code) next.set('skill', code);
+      else next.delete('skill');
+      return next;
+    }, { replace: true });
+  const { data: skillMap = {} } = useProblemSkillMapQuery();
+  const { data: skillCatalog = [] } = useSkillCatalogQuery();
+  const usedSkills = useMemo(() => {
+    const used = new Set(Object.values(skillMap).flat());
+    return skillCatalog.filter((s) => used.has(s.code));
+  }, [skillMap, skillCatalog]);
   const [difficulty, setDifficulty] = useState<'all' | ProblemDto['difficulty']>('all');
   const [sortKey, setSortKey] = useState<SortKey>('default');
 
@@ -119,7 +137,8 @@ export default function ProblemList() {
         rawId.includes(search);
 
       const matchesDifficulty = difficulty === 'all' || problem.difficulty === difficulty;
-      return matchesSearch && matchesDifficulty;
+      const matchesSkill = !skillFilter || (skillMap[problem.id] ?? []).includes(skillFilter);
+      return matchesSearch && matchesDifficulty && matchesSkill;
     });
 
     // Sắp xếp
@@ -258,6 +277,30 @@ export default function ProblemList() {
 
           <div className="h-5 w-px bg-(--ws-border) hidden sm:block" />
 
+          {/* Lọc theo kỹ năng */}
+          {usedSkills.length > 0 && (
+            <>
+              <label className="flex items-center gap-1.5">
+                <span className="text-xs font-semibold text-(--ws-muted) uppercase tracking-wider">{t('skills.chips.filter')}</span>
+                <select
+                  value={skillFilter}
+                  onChange={(e) => setSkillFilter(e.target.value)}
+                  className={`min-h-8 rounded-lg border px-2 text-xs font-semibold ${
+                    skillFilter ? 'border-(--ws-accent) bg-(--ws-accent)/10 text-(--ws-accent)' : 'border-(--ws-border) bg-(--ws-panel2) text-(--ws-text)'
+                  }`}
+                >
+                  <option value="">{t('skills.chips.all')}</option>
+                  {usedSkills.map((s) => (
+                    <option key={s.code} value={s.code}>
+                      {currentLang.startsWith('en') ? s.name_en : s.name_vi}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="h-5 w-px bg-(--ws-border) hidden sm:block" />
+            </>
+          )}
+
           {/* Sort */}
           <div className="flex items-center gap-1.5">
             <ArrowUpDown size={13} className="text-(--ws-muted)" />
@@ -300,6 +343,11 @@ export default function ProblemList() {
                   </span>
                 </div>
                 <p className="mt-1 line-clamp-2 text-sm text-(--ws-muted)">{markdownToPlainText(locDesc)}</p>
+                {skillMap[problem.id] && (
+                  <div className="mt-2">
+                    <SkillChips codes={skillMap[problem.id]} />
+                  </div>
+                )}
               </div>
             <div className="flex items-center gap-4 text-sm text-(--ws-muted) shrink-0">
               <div className="flex flex-col items-end gap-0.5">

@@ -39,6 +39,12 @@ export class SkillsController {
     return this.skills.getRecommendations(req.user.userId);
   }
 
+  @Get('problem-map')
+  @ApiOperation({ summary: 'Mã kỹ năng (đã duyệt) của mọi bài: { problemId: [codes] }' })
+  problemMap() {
+    return this.skills.getProblemSkillMap();
+  }
+
   @Get('problems/:id')
   @ApiOperation({ summary: 'Nhãn kỹ năng của một bài' })
   problemSkills(@Param('id') id: string) {

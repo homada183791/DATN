@@ -1542,6 +1542,12 @@
       "curve": "Learning curve: error rate by k-th attempt of a skill",
       "attempt": "Attempt",
       "note": "Predicts whether each first submission passes from the mastery before it (as evaluated in the KCGen-KT paper). AUC above 0.5 and above the majority baseline means the skill scores carry signal."
+    },
+    "chips": {
+      "label": "Skills",
+      "filter": "Skill",
+      "all": "All",
+      "trains": "Skills practiced:"
     }
   }
 }

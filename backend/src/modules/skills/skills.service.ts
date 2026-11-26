@@ -189,6 +189,19 @@ export class SkillsService {
     return this.getProblemSkills(problemId);
   }
 
+  /** Bản đồ bài → mã kỹ năng (chỉ nhãn đã duyệt), dùng để hiện nhãn trong Kho bài tập. */
+  async getProblemSkillMap() {
+    const rows = await this.db.problemSkill.findMany({
+      where: { approved: true },
+      select: { problem_id: true, skill: { select: { code: true, sort: true } } },
+    });
+    const map: Record<string, string[]> = {};
+    for (const r of rows.sort((a, b) => a.skill.sort - b.skill.sort)) {
+      (map[r.problem_id] ??= []).push(r.skill.code);
+    }
+    return map;
+  }
+
   // ─── Cập nhật điểm khi chấm xong ─────────────────────────────────────────
 
   /** Các lớp mà bài này thuộc về (bài tập về nhà hoặc kỳ thi của lớp) và sinh viên là thành viên. */
@@ -475,8 +488,19 @@ export class SkillsService {
       const fresh = catalog.filter((s) => !attempted.has(s.id)).map((s) => s.id);
       list = [...list, ...(await pickFrom(fresh, () => 'new'))];
     }
+    // Xen kẽ theo kỹ năng (tối đa 2 bài mỗi kỹ năng) để gợi ý không dồn vào một kỹ năng
     const seen = new Set<string>();
-    return list.filter((x) => (seen.has(x.problem_id) ? false : (seen.add(x.problem_id), true))).slice(0, limit);
+    const unique = list.filter((x) => (seen.has(x.problem_id) ? false : (seen.add(x.problem_id), true)));
+    const bySkill = new Map<string, typeof unique>();
+    for (const x of unique) bySkill.set(x.skill_code, [...(bySkill.get(x.skill_code) ?? []), x]);
+    const out: typeof unique = [];
+    for (let round = 0; round < 2 && out.length < limit; round++) {
+      for (const items of bySkill.values()) {
+        if (items[round]) out.push(items[round]);
+        if (out.length >= limit) break;
+      }
+    }
+    return out;
   }
 
   /**
