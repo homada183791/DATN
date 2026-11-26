@@ -290,7 +290,7 @@ describe('Student Role - Comprehensive Business Logic & Edge Cases', () => {
     });
 
     it('[TC-CONT-02] Đạt ngưỡng 3 lần cảnh báo sẽ tự động bị truất quyền thi (is_disqualified = true)', async () => {
-      prisma.contest.findUnique.mockResolvedValue({ id: 'c-1', title: 'Giữa kỳ' });
+      prisma.contest.findUnique.mockResolvedValue({ id: 'c-1', title: 'Giữa kỳ', lockdown_enabled: false, max_cheat_warnings: 3 });
       prisma.contestSession.upsert.mockResolvedValue({
         id: 'sess-1',
         cheat_warnings: 3,
