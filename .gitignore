@@ -95,6 +95,7 @@ storage/
 
 # ===== Agents =====
 .agents/
+.codegraph/
 backend/.agents/
 backend/.claude/
 backend/.windsurf/
