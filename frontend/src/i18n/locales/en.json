@@ -1093,6 +1093,7 @@
     "saveChangesBtn": "Save changes",
     "passwordMinLengthHint": "New password (at least 6 characters)",
     "saveNotificationsBtn": "Save notification settings",
+    "themeSystemAuto": "Match app theme (Auto)",
     "themeDarkDefault": "VS Dark (default)",
     "themeLight": "Light",
     "fontSizeCodeLabel": "Code font size",

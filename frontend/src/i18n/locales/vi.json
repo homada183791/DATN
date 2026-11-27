@@ -1093,6 +1093,7 @@
     "saveChangesBtn": "Lưu thay đổi",
     "passwordMinLengthHint": "Mật khẩu mới (ít nhất 6 ký tự)",
     "saveNotificationsBtn": "Lưu cài đặt thông báo",
+    "themeSystemAuto": "Theo giao diện hệ thống (Tự động)",
     "themeDarkDefault": "VS Dark (tối mặc định)",
     "themeLight": "Sáng",
     "fontSizeCodeLabel": "Cỡ chữ Code",

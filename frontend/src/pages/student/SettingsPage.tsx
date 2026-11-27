@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { apiFetch, ApiError } from '../../api/http';
+import { saveAndBroadcastEditorPreferences } from '../../utils/editorPreferences';
 import {
   User as UserIcon,
   Lock,
@@ -48,7 +49,7 @@ export default function SettingsPage() {
   });
 
   const [preferences, setPreferences] = useState({
-    editorTheme: 'vs-dark',
+    editorTheme: 'auto',
     fontSize: '14',
     tabSize: '4',
   });
@@ -208,8 +209,7 @@ export default function SettingsPage() {
         }),
       });
 
-      window.localStorage.setItem('user_preferences', JSON.stringify(preferences));
-      window.dispatchEvent(new CustomEvent('jh-editor-preferences-changed', { detail: preferences }));
+      saveAndBroadcastEditorPreferences(preferences);
       updateUser({ preferences });
       triggerSavedFeedback(t('settings.savedSuccess'));
     } catch (err: any) {
@@ -545,6 +545,7 @@ export default function SettingsPage() {
                       onChange={(e) => setPreferences({ ...preferences, editorTheme: e.target.value })}
                       className="w-full px-4 py-2.5 bg-(--ws-panel2)/50 border border-(--ws-border) rounded-xl text-(--ws-text) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
                     >
+                      <option value="auto">{t('settings.themeSystemAuto', 'Theo giao diện hệ thống (Tự động)')}</option>
                       <option value="vs-dark">{t('settings.themeDarkDefault')}</option>
                       <option value="light">{t('settings.themeLight')}</option>
                       <option value="monokai">Monokai</option>

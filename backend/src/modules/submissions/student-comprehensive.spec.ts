@@ -275,7 +275,12 @@ describe('Student Role - Comprehensive Business Logic & Edge Cases', () => {
   // =========================================================================
   describe('Domain 3: Contest Arena & Anti-Cheat Logic', () => {
     it('[TC-CONT-01] Báo cáo gian lận (chuyển tab/thu nhỏ cửa sổ) tăng số lần cảnh báo', async () => {
-      prisma.contest.findUnique.mockResolvedValue({ id: 'c-1', title: 'Giữa kỳ' });
+      prisma.contest.findUnique.mockResolvedValue({
+        id: 'c-1',
+        title: 'Giữa kỳ',
+        max_cheat_warnings: 3,
+        lockdown_enabled: false,
+      });
       prisma.contestSession.upsert.mockResolvedValue({
         id: 'sess-1',
         cheat_warnings: 1,
@@ -290,7 +295,12 @@ describe('Student Role - Comprehensive Business Logic & Edge Cases', () => {
     });
 
     it('[TC-CONT-02] Đạt ngưỡng 3 lần cảnh báo sẽ tự động bị truất quyền thi (is_disqualified = true)', async () => {
-      prisma.contest.findUnique.mockResolvedValue({ id: 'c-1', title: 'Giữa kỳ' });
+      prisma.contest.findUnique.mockResolvedValue({
+        id: 'c-1',
+        title: 'Giữa kỳ',
+        max_cheat_warnings: 3,
+        lockdown_enabled: false,
+      });
       prisma.contestSession.upsert.mockResolvedValue({
         id: 'sess-1',
         cheat_warnings: 3,

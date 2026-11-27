@@ -12,6 +12,7 @@ import { useClassHomeworkQuery } from '../../api/homeworks';
 import { useProblemSubmissionsQuery, fetchSubmissionDetail, type SubmissionDto } from '../../api/submissions';
 import CodeEditor, { type CodeEditorHandle } from '../../components/CodeEditor';
 import { parseCompilerOutput, type Diagnostic } from '../../utils/compilerDiagnostics';
+import { readStoredEditorPreferences, subscribeEditorPreferences, type EditorPreferences } from '../../utils/editorPreferences';
 import { formatVNFull } from '../../utils/dateTime';
 import { joinContest, fetchContestDetail, verifyLockdownCode } from '../../api/contests';
 import { setLockdownActive } from '../../context/lockdownStore';
@@ -1164,7 +1165,7 @@ export default function ProblemSolve() {
   const [wrap, setWrap] = useState(false);
   const [fontSize, setFontSize] = useState(14);
   const [tabSize, setTabSize] = useState(4);
-  const [editorTheme, setEditorTheme] = useState('vs-dark');
+  const [editorTheme, setEditorTheme] = useState('auto');
   const [intelli, setIntelli] = useState(true);
   const [saveState, setSaveState] = useState<'saved' | 'unsaved' | 'saving'>('saved');
 
@@ -1261,42 +1262,14 @@ export default function ProblemSolve() {
   const customRunSocketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    const applyPreferences = (preferences: Record<string, unknown> | undefined) => {
-      if (!preferences) return;
-      const size = Number(preferences.fontSize);
-      const tabs = Number(preferences.tabSize);
-      if ([12, 14, 16, 18].includes(size)) setFontSize(size);
-      if ([2, 4].includes(tabs)) setTabSize(tabs);
-      if (typeof preferences.editorTheme === 'string') setEditorTheme(preferences.editorTheme);
+    const applyPreferences = (prefs: EditorPreferences) => {
+      setFontSize(prefs.fontSize);
+      setTabSize(prefs.tabSize);
+      setEditorTheme(prefs.editorTheme);
     };
 
-    let stored: Record<string, unknown> | undefined;
-    try {
-      const raw = window.localStorage.getItem('user_preferences');
-      stored = raw ? JSON.parse(raw) : undefined;
-    } catch {
-      stored = undefined;
-    }
-    applyPreferences((user?.preferences as Record<string, unknown> | undefined) ?? stored);
-
-    const handlePreferencesChanged = (event: Event) => {
-      if (event instanceof CustomEvent) {
-        applyPreferences(event.detail as Record<string, unknown>);
-        return;
-      }
-      try {
-        const raw = window.localStorage.getItem('user_preferences');
-        applyPreferences(raw ? JSON.parse(raw) : undefined);
-      } catch {
-        // Ignore malformed preference data in another tab.
-      }
-    };
-    window.addEventListener('jh-editor-preferences-changed', handlePreferencesChanged);
-    window.addEventListener('storage', handlePreferencesChanged);
-    return () => {
-      window.removeEventListener('jh-editor-preferences-changed', handlePreferencesChanged);
-      window.removeEventListener('storage', handlePreferencesChanged);
-    };
+    applyPreferences(readStoredEditorPreferences(user?.preferences as Record<string, unknown> | undefined));
+    return subscribeEditorPreferences(applyPreferences);
   }, [user?.preferences]);
 
   useEffect(() => {

@@ -60,6 +60,7 @@ services:
       - REDIS_URL=redis://redis:6379
       - RABBITMQ_URL=amqp://root:rootpassword@rabbitmq:5672
       - JWT_SECRET=${JWT_SECRET:-super-secret-key-for-dev}
+      - JUDGE_SECRET=${JUDGE_SECRET:-default-judge-secret-key}
       - CORS_ORIGIN=http://localhost:5173,http://localhost:5174,http://localhost:3000
       - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
       - SMTP_PORT=${SMTP_PORT:-587}
@@ -112,6 +113,7 @@ services:
       - RABBITMQ_URL=amqp://root:rootpassword@rabbitmq:5672
       - QUEUE_NAME=judge_queue
       - WEBHOOK_URL=${WEBHOOK_URL:-http://host.docker.internal:3000/api/v1/webhook/judge}
+      - JUDGE_SECRET=${JUDGE_SECRET:-default-judge-secret-key}
       - DOCKER_SOCKET=/var/run/docker.sock
     depends_on:
       - rabbitmq

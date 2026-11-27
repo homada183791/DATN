@@ -1,3 +1,4 @@
+import { createHmac } from 'node:crypto';
 import { isAllowedOrigin, requireSecret, safeEqual } from './secrets';
 import { UserThrottlerGuard } from '../guards/user-throttler.guard';
 import { QueueService } from '../../modules/queue/queue.service';
@@ -36,17 +37,48 @@ describe('secrets', () => {
 });
 
 describe('UserThrottlerGuard tracker', () => {
-  const token = (sub: string) =>
-    `x.${Buffer.from(JSON.stringify({ sub })).toString('base64url')}.y`;
+  const secret = 'test-jwt-secret-at-least-16-chars';
+  const signToken = (payload: Record<string, unknown>, key = secret) => {
+    const header = Buffer.from(
+      JSON.stringify({ alg: 'HS256', typ: 'JWT' }),
+    ).toString('base64url');
+    const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
+    const sig = createHmac('sha256', key)
+      .update(`${header}.${body}`)
+      .digest('base64url');
+    return `${header}.${body}.${sig}`;
+  };
 
-  it('keys by user id when a JWT is present, so a shared lab IP is not throttled as one user', () => {
+  it('keys by user id only when JWT signature and expiration are valid', () => {
+    const valid = signToken({
+      sub: 'u-1',
+      exp: Math.floor(Date.now() / 1000) + 300,
+    });
+    const forged = `x.${Buffer.from(JSON.stringify({ sub: 'u-1' })).toString('base64url')}.y`;
+    const wrongKey = signToken({ sub: 'u-1' }, 'wrong-secret-key-16-chars');
+    const expired = signToken({
+      sub: 'u-1',
+      exp: Math.floor(Date.now() / 1000) - 10,
+    });
+
     expect(
-      UserThrottlerGuard.subjectFromAuthHeader(`Bearer ${token('u-1')}`),
+      UserThrottlerGuard.subjectFromAuthHeader(`Bearer ${valid}`, secret),
     ).toBe('u-1');
     expect(
-      UserThrottlerGuard.subjectFromAuthHeader('Bearer not-a-jwt'),
+      UserThrottlerGuard.subjectFromAuthHeader(`Bearer ${forged}`, secret),
     ).toBeNull();
-    expect(UserThrottlerGuard.subjectFromAuthHeader(undefined)).toBeNull();
+    expect(
+      UserThrottlerGuard.subjectFromAuthHeader(`Bearer ${wrongKey}`, secret),
+    ).toBeNull();
+    expect(
+      UserThrottlerGuard.subjectFromAuthHeader(`Bearer ${expired}`, secret),
+    ).toBeNull();
+    expect(
+      UserThrottlerGuard.subjectFromAuthHeader('Bearer not-a-jwt', secret),
+    ).toBeNull();
+    expect(
+      UserThrottlerGuard.subjectFromAuthHeader(undefined, secret),
+    ).toBeNull();
   });
 });
 

@@ -1,5 +1,5 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 'react';
-import Editor, { loader, type OnMount } from '@monaco-editor/react';
+import Editor, { loader, type BeforeMount, type OnMount } from '@monaco-editor/react';
 // Chỉ nạp lõi soạn thảo + các tính năng cần dùng + ngôn ngữ judge hỗ trợ, để app (đóng gói 1 file) không phình quá to.
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import 'monaco-editor/esm/vs/editor/browser/coreCommands';
@@ -157,21 +157,27 @@ function defineThemeFromCss(m: Monaco) {
   m.editor.setTheme(THEME_NAME);
 }
 
+function resolveMonacoTheme(editorTheme?: string): string {
+  if (!editorTheme || editorTheme === 'auto') return THEME_NAME;
+  if (editorTheme === 'light') return 'vs';
+  if (editorTheme === 'vs-dark' || editorTheme === 'github-dark' || editorTheme === 'monokai') {
+    return editorTheme;
+  }
+  return THEME_NAME;
+}
+
 function applyEditorPreferenceTheme(m: Monaco, editorTheme?: string) {
-  if (!editorTheme) {
+  const target = resolveMonacoTheme(editorTheme);
+  if (target === THEME_NAME) {
     defineThemeFromCss(m);
     return;
   }
-  if (editorTheme === 'vs-dark') {
-    m.editor.setTheme('vs-dark');
-    return;
-  }
-  if (editorTheme === 'light') {
-    m.editor.setTheme('vs');
+  if (target === 'vs-dark' || target === 'vs') {
+    m.editor.setTheme(target);
     return;
   }
 
-  if (editorTheme === 'github-dark') {
+  if (target === 'github-dark') {
     m.editor.defineTheme('github-dark', {
       base: 'vs-dark',
       inherit: true,
@@ -336,6 +342,11 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
     [clearPointer],
   );
 
+  const beforeMount: BeforeMount = (m) => {
+    monacoRef.current = m as unknown as Monaco;
+    applyEditorPreferenceTheme(m as unknown as Monaco, editorTheme);
+  };
+
   const onMount: OnMount = (editor, m) => {
     editorRef.current = editor;
     monacoRef.current = m as unknown as Monaco;
@@ -365,8 +376,9 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
     <Editor
       value={value}
       language={toMonacoLang(language)}
-      theme={THEME_NAME}
+      theme={resolveMonacoTheme(editorTheme)}
       onChange={(v) => onChange(v ?? '')}
+      beforeMount={beforeMount}
       onMount={onMount}
       loading={<div className="h-full w-full bg-(--ws-editor)" />}
       options={{
