@@ -105,7 +105,8 @@
     "profile": "Profile",
     "settings": "Settings",
     "students": "Students",
-    "calendar": "Calendar"
+    "calendar": "Calendar",
+    "detail": "Details"
   },
   "topbar": {
     "searchPlaceholder": "Search problems, users…",
@@ -643,7 +644,9 @@
     "pending": "Pending",
     "inQueue": "In queue",
     "queueTitle": "Waiting for judge",
-    "queueMessage": "Your submission is in the judging queue. Please wait a few minutes or refresh the page."
+    "queueMessage": "Your submission is in the judging queue. Please wait a few minutes or refresh the page.",
+    "colAttempt": "Attempt",
+    "attemptTitle": "Attempt #{{n}} for this problem"
   },
   "personal": {
     "joined": "Joined {{date}}",
@@ -982,7 +985,8 @@
     "cancel": "Cancel",
     "saving": "Saving...",
     "saveChanges": "Save changes",
-    "create": "Create problem"
+    "create": "Create problem",
+    "testGenNeedStatement": "Enter the title and statement (at least 20 characters) before generating tests."
   },
   "problemManager": {
     "duplicate": "This problem is already in the list.",
@@ -1134,7 +1138,7 @@
   },
   "problemSolve": {
     "fallbackProblemTitle": "Assignment",
-    "restoredCodeToast": "Restored source code from submission #{{id}} to the editor!",
+    "restoredCodeToast": "Loaded the source of attempt #{{id}} into the editor!",
     "disqualifiedToast": "YOU HAVE BEEN DISQUALIFIED for violating exam rules more than {{max}} times!",
     "cheatWarningToast": "CHEATING WARNING: {{reason}}! Violation {{count}}/{{max}}. {{max}} violations will result in disqualification.",
     "countdownTitle": "Time remaining in the contest",
@@ -1211,7 +1215,7 @@
     "loadIntoEditorBtn": "Load into editor",
     "copiedSourceToast": "Source code copied to clipboard!",
     "copySourceTitle": "Copy source code",
-    "submissionSourceHeader": "Source for submission #{{id}} ({{lang}})",
+    "submissionSourceHeader": "Source of attempt #{{id}} ({{lang}})",
     "lineCountSuffix": "{{count}} lines",
     "noOutput": "(no output)",
     "statement": "Statement",
@@ -1326,7 +1330,9 @@
     "problemsHideRaw": "Hide raw output",
     "problemsNoLocation": "Could not find the error location. Open \"Show raw output\" for the full message.",
     "problemsJumpHint": "Click to jump to the error in your code",
-    "problemsLocation": "[Ln {{line}}, Col {{col}}]"
+    "problemsLocation": "[Ln {{line}}, Col {{col}}]",
+    "languageLabel": "Programming language",
+    "fontSizeLabel": "Code font size"
   },
   "auth": {
     "login": "Sign in",
@@ -1457,5 +1463,181 @@
       "FULLSCREEN_EXIT": "Exited fullscreen",
       "OTHER": "Other"
     }
+  },
+  "skills": {
+    "category": {
+      "BASICS": "Basics",
+      "DATA_STRUCTURES": "Data structures",
+      "ALGORITHMS": "Algorithms",
+      "DYNAMIC_PROGRAMMING": "Dynamic programming",
+      "GRAPHS": "Graphs",
+      "MATH": "Math"
+    },
+    "level": {
+      "insufficient": "Not enough data",
+      "not_yet": "Not yet",
+      "learning": "Learning",
+      "proficient": "Proficient",
+      "mastered": "Mastered"
+    },
+    "tag": {
+      "openBtn": "Skill tags",
+      "title": "Problem skill tags",
+      "suggestBtn": "Suggest with AI",
+      "suggesting": "AI is reading the problem and solutions…",
+      "suggestHint": "AI reads the statement and up to 3 accepted student solutions, then picks 2–6 skills from the catalog. Review and press Save.",
+      "pendingTitle": "AI suggestions (not approved) — why:",
+      "selected": "Selected ({{n}}/10):",
+      "remove": "Remove {{name}}",
+      "search": "Search skills…",
+      "aiMark": "Suggested by AI",
+      "saveHint": "Only saved tags are used to compute skill mastery.",
+      "cancel": "Cancel",
+      "save": "Save tags",
+      "saved": "Skill tags saved.",
+      "saveFailed": "Could not save tags.",
+      "suggestedAi": "AI suggested {{n}} skills — review and Save.",
+      "suggestedKeywords": "AI is not connected, guessed from keywords — please review.",
+      "suggestFailed": "Could not get suggestions."
+    },
+    "map": {
+      "title": "Skill map",
+      "scope": "Scope",
+      "scopeGlobal": "All my submissions",
+      "emptyTitle": "No skill data yet",
+      "emptyDesc": "Solve problems your instructors have tagged with skills to start building a profile.",
+      "emptyClassDesc": "You have not attempted any tagged problem in this class yet.",
+      "sumGood": "Proficient+: {{n}}",
+      "sumLearning": "Learning: {{n}}",
+      "sumWeak": "Not yet: {{n}}",
+      "attemptsTitle": "Correct on first try / problems attempted",
+      "untried": "{{n}} skills not attempted yet",
+      "howItWorks": "Computed with Bayesian Knowledge Tracing from the first submission of each problem (compile errors ignored). Fewer than 3 problems: no level yet. For guidance only, not an official grade."
+    },
+    "rec": {
+      "title": "Try next",
+      "empty": "No suggestions yet — solve a few tagged problems first.",
+      "weak": "Practice a weak skill",
+      "new": "Try a new skill"
+    },
+    "class": {
+      "tab": "Skills",
+      "title": "Class skills",
+      "subtitle": "Mastery per skill (0–100%) and a weighted class score out of 10.",
+      "evalBtn": "Evaluate model",
+      "recomputeBtn": "Recompute",
+      "recomputed": "Recomputed from {{n}} attempts.",
+      "actionFailed": "Action failed.",
+      "loadFailed": "Could not load skill data.",
+      "untagged": "{{n}}/{{total}} class problems have no approved skill tags and are not counted. Tag them in the problem bank.",
+      "noSkills": "No class problem has skill tags yet. Open the problem bank and use the tag icon on each problem.",
+      "noStudents": "No students in this class.",
+      "student": "Student",
+      "score10": "Score /10",
+      "weight": "Weight",
+      "classAvg": "Class average",
+      "attempts": "attempts in class",
+      "from_class": "from class work",
+      "from_global": "not attempted in class, using overall score",
+      "from_prior": "no data, prior",
+      "legend": "Solid cells: attempted in this class. Faint cells: not attempted here (overall score or 30% prior). Weight w = total points of class problems with that skill."
+    },
+    "eval": {
+      "title": "Model evaluation on submission history",
+      "majority": "Majority baseline",
+      "samples": "Samples / students",
+      "curve": "Learning curve: error rate by k-th attempt of a skill",
+      "attempt": "Attempt",
+      "note": "Predicts whether each first submission passes from the mastery before it (as evaluated in the KCGen-KT paper). AUC above 0.5 and above the majority baseline means the skill scores carry signal."
+    },
+    "chips": {
+      "label": "Skills",
+      "filter": "Skill",
+      "all": "All",
+      "trains": "Skills practiced:"
+    }
+  },
+  "testgen": {
+    "title": "Verified test generation",
+    "step1": "Solution: yours, or AI writes 2 solutions (fast + brute force)",
+    "step2": "AI writes input generators (random, edge, adversarial)",
+    "step3": "Run in the sandbox for real inputs and verified outputs",
+    "step4": "Re-run old accepted submissions to find wrong ones (saved problems)",
+    "refLanguage": "Reference language",
+    "refCode": "Reference solution",
+    "refHint": "If you have a correct solution, paste it here: it is run on the existing tests first and generation stops if it fails. This is the most reliable option.",
+    "kind": {
+      "random": "Random",
+      "edge": "Edge",
+      "adversarial": "Adversarial"
+    },
+    "needCode": "Paste the reference solution first.",
+    "startFailed": "Could not start test generation.",
+    "applyFailed": "Could not add tests.",
+    "applied": "Added {{n}} hidden tests ({{dup}} duplicates skipped).",
+    "status": {
+      "PENDING": "Queued…",
+      "REFERENCE": "Running the reference solution…",
+      "GENERATORS": "AI is writing input generators…",
+      "INPUTS": "Running generators in the sandbox…",
+      "CHECKING": "Re-running old accepted submissions…",
+      "DONE": "Done",
+      "FAILED": "Failed",
+      "SOLVING": "AI is writing and checking 2 solutions…"
+    },
+    "runningHint": "This can take 1–3 minutes. You can close this window and come back later.",
+    "failed": "Test generation failed",
+    "weakTitle": "Existing tests are weak: {{n}}/{{total}} accepted submissions are actually wrong",
+    "weakBody": "These passed the current tests but fail the new ones. Add the tests marked red to judge more strictly (old submissions are not rejudged automatically).",
+    "strong": "None of the {{total}} accepted submissions fail the new tests.",
+    "noAccepted": "This problem has no accepted submissions to re-check yet.",
+    "stats": "Generated {{gen}} inputs, kept {{kept}}, dropped {{dropped}} (solution failed or too slow). The problem has {{existing}} tests.",
+    "generators": "Input generators written by AI",
+    "genError": "error",
+    "produced": "{{n}} inputs",
+    "candidates": "Generated tests",
+    "selectAll": "Select all",
+    "selectNone": "Clear",
+    "selectBreaking": "Only tests that catch bugs",
+    "selectOne": "Select test {{id}}",
+    "col": {
+      "kind": "Kind",
+      "input": "Input",
+      "output": "Output",
+      "time": "Time",
+      "breaks": "Accepted that fail",
+      "verified": "Verified by"
+    },
+    "heavy": "heavy",
+    "breaksN": "{{n}} subs",
+    "start": "Start generating",
+    "again": "Generate again",
+    "backToResult": "Back to last result",
+    "apply": "Add {{n}} tests to problem",
+    "openBtn": "Generate tests with AI",
+    "optional": "(optional)",
+    "aiModeHint": "Leave empty: AI writes 2 independent solutions (an efficient one and a brute force). Both must pass the statement's examples, and only tests where they agree are kept. The statement needs at least one input/output example.",
+    "draftNote": "The problem is not saved yet, so old accepted submissions can't be checked. After saving and once students get accepted, open \"Generate tests with AI\" in the problem bank to check the test set.",
+    "statsAi": "The two AI solutions agreed on {{agree}} tests, disagreed on {{mismatch}} (dropped), {{unverified}} large tests could not be verified (dropped).",
+    "aiSolutions": "Solutions written by AI",
+    "aiSolutionsNote": "Both passed {{n}} examples ({{src}}) after {{k}} attempt(s).",
+    "src": {
+      "instructor": "your sample tests",
+      "statement": "examples from the statement"
+    },
+    "sol": {
+      "fast": "Fast solution",
+      "brute": "Brute-force solution"
+    },
+    "verify": {
+      "reference": "Reference",
+      "both": "2 solutions agree",
+      "fast": "Fast solution only",
+      "referenceHint": "Output from your reference solution",
+      "bothHint": "AI fast and brute-force solutions gave the same output",
+      "fastHint": "Large test, brute force too slow. The fast solution matched brute force on every small test, but review it"
+    },
+    "addToForm": "Add {{n}} tests to the form",
+    "addedToForm": "Added {{n}} hidden tests to the form. Click Save to save the problem."
   }
 }

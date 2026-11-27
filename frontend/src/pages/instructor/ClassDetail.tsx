@@ -22,6 +22,7 @@ import { formatVN, formatVNFull, toDatetimeLocal } from '../../utils/dateTime';
 import ProblemManager from '../../components/ProblemManager';
 import { parseRosterCsv, RosterCsvError } from '../../utils/rosterCsv';
 import { notifyGlobalToast } from '../../context/ToastContext';
+import ClassSkillHeatmap from '../../components/skills/ClassSkillHeatmap';
 import {
   GraduationCap,
   Users,
@@ -48,7 +49,7 @@ import {
   RotateCcw,
   Award,
   Lock,
-} from 'lucide-react';
+ Brain,} from 'lucide-react';
 
 // Họ và tên hiển thị trong sổ điểm: ưu tiên Họ và tên, chưa có thì dùng Tên đăng nhập
 function gradebookStudentName(st: { full_name?: string | null; username?: string | null; email?: string | null }): string {
@@ -172,10 +173,11 @@ export default function InstructorClassDetail() {
   const { createHomework, updateHomework, deleteHomework } = useHomework();
 
   // Lưu tab đang xem trên URL (?tab=...) để tải lại trang không bị quay về tab Bài tập
-  type ClassTab = 'homework' | 'members' | 'gradebook';
+  type ClassTab = 'homework' | 'members' | 'gradebook' | 'skills';
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
-  const activeTab: ClassTab = tabParam === 'members' || tabParam === 'gradebook' ? tabParam : 'homework';
+  const activeTab: ClassTab =
+    tabParam === 'members' || tabParam === 'gradebook' || tabParam === 'skills' ? tabParam : 'homework';
   const setActiveTab = (tab: ClassTab) =>
     setSearchParams(
       (prev) => {
@@ -693,7 +695,20 @@ export default function InstructorClassDetail() {
             </span>
           )}
         </button>
+        <button
+          onClick={() => setActiveTab('skills')}
+          className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all ${
+            activeTab === 'skills'
+              ? 'border-(--ws-accent) text-(--ws-accent)'
+              : 'border-transparent text-(--ws-muted) hover:text-(--ws-text)'
+          }`}
+        >
+          <Brain size={17} aria-hidden="true" />
+          {t('skills.class.tab')}
+        </button>
       </div>
+
+      {activeTab === 'skills' && classId && <ClassSkillHeatmap classId={classId} />}
 
       {/* ================= TAB 1: BÀI TẬP ================= */}
       {activeTab === 'homework' && (

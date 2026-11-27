@@ -320,7 +320,6 @@ export default function ProblemManager({ problems, onChange }: Props) {
                           {bp.description || t('problemManager.detailUnavailable')}
                         </p>
                         <div className="flex items-center gap-3 text-[11px] text-(--ws-muted)">
-                          <span className="font-mono text-(--ws-text)">{bp.id}</span>
                           <span className="flex items-center gap-1"><Clock size={11} />{bp.time_limit}ms</span>
                           <span className="flex items-center gap-1"><HardDrive size={11} />{bp.memory_limit}MB</span>
                         </div>

@@ -1,3 +1,4 @@
+import { Throttle } from '@nestjs/throttler';
 import {
   Controller,
   Get,
@@ -25,6 +26,8 @@ export class ProblemsController {
   // POST: Chỉ INSTRUCTOR
   @Post()
   @Roles(Role.INSTRUCTOR)
+  // Nhập hàng loạt đề (ProblemImportModal) gửi nhiều request liên tiếp; giới hạn chung 300/phút quá chặt
+  @Throttle({ default: { limit: 2000, ttl: 60_000 } })
   create(@Body() createProblemDto: CreateProblemDto) {
     return this.problemsService.create(createProblemDto);
   }

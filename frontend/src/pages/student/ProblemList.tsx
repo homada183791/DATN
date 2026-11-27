@@ -1,7 +1,11 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, ChevronRight, Search, Plus, Edit, Trash2, ArrowUpDown } from 'lucide-react';
+import { BookOpen, ChevronRight, Search, Plus, Edit, Trash2, ArrowUpDown, Tags, FlaskConical } from 'lucide-react';
+import SkillTagModal from '../../components/skills/SkillTagModal';
+import TestGenModal from '../../components/testgen/TestGenModal';
+import SkillChips from '../../components/skills/SkillChips';
+import { useProblemSkillMapQuery, useSkillCatalogQuery } from '../../api/skills';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '../../api/http';
 import { useProblemsQuery, createProblem, updateProblem, deleteProblem, type ProblemDto, type CreateProblemDto } from '../../api/problems';
@@ -45,10 +49,28 @@ export default function ProblemList() {
   const currentLang = (i18n.resolvedLanguage || i18n.language || 'vi').toLowerCase();
   const { user } = useAuth();
   const isInstructor = user?.role === 'instructor';
+  const [taggingProblem, setTaggingProblem] = useState<{ id: string; title: string } | null>(null);
+  const [testgenProblem, setTestgenProblem] = useState<{ id: string; title: string } | null>(null);
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useProblemsQuery();
 
   const [query, setQuery] = useState('');
+  // Lọc theo kỹ năng (đồng bộ với URL ?skill=CODE để link từ trang làm bài mở thẳng)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const skillFilter = searchParams.get('skill') ?? '';
+  const setSkillFilter = (code: string) =>
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (code) next.set('skill', code);
+      else next.delete('skill');
+      return next;
+    }, { replace: true });
+  const { data: skillMap = {} } = useProblemSkillMapQuery();
+  const { data: skillCatalog = [] } = useSkillCatalogQuery();
+  const usedSkills = useMemo(() => {
+    const used = new Set(Object.values(skillMap).flat());
+    return skillCatalog.filter((s) => used.has(s.code));
+  }, [skillMap, skillCatalog]);
   const [difficulty, setDifficulty] = useState<'all' | ProblemDto['difficulty']>('all');
   const [sortKey, setSortKey] = useState<SortKey>('default');
 
@@ -68,7 +90,7 @@ export default function ProblemList() {
   };
 
   const createMutation = useMutation({
-    mutationFn: createProblem,
+    mutationFn: (data: CreateProblemDto) => createProblem(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['problems'] });
       setIsModalOpen(false);
@@ -117,7 +139,8 @@ export default function ProblemList() {
         rawId.includes(search);
 
       const matchesDifficulty = difficulty === 'all' || problem.difficulty === difficulty;
-      return matchesSearch && matchesDifficulty;
+      const matchesSkill = !skillFilter || (skillMap[problem.id] ?? []).includes(skillFilter);
+      return matchesSearch && matchesDifficulty && matchesSkill;
     });
 
     // Sắp xếp
@@ -256,6 +279,30 @@ export default function ProblemList() {
 
           <div className="h-5 w-px bg-(--ws-border) hidden sm:block" />
 
+          {/* Lọc theo kỹ năng */}
+          {usedSkills.length > 0 && (
+            <>
+              <label className="flex items-center gap-1.5">
+                <span className="text-xs font-semibold text-(--ws-muted) uppercase tracking-wider">{t('skills.chips.filter')}</span>
+                <select
+                  value={skillFilter}
+                  onChange={(e) => setSkillFilter(e.target.value)}
+                  className={`min-h-8 rounded-lg border px-2 text-xs font-semibold ${
+                    skillFilter ? 'border-(--ws-accent) bg-(--ws-accent)/10 text-(--ws-accent)' : 'border-(--ws-border) bg-(--ws-panel2) text-(--ws-text)'
+                  }`}
+                >
+                  <option value="">{t('skills.chips.all')}</option>
+                  {usedSkills.map((s) => (
+                    <option key={s.code} value={s.code}>
+                      {currentLang.startsWith('en') ? s.name_en : s.name_vi}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="h-5 w-px bg-(--ws-border) hidden sm:block" />
+            </>
+          )}
+
           {/* Sort */}
           <div className="flex items-center gap-1.5">
             <ArrowUpDown size={13} className="text-(--ws-muted)" />
@@ -298,6 +345,11 @@ export default function ProblemList() {
                   </span>
                 </div>
                 <p className="mt-1 line-clamp-2 text-sm text-(--ws-muted)">{markdownToPlainText(locDesc)}</p>
+                {skillMap[problem.id] && (
+                  <div className="mt-2">
+                    <SkillChips codes={skillMap[problem.id]} />
+                  </div>
+                )}
               </div>
             <div className="flex items-center gap-4 text-sm text-(--ws-muted) shrink-0">
               <div className="flex flex-col items-end gap-0.5">
@@ -308,11 +360,34 @@ export default function ProblemList() {
                 <span className="text-xs font-semibold text-(--ws-text)">{problem.memory_limit} MB</span>
                 <span className="text-[10px] text-(--ws-faint)">{t('problemList.memoryLabel')}</span>
               </div>
-              <span className="hidden sm:inline text-[11px] font-bold tracking-wider text-(--ws-muted) bg-(--ws-panel2) border border-(--ws-border) rounded-md px-2 py-1">
-                {problem.id.slice(0, 8)}…
-              </span>
               {isInstructor && (
                 <div className="flex items-center gap-2 border-l border-(--ws-border) pl-4">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setTaggingProblem({ id: problem.id, title: problem.title });
+                    }}
+                    className="p-1 text-(--ws-muted) hover:text-(--ws-accent) transition-colors"
+                    title={t('skills.tag.openBtn')}
+                    aria-label={t('skills.tag.openBtn')}
+                  >
+                    <Tags size={16} aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setTestgenProblem({ id: problem.id, title: problem.title });
+                    }}
+                    className="p-1 text-(--ws-muted) hover:text-(--ws-accent) transition-colors"
+                    title={t('testgen.openBtn')}
+                    aria-label={t('testgen.openBtn')}
+                  >
+                    <FlaskConical size={16} aria-hidden="true" />
+                  </button>
                   <button
                     onClick={(e) => handleOpenEditModal(e, problem)}
                     className="p-1 text-(--ws-muted) hover:text-(--ws-accent) transition-colors"
@@ -346,6 +421,22 @@ export default function ProblemList() {
           </div>
         )}
       </div>
+
+      {taggingProblem && (
+        <SkillTagModal
+          problemId={taggingProblem.id}
+          problemTitle={taggingProblem.title}
+          onClose={() => setTaggingProblem(null)}
+        />
+      )}
+
+      {testgenProblem && (
+        <TestGenModal
+          problemId={testgenProblem.id}
+          problemTitle={testgenProblem.title}
+          onClose={() => setTestgenProblem(null)}
+        />
+      )}
 
       <ProblemFormModal
         isOpen={isModalOpen}

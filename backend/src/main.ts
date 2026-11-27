@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { registerLargeBodyRoutes } from './common/config/body-limits';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -22,6 +23,7 @@ async function bootstrap() {
   });
 
   app.setGlobalPrefix('api/v1');
+  registerLargeBodyRoutes(app);
 
   app.useGlobalPipes(
     new ValidationPipe({

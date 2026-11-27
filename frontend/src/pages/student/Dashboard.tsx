@@ -126,18 +126,20 @@ export default function StudentDashboard() {
     <div className="max-w-[1120px] mx-auto space-y-7 text-(--ws-text)">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-[13px] font-medium text-(--ws-muted) mb-1.5">{formatVN(new Date(now), { time: false })}</p>
           <h1 className="text-[28px] font-bold tracking-tight">
             {t('studentDashboard.welcome', { name: user?.fullName || user?.email })}
           </h1>
         </div>
-        <Link
-          to="/student/problems"
-          className="inline-flex items-center gap-2 min-h-11 px-[18px] rounded-[10px] bg-(--ws-accent) text-(--ws-panel) text-sm font-semibold hover:opacity-90 transition-opacity"
-        >
-          {t('studentDashboard.practiceBtn')}
-          <ArrowRight size={15} aria-hidden="true" />
-        </Link>
+        {/* Khi chưa có bài tập về nhà, khối "Việc cần làm tiếp" đã có nút Luyện tập → không hiện trùng */}
+        {nextHomework && (
+          <Link
+            to="/student/problems"
+            className="inline-flex items-center gap-2 min-h-11 px-[18px] rounded-[10px] bg-(--ws-accent) text-(--ws-on-accent) text-sm font-semibold hover:opacity-90 transition-opacity"
+          >
+            {t('studentDashboard.practiceBtn')}
+            <ArrowRight size={15} aria-hidden="true" />
+          </Link>
+        )}
       </header>
 
       {/* Một khối dẫn dắt: việc cần làm tiếp */}

@@ -40,6 +40,7 @@ model User {
   enrolled_classes ClassStudent[]
   contest_sessions ContestSession[]
   contest_violations ContestViolation[]
+  skill_masteries    SkillMastery[]
   activity_logs    UserActivityLog[]
   notifications    Notification[]
   ai_interactions  AiInteraction[]
@@ -69,6 +70,8 @@ model Problem {
   submissions        Submission[]
   contests           ContestProblem[]
   plagiarism_reports PlagiarismReport[]
+  skills             ProblemSkill[]
+  testgen_jobs       TestGenJob[]
 
   @@map("problems")
 }
@@ -357,4 +360,94 @@ model AiInteraction {
   @@index([user_id, created_at])
   @@index([user_id, problem_id, kind])
   @@map("ai_interactions")
+}
+
+// ─── Kỹ năng (Knowledge Components) & theo dõi mức nắm vững (BKT) ───────────────
+// Dựa trên bài báo KCGen-KT (UMass): LLM gợi ý kỹ năng cho từng bài, giảng viên duyệt;
+// điểm nắm vững 0–1 của từng sinh viên được cập nhật bằng Bayesian Knowledge Tracing.
+
+/// Danh mục kỹ năng chuẩn (~50 kỹ năng). LLM chỉ được chọn trong danh mục này.
+model Skill {
+  id          String  @id @default(uuid())
+  code        String  @unique
+  name_vi     String
+  name_en     String
+  category    String
+  description String?
+  sort        Int     @default(0)
+
+  problems  ProblemSkill[]
+  masteries SkillMastery[]
+
+  @@map("skills")
+}
+
+/// Nhãn kỹ năng của một bài tập. source = AI (do AI đề xuất) | INSTRUCTOR (giảng viên thêm).
+/// Chỉ nhãn approved = true mới được dùng để tính điểm kỹ năng.
+model ProblemSkill {
+  problem_id String
+  skill_id   String
+  source     String   @default("AI")
+  approved   Boolean  @default(false)
+  reason     String?  @db.Text
+  created_at DateTime @default(now())
+
+  problem Problem @relation(fields: [problem_id], references: [id], onDelete: Cascade)
+  skill   Skill   @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+
+  @@id([problem_id, skill_id])
+  @@index([skill_id])
+  @@map("problem_skills")
+}
+
+/// Mức nắm vững một kỹ năng của sinh viên. scope = "global" (mọi bài nộp) hoặc id của lớp
+/// (chỉ bài nộp thuộc bài tập/kỳ thi của lớp, điểm xuất phát lấy từ điểm global).
+model SkillMastery {
+  id         String   @id @default(uuid())
+  student_id String
+  skill_id   String
+  scope      String   @default("global")
+  p_mastery  Float
+  attempts   Int      @default(0)
+  correct    Int      @default(0)
+  updated_at DateTime @updatedAt
+
+  student User  @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  skill   Skill @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+
+  @@unique([student_id, skill_id, scope])
+  @@index([scope, skill_id])
+  @@map("skill_masteries")
+}
+
+// ─── Sinh test bằng AI có kiểm chứng (HardTestGen + TrickCatcher) ──────────────
+/// Một lần sinh test cho một bài: AI viết chương trình sinh input (ngẫu nhiên / biên / đối kháng),
+/// chạy trong sandbox để ra input, chạy lời giải mẫu để ra output, rồi chạy lại các bài AC cũ để tìm bài
+/// thực ra sai. Giảng viên chọn test nào thêm vào bài.
+model TestGenJob {
+  id                 String   @id @default(uuid())
+  /// null = sinh test ngay trong form tạo đề (bài chưa lưu)
+  problem_id         String?
+  created_by         String
+  /// REFERENCE = dùng lời giải mẫu của giảng viên; AI = AI tự viết 2 lời giải (nhanh + trâu) để chấm chéo
+  mode               String   @default("REFERENCE")
+  status             String   @default("PENDING") // PENDING | SOLVING | REFERENCE | GENERATORS | INPUTS | CHECKING | DONE | FAILED
+  error              String?  @db.Text
+  reference_language String?
+  reference_code     String?  @db.Text
+  /// Đề bài lúc sinh test (bản nháp từ form): title, description, time_limit, memory_limit, samples
+  spec               Json?
+  solutions          Json?
+  generators         Json?
+  candidates         Json?
+  summary            Json?
+  applied_count      Int      @default(0)
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  problem Problem? @relation(fields: [problem_id], references: [id], onDelete: Cascade)
+
+  @@index([problem_id, created_at])
+  @@index([created_by, created_at])
+  @@map("testgen_jobs")
 }

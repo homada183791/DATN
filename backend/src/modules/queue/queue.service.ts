@@ -12,9 +12,13 @@ export class QueueService {
 
   /** Tóm tắt job để ghi log, bỏ nội dung nhạy cảm. */
   static describe(payload: any): string {
-    const id = payload?.submission_id ?? payload?.session_id ?? 'unknown';
-    const kind = payload?.is_custom ? 'custom-run' : 'submission';
-    const tests = Array.isArray(payload?.test_cases) ? payload.test_cases.length : 0;
+    const id = payload?.submission_id ?? payload?.session_id ?? payload?.batch_id ?? 'unknown';
+    const kind = payload?.is_batch ? 'batch-run' : payload?.is_custom ? 'custom-run' : 'submission';
+    const tests = Array.isArray(payload?.test_cases)
+      ? payload.test_cases.length
+      : Array.isArray(payload?.inputs)
+        ? payload.inputs.length
+        : 0;
     return `${kind} ${id} lang=${payload?.language ?? '?'} tests=${tests}`;
   }
 

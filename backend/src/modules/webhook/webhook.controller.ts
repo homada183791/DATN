@@ -5,13 +5,17 @@ import { JudgeProgressDto } from './dto/judge-progress.dto';
 import { JudgeSecretGuard } from '../../common/guards/judge-secret.guard';
 import { ApiTags, ApiOperation, ApiResponse, ApiHeader } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
+import { SandboxBatchService, type BatchResult } from '../sandbox/sandbox-batch.service';
 
 @ApiTags('Webhook')
 // Judge runner gửi tiến độ từng test liên tục; đã có JudgeSecretGuard nên không giới hạn.
 @SkipThrottle()
 @Controller('webhook')
 export class WebhookController {
-  constructor(private readonly webhookService: WebhookService) {}
+  constructor(
+    private readonly webhookService: WebhookService,
+    private readonly sandboxBatch: SandboxBatchService,
+  ) {}
 
   @Post('judge')
   @UseGuards(JudgeSecretGuard)
@@ -37,5 +41,17 @@ export class WebhookController {
   })
   handleJudgeProgress(@Body() progress: JudgeProgressDto) {
     return this.webhookService.processJudgeProgress(progress);
+  }
+
+  /**
+   * Kết quả "chạy hàng loạt" (sinh test). Body có thể vài MB (input sinh ra + stdout) — giới hạn riêng
+   * cho đường dẫn này được nới trong main.ts. Không dùng ValidationPipe vì body là dữ liệu máy chấm.
+   */
+  @Post('judge/batch')
+  @UseGuards(JudgeSecretGuard)
+  @ApiOperation({ summary: 'Webhook nhận kết quả chạy hàng loạt (sinh test)' })
+  handleBatch(@Body() body: BatchResult & { batch_id?: string }) {
+    if (!body?.batch_id) return { success: false };
+    return { success: this.sandboxBatch.complete(body.batch_id, body) };
   }
 }

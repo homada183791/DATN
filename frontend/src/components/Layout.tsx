@@ -85,6 +85,7 @@ function Breadcrumbs() {
   const { user } = useAuth();
   const pathSegments = location.pathname.split('/').filter(Boolean);
   const { data: classList = [] } = useClassesQuery();
+  const { data: problemList = [] } = useProblemsQuery();
 
   const labels: Record<string, string> = {
     student: t('breadcrumb.student'),
@@ -114,15 +115,19 @@ function Breadcrumbs() {
       return pathSegments[0] === 'instructor' ? t('nav.homework') : t('nav.myHomework');
     }
     if (labels[segment]) return labels[segment];
-    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment)) {
-      // Đoạn ID ngay sau "class/classes" → hiển thị "Môn học - Tên lớp" thay cho mã hệ thống
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment) || /\d/.test(segment)) {
+      // Đoạn ID trong URL: không hiện mã hệ thống, đổi sang tên lớp / tên bài, hoặc chữ "Chi tiết"
       const idx = pathSegments.indexOf(segment);
       const prev = pathSegments[idx - 1];
       if (prev === 'class' || prev === 'classes') {
         const cls = classList.find((c) => c.id === segment);
         if (cls) return cls.subject ? `${cls.subject} - ${cls.name}` : cls.name;
       }
-      return `#${segment.slice(0, 8)}`;
+      if (prev === 'problem' || prev === 'problems') {
+        const pr = problemList.find((x) => x.id === segment);
+        if (pr) return pr.title;
+      }
+      return t('breadcrumb.detail');
     }
     return segment;
   };
@@ -371,8 +376,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                     to={`/student/problem/${p.id}`}
                     className="flex items-center justify-between px-4 py-2.5 hover:bg-(--ws-hover) text-[13px] text-(--ws-text)"
                   >
-                    <span className="font-medium">{p.title}</span>
-                    <span className="text-[11px] text-(--ws-muted) font-mono">{p.id}</span>
+                    <span className="font-medium truncate">{p.title}</span>
                   </Link>
                 ))}
                 {filteredProblems.length === 0 && (

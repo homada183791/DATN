@@ -15,6 +15,7 @@ import {
   Star,
 } from 'lucide-react';
 import { formatLanguageName } from '../../config/languages';
+import { attemptNumbers } from '../../utils/attempts';
 
 interface SubmissionRow {
   id: string;
@@ -84,6 +85,9 @@ export default function Submission() {
     timestamp: submission.created_at,
     code: submission.source_code,
   }));
+
+  // "Lần nộp thứ N" của từng người cho từng bài, thay cho mã bài nộp nội bộ
+  const attempts = attemptNumbers(allSubmissions, (s) => `${s.userId}:${s.problemId}`, (s) => s.timestamp);
 
   const filteredSubmissions = allSubmissions.filter((s) => {
     const matchesSearch =
@@ -210,7 +214,7 @@ export default function Submission() {
             <thead>
               <tr className="border-b border-(--ws-border) bg-(--ws-panel2)/50">
                 <th className="text-left text-xs font-semibold text-(--ws-text) py-3.5 px-4 uppercase tracking-wider">
-                  ID
+                  {t('submission.colAttempt')}
                 </th>
                 <th className="text-left text-xs font-semibold text-(--ws-text) py-3.5 px-4 uppercase tracking-wider">
                   {t('submission.colProblem', 'Bài tập')}
@@ -247,8 +251,8 @@ export default function Submission() {
                   className="border-b border-(--ws-border)/50 hover:bg-(--ws-hover)/60 cursor-pointer transition-colors"
                   onClick={() => handleOpenDetail(sub)}
                 >
-                  <td className="py-3 px-4 text-sm text-(--ws-muted) font-mono" title={sub.id}>
-                    #{sub.id.slice(0, 8)}
+                  <td className="py-3 px-4 text-sm text-(--ws-muted) tabular-nums" title={t('submission.attemptTitle', { n: attempts.get(sub.id) ?? 1 })}>
+                    #{attempts.get(sub.id) ?? 1}
                   </td>
                   <td className="py-3 px-4 text-sm text-(--ws-text) font-semibold">{sub.problemTitle}</td>
                   {isInstructor && (

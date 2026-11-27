@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/http';
 import ActivityHeatmap from '../../components/ActivityHeatmap';
+import SkillMap from '../../components/skills/SkillMap';
 import {
   MapPin,
   Calendar,
@@ -201,6 +202,9 @@ export default function PersonalPage() {
 
           {/* Activity Heatmap */}
           <ActivityHeatmap data={heatmap} />
+
+          {/* Bản đồ kỹ năng (BKT) — chỉ sinh viên */}
+          {!isInstructor && <SkillMap />}
 
           <div className="grid lg:grid-cols-2 gap-6">
             {/* Verdict Distribution (Thực tế) */}

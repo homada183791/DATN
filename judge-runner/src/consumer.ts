@@ -1,7 +1,7 @@
 import amqplib from 'amqplib';
 import axios from 'axios';
 import os from 'os';
-import { DockerRunner, RunSubmissionPayload, CustomRunPayload } from './docker/docker-runner';
+import { DockerRunner, RunSubmissionPayload, CustomRunPayload, BatchRunPayload } from './docker/docker-runner';
 
 const AMQP_URL = process.env.RABBITMQ_URL || 'amqp://root:rootpassword@localhost:5672';
 const QUEUE_NAME = process.env.QUEUE_NAME || 'judge_queue';
@@ -48,7 +48,7 @@ export class JudgeConsumer {
         if (msg !== null) {
           try {
             const payload = decodeJobMessage(msg.content);
-            console.log(`[x] Received job for ${payload.is_custom ? 'custom run' : 'submission'} (ID: ${payload.submission_id || payload.session_id})`);
+            console.log(`[x] Received job for ${payload.is_batch ? 'batch run' : payload.is_custom ? 'custom run' : 'submission'} (ID: ${payload.submission_id || payload.session_id || payload.batch_id})`);
             
             await this.processJob(payload);
             
@@ -67,6 +67,30 @@ export class JudgeConsumer {
 
   private static async processJob(payload: any) {
     const headers = { 'x-judge-secret': JUDGE_SECRET };
+
+    if (payload.is_batch) {
+      // Sinh test: chạy một chương trình trên nhiều input, trả toàn bộ stdout về backend
+      const batchPayload: BatchRunPayload = {
+        language: payload.language,
+        language_version: payload.language_version,
+        source_code: payload.source_code,
+        inputs: Array.isArray(payload.inputs) ? payload.inputs : [],
+        time_limit_ms: payload.time_limit_ms,
+        memory_limit_mb: payload.memory_limit_mb,
+      };
+      let body: Record<string, unknown>;
+      try {
+        body = { batch_id: payload.batch_id, ...(await DockerRunner.runBatch(batchPayload)) };
+      } catch (err: any) {
+        body = { batch_id: payload.batch_id, error: String(err?.message ?? err), results: [] };
+      }
+      await axios.post(`${WEBHOOK_URL}/batch`, body, {
+        headers,
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
+      });
+      return;
+    }
 
     if (payload.is_custom) {
       const customPayload: CustomRunPayload = {

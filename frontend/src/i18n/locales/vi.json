@@ -105,7 +105,8 @@
     "profile": "Hồ sơ",
     "settings": "Cài đặt",
     "students": "Sinh viên",
-    "calendar": "Lịch biểu"
+    "calendar": "Lịch biểu",
+    "detail": "Chi tiết"
   },
   "topbar": {
     "searchPlaceholder": "Tìm bài tập, người dùng…",
@@ -643,7 +644,9 @@
     "pending": "Đang chờ chấm",
     "inQueue": "Trong hàng đợi",
     "queueTitle": "Đang chờ chấm bài",
-    "queueMessage": "Bài nộp đang nằm trong hàng đợi của hệ thống chấm bài. Vui lòng chờ ít phút hoặc tải lại trang."
+    "queueMessage": "Bài nộp đang nằm trong hàng đợi của hệ thống chấm bài. Vui lòng chờ ít phút hoặc tải lại trang.",
+    "colAttempt": "Lần nộp",
+    "attemptTitle": "Lần nộp thứ {{n}} cho bài này"
   },
   "personal": {
     "joined": "Tham gia {{date}}",
@@ -982,7 +985,8 @@
     "cancel": "Huỷ",
     "saving": "Đang lưu...",
     "saveChanges": "Lưu thay đổi",
-    "create": "Tạo bài tập"
+    "create": "Tạo bài tập",
+    "testGenNeedStatement": "Hãy nhập tên bài và đề bài (ít nhất 20 ký tự) trước khi sinh test."
   },
   "problemManager": {
     "duplicate": "Bài này đã có trong danh sách.",
@@ -1134,7 +1138,7 @@
   },
   "problemSolve": {
     "fallbackProblemTitle": "Bài tập",
-    "restoredCodeToast": "Đã nạp lại mã nguồn lần nộp #{{id}} vào Editor!",
+    "restoredCodeToast": "Đã nạp lại mã nguồn lần nộp thứ {{id}} vào Editor!",
     "disqualifiedToast": "BẠN ĐÃ BỊ TRUẤT QUYỀN THI do vi phạm quy chế thi cử quá {{max}} lần!",
     "cheatWarningToast": "CẢNH BÁO GIAN LẬN: {{reason}}! Lần vi phạm {{count}}/{{max}}. Vi phạm {{max}} lần sẽ bị truất quyền thi.",
     "countdownTitle": "Thời gian còn lại của kỳ thi",
@@ -1211,7 +1215,7 @@
     "loadIntoEditorBtn": "Nạp vào Editor",
     "copiedSourceToast": "Đã sao chép mã nguồn vào clipboard!",
     "copySourceTitle": "Sao chép mã nguồn",
-    "submissionSourceHeader": "Mã nguồn lần nộp #{{id}} ({{lang}})",
+    "submissionSourceHeader": "Mã nguồn lần nộp thứ {{id}} ({{lang}})",
     "lineCountSuffix": "{{count}} dòng",
     "noOutput": "(không có output)",
     "statement": "Đề bài",
@@ -1326,7 +1330,9 @@
     "problemsHideRaw": "Ẩn thông báo gốc",
     "problemsNoLocation": "Không xác định được dòng lỗi. Bấm \"Xem thông báo gốc\" để đọc đầy đủ.",
     "problemsJumpHint": "Bấm để tới chỗ lỗi trong code",
-    "problemsLocation": "[Dòng {{line}}, Cột {{col}}]"
+    "problemsLocation": "[Dòng {{line}}, Cột {{col}}]",
+    "languageLabel": "Ngôn ngữ lập trình",
+    "fontSizeLabel": "Cỡ chữ code"
   },
   "auth": {
     "login": "Đăng nhập",
@@ -1457,5 +1463,181 @@
       "FULLSCREEN_EXIT": "Thoát toàn màn hình",
       "OTHER": "Khác"
     }
+  },
+  "skills": {
+    "category": {
+      "BASICS": "Nền tảng",
+      "DATA_STRUCTURES": "Cấu trúc dữ liệu",
+      "ALGORITHMS": "Thuật toán",
+      "DYNAMIC_PROGRAMMING": "Quy hoạch động",
+      "GRAPHS": "Đồ thị",
+      "MATH": "Toán"
+    },
+    "level": {
+      "insufficient": "Chưa đủ dữ liệu",
+      "not_yet": "Chưa nắm",
+      "learning": "Đang học",
+      "proficient": "Khá",
+      "mastered": "Thành thạo"
+    },
+    "tag": {
+      "openBtn": "Nhãn kỹ năng",
+      "title": "Nhãn kỹ năng của bài",
+      "suggestBtn": "AI đề xuất",
+      "suggesting": "AI đang đọc đề và lời giải…",
+      "suggestHint": "AI đọc đề bài và tối đa 3 lời giải đúng của sinh viên, rồi chọn 2–6 kỹ năng trong danh mục. Bạn kiểm tra và bấm Lưu.",
+      "pendingTitle": "AI đề xuất (chưa duyệt) — lý do:",
+      "selected": "Đã chọn ({{n}}/10):",
+      "remove": "Bỏ {{name}}",
+      "search": "Tìm kỹ năng…",
+      "aiMark": "AI đề xuất",
+      "saveHint": "Chỉ nhãn đã lưu mới được dùng để tính điểm kỹ năng.",
+      "cancel": "Huỷ",
+      "save": "Lưu nhãn",
+      "saved": "Đã lưu nhãn kỹ năng.",
+      "saveFailed": "Không lưu được nhãn.",
+      "suggestedAi": "AI đề xuất {{n}} kỹ năng — kiểm tra rồi bấm Lưu.",
+      "suggestedKeywords": "Chưa kết nối AI nên đoán theo từ khoá — nhớ kiểm tra kỹ.",
+      "suggestFailed": "Không lấy được đề xuất."
+    },
+    "map": {
+      "title": "Bản đồ kỹ năng",
+      "scope": "Xem theo",
+      "scopeGlobal": "Tất cả bài đã làm",
+      "emptyTitle": "Chưa có dữ liệu kỹ năng",
+      "emptyDesc": "Làm các bài đã được giảng viên gắn nhãn kỹ năng để bắt đầu có điểm.",
+      "emptyClassDesc": "Bạn chưa làm bài có gắn nhãn kỹ năng nào trong lớp này.",
+      "sumGood": "Khá trở lên: {{n}}",
+      "sumLearning": "Đang học: {{n}}",
+      "sumWeak": "Chưa nắm: {{n}}",
+      "attemptsTitle": "Số bài làm đúng ngay lần đầu / số bài đã làm",
+      "untried": "{{n}} kỹ năng chưa làm bài nào",
+      "howItWorks": "Điểm tính bằng Bayesian Knowledge Tracing từ lần nộp đầu tiên của mỗi bài (không tính lỗi biên dịch). Dưới 3 bài thì chưa xếp mức. Điểm dùng để tham khảo, không phải điểm chính thức."
+    },
+    "rec": {
+      "title": "Nên làm tiếp",
+      "empty": "Chưa có gợi ý — làm thêm vài bài có nhãn kỹ năng nhé.",
+      "weak": "Luyện kỹ năng còn yếu",
+      "new": "Thử kỹ năng mới"
+    },
+    "class": {
+      "tab": "Kỹ năng",
+      "title": "Kỹ năng của lớp",
+      "subtitle": "Điểm nắm vững từng kỹ năng (0–100%) và điểm lớp thang 10 theo trọng số bài tập.",
+      "evalBtn": "Đánh giá mô hình",
+      "recomputeBtn": "Tính lại điểm",
+      "recomputed": "Đã tính lại từ {{n}} lượt làm bài.",
+      "actionFailed": "Thao tác không thành công.",
+      "loadFailed": "Không tải được dữ liệu kỹ năng.",
+      "untagged": "{{n}}/{{total}} bài của lớp chưa có nhãn kỹ năng được duyệt nên chưa được tính. Gắn nhãn ở Ngân hàng bài tập.",
+      "noSkills": "Bài tập của lớp chưa có nhãn kỹ năng nào. Vào Ngân hàng bài tập, bấm biểu tượng nhãn ở từng bài để gắn.",
+      "noStudents": "Lớp chưa có sinh viên.",
+      "student": "Sinh viên",
+      "score10": "Điểm /10",
+      "weight": "Trọng số",
+      "classAvg": "Trung bình lớp",
+      "attempts": "lượt trong lớp",
+      "from_class": "tính từ bài trong lớp",
+      "from_global": "chưa làm trong lớp, lấy điểm chung",
+      "from_prior": "chưa có dữ liệu, điểm xuất phát",
+      "legend": "Ô đậm: có làm bài trong lớp. Ô nhạt: chưa làm trong lớp (lấy điểm chung hoặc điểm xuất phát 30%). Trọng số w = tổng điểm các bài trong lớp có kỹ năng đó."
+    },
+    "eval": {
+      "title": "Đánh giá mô hình trên lịch sử nộp bài",
+      "majority": "Mốc đoán đa số",
+      "samples": "Mẫu / SV",
+      "curve": "Đường cong học tập: tỉ lệ sai theo lần thử thứ k của một kỹ năng",
+      "attempt": "Lần thử",
+      "note": "Dự đoán lần nộp đầu của mỗi bài đúng/sai từ điểm trước đó (giống cách đánh giá của bài báo KCGen-KT). AUC > 0,5 và cao hơn mốc đoán đa số nghĩa là điểm kỹ năng có ý nghĩa."
+    },
+    "chips": {
+      "label": "Kỹ năng",
+      "filter": "Kỹ năng",
+      "all": "Tất cả",
+      "trains": "Bài này rèn kỹ năng:"
+    }
+  },
+  "testgen": {
+    "title": "Sinh test có kiểm chứng",
+    "step1": "Lời giải: của bạn, hoặc AI tự viết 2 lời giải (nhanh + trâu)",
+    "step2": "AI viết chương trình sinh input (ngẫu nhiên, biên, đối kháng)",
+    "step3": "Chạy trong sandbox ra input thật, lấy output đã kiểm chứng",
+    "step4": "Chạy lại bài AC cũ để tìm bài thực ra sai (khi bài đã lưu)",
+    "refLanguage": "Ngôn ngữ lời giải mẫu",
+    "refCode": "Lời giải mẫu",
+    "refHint": "Nếu có lời giải đúng, dán vào đây: hệ thống chạy nó trên các test hiện có trước, sai thì dừng. Đây là cách tin cậy nhất.",
+    "kind": {
+      "random": "Ngẫu nhiên",
+      "edge": "Biên",
+      "adversarial": "Đối kháng"
+    },
+    "needCode": "Hãy dán lời giải mẫu trước.",
+    "startFailed": "Không bắt đầu được lượt sinh test.",
+    "applyFailed": "Không thêm được test.",
+    "applied": "Đã thêm {{n}} test ẩn vào bài (bỏ {{dup}} test trùng).",
+    "status": {
+      "PENDING": "Đang xếp hàng…",
+      "REFERENCE": "Đang chạy lời giải mẫu…",
+      "GENERATORS": "AI đang viết chương trình sinh input…",
+      "INPUTS": "Đang chạy generator trong sandbox…",
+      "CHECKING": "Đang chạy lại các bài AC cũ…",
+      "DONE": "Xong",
+      "FAILED": "Thất bại",
+      "SOLVING": "AI đang viết và kiểm tra 2 lời giải…"
+    },
+    "runningHint": "Có thể mất 1–3 phút. Bạn có thể đóng cửa sổ, mở lại sau vẫn thấy kết quả.",
+    "failed": "Lượt sinh test thất bại",
+    "weakTitle": "Bộ test cũ đang yếu: {{n}}/{{total}} bài AC thực ra sai",
+    "weakBody": "Các bài này qua bộ test hiện tại nhưng sai trên test mới. Thêm các test đánh dấu đỏ để chấm chặt hơn (bài cũ không bị chấm lại tự động).",
+    "strong": "Không bài AC nào trong {{total}} bài bị sai trên test mới.",
+    "noAccepted": "Bài này chưa có bài nộp AC nào để kiểm tra lại.",
+    "stats": "Sinh {{gen}} input, giữ {{kept}} test, bỏ {{dropped}} (lời giải lỗi hoặc quá giờ). Bài đang có {{existing}} test.",
+    "generators": "Chương trình sinh input do AI viết",
+    "genError": "lỗi",
+    "produced": "{{n}} input",
+    "candidates": "Test sinh ra",
+    "selectAll": "Chọn tất cả",
+    "selectNone": "Bỏ chọn",
+    "selectBreaking": "Chỉ chọn test bắt lỗi",
+    "selectOne": "Chọn test {{id}}",
+    "col": {
+      "kind": "Loại",
+      "input": "Input",
+      "output": "Output",
+      "time": "Thời gian",
+      "breaks": "Bài AC bị sai",
+      "verified": "Kiểm chứng"
+    },
+    "heavy": "nặng",
+    "breaksN": "{{n}} bài",
+    "start": "Bắt đầu sinh test",
+    "again": "Sinh lại",
+    "backToResult": "Xem kết quả cũ",
+    "apply": "Thêm {{n}} test vào bài",
+    "openBtn": "Sinh test bằng AI",
+    "optional": "(không bắt buộc)",
+    "aiModeHint": "Để trống: AI tự viết 2 lời giải độc lập (một lời giải tối ưu và một lời giải vét cạn). Cả hai phải đúng ví dụ trong đề, và chỉ giữ test mà hai lời giải ra cùng kết quả. Đề cần có ít nhất 1 ví dụ input/output.",
+    "draftNote": "Bài chưa lưu nên chưa soi được bài AC cũ. Sau khi lưu bài và có sinh viên nộp AC, mở \"Sinh test bằng AI\" trong Ngân hàng bài tập để kiểm tra bộ test.",
+    "statsAi": "Hai lời giải AI khớp nhau trên {{agree}} test, lệch {{mismatch}} test (đã bỏ), {{unverified}} test lớn chưa kiểm chứng được (đã bỏ).",
+    "aiSolutions": "Lời giải do AI viết",
+    "aiSolutionsNote": "Cả hai đã chạy đúng {{n}} ví dụ ({{src}}) sau {{k}} lần thử.",
+    "src": {
+      "instructor": "test mẫu của bạn",
+      "statement": "ví dụ trích từ đề"
+    },
+    "sol": {
+      "fast": "Lời giải nhanh",
+      "brute": "Lời giải trâu (vét cạn)"
+    },
+    "verify": {
+      "reference": "Lời giải mẫu",
+      "both": "2 lời giải khớp",
+      "fast": "Chỉ lời giải nhanh",
+      "referenceHint": "Output lấy từ lời giải mẫu của bạn",
+      "bothHint": "Lời giải nhanh và lời giải trâu của AI cho cùng kết quả",
+      "fastHint": "Test lớn, lời giải trâu không chạy kịp. Lời giải nhanh đã khớp lời giải trâu trên mọi test nhỏ nhưng vẫn nên xem lại"
+    },
+    "addToForm": "Thêm {{n}} test vào form",
+    "addedToForm": "Đã thêm {{n}} test ẩn vào form. Bấm Lưu để lưu bài."
   }
 }
