@@ -50,6 +50,7 @@ import {
   Lock,
   ChevronLeft,
   ChevronRight,
+  ArrowLeft,
   AlertTriangle,
   Info,
   Ban, ShieldAlert, ShieldCheck, Unlock,
@@ -247,7 +248,7 @@ const markdownComponents: Components = {
     );
   },
   blockquote: ({ children }) => (
-    <blockquote className="my-3 rounded-r-lg border-l-4 border-(--ws-accent) bg-(--ws-panel2)/60 py-2.5 px-4 text-[14px] leading-7 text-(--ws-text)/90 [&_p]:mb-1.5 [&_p:last-child]:mb-0">
+    <blockquote className="my-3 rounded-xl border border-(--ws-border) bg-(--ws-panel2)/70 py-2.5 px-4 text-[14px] leading-7 text-(--ws-text)/90 [&_p]:mb-1.5 [&_p:last-child]:mb-0">
       {children}
     </blockquote>
   ),
@@ -2089,19 +2090,23 @@ export default function ProblemSolve() {
           {/* Back button (ẩn khi đang lockdown) */}
           {!lockdownActive && (classId && homeworkId ? (
             <button
+              type="button"
               onClick={() => navigate(`/student/class/${classId}/homework/${homeworkId}`)}
-              className="flex items-center gap-1 text-[12px] text-(--ws-muted) hover:text-(--ws-text) transition-colors mr-1"
+              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[12px] font-medium text-(--ws-muted) hover:text-(--ws-text) hover:bg-(--ws-hover) transition-colors mr-1"
               title={t('problemSolve.backToProblemsTitle')}
             >
-              ← {t('problemSolve.backToProblems')}
+              <ArrowLeft size={13} aria-hidden="true" />
+              <span>{t('problemSolve.backToProblems')}</span>
             </button>
           ) : (
             <button
+              type="button"
               onClick={() => navigate(-1)}
-              className="flex items-center gap-1 text-[12px] text-(--ws-muted) hover:text-(--ws-text) transition-colors mr-1"
+              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[12px] font-medium text-(--ws-muted) hover:text-(--ws-text) hover:bg-(--ws-hover) transition-colors mr-1"
               title={t('problemSolve.backToListTitle')}
             >
-              ← {t('studentContest.back')}
+              <ArrowLeft size={13} aria-hidden="true" />
+              <span>{t('studentContest.back')}</span>
             </button>
           ))}
           <h1 className="text-[17px] font-bold">{localizedTitle}</h1>
@@ -2150,12 +2155,13 @@ export default function ProblemSolve() {
                     remainingSec === 0
                       ? 'bg-(--ws-border) text-(--ws-text) border-(--ws-border)'
                       : remainingSec <= 300
-                        ? 'bg-(--ws-danger-soft) text-(--ws-danger) border-(--ws-danger)/35 animate-pulse'
+                        ? 'bg-(--ws-danger-soft) text-(--ws-danger) border-(--ws-danger)/35 animate-pulse-dot'
                         : 'bg-(--ws-ok-soft) text-(--ws-ok) border-(--ws-ok)/35'
                   }`}
                   title={t('problemSolve.countdownTitle')}
                 >
-                  ⏱ {remainingSec === 0 ? t('problemSolve.countdownEnded') : formatCountdown(remainingSec)}
+                  <Clock size={12} aria-hidden="true" />
+                  <span>{remainingSec === 0 ? t('problemSolve.countdownEnded') : formatCountdown(remainingSec)}</span>
                 </span>
               )}
             </div>
@@ -2196,26 +2202,35 @@ export default function ProblemSolve() {
           >
             <HelpCircle size={15} />
           </button>
-          <div className="flex items-center rounded-lg border border-(--ws-border) overflow-hidden">
-            {([['split', <Columns size={14} key="c" />], ['statement', <FileText size={14} key="f" />], ['editor', <Code size={14} key="e" />]] as [LayoutMode, React.ReactNode][]).map(([mode, icon]) => (
-              <button
-                key={mode}
-                onClick={() => setLayout(mode)}
-                className={`px-2.5 py-2 transition-colors ${layout === mode ? 'bg-(--ws-accent-soft) text-(--ws-accent)' : 'text-(--ws-muted) hover:text-(--ws-text)'}`}
-                title={mode === 'split' ? t('problemSolve.modeSplit') : mode === 'statement' ? t('problemSolve.modeStatementOnly') : t('problemSolve.modeEditorOnly')}
-              >
-                {icon}
-              </button>
-            ))}
+          <div className="flex items-center rounded-lg border border-(--ws-border) overflow-hidden" role="group" aria-label={t('problemSolve.guideModeLabel')}>
+            {([['split', <Columns size={14} key="c" aria-hidden="true" />], ['statement', <FileText size={14} key="f" aria-hidden="true" />], ['editor', <Code size={14} key="e" aria-hidden="true" />]] as [LayoutMode, React.ReactNode][]).map(([mode, icon]) => {
+              const modeLabel = mode === 'split' ? t('problemSolve.modeSplit') : mode === 'statement' ? t('problemSolve.modeStatementOnly') : t('problemSolve.modeEditorOnly');
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setLayout(mode)}
+                  aria-pressed={layout === mode}
+                  aria-label={modeLabel}
+                  className={`px-2.5 py-2 transition-colors ${layout === mode ? 'bg-(--ws-accent-soft) text-(--ws-accent)' : 'text-(--ws-muted) hover:text-(--ws-text)'}`}
+                  title={modeLabel}
+                >
+                  {icon}
+                </button>
+              );
+            })}
           </div>
           </div>
         </div>
 
         {/* mobile pane switch */}
-        <div className="md:hidden flex border-b border-(--ws-border) bg-(--ws-panel)">
+        <div className="md:hidden flex border-b border-(--ws-border) bg-(--ws-panel)" role="tablist" aria-label={t('problemSolve.guideModeLabel')}>
           {(['statement', 'editor'] as const).map((p) => (
             <button
               key={p}
+              type="button"
+              role="tab"
+              aria-selected={mobilePane === p}
               onClick={() => setMobilePane(p)}
               className={`flex-1 py-2.5 text-[13px] font-semibold ${mobilePane === p ? 'text-(--ws-accent) border-b-2 border-(--ws-accent)' : 'text-(--ws-muted)'}`}
             >
@@ -2237,8 +2252,11 @@ export default function ProblemSolve() {
                 }`}
               >
                 {/* Left Pane Navigation Tabs */}
-                <div className="flex items-stretch gap-1 px-4 min-h-[52px] border-b border-(--ws-border) bg-(--ws-panel) shrink-0 overflow-x-auto">
+                <div role="tablist" className="flex items-stretch gap-1 px-4 min-h-[52px] border-b border-(--ws-border) bg-(--ws-panel) shrink-0 overflow-x-auto">
                   <button
+                    type="button"
+                    role="tab"
+                    aria-selected={leftTab === 'statement'}
                     onClick={() => setLeftTab('statement')}
                     className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all whitespace-nowrap ${
                       leftTab === 'statement'
@@ -2246,10 +2264,13 @@ export default function ProblemSolve() {
                         : 'border-transparent text-(--ws-muted) hover:text-(--ws-text)'
                     }`}
                   >
-                    <FileText size={14} />
+                    <FileText size={14} aria-hidden="true" />
                     {t('problemSolve.statement', 'Đề bài')}
                   </button>
                   <button
+                    type="button"
+                    role="tab"
+                    aria-selected={leftTab === 'submissions'}
                     onClick={() => setLeftTab('submissions')}
                     className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all whitespace-nowrap ${
                       leftTab === 'submissions'
@@ -2257,15 +2278,18 @@ export default function ProblemSolve() {
                         : 'border-transparent text-(--ws-muted) hover:text-(--ws-text)'
                     }`}
                   >
-                    <Clock size={14} />
+                    <Clock size={14} aria-hidden="true" />
                     {t('problemSolve.submissionHistory', 'Lịch sử nộp')}
                     {problemSubmissions.length > 0 && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-(--ws-accent-soft) text-(--ws-accent) font-bold">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-(--ws-accent-soft) text-(--ws-accent) font-bold tabular-nums">
                         {problemSubmissions.length}
                       </span>
                     )}
                   </button>
                   <button
+                    type="button"
+                    role="tab"
+                    aria-selected={leftTab === 'ai_tutor'}
                     onClick={() => setLeftTab('ai_tutor')}
                     className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all whitespace-nowrap ${
                       leftTab === 'ai_tutor'
@@ -2273,11 +2297,14 @@ export default function ProblemSolve() {
                         : 'border-transparent text-(--ws-muted) hover:text-(--ws-text)'
                     }`}
                   >
-                    <Sparkles size={14} />
+                    <Sparkles size={14} aria-hidden="true" />
                     <span>{t('problemSolve.aiTutorTab')}</span>
-                    {contestId && <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-(--ws-warn-soft) text-(--ws-warn) font-bold">{t('problemSolve.aiTutorLockedBadge')}</span>}
+                    {contestId && <span className="text-[9.5px] px-1.5 py-0.5 rounded bg-(--ws-warn-soft) text-(--ws-warn) font-bold">{t('problemSolve.aiTutorLockedBadge')}</span>}
                   </button>
                   <button
+                    type="button"
+                    role="tab"
+                    aria-selected={leftTab === 'resources'}
                     onClick={() => setLeftTab('resources')}
                     className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all whitespace-nowrap ${
                       leftTab === 'resources'
@@ -2285,9 +2312,9 @@ export default function ProblemSolve() {
                         : 'border-transparent text-(--ws-muted) hover:text-(--ws-text)'
                     }`}
                   >
-                    <BookOpen size={14} />
+                    <BookOpen size={14} aria-hidden="true" />
                     <span>{t('problemSolve.allowedResourcesTab')}</span>
-                    {contestId && <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-(--ws-ok-soft) text-(--ws-ok) font-bold">{t('problemSolve.allowedBadge')}</span>}
+                    {contestId && <span className="text-[9.5px] px-1.5 py-0.5 rounded bg-(--ws-ok-soft) text-(--ws-ok) font-bold">{t('problemSolve.allowedBadge')}</span>}
                   </button>
                 </div>
 
@@ -2503,8 +2530,9 @@ export default function ProblemSolve() {
                                       {isInspecting ? t('problemSolve.closeCode') : t('problemSolve.viewCode')}
                                     </button>
                                     <button
+                                      type="button"
                                       onClick={() => restoreCodeFromSubmission(sub)}
-                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-(--ws-accent) text-(--ws-on-accent) text-xs font-semibold hover:opacity-90 transition-opacity"
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-(--ws-accent) text-(--ws-on-accent) text-xs font-semibold hover:bg-(--ws-accent-strong) transition-colors"
                                       title={t('problemSolve.loadIntoEditorTitle')}
                                     >
                                       <ClipboardPaste size={13} />
@@ -2901,15 +2929,18 @@ export default function ProblemSolve() {
                 className="border-t border-(--ws-border) bg-(--ws-panel) flex flex-col shrink-0 overflow-hidden"
                 style={{ height: bottomPanelOpen ? bottomHeight : COLLAPSED_BOTTOM_PANEL_HEIGHT }}
               >
-                <div className={`flex items-center gap-0.5 px-3 ${bottomPanelOpen ? 'pt-2 border-b border-(--ws-border-soft)' : 'h-12'}`}>
+                <div role="tablist" className={`flex items-center gap-0.5 px-3 ${bottomPanelOpen ? 'pt-2 border-b border-(--ws-border-soft)' : 'h-12'}`}>
                   {([
-                    ['tests', t('problemSolve.tabSamples'), <FlaskConical size={13} key="i" />],
-                    ['console', t('problemSolve.consoleTab'), <Terminal size={13} key="i" />],
-                    ['results', t('problemSolve.tabResults'), <CheckCircle2 size={13} key="i" />],
-                    ['debug', t('problemSolve.debugTab'), <Bug size={13} key="i" />],
+                    ['tests', t('problemSolve.tabSamples'), <FlaskConical size={13} key="i" aria-hidden="true" />],
+                    ['console', t('problemSolve.consoleTab'), <Terminal size={13} key="i" aria-hidden="true" />],
+                    ['results', t('problemSolve.tabResults'), <CheckCircle2 size={13} key="i" aria-hidden="true" />],
+                    ['debug', t('problemSolve.debugTab'), <Bug size={13} key="i" aria-hidden="true" />],
                   ] as [BottomTab, string, React.ReactNode][]).map(([tab, label, icon]) => (
                     <button
                       key={tab}
+                      type="button"
+                      role="tab"
+                      aria-selected={bottomTab === tab && bottomPanelOpen}
                       onClick={() => {
                         setBottomTab(tab);
                         if (!bottomPanelOpen) {
@@ -2946,9 +2977,10 @@ export default function ProblemSolve() {
                       {running ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} />} {t('problemSolve.runBtn')}
                     </button>
                     <button
+                      type="button"
                       onClick={submit}
                       disabled={isSubmitLocked}
-                      className="flex items-center gap-1.5 px-3 py-1.5 whitespace-nowrap rounded-lg bg-(--ws-accent) text-(--ws-on-accent) text-[12.5px] font-bold hover:bg-(--ws-accent-strong) transition-all disabled:opacity-50 shadow-[0_0_20px_rgba(25,58,43,0.22)]"
+                      className="flex items-center gap-1.5 px-3 py-1.5 whitespace-nowrap rounded-lg bg-(--ws-accent) text-(--ws-on-accent) text-[12.5px] font-bold hover:bg-(--ws-accent-strong) transition-colors disabled:opacity-50 shadow-sm"
                     >
                       {judging ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />} {cooldownSeconds > 0 ? t('problemSolve.submitCooldown', { seconds: cooldownSeconds }) : t('problemSolve.submitBtn')}
                     </button>
@@ -3001,20 +3033,20 @@ export default function ProblemSolve() {
                                 rows={Math.min(12, Math.max(3, s.input.split('\n').length))}
                                 className="block w-full px-3 py-2.5 bg-transparent font-mono text-[12.5px] leading-5 resize-none outline-none whitespace-pre overflow-auto text-(--ws-text)"
                               />
-                              <button aria-label={t('common.copy')}
+                              <button type="button" aria-label={t('common.copy')}
                                 id={`copy-in-${i}`}
                                 onClick={() => copyText(s.input, `copy-in-${i}`)}
-                                className="absolute top-2 right-2 p-1.5 rounded-md bg-(--ws-panel2) text-(--ws-muted) opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="absolute top-2 right-2 p-1.5 rounded-md bg-(--ws-panel2) text-(--ws-muted) hover:text-(--ws-text) opacity-75 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
                               >
                                 <Copy size={12} aria-hidden="true" />
                               </button>
                             </div>
                             <div className="relative rounded-lg border border-(--ws-border) bg-(--ws-editor) overflow-hidden group">
                               <pre className="px-3 py-2.5 font-mono text-[12.5px] leading-5 whitespace-pre overflow-x-auto max-h-60 overflow-y-auto text-(--ws-text)">{displayOutput(s)}</pre>
-                              <button aria-label={t('common.copy')}
+                              <button type="button" aria-label={t('common.copy')}
                                 id={`copy-out-${i}`}
                                 onClick={() => copyText(displayOutput(s), `copy-out-${i}`)}
-                                className="absolute top-2 right-2 p-1.5 rounded-md bg-(--ws-panel2) text-(--ws-muted) opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="absolute top-2 right-2 p-1.5 rounded-md bg-(--ws-panel2) text-(--ws-muted) hover:text-(--ws-text) opacity-75 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
                               >
                                 <Copy size={12} aria-hidden="true" />
                               </button>
@@ -3139,7 +3171,7 @@ export default function ProblemSolve() {
               <div className="flex-1 overflow-y-auto ws-editor-scroll p-3 space-y-2 bg-(--ws-bg)">
                 {assistantMessages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-(--ws-accent) text-(--ws-accent)' : 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border)'}`}>
+                    <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-(--ws-accent) text-(--ws-on-accent)' : 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border)'}`}>
                       {msg.content}
                     </div>
                   </div>
@@ -3162,7 +3194,7 @@ export default function ProblemSolve() {
                     placeholder={t('problemSolve.askPlaceholder')}
                     className="flex-1 bg-transparent text-[13px] text-(--ws-text) outline-none placeholder:text-(--ws-faint)"
                   />
-                  <button aria-label={t('common.send')} type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-(--ws-accent) p-2 text-(--ws-accent) disabled:opacity-50">
+                  <button aria-label={t('common.send')} type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-(--ws-accent) hover:bg-(--ws-accent-strong) p-2 text-(--ws-on-accent) disabled:opacity-50 transition-colors">
                     <Send size={14} aria-hidden="true" />
                   </button>
                 </div>
@@ -3194,7 +3226,7 @@ export default function ProblemSolve() {
             <div className="flex-1 overflow-y-auto ws-editor-scroll p-3 space-y-2 bg-(--ws-bg)">
               {assistantMessages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-(--ws-accent) text-(--ws-accent)' : 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border)'}`}>
+                  <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-(--ws-accent) text-(--ws-on-accent)' : 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border)'}`}>
                     {msg.content}
                   </div>
                 </div>
@@ -3216,7 +3248,7 @@ export default function ProblemSolve() {
                   placeholder={t('problemSolve.askPlaceholder')}
                   className="flex-1 bg-transparent text-[13px] text-(--ws-text) outline-none placeholder:text-(--ws-faint)"
                 />
-                <button aria-label={t('common.send')} type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-(--ws-accent) p-2 text-(--ws-accent) disabled:opacity-50">
+                <button aria-label={t('common.send')} type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-(--ws-accent) hover:bg-(--ws-accent-strong) p-2 text-(--ws-on-accent) disabled:opacity-50 transition-colors">
                   <Send size={14} aria-hidden="true" />
                 </button>
               </div>
@@ -3284,8 +3316,8 @@ export default function ProblemSolve() {
       {showTimeUp && hasDocument && createPortal((
         <div className="fixed inset-0 z-9999 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 select-none">
           <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-md p-8 text-center shadow-2xl">
-            <div className="w-16 h-16 mx-auto rounded-full bg-(--ws-warn-soft) border-2 border-(--ws-warn)/35 flex items-center justify-center text-3xl mb-4">
-              ⏰
+            <div className="w-16 h-16 mx-auto rounded-full bg-(--ws-warn-soft) border-2 border-(--ws-warn)/35 flex items-center justify-center text-(--ws-warn) mb-4">
+              <Clock size={30} aria-hidden="true" />
             </div>
             <h2 className="text-xl font-extrabold mb-2">{t('problemSolve.timeUpTitle')}</h2>
             <p className="text-sm text-(--ws-muted) leading-relaxed mb-6">{t('problemSolve.timeUpDesc')}</p>

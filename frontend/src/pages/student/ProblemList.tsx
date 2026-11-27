@@ -174,8 +174,8 @@ export default function ProblemList() {
         <div className="space-y-3">
           {Array.from({ length: 6 }, (_, index) => (
             <div key={index} className="rounded-2xl border border-(--ws-border) bg-(--ws-panel) px-5 py-4 shadow-sm">
-              <div className="h-4 w-48 rounded bg-(--ws-panel2) animate-pulse" />
-              <div className="mt-3 h-3 w-72 rounded bg-(--ws-panel2) animate-pulse" />
+              <div className="h-4 w-48 rounded ws-skeleton" />
+              <div className="mt-3 h-3 w-72 max-w-full rounded ws-skeleton" />
             </div>
           ))}
         </div>
@@ -232,12 +232,14 @@ export default function ProblemList() {
 
         <div className="flex flex-wrap items-center gap-3">
           {/* Difficulty filter */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-xs font-semibold text-(--ws-muted) uppercase tracking-wider">{t('problemList.difficultyFilter')}</span>
-            <div className="flex gap-1.5">
+            <div className="flex flex-wrap gap-1.5">
               {(['all', 'EASY', 'MEDIUM', 'HARD'] as const).map((level) => (
                 <button
                   key={level}
+                  type="button"
+                  aria-pressed={difficulty === level}
                   onClick={() => setDifficulty(level)}
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
                     difficulty === level
@@ -257,13 +259,15 @@ export default function ProblemList() {
           <div className="h-5 w-px bg-(--ws-border) hidden sm:block" />
 
           {/* Sort */}
-          <div className="flex items-center gap-1.5">
-            <ArrowUpDown size={13} className="text-(--ws-muted)" />
+          <div className="flex flex-wrap items-center gap-1.5">
+            <ArrowUpDown size={13} className="text-(--ws-muted)" aria-hidden="true" />
             <span className="text-xs font-semibold text-(--ws-muted) uppercase tracking-wider">{t('problemList.sortLabel')}</span>
-            <div className="flex gap-1.5">
+            <div className="flex flex-wrap gap-1.5">
               {sortOptions.map((opt) => (
                 <button
                   key={opt.value}
+                  type="button"
+                  aria-pressed={sortKey === opt.value}
                   onClick={() => setSortKey(opt.value)}
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
                     sortKey === opt.value
@@ -284,55 +288,65 @@ export default function ProblemList() {
         {filteredProblems.map((problem) => {
           const locTitle = getLocalizedProblemTitle(problem.title, currentLang);
           const locDesc = getLocalizedProblemDescription(problem.description, currentLang);
+          const targetPath = isInstructor ? `/instructor/problem/${problem.id}` : `/student/problem/${problem.id}`;
           return (
-            <Link
+            <div
               key={problem.id}
-              to={isInstructor ? `/instructor/problem/${problem.id}` : `/student/problem/${problem.id}`}
-              className="group flex flex-col gap-3 rounded-2xl border border-(--ws-border) bg-(--ws-panel) px-5 py-4 shadow-sm transition-all hover:border-(--ws-accent)/40 hover:shadow-md sm:flex-row sm:items-center"
+              className="group flex flex-col gap-3 rounded-2xl border border-(--ws-border) bg-(--ws-panel) px-5 py-4 shadow-sm transition-all hover:border-(--ws-accent)/40 hover:bg-(--ws-hover)/40 sm:flex-row sm:items-center"
             >
-              <div className="flex-1 min-w-0">
+              <Link to={targetPath} className="flex-1 min-w-0 block rounded-lg focus-visible:outline-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-[15px] font-semibold text-(--ws-text) group-hover:text-(--ws-accent)">{locTitle}</h3>
-                  <span className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${difficultyStyles[problem.difficulty]}`}>
+                  <h3 className="text-[15px] font-semibold text-(--ws-text) group-hover:text-(--ws-accent) transition-colors">{locTitle}</h3>
+                  <span className={`rounded-full border px-2 py-0.5 text-[11px] font-medium shrink-0 ${difficultyStyles[problem.difficulty]}`}>
                     {difficultyLabels[problem.difficulty]}
                   </span>
                 </div>
                 <p className="mt-1 line-clamp-2 text-sm text-(--ws-muted)">{markdownToPlainText(locDesc)}</p>
-              </div>
-            <div className="flex items-center gap-4 text-sm text-(--ws-muted) shrink-0">
-              <div className="flex flex-col items-end gap-0.5">
-                <span className="text-xs font-semibold text-(--ws-text)">{problem.time_limit} ms</span>
-                <span className="text-[10px] text-(--ws-faint)">{t('problemList.timeLabel')}</span>
-              </div>
-              <div className="flex flex-col items-end gap-0.5">
-                <span className="text-xs font-semibold text-(--ws-text)">{problem.memory_limit} MB</span>
-                <span className="text-[10px] text-(--ws-faint)">{t('problemList.memoryLabel')}</span>
-              </div>
-              <span className="hidden sm:inline text-[11px] font-bold tracking-wider text-(--ws-muted) bg-(--ws-panel2) border border-(--ws-border) rounded-md px-2 py-1">
-                {problem.id.slice(0, 8)}…
-              </span>
-              {isInstructor && (
-                <div className="flex items-center gap-2 border-l border-(--ws-border) pl-4">
-                  <button
-                    onClick={(e) => handleOpenEditModal(e, problem)}
-                    className="p-1 text-(--ws-muted) hover:text-(--ws-accent) transition-colors"
-                    title={t('problemList.editTitle')}
-                  >
-                    <Edit size={16} />
-                  </button>
-                  <button
-                    onClick={(e) => handleDeleteProblem(e, problem.id)}
-                    className="p-1 text-(--ws-muted) hover:text-(--ws-danger) transition-colors disabled:opacity-50"
-                    disabled={deleteMutation.isPending}
-                    title={t('problemList.deleteTitle')}
-                  >
-                    <Trash2 size={16} />
-                  </button>
+              </Link>
+              <div className="flex items-center gap-4 text-sm text-(--ws-muted) shrink-0">
+                <div className="flex flex-col items-end gap-0.5">
+                  <span className="text-xs font-semibold font-mono tabular-nums text-(--ws-text)">{problem.time_limit} ms</span>
+                  <span className="text-[10px] text-(--ws-faint)">{t('problemList.timeLabel')}</span>
                 </div>
-              )}
-              <ChevronRight size={18} className="text-(--ws-faint) group-hover:text-(--ws-accent) transition-colors" />
+                <div className="flex flex-col items-end gap-0.5">
+                  <span className="text-xs font-semibold font-mono tabular-nums text-(--ws-text)">{problem.memory_limit} MB</span>
+                  <span className="text-[10px] text-(--ws-faint)">{t('problemList.memoryLabel')}</span>
+                </div>
+                <span className="hidden sm:inline text-[11px] font-mono font-bold tracking-wider text-(--ws-muted) bg-(--ws-panel2) border border-(--ws-border) rounded-md px-2 py-1">
+                  {problem.id.slice(0, 8)}…
+                </span>
+                {isInstructor && (
+                  <div className="flex items-center gap-1 border-l border-(--ws-border) pl-3">
+                    <button
+                      type="button"
+                      onClick={(e) => handleOpenEditModal(e, problem)}
+                      className="p-2 rounded-lg text-(--ws-muted) hover:text-(--ws-accent) hover:bg-(--ws-hover) transition-colors"
+                      title={t('problemList.editTitle')}
+                      aria-label={t('problemList.editTitle')}
+                    >
+                      <Edit size={16} aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteProblem(e, problem.id)}
+                      className="p-2 rounded-lg text-(--ws-muted) hover:text-(--ws-danger) hover:bg-(--ws-danger-soft) transition-colors disabled:opacity-50"
+                      disabled={deleteMutation.isPending}
+                      title={t('problemList.deleteTitle')}
+                      aria-label={t('problemList.deleteTitle')}
+                    >
+                      <Trash2 size={16} aria-hidden="true" />
+                    </button>
+                  </div>
+                )}
+                <Link
+                  to={targetPath}
+                  aria-label={locTitle}
+                  className="p-1 rounded-lg text-(--ws-faint) group-hover:text-(--ws-accent) transition-colors"
+                >
+                  <ChevronRight size={18} aria-hidden="true" />
+                </Link>
+              </div>
             </div>
-          </Link>
           );
         })}
 
