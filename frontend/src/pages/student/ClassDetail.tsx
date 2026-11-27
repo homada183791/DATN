@@ -90,10 +90,6 @@ export default function StudentClassDetail() {
               <p className="text-sm opacity-80 line-clamp-2 mt-1">{classInfo.description}</p>
             )}
           </div>
-          <div className="text-right shrink-0">
-            <p className="text-xs opacity-60 mb-1">{t('studentClass.classCode')}</p>
-            <p className="text-lg font-mono font-bold tracking-widest">{classInfo.invite_code}</p>
-          </div>
         </div>
 
         <div className="flex items-center gap-6 mt-5 pt-4 border-t border-(--ws-panel)/20 text-sm">

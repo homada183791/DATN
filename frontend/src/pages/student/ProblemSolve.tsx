@@ -15,6 +15,7 @@ import { parseCompilerOutput, type Diagnostic } from '../../utils/compilerDiagno
 import SkillChips from '../../components/skills/SkillChips';
 import { useProblemSkillsQuery } from '../../api/skills';
 import { formatVNFull } from '../../utils/dateTime';
+import { attemptNumbers } from '../../utils/attempts';
 import { joinContest, fetchContestDetail, verifyLockdownCode } from '../../api/contests';
 import { setLockdownActive } from '../../context/lockdownStore';
 import { useToast } from '../../context/ToastContext';
@@ -1153,6 +1154,10 @@ export default function ProblemSolve() {
     isLoading: isLoadingSubmissions,
     isFetching: isFetchingSubmissions,
   } = useProblemSubmissionsQuery(problemId);
+  const submissionAttempts = useMemo(
+    () => attemptNumbers(problemSubmissions, () => 'me', (s) => s.created_at),
+    [problemSubmissions],
+  );
 
   const allowedLangConfigs = useMemo(
     () => getAllowedLanguagesList(apiProblem?.allowed_languages),
@@ -1187,7 +1192,7 @@ export default function ProblemSolve() {
         setSelectedLangId(matched.id);
       }
     }
-    showToast(t('problemSolve.restoredCodeToast', { id: sub.id.slice(0, 8) }), 'success');
+    showToast(t('problemSolve.restoredCodeToast', { id: submissionAttempts.get(sub.id) ?? 1 }), 'success');
   };
 
   const [layout, setLayout] = useState<LayoutMode>('split');
@@ -2610,7 +2615,7 @@ export default function ProblemSolve() {
                                   {isInspecting && (
                                     <div className="mt-2 rounded-lg bg-(--ws-panel2) p-3 border border-(--ws-border) overflow-hidden">
                                       <div className="flex items-center justify-between text-[11px] text-(--ws-muted) mb-2 pb-1.5 border-b border-(--ws-border)">
-                                        <span>{t('problemSolve.submissionSourceHeader', { id: sub.id.slice(0, 8), lang: formatLanguageName(sub.language, sub.language_version) })}</span>
+                                        <span>{t('problemSolve.submissionSourceHeader', { id: submissionAttempts.get(sub.id) ?? 1, lang: formatLanguageName(sub.language, sub.language_version) })}</span>
                                         <span>{t('problemSolve.lineCountSuffix', { count: sub.source_code.split('\n').length })}</span>
                                       </div>
                                       <pre className="text-xs font-mono text-(--ws-text) overflow-x-auto whitespace-pre p-1">

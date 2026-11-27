@@ -360,9 +360,6 @@ export default function ProblemList() {
                 <span className="text-xs font-semibold text-(--ws-text)">{problem.memory_limit} MB</span>
                 <span className="text-[10px] text-(--ws-faint)">{t('problemList.memoryLabel')}</span>
               </div>
-              <span className="hidden sm:inline text-[11px] font-bold tracking-wider text-(--ws-muted) bg-(--ws-panel2) border border-(--ws-border) rounded-md px-2 py-1">
-                {problem.id.slice(0, 8)}…
-              </span>
               {isInstructor && (
                 <div className="flex items-center gap-2 border-l border-(--ws-border) pl-4">
                   <button

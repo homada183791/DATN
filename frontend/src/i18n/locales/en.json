@@ -105,7 +105,8 @@
     "profile": "Profile",
     "settings": "Settings",
     "students": "Students",
-    "calendar": "Calendar"
+    "calendar": "Calendar",
+    "detail": "Details"
   },
   "topbar": {
     "searchPlaceholder": "Search problems, users…",
@@ -643,7 +644,9 @@
     "pending": "Pending",
     "inQueue": "In queue",
     "queueTitle": "Waiting for judge",
-    "queueMessage": "Your submission is in the judging queue. Please wait a few minutes or refresh the page."
+    "queueMessage": "Your submission is in the judging queue. Please wait a few minutes or refresh the page.",
+    "colAttempt": "Attempt",
+    "attemptTitle": "Attempt #{{n}} for this problem"
   },
   "personal": {
     "joined": "Joined {{date}}",
@@ -1134,7 +1137,7 @@
   },
   "problemSolve": {
     "fallbackProblemTitle": "Assignment",
-    "restoredCodeToast": "Restored source code from submission #{{id}} to the editor!",
+    "restoredCodeToast": "Loaded the source of attempt #{{id}} into the editor!",
     "disqualifiedToast": "YOU HAVE BEEN DISQUALIFIED for violating exam rules more than {{max}} times!",
     "cheatWarningToast": "CHEATING WARNING: {{reason}}! Violation {{count}}/{{max}}. {{max}} violations will result in disqualification.",
     "countdownTitle": "Time remaining in the contest",
@@ -1211,7 +1214,7 @@
     "loadIntoEditorBtn": "Load into editor",
     "copiedSourceToast": "Source code copied to clipboard!",
     "copySourceTitle": "Copy source code",
-    "submissionSourceHeader": "Source for submission #{{id}} ({{lang}})",
+    "submissionSourceHeader": "Source of attempt #{{id}} ({{lang}})",
     "lineCountSuffix": "{{count}} lines",
     "noOutput": "(no output)",
     "statement": "Statement",

@@ -238,10 +238,9 @@ export default function SubmissionDetailModal({
                   <p className="text-xs text-(--ws-muted)">
                     {isInstructor && (
                       <>
-                        {t('submission.submitterLabel')} <span className="font-semibold text-(--ws-text)">{usernameOverride ?? `@${selectedSub.username}`}</span> •{' '}
+                        {t('submission.submitterLabel')} <span className="font-semibold text-(--ws-text)">{usernameOverride ?? `@${selectedSub.username}`}</span>
                       </>
                     )}
-                    {t('submission.submissionIdLabel')} #{selectedSub.id.slice(0, 8)}
                   </p>
                 </div>
               </div>

@@ -105,7 +105,8 @@
     "profile": "Hồ sơ",
     "settings": "Cài đặt",
     "students": "Sinh viên",
-    "calendar": "Lịch biểu"
+    "calendar": "Lịch biểu",
+    "detail": "Chi tiết"
   },
   "topbar": {
     "searchPlaceholder": "Tìm bài tập, người dùng…",
@@ -643,7 +644,9 @@
     "pending": "Đang chờ chấm",
     "inQueue": "Trong hàng đợi",
     "queueTitle": "Đang chờ chấm bài",
-    "queueMessage": "Bài nộp đang nằm trong hàng đợi của hệ thống chấm bài. Vui lòng chờ ít phút hoặc tải lại trang."
+    "queueMessage": "Bài nộp đang nằm trong hàng đợi của hệ thống chấm bài. Vui lòng chờ ít phút hoặc tải lại trang.",
+    "colAttempt": "Lần nộp",
+    "attemptTitle": "Lần nộp thứ {{n}} cho bài này"
   },
   "personal": {
     "joined": "Tham gia {{date}}",
@@ -1134,7 +1137,7 @@
   },
   "problemSolve": {
     "fallbackProblemTitle": "Bài tập",
-    "restoredCodeToast": "Đã nạp lại mã nguồn lần nộp #{{id}} vào Editor!",
+    "restoredCodeToast": "Đã nạp lại mã nguồn lần nộp thứ {{id}} vào Editor!",
     "disqualifiedToast": "BẠN ĐÃ BỊ TRUẤT QUYỀN THI do vi phạm quy chế thi cử quá {{max}} lần!",
     "cheatWarningToast": "CẢNH BÁO GIAN LẬN: {{reason}}! Lần vi phạm {{count}}/{{max}}. Vi phạm {{max}} lần sẽ bị truất quyền thi.",
     "countdownTitle": "Thời gian còn lại của kỳ thi",
@@ -1211,7 +1214,7 @@
     "loadIntoEditorBtn": "Nạp vào Editor",
     "copiedSourceToast": "Đã sao chép mã nguồn vào clipboard!",
     "copySourceTitle": "Sao chép mã nguồn",
-    "submissionSourceHeader": "Mã nguồn lần nộp #{{id}} ({{lang}})",
+    "submissionSourceHeader": "Mã nguồn lần nộp thứ {{id}} ({{lang}})",
     "lineCountSuffix": "{{count}} dòng",
     "noOutput": "(không có output)",
     "statement": "Đề bài",
