@@ -51,10 +51,14 @@ interface CodeEditorProps {
   /** Mã ngôn ngữ trong config/languages.ts: cpp, c, python, java, go, javascript. */
   language: string;
   fontSize: number;
+  tabSize?: number;
+  editorTheme?: string;
   wordWrap: boolean;
   diagnostics: Diagnostic[];
   /** Bật/tắt gợi ý code khi gõ (công tắc IntelliSense). */
   suggestions?: boolean;
+  /** Chỉ cho phép xem code, không cho chỉnh sửa. */
+  readOnly?: boolean;
   ariaLabel?: string;
 }
 
@@ -153,6 +157,66 @@ function defineThemeFromCss(m: Monaco) {
   m.editor.setTheme(THEME_NAME);
 }
 
+function applyEditorPreferenceTheme(m: Monaco, editorTheme?: string) {
+  if (!editorTheme) {
+    defineThemeFromCss(m);
+    return;
+  }
+  if (editorTheme === 'vs-dark') {
+    m.editor.setTheme('vs-dark');
+    return;
+  }
+  if (editorTheme === 'light') {
+    m.editor.setTheme('vs');
+    return;
+  }
+
+  if (editorTheme === 'github-dark') {
+    m.editor.defineTheme('github-dark', {
+      base: 'vs-dark',
+      inherit: true,
+      rules: [
+        { token: '', foreground: 'c9d1d9' },
+        { token: 'keyword', foreground: 'ff7b72' },
+        { token: 'type', foreground: '79c0ff' },
+        { token: 'string', foreground: 'a5d6ff' },
+        { token: 'comment', foreground: '8b949e', fontStyle: 'italic' },
+        { token: 'number', foreground: '79c0ff' },
+      ],
+      colors: {
+        'editor.background': '#0d1117',
+        'editor.foreground': '#c9d1d9',
+        'editorLineNumber.foreground': '#6e7681',
+        'editorCursor.foreground': '#58a6ff',
+        'editorGutter.background': '#0d1117',
+      },
+    });
+    m.editor.setTheme('github-dark');
+    return;
+  }
+
+  m.editor.defineTheme('monokai', {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [
+      { token: '', foreground: 'f8f8f2' },
+      { token: 'keyword', foreground: 'f92672' },
+      { token: 'type', foreground: '66d9ef' },
+      { token: 'string', foreground: 'e6db74' },
+      { token: 'comment', foreground: '75715e', fontStyle: 'italic' },
+      { token: 'number', foreground: 'ae81ff' },
+    ],
+    colors: {
+      'editor.background': '#272822',
+      'editor.foreground': '#f8f8f2',
+      'editorLineNumber.foreground': '#90908a',
+      'editorCursor.foreground': '#f8f8f0',
+      'editorGutter.background': '#272822',
+    },
+  });
+  m.editor.setTheme('monokai');
+}
+
 function toMarkerRange(model: monaco.editor.ITextModel, d: Diagnostic) {
   const line = Math.min(Math.max(d.line, 1), model.getLineCount());
   const maxCol = model.getLineMaxColumn(line);
@@ -173,7 +237,7 @@ function toMarkerRange(model: monaco.editor.ITextModel, d: Diagnostic) {
 }
 
 const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEditor(
-  { value, onChange, language, fontSize, wordWrap, diagnostics, suggestions = true, ariaLabel },
+  { value, onChange, language, fontSize, tabSize = 4, editorTheme, wordWrap, diagnostics, suggestions = true, readOnly = false, ariaLabel },
   ref,
 ) {
   const editorRef = useRef<IEditor | null>(null);
@@ -275,7 +339,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
   const onMount: OnMount = (editor, m) => {
     editorRef.current = editor;
     monacoRef.current = m as unknown as Monaco;
-    defineThemeFromCss(m as unknown as Monaco);
+    applyEditorPreferenceTheme(m as unknown as Monaco, editorTheme);
     applyMarkers();
     // Gõ tiếp hoặc bấm chỗ khác thì bỏ mũi tên chỉ lỗi.
     editor.onDidChangeModelContent(clearPointer);
@@ -285,11 +349,15 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
   // Đổi giao diện (class trên <html>) thì dựng lại theme cho khung code.
   useEffect(() => {
     const observer = new MutationObserver(() => {
-      if (monacoRef.current) defineThemeFromCss(monacoRef.current);
+      if (monacoRef.current) applyEditorPreferenceTheme(monacoRef.current, editorTheme);
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
-  }, []);
+  }, [editorTheme]);
+
+  useEffect(() => {
+    if (monacoRef.current) applyEditorPreferenceTheme(monacoRef.current, editorTheme);
+  }, [editorTheme]);
 
   useEffect(() => clearPointer, [clearPointer]);
 
@@ -310,8 +378,9 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEd
         minimap: { enabled: false },
         scrollBeyondLastLine: false,
         automaticLayout: true,
-        tabSize: 4,
+        tabSize,
         insertSpaces: true,
+        readOnly,
         renderLineHighlight: 'line',
         glyphMargin: true,
         lineNumbersMinChars: 3,

@@ -1168,6 +1168,8 @@ export default function ProblemSolve() {
   );
   const [wrap, setWrap] = useState(false);
   const [fontSize, setFontSize] = useState(14);
+  const [tabSize, setTabSize] = useState(4);
+  const [editorTheme, setEditorTheme] = useState('vs-dark');
   const [intelli, setIntelli] = useState(true);
   const [saveState, setSaveState] = useState<'saved' | 'unsaved' | 'saving'>('saved');
 
@@ -1262,6 +1264,45 @@ export default function ProblemSolve() {
   const saveTimer = useRef<number | null>(null);
   const submissionSocketRef = useRef<Socket | null>(null);
   const customRunSocketRef = useRef<Socket | null>(null);
+
+  useEffect(() => {
+    const applyPreferences = (preferences: Record<string, unknown> | undefined) => {
+      if (!preferences) return;
+      const size = Number(preferences.fontSize);
+      const tabs = Number(preferences.tabSize);
+      if ([12, 14, 16, 18].includes(size)) setFontSize(size);
+      if ([2, 4].includes(tabs)) setTabSize(tabs);
+      if (typeof preferences.editorTheme === 'string') setEditorTheme(preferences.editorTheme);
+    };
+
+    let stored: Record<string, unknown> | undefined;
+    try {
+      const raw = window.localStorage.getItem('user_preferences');
+      stored = raw ? JSON.parse(raw) : undefined;
+    } catch {
+      stored = undefined;
+    }
+    applyPreferences((user?.preferences as Record<string, unknown> | undefined) ?? stored);
+
+    const handlePreferencesChanged = (event: Event) => {
+      if (event instanceof CustomEvent) {
+        applyPreferences(event.detail as Record<string, unknown>);
+        return;
+      }
+      try {
+        const raw = window.localStorage.getItem('user_preferences');
+        applyPreferences(raw ? JSON.parse(raw) : undefined);
+      } catch {
+        // Ignore malformed preference data in another tab.
+      }
+    };
+    window.addEventListener('jh-editor-preferences-changed', handlePreferencesChanged);
+    window.addEventListener('storage', handlePreferencesChanged);
+    return () => {
+      window.removeEventListener('jh-editor-preferences-changed', handlePreferencesChanged);
+      window.removeEventListener('storage', handlePreferencesChanged);
+    };
+  }, [user?.preferences]);
 
   useEffect(() => {
     return () => {
@@ -2871,6 +2912,8 @@ export default function ProblemSolve() {
                   onChange={onCodeChange}
                   language={currentLangConfig.monacoLang || 'cpp'}
                   fontSize={fontSize}
+                  tabSize={tabSize}
+                  editorTheme={editorTheme}
                   wordWrap={wrap}
                   suggestions={intelli}
                   diagnostics={diagnostics}

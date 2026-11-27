@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
@@ -8,16 +8,15 @@ import { useToast } from '../context/ToastContext';
 import {
   useSubmissionDetailQuery,
   gradeSubmission,
-  rejudgeSubmission,
 } from '../api/submissions';
 import { formatVNFull } from '../utils/dateTime';
+import CodeEditor from './CodeEditor';
 import {
   X,
   AlertTriangle,
   ExternalLink,
   Award,
   MessageSquare,
-  RotateCcw,
   CheckCircle2,
   XCircle,
   Clock,
@@ -25,7 +24,7 @@ import {
   Layers,
   Star,
 } from 'lucide-react';
-import { formatLanguageName } from '../config/languages';
+import { formatLanguageName, getLanguageConfig } from '../config/languages';
 
 const verdictByStatus: Record<string, string> = {
   PENDING: 'PENDING',
@@ -42,7 +41,7 @@ interface SubmissionDetailModalProps {
   onClose: () => void;
   /** Tên hiển thị ở dòng "Người nộp" (mặc định: @username của bài nộp) */
   usernameOverride?: string;
-  /** Ẩn hai nút "Chấm lại" và "Đi đến bài tập" ở góc phải (dùng khi xem từ kết quả kỳ thi); biểu tượng mở đề cạnh tên bài vẫn giữ */
+  /** Giữ tương thích ngược; các nút chấm lại và đi đến bài tập không còn hiển thị. */
   hideProblemActions?: boolean;
   /** Thang điểm hiển thị cho điểm giảng viên chấm (mặc định /10) */
   scoreMax?: number;
@@ -56,7 +55,6 @@ export default function SubmissionDetailModal({
   submissionId,
   onClose,
   usernameOverride,
-  hideProblemActions = false,
   scoreMax = 10,
   gradeMax = 100,
   onGraded,
@@ -67,6 +65,52 @@ export default function SubmissionDetailModal({
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const isInstructor = user?.role === 'instructor';
+  const [editorPreferences, setEditorPreferences] = useState(() => {
+    try {
+      const stored = window.localStorage.getItem('user_preferences');
+      const parsed = stored ? JSON.parse(stored) : null;
+      const preferences = parsed ?? user?.preferences;
+      return {
+        editorTheme: typeof preferences?.editorTheme === 'string' ? preferences.editorTheme : 'vs-dark',
+        fontSize: [12, 14, 16, 18].includes(Number(preferences?.fontSize)) ? Number(preferences.fontSize) : 14,
+        tabSize: [2, 4].includes(Number(preferences?.tabSize)) ? Number(preferences.tabSize) : 4,
+      };
+    } catch {
+      return { editorTheme: 'vs-dark', fontSize: 14, tabSize: 4 };
+    }
+  });
+
+  useEffect(() => {
+    const applyPreferences = (preferences: Record<string, unknown>) => {
+      const fontSize = Number(preferences.fontSize);
+      const tabSize = Number(preferences.tabSize);
+      setEditorPreferences({
+        editorTheme: typeof preferences.editorTheme === 'string' ? preferences.editorTheme : 'vs-dark',
+        fontSize: [12, 14, 16, 18].includes(fontSize) ? fontSize : 14,
+        tabSize: [2, 4].includes(tabSize) ? tabSize : 4,
+      });
+    };
+
+    const handlePreferencesChanged = (event: Event) => {
+      if (event instanceof CustomEvent) {
+        applyPreferences(event.detail as Record<string, unknown>);
+        return;
+      }
+      try {
+        const stored = window.localStorage.getItem('user_preferences');
+        if (stored) applyPreferences(JSON.parse(stored));
+      } catch {
+        // Ignore malformed preference data.
+      }
+    };
+
+    window.addEventListener('jh-editor-preferences-changed', handlePreferencesChanged);
+    window.addEventListener('storage', handlePreferencesChanged);
+    return () => {
+      window.removeEventListener('jh-editor-preferences-changed', handlePreferencesChanged);
+      window.removeEventListener('storage', handlePreferencesChanged);
+    };
+  }, []);
 
   const { data: detailData, isLoading: isDetailLoading } = useSubmissionDetailQuery(submissionId);
 
@@ -74,7 +118,6 @@ export default function SubmissionDetailModal({
   const [feedbackInput, setFeedbackInput] = useState<string>('');
   const [isGradingOpen, setIsGradingOpen] = useState(false);
   const [isSubmittingGrade, setIsSubmittingGrade] = useState(false);
-  const [isRejudging, setIsRejudging] = useState(false);
 
   const selectedSub = detailData
     ? {
@@ -145,20 +188,6 @@ export default function SubmissionDetailModal({
     }
   };
 
-  const handleRejudge = async () => {
-    try {
-      setIsRejudging(true);
-      await rejudgeSubmission(submissionId);
-      showToast(t('submission.rejudgeSentSuccess'), 'success');
-      queryClient.invalidateQueries({ queryKey: ['submissions'] });
-      queryClient.invalidateQueries({ queryKey: ['submission', submissionId] });
-    } catch (err: any) {
-      showToast(err.message || t('submission.rejudgeFailed'), 'error');
-    } finally {
-      setIsRejudging(false);
-    }
-  };
-
   // Điền sẵn điểm/nhận xét đã chấm mỗi khi dữ liệu bài nộp được tải/cập nhật
   const gradeKey = `${detailData?.id ?? ''}|${detailData?.instructor_score ?? ''}|${detailData?.instructor_feedback ?? ''}`;
   const [syncedKey, setSyncedKey] = useState('');
@@ -217,27 +246,6 @@ export default function SubmissionDetailModal({
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {isInstructor && !hideProblemActions && (
-                  <button
-                    onClick={handleRejudge}
-                    disabled={isRejudging}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-(--ws-warn-soft) hover:bg-(--ws-warn-soft) border border-(--ws-warn)/35 text-(--ws-warn) rounded-lg text-xs font-semibold transition-all disabled:opacity-50"
-                    title={t('submission.rejudgeTooltip')}
-                  >
-                    <RotateCcw size={14} className={isRejudging ? 'animate-spin' : ''} />
-                    {isRejudging ? t('submission.rejudgingLabel') : t('submission.rejudgeBtn')}
-                  </button>
-                )}
-                {isInstructor && !hideProblemActions && (
-                  <button
-                    onClick={() => navigate(`/instructor/problem/${selectedSub.problemId}`)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-(--ws-accent) bg-(--ws-accent)/10 hover:bg-(--ws-accent)/20 rounded-lg transition-colors"
-                    title={t('submission.goToProblem')}
-                  >
-                    <ExternalLink size={14} />
-                    {t('submission.goToProblem', 'Đến bài')}
-                  </button>
-                )}
                 <button aria-label={t('common.close')}
                   onClick={onClose}
                   className="p-1.5 hover:bg-(--ws-hover)/50 rounded-lg text-(--ws-muted) hover:text-(--ws-text) transition-colors"
@@ -469,8 +477,20 @@ export default function SubmissionDetailModal({
               {/* SECTION: Mã nguồn nộp */}
               <div>
                 <h4 className="text-sm font-bold text-(--ws-text) font-serif mb-2">{t('submission.sourceCode', 'Mã nguồn đã nộp')}</h4>
-                <div className="bg-(--ws-text) border border-(--ws-muted) rounded-xl p-4 overflow-x-auto shadow-inner">
-                  <pre className="text-sm text-(--ws-ok) font-mono whitespace-pre">{selectedSub.code}</pre>
+                <div className="h-96 border border-(--ws-border) rounded-xl overflow-hidden shadow-inner">
+                  <CodeEditor
+                    value={selectedSub.code}
+                    onChange={() => {}}
+                    language={getLanguageConfig(selectedSub.language).monacoLang}
+                    fontSize={editorPreferences.fontSize}
+                    tabSize={editorPreferences.tabSize}
+                    editorTheme={editorPreferences.editorTheme}
+                    wordWrap={false}
+                    suggestions={false}
+                    readOnly
+                    diagnostics={[]}
+                    ariaLabel={t('submission.sourceCode', 'Mã nguồn đã nộp')}
+                  />
                 </div>
               </div>
 
