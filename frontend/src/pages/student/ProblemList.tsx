@@ -90,7 +90,7 @@ export default function ProblemList() {
   };
 
   const createMutation = useMutation({
-    mutationFn: createProblem,
+    mutationFn: (data: CreateProblemDto) => createProblem(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['problems'] });
       setIsModalOpen(false);

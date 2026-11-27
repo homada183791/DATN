@@ -54,6 +54,7 @@ import {
   AlertTriangle,
   Info,
   Ban, ShieldAlert, ShieldCheck, Unlock,
+  WrapText,
 } from 'lucide-react';
 import {
   getAllowedLanguagesList,
@@ -235,18 +236,14 @@ const markdownComponents: Components = {
       {children}
     </a>
   ),
-  ul: ({ children }) => <ul className="space-y-1.5 ml-1 mb-3">{children}</ul>,
-  ol: ({ children }) => <ol className="space-y-1.5 ml-5 mb-3 list-decimal text-[14.5px] leading-7 text-(--ws-text)/90">{children}</ol>,
-  li: ({ children, ...props }) => {
-    const ordered = (props as { ordered?: boolean }).ordered;
-    if (ordered) return <li className="pl-1">{children}</li>;
-    return (
-      <li className="flex gap-2.5 text-[14.5px] leading-7 text-(--ws-text)/90">
-        <span className="mt-[11px] w-1.5 h-1.5 rounded-full bg-(--ws-accent) shrink-0" />
-        <span>{children}</span>
-      </li>
-    );
-  },
+  // react-markdown v10 không báo li thuộc ul hay ol → chấm tròn vẽ bằng CSS của ul, số thứ tự để ol tự hiện
+  ul: ({ children }) => (
+    <ul className="space-y-1.5 ml-1 mb-3 list-none [&>li]:relative [&>li]:pl-4 [&>li]:before:absolute [&>li]:before:left-0.5 [&>li]:before:top-[11px] [&>li]:before:h-1.5 [&>li]:before:w-1.5 [&>li]:before:rounded-full [&>li]:before:bg-(--ws-accent) [&>li]:before:content-['']">
+      {children}
+    </ul>
+  ),
+  ol: ({ children }) => <ol className="space-y-1.5 ml-5 mb-3 list-decimal marker:text-(--ws-accent) marker:font-semibold">{children}</ol>,
+  li: ({ children }) => <li className="pl-1 text-[14.5px] leading-7 text-(--ws-text)/90">{children}</li>,
   blockquote: ({ children }) => (
     <blockquote className="my-3 rounded-r-lg border-l-4 border-(--ws-accent) bg-(--ws-panel2)/60 py-2.5 px-4 text-[14px] leading-7 text-(--ws-text)/90 [&_p]:mb-1.5 [&_p:last-child]:mb-0">
       {children}
@@ -275,6 +272,42 @@ const markdownComponents: Components = {
   thead: ({ children }) => <thead className="bg-(--ws-panel2)">{children}</thead>,
   th: ({ children }) => <th className="text-left px-4 py-2.5 font-bold text-(--ws-text)">{children}</th>,
   td: ({ children }) => <td className="px-4 py-2.5 border-t border-(--ws-border) text-(--ws-text)/90">{children}</td>,
+};
+
+// Câu trả lời của AI Tutor: cùng kiểu với đề bài nhưng gọn hơn cho khung hẹp
+const tutorMarkdownComponents: Components = {
+  ...markdownComponents,
+  h1: ({ children }) => <h3 className="mt-4 mb-2 text-[16px] font-bold text-(--ws-text) first:mt-0">{children}</h3>,
+  h2: ({ children }) => <h4 className="mt-4 mb-2 text-[15px] font-bold text-(--ws-text) first:mt-0">{children}</h4>,
+  h3: ({ children }) => <h5 className="mt-3 mb-1.5 text-[14px] font-bold text-(--ws-accent) first:mt-0">{children}</h5>,
+  h4: ({ children }) => <h6 className="mt-3 mb-1.5 text-[13.5px] font-bold text-(--ws-text)">{children}</h6>,
+  p: ({ children }) => <p className="text-[13.5px] leading-6 text-(--ws-text)/90 mb-2.5 last:mb-0">{children}</p>,
+  ul: ({ children }) => (
+    <ul className="space-y-1 mb-2.5 list-none [&>li]:relative [&>li]:pl-4 [&>li]:before:absolute [&>li]:before:left-0.5 [&>li]:before:top-[9px] [&>li]:before:h-1.5 [&>li]:before:w-1.5 [&>li]:before:rounded-full [&>li]:before:bg-(--ws-accent) [&>li]:before:content-['']">
+      {children}
+    </ul>
+  ),
+  ol: ({ children }) => <ol className="space-y-1 ml-5 mb-2.5 list-decimal marker:text-(--ws-accent) marker:font-semibold">{children}</ol>,
+  li: ({ children }) => <li className="pl-1 text-[13.5px] leading-6 text-(--ws-text)/90">{children}</li>,
+  code: ({ children, node: _node, ...props }) => (
+    <code className="px-1 py-0.5 rounded bg-(--ws-panel2) font-mono text-[12.5px] text-(--ws-accent) whitespace-pre-wrap wrap-anywhere" {...props}>
+      {children}
+    </code>
+  ),
+};
+
+// Bong bóng chat Leet Coach: chữ nhỏ, khoảng cách hẹp
+const chatMarkdownComponents: Components = {
+  ...tutorMarkdownComponents,
+  p: ({ children }) => <p className="text-[13px] leading-6 mb-1.5 last:mb-0">{children}</p>,
+  pre: ({ children, node: _node, ...props }) => (
+    <pre
+      className="my-2 rounded-lg border border-(--ws-border) bg-(--ws-editor) p-2.5 overflow-x-auto font-mono text-[12px] leading-5 [&_code]:bg-transparent [&_code]:p-0 [&_code]:text-inherit [&_code]:whitespace-pre"
+      {...props}
+    >
+      {children}
+    </pre>
+  ),
 };
 
 // Nhiều đề bài được dán nguyên văn từ LeetCode (hoặc gõ tay theo cùng bố cục)
@@ -1015,6 +1048,8 @@ export default function ProblemSolve() {
     !!contestId && user?.role === 'student' && lockdownEnabled && !lockdownReleased && !isDisqualified && !contestEnded;
   const lockdownActiveRef = useRef(lockdownActive);
   lockdownActiveRef.current = lockdownActive;
+  const lockdownEnabledRef = useRef(lockdownEnabled);
+  lockdownEnabledRef.current = lockdownEnabled;
   const lastCheatReportTime = useRef(0);
   const reportCheatRef = useRef<((reason: string, code?: ViolationCode) => Promise<void>) | null>(null);
 
@@ -1477,6 +1512,7 @@ export default function ProblemSolve() {
   // ── Báo trạng thái trực tiếp cho màn hình giám sát của giảng viên ─────────────
   // Gửi khi mở trang, khi chuyển tab/quay lại, khi đổi bài và nhịp 15 giây/lần.
   // Cả chế độ Giám sát lẫn Lockdown đều gửi (giảng viên cần biết ai đang online).
+  // Lockdown đã khóa màn hình nên không báo "rời trang" (luôn gửi active), chỉ còn online/offline.
   const presenceSocketRef = useRef<Socket | null>(null);
   useEffect(() => {
     if (!contestId || user?.role !== 'student' || !contestModeReady) return;
@@ -1484,7 +1520,7 @@ export default function ProblemSolve() {
     presenceSocketRef.current = socket;
     const send = () => {
       if (!socket.connected) return;
-      const away = document.visibilityState === 'hidden' || !document.hasFocus();
+      const away = !lockdownEnabledRef.current && (document.visibilityState === 'hidden' || !document.hasFocus());
       socket.emit('contest_presence', {
         contest_id: contestId,
         state: away ? 'away' : 'active',
@@ -1514,7 +1550,8 @@ export default function ProblemSolve() {
     if (!socket?.connected || !contestId || !apiProblem?.id) return;
     socket.emit('contest_presence', {
       contest_id: contestId,
-      state: document.visibilityState === 'hidden' || !document.hasFocus() ? 'away' : 'active',
+      state:
+        !lockdownEnabledRef.current && (document.visibilityState === 'hidden' || !document.hasFocus()) ? 'away' : 'active',
       problem_id: apiProblem.id,
     });
   }, [apiProblem?.id, contestId]);
@@ -2117,12 +2154,12 @@ export default function ProblemSolve() {
   return (
     <div className="flex-1 flex flex-col min-h-0 h-full text-(--ws-text)">
       {/* problem header */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-(--ws-border) bg-(--ws-panel) flex-wrap">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-(--ws-border) bg-(--ws-panel) flex-wrap md:flex-nowrap min-w-0">
           {/* Back button (ẩn khi đang lockdown) */}
           {!lockdownActive && (classId && homeworkId ? (
             <button
               onClick={() => navigate(`/student/class/${classId}/homework/${homeworkId}`)}
-              className="flex items-center gap-1 text-[12px] text-(--ws-muted) hover:text-(--ws-text) transition-colors mr-1"
+              className="flex items-center gap-1 text-[12px] text-(--ws-muted) hover:text-(--ws-text) transition-colors mr-1 shrink-0 whitespace-nowrap"
               title={t('problemSolve.backToProblemsTitle')}
             >
               ← {t('problemSolve.backToProblems')}
@@ -2130,16 +2167,16 @@ export default function ProblemSolve() {
           ) : (
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center gap-1 text-[12px] text-(--ws-muted) hover:text-(--ws-text) transition-colors mr-1"
+              className="flex items-center gap-1 text-[12px] text-(--ws-muted) hover:text-(--ws-text) transition-colors mr-1 shrink-0 whitespace-nowrap"
               title={t('problemSolve.backToListTitle')}
             >
               ← {t('studentContest.back')}
             </button>
           ))}
-          <h1 className="text-[17px] font-bold">{localizedTitle}</h1>
-          <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-md ${diffChip}`}>{problemDifficulty === 'EASY' ? t('problemForm.easy') : problemDifficulty === 'MEDIUM' ? t('problemForm.medium') : t('problemForm.hard')}</span>
+          <h1 className="text-[17px] font-bold min-w-0 truncate" title={localizedTitle}>{localizedTitle}</h1>
+          <span className={`shrink-0 whitespace-nowrap text-[12px] font-semibold px-2 py-0.5 rounded-md ${diffChip}`}>{problemDifficulty === 'EASY' ? t('problemForm.easy') : problemDifficulty === 'MEDIUM' ? t('problemForm.medium') : t('problemForm.hard')}</span>
           {contestId && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               {contestModeReady && lockdownEnabled ? (
                 lockdownActive ? (
                   <div className="flex items-center gap-1.5">
@@ -2193,7 +2230,7 @@ export default function ProblemSolve() {
             </div>
           )}
           {solved && (
-            <span className="flex items-center gap-1 text-[12px] font-semibold text-(--ws-ok)">
+            <span className="flex items-center gap-1 text-[12px] font-semibold text-(--ws-ok) shrink-0 whitespace-nowrap">
               <CheckCircle2 size={14} /> {t('studentHomework.completed')}
             </span>
           )}
@@ -2693,8 +2730,10 @@ export default function ProblemSolve() {
                                     <Copy size={13} />
                                   </button>
                                 </div>
-                                <div className="prose prose-sm max-w-none text-(--ws-text) leading-relaxed">
-                                  <ReactMarkdown>{aiTutorResponse}</ReactMarkdown>
+                                <div className="text-(--ws-text)">
+                                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={tutorMarkdownComponents}>
+                                    {aiTutorResponse}
+                                  </ReactMarkdown>
                                 </div>
                                 {aiMeta && (
                                   <div className="mt-4 pt-3 border-t border-(--ws-border) flex flex-wrap items-center gap-2 text-[12px]">
@@ -2824,7 +2863,7 @@ export default function ProblemSolve() {
               {/* editor toolbar */}
               <div className="flex items-center gap-1.5 px-3 py-2 min-h-[52px] border-b border-(--ws-border) flex-nowrap overflow-hidden">
                 {!contestId && (
-                  <div className="flex items-center rounded-lg border border-(--ws-border) overflow-hidden shrink-0 whitespace-nowrap text-[12.5px] font-semibold">
+                  <div className="hidden @[520px]:flex items-center rounded-lg border border-(--ws-border) overflow-hidden shrink-0 whitespace-nowrap text-[12.5px] font-semibold">
                     <button className="px-2.5 py-1.5 bg-(--ws-accent-soft) text-(--ws-accent)">{t('problemSolve.writeCode')}</button>
                     <label className="px-2.5 py-1.5 text-(--ws-muted) hover:text-(--ws-text) cursor-pointer whitespace-nowrap">
                       {t('problemSolve.uploadFile')}
@@ -2840,11 +2879,12 @@ export default function ProblemSolve() {
                     </label>
                   </div>
                 )}
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 shrink-0">
                   <select
                     value={selectedLangId}
                     onChange={(e) => setSelectedLangId(e.target.value)}
-                    className="w-[92px] px-1.5 py-1.5 bg-(--ws-panel2) border border-(--ws-border) rounded-lg text-[12px] font-semibold text-(--ws-text) focus:outline-none focus:border-(--ws-accent) cursor-pointer"
+                    aria-label={t('problemSolve.languageLabel')}
+                    className="w-[124px] px-1.5 py-1.5 bg-(--ws-panel2) border border-(--ws-border) rounded-lg text-[12px] font-semibold text-(--ws-text) focus:outline-none focus:border-(--ws-accent) cursor-pointer"
                   >
                     {allowedLangConfigs.map((language) => (
                       <option key={language.id} value={language.id}>
@@ -2854,34 +2894,39 @@ export default function ProblemSolve() {
                   </select>
                   {apiProblem?.allowed_languages && apiProblem.allowed_languages.length > 0 && (
                     <span
-                      className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-md bg-(--ws-warn)/10 border border-(--ws-warn)/25 text-(--ws-warn) text-[11px] font-medium"
+                      className="hidden @[820px]:inline-flex items-center gap-1 px-2 py-1 rounded-md bg-(--ws-warn)/10 border border-(--ws-warn)/25 text-(--ws-warn) text-[11px] font-medium"
                       title="This problem restricts allowed languages"
                     >
                       <Lock size={11} /> Allowed: {allowedLangConfigs.length} languages
                     </span>
                   )}
                 </div>
-                <label className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] text-(--ws-muted) cursor-pointer hover:text-(--ws-text) whitespace-nowrap">
-                  <input type="checkbox" checked={wrap} onChange={(e) => setWrap(e.target.checked)} className="accent-(--ws-accent)" />
-                  {t('problemSolve.wordWrap')}
+                <label
+                  className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] text-(--ws-muted) cursor-pointer hover:text-(--ws-text) whitespace-nowrap shrink-0"
+                  title={t('problemSolve.wordWrap')}
+                >
+                  <input type="checkbox" checked={wrap} onChange={(e) => setWrap(e.target.checked)} className="accent-(--ws-accent)" aria-label={t('problemSolve.wordWrap')} />
+                  <span className="hidden @[640px]:inline">{t('problemSolve.wordWrap')}</span>
+                  <WrapText size={13} className="@[640px]:hidden" aria-hidden="true" />
                 </label>
                 <button
                   onClick={() => onCodeChange(currentLangConfig.template)}
                   className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] text-(--ws-muted) hover:text-(--ws-text) transition-colors whitespace-nowrap shrink-0"
                   title={t('problemSolve.resetCode')}
                 >
-                  <RotateCcw size={13} /> <span>{t('problemSolve.resetCode')}</span>
+                  <RotateCcw size={13} aria-hidden="true" /> <span className="hidden @[720px]:inline">{t('problemSolve.resetCode')}</span>
                 </button>
                 <select
                   value={fontSize}
                   onChange={(e) => setFontSize(+e.target.value)}
-                  className="px-1.5 py-1.5 bg-(--ws-panel2) border border-(--ws-border) rounded-lg text-[12.5px] focus:outline-none"
+                  aria-label={t('problemSolve.fontSizeLabel')}
+                  className="hidden @[580px]:block shrink-0 px-1.5 py-1.5 bg-(--ws-panel2) border border-(--ws-border) rounded-lg text-[12.5px] focus:outline-none"
                 >
                   {[12, 13, 14, 16, 18].map((s) => <option key={s} value={s}>{s}px</option>)}
                 </select>
 
-                <div className="flex-1" />
-                <span className={`text-[11.5px] whitespace-nowrap ${saveState === 'saved' ? 'text-(--ws-faint)' : 'text-(--ws-warn)'}`}>
+                <div className="flex-1 min-w-0" />
+                <span className={`shrink-0 text-[11.5px] whitespace-nowrap ${saveState === 'saved' ? 'text-(--ws-faint)' : 'text-(--ws-warn)'}`}>
                   {saveState === 'saved' ? t('problemSolve.saved') : saveState === 'saving' ? t('problemSolve.saving') : t('problemSolve.unsaved')}
                 </span>
               </div>
@@ -3177,8 +3222,10 @@ export default function ProblemSolve() {
               <div className="flex-1 overflow-y-auto ws-editor-scroll p-3 space-y-2 bg-(--ws-bg)">
                 {assistantMessages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-(--ws-accent) text-(--ws-accent)' : 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border)'}`}>
-                      {msg.content}
+                    <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-(--ws-accent) text-(--ws-on-accent) whitespace-pre-wrap' : 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border)'}`}>
+                      {msg.role === 'user' ? msg.content : (
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} components={chatMarkdownComponents}>{msg.content}</ReactMarkdown>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -3200,7 +3247,7 @@ export default function ProblemSolve() {
                     placeholder={t('problemSolve.askPlaceholder')}
                     className="flex-1 bg-transparent text-[13px] text-(--ws-text) outline-none placeholder:text-(--ws-faint)"
                   />
-                  <button aria-label={t('common.send')} type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-(--ws-accent) p-2 text-(--ws-accent) disabled:opacity-50">
+                  <button aria-label={t('common.send')} type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-(--ws-accent) p-2 text-(--ws-on-accent) disabled:opacity-50">
                     <Send size={14} aria-hidden="true" />
                   </button>
                 </div>
@@ -3232,8 +3279,10 @@ export default function ProblemSolve() {
             <div className="flex-1 overflow-y-auto ws-editor-scroll p-3 space-y-2 bg-(--ws-bg)">
               {assistantMessages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-(--ws-accent) text-(--ws-accent)' : 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border)'}`}>
-                    {msg.content}
+                  <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-(--ws-accent) text-(--ws-on-accent) whitespace-pre-wrap' : 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border)'}`}>
+                    {msg.role === 'user' ? msg.content : (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={chatMarkdownComponents}>{msg.content}</ReactMarkdown>
+                    )}
                   </div>
                 </div>
               ))}
@@ -3254,7 +3303,7 @@ export default function ProblemSolve() {
                   placeholder={t('problemSolve.askPlaceholder')}
                   className="flex-1 bg-transparent text-[13px] text-(--ws-text) outline-none placeholder:text-(--ws-faint)"
                 />
-                <button aria-label={t('common.send')} type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-(--ws-accent) p-2 text-(--ws-accent) disabled:opacity-50">
+                <button aria-label={t('common.send')} type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-(--ws-accent) p-2 text-(--ws-on-accent) disabled:opacity-50">
                   <Send size={14} aria-hidden="true" />
                 </button>
               </div>

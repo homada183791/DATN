@@ -1326,7 +1326,9 @@
     "problemsHideRaw": "Hide raw output",
     "problemsNoLocation": "Could not find the error location. Open \"Show raw output\" for the full message.",
     "problemsJumpHint": "Click to jump to the error in your code",
-    "problemsLocation": "[Ln {{line}}, Col {{col}}]"
+    "problemsLocation": "[Ln {{line}}, Col {{col}}]",
+    "languageLabel": "Programming language",
+    "fontSizeLabel": "Code font size"
   },
   "auth": {
     "login": "Sign in",

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { X, FileUp, FileText, Trash2, Pencil, Loader2, CheckCircle2, AlertCircle, UploadCloud, ChevronDown, Download } from 'lucide-react';
+import { ApiError } from '../api/http';
 import { createProblem, CreateProblemDto, ProblemDifficulty, type ProblemDto } from '../api/problems';
 
 interface ProblemImportModalProps {
@@ -234,6 +235,19 @@ export default function ProblemImportModal({ isOpen, onClose, onImported, inBank
     if (importedAny) onImported?.();
   };
 
+  // Tải nhiều bài một lúc có thể chạm giới hạn tần suất của máy chủ (429):
+  // chờ rồi thử lại lặng lẽ thay vì báo lỗi và bỏ bài đó.
+  const createWithRetry = async (dto: CreateProblemDto) => {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await createProblem(dto, { quietRateLimit: true });
+      } catch (e) {
+        if (!(e instanceof ApiError) || e.status !== 429 || attempt >= 6 || cancelRef.current) throw e;
+        await new Promise((r) => setTimeout(r, Math.min(15_000, 2_000 * 2 ** attempt)));
+      }
+    }
+  };
+
   const handleComplete = async () => {
     const queue = files.flatMap((f) => f.problems);
     if (queue.length === 0 || running) return;
@@ -255,7 +269,7 @@ export default function ProblemImportModal({ isOpen, onClose, onImported, inBank
         if (i >= queue.length) return;
         const p = queue[i];
         try {
-          const res = await createProblem(inBank ? p : { ...p, in_bank: false });
+          const res = await createWithRetry(inBank ? p : { ...p, in_bank: false });
           createdListRef.current.push({ created: res, dto: p });
           ok++;
         } catch (e: any) {

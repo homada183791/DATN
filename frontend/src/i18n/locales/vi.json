@@ -1326,7 +1326,9 @@
     "problemsHideRaw": "Ẩn thông báo gốc",
     "problemsNoLocation": "Không xác định được dòng lỗi. Bấm \"Xem thông báo gốc\" để đọc đầy đủ.",
     "problemsJumpHint": "Bấm để tới chỗ lỗi trong code",
-    "problemsLocation": "[Dòng {{line}}, Cột {{col}}]"
+    "problemsLocation": "[Dòng {{line}}, Cột {{col}}]",
+    "languageLabel": "Ngôn ngữ lập trình",
+    "fontSizeLabel": "Cỡ chữ code"
   },
   "auth": {
     "login": "Đăng nhập",

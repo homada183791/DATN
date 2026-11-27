@@ -128,6 +128,10 @@ export default function ContestMonitor({
   });
   const [now, setNow] = useState(() => Date.now());
   const [resetting, setResetting] = useState<string | null>(null);
+  /** Kỳ thi bật Lockdown: màn hình đã bị khóa nên không theo dõi/đếm số lần rời màn hình, chỉ còn online/offline. */
+  const [lockdown, setLockdown] = useState(false);
+  const lockdownRef = useRef(false);
+  lockdownRef.current = lockdown;
   const soundRef = useRef(sound);
   soundRef.current = sound;
   /** lệch giờ server - máy giảng viên, để đếm "rời tab bao lâu" cho đúng */
@@ -220,6 +224,8 @@ export default function ContestMonitor({
           map[p.problem_id] = `${String.fromCharCode(65 + i)}. ${p.problem?.title ?? ''}`;
         });
         setProblemNames(map);
+        setLockdown(!!(detail as { lockdown_enabled?: boolean; lockdownEnabled?: boolean } | null)?.lockdown_enabled
+          || !!(detail as { lockdownEnabled?: boolean } | null)?.lockdownEnabled);
       })
       .catch((err) => {
         notifyGlobalToast(err instanceof ApiError ? err.message : t('contestMonitor.loadFailed'));
@@ -243,7 +249,9 @@ export default function ContestMonitor({
     });
     socket.on('disconnect', () => setLive(false));
 
-    const applyPresence = (p: ContestPresenceDto, serverTime: number, announce: boolean) => {
+    const applyPresence = (raw: ContestPresenceDto, serverTime: number, announce: boolean) => {
+      // Lockdown: không coi là "rời trang" (bản cũ của trang làm bài có thể vẫn gửi away)
+      const p: ContestPresenceDto = lockdownRef.current && raw.state === 'away' ? { ...raw, state: 'active' } : raw;
       skewRef.current = serverTime - Date.now();
       const sinceLocal = p.since - skewRef.current;
       const prevState = tilesRef.current.get(p.student_id)?.state ?? 'unknown';
@@ -455,7 +463,7 @@ export default function ContestMonitor({
             [
               ['all', t('contestMonitor.filterAll', { count: counts.total }), ''],
               ['attention', t('contestMonitor.filterAttention', { count: counts.violators + counts.away }), 'text-(--ws-danger)'],
-              ['away', t('contestMonitor.filterAway', { count: counts.away }), 'text-(--ws-warn)'],
+              ...(lockdown ? [] : [['away', t('contestMonitor.filterAway', { count: counts.away }), 'text-(--ws-warn)']]),
               ['offline', t('contestMonitor.filterOffline', { count: counts.offline }), 'text-(--ws-muted)'],
             ] as [Filter, string, string][]
           ).map(([key, label, tone]) => (
@@ -535,6 +543,7 @@ export default function ContestMonitor({
                         <div className="mt-2.5 text-[12px] text-(--ws-muted) truncate">
                           {s.problem_id ? (problemNames[s.problem_id] ?? t('contestMonitor.problemUnknown')) : t('contestMonitor.noProblem')}
                         </div>
+                        {!lockdown && (
                         <div className="mt-2.5 flex items-center gap-2">
                           <div className="flex-1 h-1.5 rounded bg-(--ws-border-soft)" aria-hidden="true">
                             <div
@@ -546,7 +555,8 @@ export default function ContestMonitor({
                             {t('contestMonitor.warnings', { count: s.cheat_warnings, max: maxWarnings })}
                           </span>
                         </div>
-                        {s.last_violation && (
+                        )}
+                        {!lockdown && s.last_violation && (
                           <div className="mt-2 text-[11.5px] text-(--ws-danger) truncate">
                             {reasonLabel(s.last_violation.reason)} · {clock(new Date(s.last_violation.at).getTime())}
                           </div>

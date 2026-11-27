@@ -39,8 +39,15 @@ export function getAuthHeaders() {
 
 let last401Time = 0;
 
-export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+export type ApiFetchInit = RequestInit & {
+  /** Không tự hiện thông báo "thao tác quá nhanh" (429) — nơi gọi tự chờ và thử lại. */
+  quietRateLimit?: boolean;
+};
+
+export async function apiFetch<T>(path: string, init: ApiFetchInit = {}): Promise<T> {
   let response: Response;
+  const { quietRateLimit, ...requestInit } = init;
+  init = requestInit;
 
   try {
     const defaultSignal = AbortSignal.timeout(15000); // 15s default timeout
@@ -78,7 +85,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
         }
         window.location.assign('/login');
       }
-    } else if (response.status === 429) {
+    } else if (response.status === 429 && !quietRateLimit) {
       notifyGlobalToast('Bạn thao tác quá nhanh, vui lòng thử lại sau.', 'error');
     }
 

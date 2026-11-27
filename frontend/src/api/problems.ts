@@ -47,10 +47,11 @@ export interface CreateProblemDto {
   test_cases: CreateTestCaseDto[];
 }
 
-export function createProblem(data: CreateProblemDto) {
+export function createProblem(data: CreateProblemDto, opts: { quietRateLimit?: boolean } = {}) {
   return apiFetch<ProblemDto>('/api/v1/problems', {
     method: 'POST',
     body: JSON.stringify(data),
+    quietRateLimit: opts.quietRateLimit,
   });
 }
 
