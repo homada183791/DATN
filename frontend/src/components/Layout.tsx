@@ -7,6 +7,7 @@ import { useProblemsQuery } from '../api/problems';
 import { useClassesQuery } from '../api/classes';
 import { useNotifications } from '../context/NotificationContext';
 import { useLockdownActive } from '../context/lockdownStore';
+import { getLocalizedProblemTitle } from '../utils/problemTranslation';
 import CompleteProfileModal from './CompleteProfileModal';
 import {
   LayoutDashboard,
@@ -172,6 +173,14 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
   const searchRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
 
+  const closeTopMenus = () => {
+    setSearchOpen(false);
+    setBellOpen(false);
+    setPaletteOpen(false);
+    setLangOpen(false);
+    setAvatarOpen(false);
+  };
+
   /* ⌘K opens global search */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -214,12 +223,22 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
         { label: t('nav.calendar'), icon: <Calendar size={20} />, path: '/student/calendar' },
         { label: t('nav.submission'), icon: <Send size={20} />, path: '/student/submission' },
       ];
-  const filteredProblems = problems.filter(
-    (p) => p.title.toLowerCase().includes(query.toLowerCase()) || p.id.toLowerCase().includes(query.toLowerCase())
-  );
+  const currentLang = (i18n.resolvedLanguage || i18n.language || 'vi').toLowerCase();
+  const isInstructor = user?.role === 'instructor';
+  const filteredProblems = problems.filter((p) => {
+    const loc = getLocalizedProblemTitle(p.title, currentLang).toLowerCase();
+    const q = query.toLowerCase();
+    return loc.includes(q) || p.title.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
+  });
 
   return (
     <div className="h-screen overflow-hidden bg-(--ws-bg) flex text-(--ws-text)">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[120] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-(--ws-accent) focus:text-(--ws-on-accent) focus:text-sm focus:font-semibold focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
       {(user?.missingFields?.username || user?.missingFields?.studentCode) && <CompleteProfileModal />}
       {/* Mobile overlay */}
       {mobileSidebarOpen && (
@@ -299,7 +318,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
             onClick={() => setMobileSidebarOpen(false)}
             className="flex items-center gap-3 px-3 py-2 rounded-xl border border-(--ws-border) hover:bg-(--ws-hover) transition-colors"
           >
-            <div className="shrink-0 w-9 h-9 bg-(--ws-accent) rounded-full flex items-center justify-center text-(--ws-panel) font-bold text-sm overflow-hidden">
+            <div className="shrink-0 w-9 h-9 bg-(--ws-accent) rounded-full flex items-center justify-center text-(--ws-on-accent) font-bold text-sm overflow-hidden">
               {user?.avatar ? (
                 <img src={user.avatar} alt={user.fullName || user.username} className="w-full h-full object-cover" />
               ) : (
@@ -337,12 +356,29 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
           </button>
 
           {!fullBleed && (
-            <nav className="hidden md:flex items-center text-[13.5px] text-(--ws-muted)">
+            <nav aria-label="Breadcrumb context" className="hidden md:flex items-center text-[13.5px] text-(--ws-muted)">
               <span className="font-semibold text-(--ws-text)">JudgeHub</span>
-              <ChevronRight size={14} className="mx-1.5 text-(--ws-faint)" />
-              <span className="text-(--ws-text)">
-                {user?.role === 'instructor' ? t('personal.roleInstructor') : t('personal.roleStudent')}
+              <ChevronRight size={14} className="mx-1.5 text-(--ws-faint)" aria-hidden="true" />
+              <span className="text-(--ws-muted)">
+                {isInstructor ? t('personal.roleInstructor') : t('personal.roleStudent')}
               </span>
+              {(() => {
+                const matchedNav = items.find(
+                  (item) =>
+                    location.pathname === item.path ||
+                    (item.path === '/student/problems' && location.pathname.startsWith('/student/problem')) ||
+                    (item.path === '/instructor/problems' && location.pathname.startsWith('/instructor/problem')) ||
+                    (item.path === '/student/submission' && location.pathname === '/student/submissions') ||
+                    (item.path === '/instructor/submissions' && location.pathname === '/instructor/submission'),
+                );
+                if (!matchedNav) return null;
+                return (
+                  <>
+                    <ChevronRight size={14} className="mx-1.5 text-(--ws-faint)" aria-hidden="true" />
+                    <span className="font-medium text-(--ws-text)">{matchedNav.label}</span>
+                  </>
+                );
+              })()}
             </nav>
           )}
 
@@ -350,7 +386,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
 
           {/* Global search */}
           <div className="relative hidden sm:block">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-(--ws-muted)" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-(--ws-muted)" aria-hidden="true" />
             <input
               ref={searchRef}
               value={query}
@@ -363,16 +399,16 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
             />
             <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0.5 rounded border border-(--ws-border) text-(--ws-muted) font-mono">⌘K</kbd>
             {searchOpen && query && (
-              <div className="absolute top-full mt-2 right-0 w-80 bg-(--ws-panel2) border border-(--ws-border) rounded-xl shadow-2xl overflow-hidden z-60 animate-slide-up">
+              <div className="absolute top-full mt-2 right-0 w-80 max-w-[calc(100vw-2rem)] bg-(--ws-panel2) border border-(--ws-border) rounded-xl shadow-2xl overflow-hidden z-60 animate-slide-up">
                 <p className="px-4 py-2 text-[10.5px] font-bold uppercase tracking-widest text-(--ws-muted) border-b border-(--ws-border)">{t('topbar.searchResults')}</p>
                 {filteredProblems.slice(0, 6).map((p) => (
                   <Link
                     key={p.id}
-                    to={`/student/problem/${p.id}`}
-                    className="flex items-center justify-between px-4 py-2.5 hover:bg-(--ws-hover) text-[13px] text-(--ws-text)"
+                    to={isInstructor ? `/instructor/problem/${p.id}` : `/student/problem/${p.id}`}
+                    className="flex items-center justify-between gap-2 px-4 py-2.5 hover:bg-(--ws-hover) text-[13px] text-(--ws-text)"
                   >
-                    <span className="font-medium">{p.title}</span>
-                    <span className="text-[11px] text-(--ws-muted) font-mono">{p.id}</span>
+                    <span className="font-medium truncate">{getLocalizedProblemTitle(p.title, currentLang)}</span>
+                    <span className="text-[11px] text-(--ws-muted) font-mono shrink-0">{p.id.slice(0, 8)}</span>
                   </Link>
                 ))}
                 {filteredProblems.length === 0 && (
@@ -385,16 +421,19 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
           {/* Palette picker */}
           <div className="relative">
             <button
-              onClick={() => setPaletteOpen(!paletteOpen)}
+              type="button"
+              onClick={() => { const next = !paletteOpen; closeTopMenus(); setPaletteOpen(next); }}
               className={`p-2 rounded-lg transition-colors ${
                 paletteOpen ? 'text-(--ws-accent) bg-(--ws-panel2)/60' : 'text-(--ws-muted) hover:text-(--ws-accent) hover:bg-(--ws-hover)/60'
               }`}
               title={t('topbar.palette')}
+              aria-label={t('topbar.palette')}
+              aria-expanded={paletteOpen}
             >
-              <Palette size={18} />
+              <Palette size={18} aria-hidden="true" />
             </button>
             {paletteOpen && (
-              <div className="absolute right-0 top-full mt-2 w-72 bg-(--ws-panel2) border border-(--ws-border) rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden">
+              <div className="fixed sm:absolute right-4 sm:right-0 top-16 sm:top-full sm:mt-2 w-[calc(100vw-2rem)] sm:w-72 bg-(--ws-panel2) border border-(--ws-border) rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden">
                 <p className="px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-widest text-(--ws-muted) border-b border-(--ws-border)">
                   {t('topbar.paletteTitle')}
                 </p>
@@ -431,14 +470,16 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
           {/* Language switcher */}
           <div className="relative">
             <button
-              onClick={() => setLangOpen(!langOpen)}
+              type="button"
+              onClick={() => { const next = !langOpen; closeTopMenus(); setLangOpen(next); }}
               className={`p-2 rounded-lg transition-colors ${
                 langOpen ? 'text-(--ws-accent) bg-(--ws-panel2)/60' : 'text-(--ws-muted) hover:text-(--ws-accent) hover:bg-(--ws-hover)/60'
               }`}
               title={t('topbar.language')}
               aria-label={t('topbar.language')}
+              aria-expanded={langOpen}
             >
-              <Languages size={18} />
+              <Languages size={18} aria-hidden="true" />
             </button>
             {langOpen && (
               <div className="absolute right-0 top-full mt-2 w-44 bg-(--ws-panel2) border border-(--ws-border) rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden p-1.5">
@@ -467,11 +508,14 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
           {/* Notifications */}
           <div className="relative">
             <button
-              onClick={() => setBellOpen(!bellOpen)}
+              type="button"
+              onClick={() => { const next = !bellOpen; closeTopMenus(); setBellOpen(next); }}
               className="relative p-2 rounded-lg text-(--ws-muted) hover:text-(--ws-text) hover:bg-(--ws-hover)/60 transition-colors"
               title={t('topbar.notifications')}
+              aria-label={t('topbar.notifications')}
+              aria-expanded={bellOpen}
             >
-              <Bell size={18} />
+              <Bell size={18} aria-hidden="true" />
               {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-(--ws-danger) border-2 border-(--ws-border) flex items-center justify-center text-(--ws-on-accent) text-[10px] font-bold leading-none px-0.5">
                   {unreadCount > 99 ? '99+' : unreadCount}
@@ -480,7 +524,7 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
             </button>
 
             {bellOpen && (
-              <div className="absolute right-0 top-full mt-2 w-96 bg-(--ws-panel2) border border-(--ws-border) rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden">
+              <div className="fixed sm:absolute right-4 sm:right-0 top-16 sm:top-full sm:mt-2 w-[calc(100vw-2rem)] sm:w-96 bg-(--ws-panel2) border border-(--ws-border) rounded-xl shadow-2xl z-60 animate-slide-up overflow-hidden">
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-(--ws-border)">
                   <div className="flex items-center gap-2">
@@ -550,11 +594,13 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
                             <span className="shrink-0 mt-1.5 w-2 h-2 rounded-full bg-(--ws-danger)" />
                           )}
                           <button
+                            type="button"
                             onClick={(e) => { e.stopPropagation(); removeNotification(n.id); }}
-                            className="shrink-0 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-(--ws-danger-soft) text-(--ws-muted) hover:text-(--ws-danger) transition-all"
+                            className="shrink-0 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 p-1.5 rounded hover:bg-(--ws-danger-soft) text-(--ws-muted) hover:text-(--ws-danger) transition-all"
                             title={t('topbar.deleteNotification')}
+                            aria-label={t('topbar.deleteNotification')}
                           >
-                            <Trash2 size={12} />
+                            <Trash2 size={12} aria-hidden="true" />
                           </button>
                         </div>
                       );
@@ -595,7 +641,10 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
           {/* Avatar + dropdown */}
           <div className="relative pl-3 border-l border-(--ws-border)">
             <button
-              onClick={() => setAvatarOpen(!avatarOpen)}
+              type="button"
+              onClick={() => { const next = !avatarOpen; closeTopMenus(); setAvatarOpen(next); }}
+              aria-label={user?.fullName || user?.username || 'User menu'}
+              aria-expanded={avatarOpen}
               className={`flex items-center gap-2 rounded-xl px-1.5 py-1 transition-colors ${
                 avatarOpen ? 'bg-(--ws-panel2)/60' : 'hover:bg-(--ws-hover)/60'
               }`}
@@ -674,11 +723,11 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
 
         {/* Page Content */}
         {fullBleed ? (
-          <main className="flex-1 overflow-hidden flex flex-col min-h-0">
+          <main id="main-content" tabIndex={-1} className="flex-1 overflow-hidden flex flex-col min-h-0 outline-none">
             {children}
           </main>
         ) : (
-          <main className="flex-1 p-6 overflow-y-scroll [scrollbar-gutter:stable]">
+          <main id="main-content" tabIndex={-1} className="flex-1 p-4 sm:p-6 overflow-y-scroll [scrollbar-gutter:stable] outline-none">
             <Breadcrumbs />
             <div className="animate-fade-in">
               {children}

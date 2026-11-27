@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
+import { CheckCircle2, AlertCircle, XCircle, X } from 'lucide-react';
 
 type ToastType = 'success' | 'error' | 'info';
 
@@ -23,13 +23,17 @@ export function notifyGlobalToast(message: string, type: ToastType = 'error', du
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
-  const showToast = useCallback((message: string, type: ToastType = 'success', durationMs = 3200) => {
+  const showToast = useCallback((message: string, type: ToastType = 'success', durationMs = 3500) => {
     const id = Date.now() + Math.floor(Math.random() * 1000);
     setToasts((prev) => [...prev, { id, message, type }]);
 
     window.setTimeout(() => {
       setToasts((prev) => prev.filter((toast) => toast.id !== id));
     }, durationMs);
+  }, []);
+
+  const dismissToast = useCallback((id: number) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
   const value = useMemo(() => ({ showToast }), [showToast]);
@@ -46,26 +50,39 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
+      <div
+        aria-live="polite"
+        aria-atomic="false"
+        className="fixed top-4 right-4 z-[100] flex flex-col gap-2 max-w-[calc(100vw-2rem)] pointer-events-none"
+      >
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`min-w-[280px] max-w-[420px] rounded-2xl border px-4 py-3.5 shadow-xl backdrop-blur-md text-sm font-medium animate-fade-in flex items-start gap-3 pointer-events-auto transition-all ${
+            role={toast.type === 'error' ? 'alert' : 'status'}
+            className={`min-w-[260px] w-full sm:w-auto max-w-[420px] rounded-xl border px-4 py-3 shadow-lg text-sm font-medium animate-slide-up flex items-start gap-3 pointer-events-auto transition-all ${
               toast.type === 'success'
-                ? 'bg-(--ws-ok-soft)/95 text-(--ws-ok) border-(--ws-ok)/35 shadow-emerald-950/10'
+                ? 'bg-[color-mix(in_srgb,var(--ws-ok)_13%,var(--ws-panel))] text-(--ws-text) border-(--ws-ok)/40'
                 : toast.type === 'info'
-                ? 'bg-(--ws-info-soft)/95 text-(--ws-info) border-(--ws-info)/35 shadow-blue-950/10'
-                : 'bg-(--ws-danger-soft)/95 text-(--ws-danger) border-(--ws-danger)/35 shadow-rose-950/10'
+                ? 'bg-[color-mix(in_srgb,var(--ws-info)_13%,var(--ws-panel))] text-(--ws-text) border-(--ws-info)/40'
+                : 'bg-[color-mix(in_srgb,var(--ws-danger)_13%,var(--ws-panel))] text-(--ws-text) border-(--ws-danger)/40'
             }`}
           >
             {toast.type === 'success' ? (
-              <CheckCircle2 size={18} className="text-(--ws-ok) flex-shrink-0 mt-0.5" />
+              <CheckCircle2 size={18} className="text-(--ws-ok) shrink-0 mt-0.5" aria-hidden="true" />
             ) : toast.type === 'info' ? (
-              <AlertCircle size={18} className="text-(--ws-info) flex-shrink-0 mt-0.5" />
+              <AlertCircle size={18} className="text-(--ws-info) shrink-0 mt-0.5" aria-hidden="true" />
             ) : (
-              <XCircle size={18} className="text-(--ws-danger) flex-shrink-0 mt-0.5" />
+              <XCircle size={18} className="text-(--ws-danger) shrink-0 mt-0.5" aria-hidden="true" />
             )}
             <div className="flex-1 min-w-0 leading-snug whitespace-pre-wrap">{toast.message}</div>
+            <button
+              type="button"
+              onClick={() => dismissToast(toast.id)}
+              aria-label="Close"
+              className="shrink-0 p-1 -mr-1 -mt-0.5 rounded-md text-(--ws-muted) hover:text-(--ws-text) hover:bg-(--ws-hover) transition-colors"
+            >
+              <X size={14} aria-hidden="true" />
+            </button>
           </div>
         ))}
       </div>
