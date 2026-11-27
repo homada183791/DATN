@@ -93,9 +93,16 @@ uploads/
 backend/uploads/
 storage/
 
-# ===== Agents =====
+# ===== Agents & Design Skills =====
 .agents/
+.claude/
+.windsurf/
 .codegraph/
 backend/.agents/
 backend/.claude/
 backend/.windsurf/
+AGENTS.md
+PRODUCT.md
+DESIGN.md
+**/.impeccable/
+design-system/
