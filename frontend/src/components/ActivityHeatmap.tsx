@@ -11,22 +11,27 @@ interface ActivityHeatmapProps {
 }
 
 const LEVELS = [
-  { min: 0, max: 0, bg: 'bg-(--ws-border)', titleKey: 'activityHeatmap.zero' },
-  { min: 1, max: 2, bg: 'bg-(--ws-ok-soft)', titleKey: 'activityHeatmap.oneToTwo' },
-  { min: 3, max: 5, bg: 'bg-(--ws-ok)', titleKey: 'activityHeatmap.threeToFive' },
-  { min: 6, max: 9, bg: 'bg-(--ws-ok)', titleKey: 'activityHeatmap.sixToNine' },
-  { min: 10, max: Infinity, bg: 'bg-(--ws-ok)', titleKey: 'activityHeatmap.tenPlus' },
+  { min: 0, max: 0, bg: 'bg-(--ws-panel2) border border-(--ws-border-soft)', titleKey: 'activityHeatmap.zero' },
+  { min: 1, max: 2, bg: 'bg-[color-mix(in_srgb,var(--ws-ok)_25%,var(--ws-panel2))] border border-(--ws-ok)/20', titleKey: 'activityHeatmap.oneToTwo' },
+  { min: 3, max: 5, bg: 'bg-[color-mix(in_srgb,var(--ws-ok)_50%,var(--ws-panel2))] border border-(--ws-ok)/35', titleKey: 'activityHeatmap.threeToFive' },
+  { min: 6, max: 9, bg: 'bg-[color-mix(in_srgb,var(--ws-ok)_75%,var(--ws-panel2))] border border-(--ws-ok)/50', titleKey: 'activityHeatmap.sixToNine' },
+  { min: 10, max: Infinity, bg: 'bg-(--ws-ok) border border-(--ws-ok)', titleKey: 'activityHeatmap.tenPlus' },
 ];
 
 function getLevel(count: number) {
   return LEVELS.find((l) => count >= l.min && count <= l.max) ?? LEVELS[0];
 }
 
-const MONTH_NAMES = ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12'];
-const DAY_LABELS = ['CN', 'T2', '', 'T4', '', 'T6', ''];
+const MONTH_NAMES_VI = ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12'];
+const MONTH_NAMES_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const DAY_LABELS_VI = ['CN', 'T2', '', 'T4', '', 'T6', ''];
+const DAY_LABELS_EN = ['Sun', 'Mon', '', 'Wed', '', 'Fri', ''];
 
 export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isEnglish = (i18n.resolvedLanguage || i18n.language || 'vi').toLowerCase().startsWith('en');
+  const monthNames = isEnglish ? MONTH_NAMES_EN : MONTH_NAMES_VI;
+  const dayLabels = isEnglish ? DAY_LABELS_EN : DAY_LABELS_VI;
   const { weeks, monthLabels } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -80,28 +85,31 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
 
     const monthLabelsArr: Array<{ weekIdx: number; label: string }> = [];
     monthMap.forEach((month, wIdx) => {
-      monthLabelsArr.push({ weekIdx: wIdx, label: MONTH_NAMES[month] });
+      monthLabelsArr.push({ weekIdx: wIdx, label: monthNames[month] });
     });
 
     return { weeks: weeksArr, monthLabels: monthLabelsArr };
-  }, [data]);
+  }, [data, monthNames]);
 
   const totalContributions = data.reduce((s, d) => s + d.count, 0);
 
   return (
-    <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-6 shadow-sm">
+    <section
+      aria-label={t('activityHeatmap.title', { count: totalContributions })}
+      className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-6 shadow-sm"
+    >
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold text-(--ws-text) font-serif flex items-center gap-2">
-          <span className="w-5 h-5 rounded bg-(--ws-ok) inline-block" />
-          {t('activityHeatmap.title', { count: totalContributions })}
+          <span className="w-3.5 h-3.5 rounded-sm bg-(--ws-ok) inline-block shrink-0" aria-hidden="true" />
+          <span className="tabular-nums">{t('activityHeatmap.title', { count: totalContributions })}</span>
         </h3>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto pb-1">
         <div className="inline-flex gap-0 min-w-max">
           {/* Day labels */}
           <div className="flex flex-col gap-[3px] mr-2 mt-6">
-            {DAY_LABELS.map((label, i) => (
+            {dayLabels.map((label, i) => (
               <div key={i} className="h-[13px] text-[9px] text-(--ws-muted) leading-none flex items-center">
                 {label}
               </div>
@@ -144,13 +152,13 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-end gap-2 mt-3">
+      <div className="flex items-center justify-end gap-1.5 mt-3">
         <span className="text-[10px] text-(--ws-muted)">{t('activityHeatmap.less')}</span>
         {LEVELS.map((l, i) => (
           <div key={i} className={`w-[13px] h-[13px] rounded-xs ${l.bg}`} title={t(l.titleKey)} />
         ))}
         <span className="text-[10px] text-(--ws-muted)">{t('activityHeatmap.more')}</span>
       </div>
-    </div>
+    </section>
   );
 }

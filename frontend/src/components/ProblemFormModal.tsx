@@ -659,7 +659,7 @@ Output: 6
                     <div className="shrink-0">
                       {allowedLanguages.length === 0 ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-(--ws-ok-soft) text-(--ws-ok) border border-(--ws-ok)/35">
-                          <span className="w-2 h-2 rounded-full bg-(--ws-ok) animate-pulse" />
+                          <span className="w-2 h-2 rounded-full bg-(--ws-ok)" aria-hidden="true" />
                           Cho phép tất cả ({SUPPORTED_LANGUAGES.length} phiên bản)
                         </span>
                       ) : (

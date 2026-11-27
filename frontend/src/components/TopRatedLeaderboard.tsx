@@ -13,27 +13,27 @@ function getRatingBadgeColor(rating: number): string {
 function getRankBadge(rank: number, t: (key: string) => string) {
   if (rank === 1) {
     return (
-      <div className="w-6 h-6 rounded-full bg-(--ws-warn) text-(--ws-warn) flex items-center justify-center font-bold text-xs shadow-xs" title={t('widgets.rankGold')}>
+      <div className="w-6 h-6 rounded-full bg-(--ws-warn) text-(--ws-on-accent) flex items-center justify-center font-bold font-mono tabular-nums text-xs shadow-xs" title={t('widgets.rankGold')}>
         1
       </div>
     );
   }
   if (rank === 2) {
     return (
-      <div className="w-6 h-6 rounded-full bg-(--ws-border) text-(--ws-text) flex items-center justify-center font-bold text-xs shadow-xs" title={t('widgets.rankSilver')}>
+      <div className="w-6 h-6 rounded-full bg-(--ws-panel2) border border-(--ws-border) text-(--ws-text) flex items-center justify-center font-bold font-mono tabular-nums text-xs" title={t('widgets.rankSilver')}>
         2
       </div>
     );
   }
   if (rank === 3) {
     return (
-      <div className="w-6 h-6 rounded-full bg-(--ws-warn) text-(--ws-on-accent) flex items-center justify-center font-bold text-xs shadow-xs" title={t('widgets.rankBronze')}>
+      <div className="w-6 h-6 rounded-full bg-(--ws-warn-soft) border border-(--ws-warn)/45 text-(--ws-warn) flex items-center justify-center font-bold font-mono tabular-nums text-xs" title={t('widgets.rankBronze')}>
         3
       </div>
     );
   }
   return (
-    <div className="w-6 h-6 rounded-full bg-(--ws-panel2) text-(--ws-muted) flex items-center justify-center font-bold text-xs">
+    <div className="w-6 h-6 rounded-full bg-(--ws-panel2) text-(--ws-muted) flex items-center justify-center font-bold font-mono tabular-nums text-xs">
       {rank}
     </div>
   );
@@ -62,7 +62,7 @@ export default function TopRatedLeaderboard({ maxItems = 5, showTitle = true }: 
         )}
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-12 bg-(--ws-panel2) rounded-xl animate-pulse" />
+            <div key={i} className="h-12 rounded-xl ws-skeleton" />
           ))}
         </div>
       </div>

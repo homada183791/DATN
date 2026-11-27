@@ -466,7 +466,7 @@ export default function ContestMonitor({
               aria-pressed={filter === key}
               className={`min-h-9 px-3 rounded-lg text-xs font-semibold border transition-colors ${
                 filter === key
-                  ? 'bg-(--ws-accent) text-(--ws-panel) border-(--ws-accent)'
+                  ? 'bg-(--ws-accent) text-(--ws-on-accent) border-(--ws-accent)'
                   : `border-(--ws-border) hover:bg-(--ws-hover) ${tone || 'text-(--ws-text)'}`
               }`}
             >
@@ -580,7 +580,7 @@ export default function ContestMonitor({
                       type="button"
                       onClick={() => handleReset(selectedTile.student_id)}
                       disabled={resetting === selectedTile.student_id}
-                      className="shrink-0 inline-flex items-center gap-1 min-h-8 px-2.5 rounded-lg bg-(--ws-accent) text-(--ws-panel) text-[11.5px] font-semibold disabled:opacity-60"
+                      className="shrink-0 inline-flex items-center gap-1 min-h-8 px-2.5 rounded-lg bg-(--ws-accent) text-(--ws-on-accent) hover:bg-(--ws-accent-strong) text-[11.5px] font-semibold disabled:opacity-60"
                     >
                       {resetting === selectedTile.student_id ? <Loader2 size={12} className="animate-spin" /> : <RotateCcw size={12} />}
                       {t('contestMonitor.resetBtn')}

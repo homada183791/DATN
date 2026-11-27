@@ -63,10 +63,15 @@ export default function CompleteProfileModal() {
   const labelClass = 'block text-sm font-medium text-(--ws-text) mb-1.5';
 
   return (
-    <div className="fixed inset-0 z-1000 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-1000 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t('completeProfile.title')}
+    >
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md bg-(--ws-panel) rounded-2xl border border-(--ws-border) shadow-2xl p-6 space-y-4"
+        className="w-full max-w-md bg-(--ws-panel) rounded-2xl border border-(--ws-border) shadow-2xl p-6 space-y-4 animate-slide-up"
       >
         <div>
           <h2 className="text-xl font-bold text-(--ws-text) font-serif">{t('completeProfile.title')}</h2>
@@ -115,7 +120,7 @@ export default function CompleteProfileModal() {
           <button
             type="submit"
             disabled={saving}
-            className="px-5 py-2.5 rounded-xl bg-(--ws-accent) text-(--ws-on-accent) text-sm font-semibold hover:bg-(--ws-accent) disabled:opacity-60 cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-(--ws-accent) text-(--ws-on-accent) text-sm font-semibold hover:bg-(--ws-accent-strong) transition-colors disabled:opacity-60 cursor-pointer"
           >
             {saving ? t('completeProfile.saving') : t('completeProfile.submit')}
           </button>

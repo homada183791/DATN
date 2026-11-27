@@ -152,7 +152,7 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
 
           <a
             href={event.link}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--ws-accent) text-(--ws-on-accent) text-xs font-bold hover:opacity-90 transition-opacity shadow-xs"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--ws-accent) text-(--ws-on-accent) text-xs font-bold hover:bg-(--ws-accent-strong) transition-colors shadow-xs"
           >
             {isContest
               ? userRole === 'instructor'

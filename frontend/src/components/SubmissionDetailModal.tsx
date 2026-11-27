@@ -80,6 +80,14 @@ export default function SubmissionDetailModal({
     return subscribeEditorPreferences(setEditorPreferences);
   }, [user?.preferences]);
 
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onClose]);
+
   const { data: detailData, isLoading: isDetailLoading } = useSubmissionDetailQuery(submissionId);
 
   const [gradeInput, setGradeInput] = useState<string>('');
@@ -195,8 +203,17 @@ export default function SubmissionDetailModal({
   }
 
   return createPortal(
-        <div className="fixed inset-0 z-110 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200">
+        <div
+          className="fixed inset-0 z-110 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={onClose}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={selectedSub.problemTitle}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-slide-up"
+          >
             {/* Modal Header */}
             <div className="p-5 border-b border-(--ws-border) bg-(--ws-panel2) flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -299,7 +316,7 @@ export default function SubmissionDetailModal({
                   {isInstructor && !isGradingOpen && (
                     <button
                       onClick={() => setIsGradingOpen(true)}
-                      className="text-xs font-semibold px-3 py-1 bg-(--ws-accent) text-(--ws-panel) rounded-lg hover:bg-(--ws-accent) transition-all flex items-center gap-1"
+                      className="text-xs font-semibold px-3 py-1.5 bg-(--ws-accent) text-(--ws-on-accent) rounded-lg hover:bg-(--ws-accent-strong) transition-colors flex items-center gap-1"
                     >
                       <MessageSquare size={13} />
                       {selectedSub.instructorScore != null ? t('submission.editGradeBtn') : t('submission.gradeBtn')}
@@ -324,7 +341,7 @@ export default function SubmissionDetailModal({
                     {selectedSub.instructorFeedback && (
                       <div className="pt-2 border-t border-(--ws-warn)/35">
                         <p className="text-xs font-semibold text-(--ws-warn) mb-1">{t('submission.pedagogicalFeedbackLabel')}</p>
-                        <p className="text-sm text-(--ws-muted) italic bg-(--ws-panel) p-3 rounded-lg border-l-4 border-(--ws-warn) leading-relaxed">
+                        <p className="text-sm text-(--ws-text)/90 italic bg-[color-mix(in_srgb,var(--ws-warn)_7%,var(--ws-panel))] p-3 rounded-lg border border-(--ws-warn)/35 leading-relaxed">
                           "{selectedSub.instructorFeedback}"
                         </p>
                       </div>
@@ -382,7 +399,7 @@ export default function SubmissionDetailModal({
                       <button
                         type="submit"
                         disabled={isSubmittingGrade}
-                        className="px-4 py-1.5 bg-(--ws-accent) hover:bg-(--ws-accent) text-(--ws-panel) text-xs font-bold rounded-lg transition-all disabled:opacity-50"
+                        className="px-4 py-1.5 bg-(--ws-accent) hover:bg-(--ws-accent-strong) text-(--ws-on-accent) text-xs font-bold rounded-lg transition-colors disabled:opacity-50"
                       >
                         {isSubmittingGrade ? t('submission.savingLabel') : t('submission.saveGradeBtn')}
                       </button>
