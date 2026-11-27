@@ -84,6 +84,15 @@ export default function Contest() {
   const selectedContestData = contests.find((contest) => contest.id === selectedContest);
   const hasDocument = typeof document !== 'undefined';
 
+  useEffect(() => {
+    if (!selectedContest) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedContest(null);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [selectedContest]);
+
   const isRegistered = (contestId: string) =>
     registeredContestIds.includes(contestId) || !!contests.find((c) => c.id === contestId)?.isRegistered;
 
@@ -137,8 +146,8 @@ export default function Contest() {
         <div className="space-y-3">
           {Array.from({ length: 5 }, (_, index) => (
             <div key={index} className="rounded-2xl border border-(--ws-border) bg-(--ws-panel) px-5 py-4 shadow-sm">
-              <div className="h-4 w-56 rounded bg-(--ws-panel2) animate-pulse" />
-              <div className="mt-3 h-3 w-80 rounded bg-(--ws-panel2) animate-pulse" />
+              <div className="h-4 w-56 max-w-full rounded ws-skeleton" />
+              <div className="mt-3 h-3 w-80 max-w-full rounded ws-skeleton" />
             </div>
           ))}
         </div>
@@ -182,9 +191,11 @@ export default function Contest() {
           {(['all', 'running', 'upcoming', 'ended'] as const).map((level) => (
             <button
               key={level}
+              type="button"
+              aria-pressed={filter === level}
               onClick={() => setFilter(level)}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                filter === level ? 'bg-(--ws-accent) text-(--ws-on-accent) shadow-sm' : 'bg-(--ws-panel) text-(--ws-text) hover:text-(--ws-text) border border-(--ws-border)'
+                filter === level ? 'bg-(--ws-accent) text-(--ws-on-accent) shadow-sm' : 'bg-(--ws-panel) text-(--ws-text) hover:bg-(--ws-hover) border border-(--ws-border)'
               }`}
             >
               {level === 'all' ? t('instructorContest.filterAll') : statusLabels[level]}
@@ -195,7 +206,7 @@ export default function Contest() {
 
       {selectedContest && selectedContestData && hasDocument && createPortal(
         <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setSelectedContest(null)}>
-          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" aria-label={selectedContestData.title} className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-(--ws-border)">
               <h3 className="text-lg font-serif font-bold text-(--ws-text)">{selectedContestData.title}{selectedContestData.visibility === 'private' && selectedContestData.classLabel && (<span className="ml-2 align-middle text-xs font-semibold text-(--ws-text) bg-(--ws-panel2) border border-(--ws-border) rounded-full px-2.5 py-0.5">{selectedContestData.classLabel}</span>)}</h3>
               <button aria-label={t('common.close')} onClick={() => setSelectedContest(null)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={20} aria-hidden="true" /></button>
@@ -333,7 +344,7 @@ export default function Contest() {
                                   className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-(--ws-accent) text-(--ws-on-accent) text-xs font-semibold rounded-xl hover:bg-(--ws-accent-strong) transition-colors"
                                   onClick={() => setSelectedContest(null)}
                                 >
-                                  <Play size={11} fill="white" /> {t('studentHomework.goSolve')}
+                                  <Play size={11} fill="currentColor" aria-hidden="true" /> {t('studentHomework.goSolve')}
                                 </Link>
                               </div>
                             );
@@ -410,8 +421,16 @@ export default function Contest() {
           filteredContests.map((contest) => (
             <div
               key={contest.id}
-              className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-6 hover:shadow-md hover:border-(--ws-accent)/30 transition-all cursor-pointer shadow-sm"
+              role="button"
+              tabIndex={0}
               onClick={() => openContest(contest.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  void openContest(contest.id);
+                }
+              }}
+              className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-6 hover:shadow-md hover:border-(--ws-accent)/30 transition-all cursor-pointer shadow-sm"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex-1">

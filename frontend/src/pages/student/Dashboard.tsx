@@ -133,7 +133,7 @@ export default function StudentDashboard() {
         </div>
         <Link
           to="/student/problems"
-          className="inline-flex items-center gap-2 min-h-11 px-[18px] rounded-[10px] bg-(--ws-accent) text-(--ws-panel) text-sm font-semibold hover:opacity-90 transition-opacity"
+          className="inline-flex items-center gap-2 min-h-11 px-[18px] rounded-[10px] bg-(--ws-accent) text-(--ws-on-accent) text-sm font-semibold hover:bg-(--ws-accent-strong) transition-colors shadow-xs"
         >
           {t('studentDashboard.practiceBtn')}
           <ArrowRight size={15} aria-hidden="true" />
@@ -143,22 +143,25 @@ export default function StudentDashboard() {
       {/* Một khối dẫn dắt: việc cần làm tiếp */}
       <section
         aria-labelledby="next-up"
-        className="rounded-2xl bg-(--ws-accent) text-(--ws-panel) px-8 py-7 flex flex-wrap items-center justify-between gap-6"
+        className="rounded-2xl border border-(--ws-accent)/35 bg-[color-mix(in_srgb,var(--ws-accent)_7%,var(--ws-panel))] text-(--ws-text) px-6 sm:px-8 py-6 flex flex-wrap items-center justify-between gap-6 shadow-xs"
       >
         {nextHomework ? (
           <>
             <div className="flex-1 min-w-[260px]">
-              <p id="next-up" className="text-xs font-semibold uppercase tracking-[0.08em] opacity-80 mb-2">
-                {t('studentDashboard.nextUpTitle')}
-              </p>
-              <h2 className="text-[22px] font-bold mb-1.5">{nextHomework.hw.title}</h2>
-              <p className="text-sm opacity-80 mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-2 h-2 rounded-full bg-(--ws-accent) shrink-0" aria-hidden="true" />
+                <p id="next-up" className="text-xs font-bold uppercase tracking-[0.08em] text-(--ws-accent)">
+                  {t('studentDashboard.nextUpTitle')}
+                </p>
+              </div>
+              <h2 className="text-[22px] font-bold mb-1.5 text-(--ws-text)">{nextHomework.hw.title}</h2>
+              <p className="text-sm text-(--ws-muted) mb-4">
                 {nextHomework.className ? `${nextHomework.className} · ` : ''}
                 {t('studentDashboard.dueAt', { date: formatVNFull(nextHomework.hw.deadline) })}
               </p>
               <div className="flex items-center gap-3 max-w-[420px]">
                 <div
-                  className="flex-1 h-2 rounded bg-(--ws-panel)/25"
+                  className="flex-1 h-2 rounded-full bg-(--ws-border)"
                   role="progressbar"
                   aria-valuenow={nextHomework.done}
                   aria-valuemin={0}
@@ -166,42 +169,47 @@ export default function StudentDashboard() {
                   aria-label={t('studentDashboard.nextUpTitle')}
                 >
                   <div
-                    className="h-full rounded bg-(--ws-panel)"
+                    className="h-full rounded-full bg-(--ws-accent) transition-all duration-300"
                     style={{ width: `${nextHomework.total ? (nextHomework.done / nextHomework.total) * 100 : 0}%` }}
                   />
                 </div>
-                <span className="font-mono text-[13px] font-semibold">
+                <span className="font-mono tabular-nums text-[13px] font-semibold text-(--ws-text)">
                   {t('studentDashboard.nextUpProgress', { done: nextHomework.done, total: nextHomework.total })}
                 </span>
               </div>
             </div>
-            <div className="flex flex-col items-end gap-3">
-              <div className="text-right">
-                <div className="text-[26px] font-bold tabular-nums">{nextHomework.timeLeft}</div>
-                <div className="text-xs opacity-80">{t('studentDashboard.nextUpTimeLeft')}</div>
+            <div className="flex flex-col items-start sm:items-end gap-3">
+              <div className="sm:text-right">
+                <div className="text-[26px] font-bold font-mono tabular-nums text-(--ws-text)">{nextHomework.timeLeft}</div>
+                <div className="text-xs text-(--ws-muted)">{t('studentDashboard.nextUpTimeLeft')}</div>
               </div>
               <Link
                 to={nextHomework.link}
-                className="inline-flex items-center min-h-11 px-5 rounded-[10px] bg-(--ws-panel) text-(--ws-accent) text-sm font-bold hover:opacity-90"
+                className="inline-flex items-center gap-2 min-h-11 px-5 rounded-[10px] bg-(--ws-accent) text-(--ws-on-accent) text-sm font-bold hover:bg-(--ws-accent-strong) transition-colors shadow-xs"
               >
                 {t('studentDashboard.nextUpContinue')}
+                <ArrowRight size={15} aria-hidden="true" />
               </Link>
             </div>
           </>
         ) : (
           <>
             <div className="flex-1 min-w-[260px]">
-              <p id="next-up" className="text-xs font-semibold uppercase tracking-[0.08em] opacity-80 mb-2">
-                {t('studentDashboard.nextUpTitle')}
-              </p>
-              <h2 className="text-[22px] font-bold mb-1.5">{t('studentDashboard.nextUpNone')}</h2>
-              <p className="text-sm opacity-80">{t('studentDashboard.nextUpNoneDesc')}</p>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-2 h-2 rounded-full bg-(--ws-accent) shrink-0" aria-hidden="true" />
+                <p id="next-up" className="text-xs font-bold uppercase tracking-[0.08em] text-(--ws-accent)">
+                  {t('studentDashboard.nextUpTitle')}
+                </p>
+              </div>
+              <h2 className="text-[22px] font-bold mb-1.5 text-(--ws-text)">{t('studentDashboard.nextUpNone')}</h2>
+              <p className="text-sm text-(--ws-muted)">{t('studentDashboard.nextUpNoneDesc')}</p>
             </div>
             <Link
               to="/student/problems"
-              className="inline-flex items-center min-h-11 px-5 rounded-[10px] bg-(--ws-panel) text-(--ws-accent) text-sm font-bold hover:opacity-90"
+              className="inline-flex items-center gap-2 min-h-11 px-5 rounded-[10px] bg-(--ws-accent) text-(--ws-on-accent) text-sm font-bold hover:bg-(--ws-accent-strong) transition-colors shadow-xs"
             >
               {t('studentDashboard.practiceBtn')}
+              <ArrowRight size={15} aria-hidden="true" />
             </Link>
           </>
         )}
@@ -214,7 +222,7 @@ export default function StudentDashboard() {
         {stats.map((s) => (
           <div key={s.label} className={`${card} px-5 py-[18px]`}>
             <div className="text-[13px] font-medium text-(--ws-muted)">{s.label}</div>
-            <div className="font-mono text-[28px] font-bold mt-1.5">{s.value}</div>
+            <div className="font-mono tabular-nums text-[28px] font-bold mt-1.5">{s.value}</div>
             {s.note && <div className="text-xs text-(--ws-muted) mt-1">{s.note}</div>}
           </div>
         ))}

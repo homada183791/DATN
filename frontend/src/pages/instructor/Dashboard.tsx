@@ -100,54 +100,54 @@ export default function InstructorDashboard() {
         <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-5 shadow-xs hover:border-(--ws-accent)/30 transition-all">
           <div className="flex items-center justify-between mb-3">
             <div className="w-10 h-10 bg-(--ws-info-soft) rounded-lg flex items-center justify-center">
-              <Users size={20} className="text-(--ws-info)" />
+              <Users size={20} className="text-(--ws-info)" aria-hidden="true" />
             </div>
-            <span className="text-xs font-semibold text-(--ws-muted) bg-(--ws-panel2) px-2 py-0.5 rounded-md">
-              {t('instructorDashboard.totalStudents')}
+            <span className="text-xs font-semibold text-(--ws-muted) tabular-nums">
+              {myClasses.length} {t('instructorDashboard.classesTitle')}
             </span>
           </div>
-          <p className="text-2xl font-bold font-serif text-(--ws-text)">{totalStudents}</p>
+          <p className="text-2xl font-bold font-mono tabular-nums text-(--ws-text)">{totalStudents}</p>
           <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorDashboard.totalStudents')}</p>
         </div>
 
         <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-5 shadow-xs hover:border-(--ws-accent)/30 transition-all">
           <div className="flex items-center justify-between mb-3">
-            <div className="w-10 h-10 bg-(--ws-accent)/10 rounded-lg flex items-center justify-center">
-              <BookOpen size={20} className="text-(--ws-accent)" />
+            <div className="w-10 h-10 bg-(--ws-accent-soft) rounded-lg flex items-center justify-center">
+              <BookOpen size={20} className="text-(--ws-accent)" aria-hidden="true" />
             </div>
-            <span className="text-xs font-semibold text-(--ws-muted) bg-(--ws-panel2) px-2 py-0.5 rounded-md">
-              {t('instructorDashboard.activeHomeworks')}
+            <span className="text-xs font-semibold text-(--ws-muted) tabular-nums">
+              {allHomeworks.length}
             </span>
           </div>
-          <p className="text-2xl font-bold font-serif text-(--ws-text)">{activeHomeworks}</p>
+          <p className="text-2xl font-bold font-mono tabular-nums text-(--ws-text)">{activeHomeworks}</p>
           <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorDashboard.activeHomeworks')}</p>
         </div>
 
         <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-5 shadow-xs hover:border-(--ws-accent)/30 transition-all">
           <div className="flex items-center justify-between mb-3">
             <div className="w-10 h-10 bg-(--ws-warn-soft) rounded-lg flex items-center justify-center">
-              <Trophy size={20} className="text-(--ws-warn)" />
+              <Trophy size={20} className="text-(--ws-warn)" aria-hidden="true" />
             </div>
             {runningContests > 0 && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-(--ws-ok-soft) text-(--ws-ok) border border-(--ws-ok)/35">
-                <span className="w-1.5 h-1.5 rounded-full bg-(--ws-ok) animate-pulse" /> Live
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-(--ws-ok-soft) text-(--ws-ok) border border-(--ws-ok)/35">
+                <span className="w-1.5 h-1.5 rounded-full bg-(--ws-ok) animate-pulse-dot" aria-hidden="true" /> Live
               </span>
             )}
           </div>
-          <p className="text-2xl font-bold font-serif text-(--ws-text)">{runningContests}</p>
+          <p className="text-2xl font-bold font-mono tabular-nums text-(--ws-text)">{runningContests}</p>
           <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorDashboard.runningContests')}</p>
         </div>
 
         <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-5 shadow-xs hover:border-(--ws-accent)/30 transition-all">
           <div className="flex items-center justify-between mb-3">
             <div className="w-10 h-10 bg-(--ws-ok-soft) rounded-lg flex items-center justify-center">
-              <CheckCircle2 size={20} className="text-(--ws-ok)" />
+              <CheckCircle2 size={20} className="text-(--ws-ok)" aria-hidden="true" />
             </div>
-            <span className="text-xs font-semibold text-(--ws-ok) bg-(--ws-ok-soft) px-2 py-0.5 rounded-md border border-(--ws-ok)/35">
+            <span className="text-xs font-semibold text-(--ws-ok) bg-(--ws-ok-soft) px-2 py-0.5 rounded-md border border-(--ws-ok)/35 tabular-nums">
               {totalSubmissions} {t('instructorDashboard.submittedSuffix')}
             </span>
           </div>
-          <p className="text-2xl font-bold font-serif text-(--ws-text)">{acRate}%</p>
+          <p className="text-2xl font-bold font-mono tabular-nums text-(--ws-text)">{acRate}%</p>
           <p className="text-xs text-(--ws-muted) mt-0.5">{t('instructorDashboard.acRate')}</p>
         </div>
       </div>

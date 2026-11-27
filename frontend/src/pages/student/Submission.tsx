@@ -99,7 +99,30 @@ export default function Submission() {
   const handleOpenDetail = (sub: SubmissionRow) => setSelectedSubmission(sub.id);
 
   if (isLoading) {
-    return <div className="p-10 text-center text-sm text-(--ws-muted)">{t('submission.loading')}</div>;
+    return (
+      <div className="space-y-6 text-(--ws-text)">
+        <div>
+          <div className="h-7 w-56 rounded ws-skeleton" />
+          <div className="mt-2 h-4 w-80 max-w-full rounded ws-skeleton" />
+        </div>
+        <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl overflow-hidden shadow-sm">
+          <div className="border-b border-(--ws-border) bg-(--ws-panel2)/50 px-4 py-3.5">
+            <div className="h-4 w-full max-w-2xl rounded ws-skeleton" />
+          </div>
+          <div className="divide-y divide-(--ws-border)/50">
+            {Array.from({ length: 6 }, (_, i) => (
+              <div key={i} className="px-4 py-3.5 flex items-center justify-between gap-4">
+                <div className="h-4 w-24 rounded ws-skeleton" />
+                <div className="h-4 flex-1 max-w-xs rounded ws-skeleton" />
+                <div className="h-5 w-14 rounded-full ws-skeleton" />
+                <div className="h-4 w-20 rounded ws-skeleton" />
+                <div className="h-4 w-24 rounded ws-skeleton" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (error instanceof ApiError) {
@@ -127,7 +150,7 @@ export default function Submission() {
               : t('submission.studentSubtitle', 'Theo dõi kết quả chấm tự động và nhận xét từ giảng viên')}
           </p>
         </div>
-        <span className="text-sm font-semibold text-(--ws-muted) bg-(--ws-panel2) border border-(--ws-border) px-3 py-1 rounded-full">
+        <span className="text-sm font-semibold font-mono tabular-nums text-(--ws-muted) bg-(--ws-panel2) border border-(--ws-border) px-3 py-1 rounded-full">
           {t('submission.resultCount', { count: filteredSubmissions.length })}
         </span>
       </div>
@@ -244,10 +267,19 @@ export default function Submission() {
               {filteredSubmissions.map((sub) => (
                 <tr
                   key={sub.id}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`${sub.problemTitle} (${sub.verdict})`}
                   className="border-b border-(--ws-border)/50 hover:bg-(--ws-hover)/60 cursor-pointer transition-colors"
                   onClick={() => handleOpenDetail(sub)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleOpenDetail(sub);
+                    }
+                  }}
                 >
-                  <td className="py-3 px-4 text-sm text-(--ws-muted) font-mono" title={sub.id}>
+                  <td className="py-3 px-4 text-sm text-(--ws-muted) font-mono tabular-nums" title={sub.id}>
                     #{sub.id.slice(0, 8)}
                   </td>
                   <td className="py-3 px-4 text-sm text-(--ws-text) font-semibold">{sub.problemTitle}</td>
@@ -256,7 +288,7 @@ export default function Submission() {
                   )}
                   <td className="py-3 px-4">
                     <span
-                      className={`text-xs px-2.5 py-1 rounded-full font-bold border ${
+                      className={`text-xs px-2.5 py-1 rounded-full font-bold font-mono border ${
                         verdictColors[sub.verdict] ?? 'text-(--ws-text) bg-(--ws-panel2) border-(--ws-border)'
                       }`}
                     >
@@ -265,22 +297,22 @@ export default function Submission() {
                   </td>
                   <td className="py-3 px-4 text-center">
                     {sub.instructorScore != null ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-bold text-(--ws-warn) bg-(--ws-warn-soft) border border-(--ws-warn)/35 px-2 py-0.5 rounded-full">
+                      <span className="inline-flex items-center gap-1 text-xs font-bold font-mono tabular-nums text-(--ws-warn) bg-(--ws-warn-soft) border border-(--ws-warn)/35 px-2 py-0.5 rounded-full">
                         <Star size={11} className="inline-block align-[-2px] fill-current" aria-hidden="true" /> {sub.instructorScore}/10
-                        {sub.instructorFeedback && <MessageSquare size={11} className="text-(--ws-warn)" />}
+                        {sub.instructorFeedback && <MessageSquare size={11} className="text-(--ws-warn)" aria-hidden="true" />}
                       </span>
                     ) : (
                       <span className="text-xs text-(--ws-muted)">—</span>
                     )}
                   </td>
                   <td className="py-3 px-4 text-sm text-(--ws-text)">{formatLanguageName(sub.language)}</td>
-                  <td className="py-3 px-4 text-sm text-(--ws-text) text-right">
+                  <td className="py-3 px-4 text-sm font-mono tabular-nums text-(--ws-text) text-right whitespace-nowrap">
                     {sub.executionTime != null ? `${sub.executionTime}ms` : '—'}
                   </td>
-                  <td className="py-3 px-4 text-sm text-(--ws-text) text-right">
+                  <td className="py-3 px-4 text-sm font-mono tabular-nums text-(--ws-text) text-right whitespace-nowrap">
                     {sub.memory != null ? `${sub.memory}MB` : '—'}
                   </td>
-                  <td className="py-3 px-4 text-sm text-(--ws-muted) text-right">
+                  <td className="py-3 px-4 text-sm font-mono tabular-nums text-(--ws-muted) text-right whitespace-nowrap">
                     {formatVNFull(sub.timestamp)}
                   </td>
                 </tr>

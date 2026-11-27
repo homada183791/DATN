@@ -240,8 +240,8 @@ export default function SettingsPage() {
         </div>
 
         {savedSuccess && (
-          <div className="flex items-center gap-2 text-(--ws-ok) text-sm font-medium animate-pulse">
-            <CheckCircle2 size={16} /> {savedSuccess}
+          <div role="status" aria-live="polite" className="flex items-center gap-2 text-(--ws-ok) text-sm font-medium animate-fade-in">
+            <CheckCircle2 size={16} aria-hidden="true" /> {savedSuccess}
           </div>
         )}
       </div>
@@ -255,17 +255,20 @@ export default function SettingsPage() {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Tabs Sidebar */}
           <div className="lg:w-56 shrink-0">
-            <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-2 space-y-1 shadow-sm">
+            <div role="tablist" aria-orientation="vertical" className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-2 space-y-1 shadow-sm">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === tab.id}
                   onClick={() => {
                     setActiveTab(tab.id);
                     setPasswordError('');
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
                     activeTab === tab.id
-                      ? 'bg-(--ws-border) text-(--ws-accent) border border-(--ws-border)'
+                      ? 'bg-(--ws-accent-soft) text-(--ws-accent) font-semibold border border-(--ws-accent)/30'
                       : 'text-(--ws-text) hover:bg-(--ws-hover) hover:text-(--ws-text) border border-transparent'
                   }`}
                 >
