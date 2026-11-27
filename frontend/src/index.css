@@ -1,9 +1,5 @@
 @import "tailwindcss";
 
-html, body {
-  scrollbar-gutter: stable;
-}
-
 main {
   scrollbar-gutter: stable;
 }
@@ -11,6 +7,7 @@ main {
 /* ================= Design tokens ================= */
 
 .ws-dark {
+  color-scheme: dark;
   --ws-bg: #0a0f0e;
   --ws-panel: #101716;
   --ws-panel2: #16201d;
@@ -41,14 +38,15 @@ main {
 }
 
 .ws-light {
+  color-scheme: light;
   --ws-bg: #f5f0e3;
   --ws-panel: #fcf9f2;
   --ws-panel2: #eee6d3;
   --ws-border: #d4c5a9;
   --ws-border-soft: #e2d7c3;
   --ws-text: #2c251e;
-  --ws-muted: #6b5c49;
-  --ws-faint: #988874;
+  --ws-muted: #5a4c3b;
+  --ws-faint: #6f5f4d;
   --ws-accent: #8b2500;
   --ws-accent-strong: #6a1c00;
   --ws-accent-soft: rgba(139, 37, 0, 0.08);
@@ -72,21 +70,46 @@ main {
 
 /* ================= Base ================= */
 
-html { background: #0a0f0e; }
+html {
+  background: var(--ws-bg, #f7f5ef);
+  scroll-padding-top: 5rem;
+}
 
 body {
   margin: 0;
-  color: #e6efeb;
+  background: var(--ws-bg, #f7f5ef);
+  color: var(--ws-text, #16201c);
   font-family: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
-  overflow-y: scroll;
+  overflow-y: auto;
+}
+
+/* Balanced headings & comfortable prose wrapping */
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+table, time, .tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+a {
+  text-underline-offset: 3px;
+}
+
+input, textarea, [contenteditable] {
+  caret-color: var(--ws-accent);
 }
 
 /* Distinctive display face for headings */
 .font-serif {
   /* Be Vietnam Pro hiển thị đủ dấu tiếng Việt ở mọi cỡ chữ tiêu đề. */
   font-family: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif !important;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
 }
 
 /* JetBrains Mono everywhere code appears */
@@ -94,19 +117,33 @@ body {
   font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-::selection { background: rgba(45, 212, 191, 0.28); color: inherit; }
+::selection {
+  background: color-mix(in srgb, var(--ws-accent) 24%, transparent);
+  color: inherit;
+}
 
 :focus-visible { outline: 2px solid var(--ws-accent); outline-offset: 2px; }
-.ws-dark :focus { --tw-ring-color: rgba(45, 212, 191, 0.45); }
+.ws-dark :focus { --tw-ring-color: color-mix(in srgb, var(--ws-accent) 45%, transparent); }
 
 /* ================= Scrollbars ================= */
 
+html, .ws-dark, .ws-light {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ws-border) transparent;
+}
+
 ::-webkit-scrollbar { width: 9px; height: 9px; }
 ::-webkit-scrollbar-track { background: transparent; }
-.ws-dark ::-webkit-scrollbar-thumb { background: #263631; border-radius: 5px; border: 2px solid var(--ws-bg); }
-.ws-dark ::-webkit-scrollbar-thumb:hover { background: #37504a; }
-.ws-light ::-webkit-scrollbar-thumb { background: #d8cfbe; border-radius: 5px; border: 2px solid var(--ws-bg); }
-.ws-light ::-webkit-scrollbar-thumb:hover { background: #bfae99; }
+.ws-dark ::-webkit-scrollbar-thumb,
+.ws-light ::-webkit-scrollbar-thumb {
+  background: var(--ws-border);
+  border-radius: 5px;
+  border: 2px solid var(--ws-bg);
+}
+.ws-dark ::-webkit-scrollbar-thumb:hover,
+.ws-light ::-webkit-scrollbar-thumb:hover {
+  background: var(--ws-faint);
+}
 
 .ws-editor-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
 .ws-editor-scroll::-webkit-scrollbar-thumb { background: var(--ws-border); border: 2px solid var(--ws-editor); }
@@ -117,7 +154,12 @@ body {
    không đổi màu chữ/viền, không phóng to icon. */
 
 button, a, select, input, textarea, label {
-  transition: background-color .16s ease, box-shadow .16s ease, opacity .16s ease;
+  transition: background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease, opacity .16s ease;
+}
+
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
 }
 
 /* Card & panel: hover chỉ sáng/đậm nền lên một chút */
@@ -327,16 +369,16 @@ tr, .group { transition: background-color .14s ease; }
 /* ================= Animations ================= */
 
 @keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fadeIn 0.18s cubic-bezier(.16,1,.3,1) forwards; }
+
+@keyframes slideUp {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.animate-fade-in { animation: fadeIn 0.35s cubic-bezier(.22,1,.36,1) forwards; }
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.animate-slide-up { animation: slideUp 0.25s ease-out forwards; }
+.animate-slide-up { animation: slideUp 0.16s cubic-bezier(.16,1,.3,1) forwards; }
 
 @keyframes pulseDot {
   0%, 100% { opacity: 1; }
@@ -347,6 +389,32 @@ tr, .group { transition: background-color .14s ease; }
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+
+.ws-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--ws-panel2) 25%,
+    color-mix(in srgb, var(--ws-border) 55%, var(--ws-panel2)) 50%,
+    var(--ws-panel2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-slide-up {
+    animation: none;
+  }
+  .animate-pulse,
+  .animate-pulse-dot,
+  .ws-skeleton {
+    animation: none;
+  }
+  button, a, select, input, textarea, label, tr, .group {
+    transition-duration: 0.05s;
+  }
 }
 
 /* ============================================================
@@ -522,8 +590,8 @@ tr, .group { transition: background-color .14s ease; }
   --ws-border: #d4c5a9;
   --ws-border-soft: #e2d7c3;
   --ws-text: #2c251e;
-  --ws-muted: #6b5c49;
-  --ws-faint: #988874;
+  --ws-muted: #5a4c3b;
+  --ws-faint: #6f5f4d;
   --ws-accent: #8b2500;
   --ws-accent-strong: #6a1c00;
   --ws-accent-soft: rgba(139, 37, 0, 0.08);
@@ -560,8 +628,8 @@ tr, .group { transition: background-color .14s ease; }
   --ws-border: #b8d5ee;
   --ws-border-soft: #cce1f5;
   --ws-text: #0d2238;
-  --ws-muted: #436384;
-  --ws-faint: #789bbd;
+  --ws-muted: #395572;
+  --ws-faint: #4d6b8a;
   --ws-accent: #0284c7;
   --ws-accent-strong: #0369a1;
   --ws-accent-soft: rgba(2, 132, 199, 0.12);
@@ -603,8 +671,8 @@ tr, .group { transition: background-color .14s ease; }
   --ws-border: #e2ddd0;
   --ws-border-soft: #ede9df;
   --ws-text: #16201c;
-  --ws-muted: #5e6a64;
-  --ws-faint: #7d8a83;
+  --ws-muted: #4a5650;
+  --ws-faint: #5b6761;
   --ws-accent: #1f5c46;
   --ws-accent-strong: #174634;
   --ws-accent-soft: #e7f0eb;
@@ -644,8 +712,8 @@ tr, .group { transition: background-color .14s ease; }
   --ws-border: #24312c;
   --ws-border-soft: #1c2824;
   --ws-text: #e4ece8;
-  --ws-muted: #93a69e;
-  --ws-faint: #6b7f77;
+  --ws-muted: #9eb3aa;
+  --ws-faint: #7f968d;
   --ws-accent: #5fd3a6;
   --ws-accent-strong: #3db88b;
   --ws-accent-soft: rgba(95, 211, 166, 0.12);
