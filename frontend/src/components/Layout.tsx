@@ -355,33 +355,6 @@ export default function Layout({ children, fullBleed = false }: { children: Reac
             {mobileSidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
 
-          {!fullBleed && (
-            <nav aria-label="Breadcrumb context" className="hidden md:flex items-center text-[13.5px] text-(--ws-muted)">
-              <span className="font-semibold text-(--ws-text)">JudgeHub</span>
-              <ChevronRight size={14} className="mx-1.5 text-(--ws-faint)" aria-hidden="true" />
-              <span className="text-(--ws-muted)">
-                {isInstructor ? t('personal.roleInstructor') : t('personal.roleStudent')}
-              </span>
-              {(() => {
-                const matchedNav = items.find(
-                  (item) =>
-                    location.pathname === item.path ||
-                    (item.path === '/student/problems' && location.pathname.startsWith('/student/problem')) ||
-                    (item.path === '/instructor/problems' && location.pathname.startsWith('/instructor/problem')) ||
-                    (item.path === '/student/submission' && location.pathname === '/student/submissions') ||
-                    (item.path === '/instructor/submissions' && location.pathname === '/instructor/submission'),
-                );
-                if (!matchedNav) return null;
-                return (
-                  <>
-                    <ChevronRight size={14} className="mx-1.5 text-(--ws-faint)" aria-hidden="true" />
-                    <span className="font-medium text-(--ws-text)">{matchedNav.label}</span>
-                  </>
-                );
-              })()}
-            </nav>
-          )}
-
           <div className="flex-1" />
 
           {/* Global search */}

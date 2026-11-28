@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { CheckCircle2, AlertCircle, XCircle, X } from 'lucide-react';
 
 type ToastType = 'success' | 'error' | 'info';
@@ -22,19 +22,34 @@ export function notifyGlobalToast(message: string, type: ToastType = 'error', du
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const timersRef = useRef<Map<number, number>>(new Map());
+
+  const dismissToast = useCallback((id: number) => {
+    const timer = timersRef.current.get(id);
+    if (timer !== undefined) {
+      window.clearTimeout(timer);
+      timersRef.current.delete(id);
+    }
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  }, []);
 
   const showToast = useCallback((message: string, type: ToastType = 'success', durationMs = 3500) => {
     const id = Date.now() + Math.floor(Math.random() * 1000);
-    setToasts((prev) => [...prev, { id, message, type }]);
-
-    window.setTimeout(() => {
-      setToasts((prev) => prev.filter((toast) => toast.id !== id));
-    }, durationMs);
-  }, []);
-
-  const dismissToast = useCallback((id: number) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  }, []);
+    setToasts((prev) => {
+      // Deduplicate identical active toasts instead of flooding stacked duplicates
+      const existing = prev.find((t) => t.message === message && t.type === type);
+      if (existing) {
+        const oldTimer = timersRef.current.get(existing.id);
+        if (oldTimer !== undefined) window.clearTimeout(oldTimer);
+        const refreshedTimer = window.setTimeout(() => dismissToast(existing.id), durationMs);
+        timersRef.current.set(existing.id, refreshedTimer);
+        return prev;
+      }
+      const timer = window.setTimeout(() => dismissToast(id), durationMs);
+      timersRef.current.set(id, timer);
+      return [...prev.slice(-3), { id, message, type }];
+    });
+  }, [dismissToast]);
 
   const value = useMemo(() => ({ showToast }), [showToast]);
 

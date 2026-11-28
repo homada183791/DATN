@@ -194,7 +194,7 @@ export default function ClassPage() {
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {enrolledClasses.map((cls) => (
-                <div key={cls.id} className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-6 hover:shadow-md hover:border-(--ws-accent)/30 transition-all shadow-sm flex flex-col">
+                <div key={cls.id} className="group bg-(--ws-panel) border border-(--ws-border) rounded-xl p-6 hover:shadow-md hover:border-(--ws-accent)/30 transition-all shadow-sm flex flex-col">
                   <div className="flex items-start justify-between mb-4">
                     <div className="w-12 h-12 bg-linear-to-br from-(--ws-accent-strong) to-(--ws-accent) rounded-xl flex items-center justify-center shadow-md">
                       <GraduationCap size={24} className="text-(--ws-on-accent)" />
@@ -213,8 +213,9 @@ export default function ClassPage() {
                       </div>
                     ) : (
                       <button
+                        type="button"
                         onClick={(e) => { e.stopPropagation(); setLeaveConfirmId(cls.id); }}
-                        className="flex items-center gap-1 text-[11px] text-(--ws-muted) hover:text-(--ws-danger) opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="flex items-center gap-1 text-[11px] text-(--ws-muted) hover:text-(--ws-danger) hover:bg-(--ws-danger-soft) px-2 py-1 rounded-md opacity-75 group-hover:opacity-100 focus-visible:opacity-100 transition-all"
                         title={t('studentClass.leaveClass')}
                       >
                         <LogOut size={12} /> {t('studentClass.leaveClass')}

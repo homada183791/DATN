@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
   BookOpen,
-  ChevronRight,
   Clock,
   Play,
   Lock,
@@ -58,8 +57,13 @@ export default function HomeworkDetail() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-(--ws-accent) border-t-transparent rounded-full animate-spin" />
+      <div className="space-y-6">
+        <div className="h-36 rounded-xl ws-skeleton" />
+        <div className="space-y-2.5">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-16 rounded-xl ws-skeleton" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -91,19 +95,6 @@ export default function HomeworkDetail() {
 
   return (
     <div className="space-y-6 text-(--ws-text)">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-(--ws-muted) flex-wrap">
-        <button onClick={() => navigate('/student/class')} className="hover:text-(--ws-accent) transition-colors">
-          {t('studentContest.classLabel')}
-        </button>
-        <ChevronRight size={14} />
-        <button onClick={() => navigate(`/student/class/${classId}`)} className="hover:text-(--ws-accent) transition-colors truncate max-w-[120px]">
-          {homework.class?.name ?? t('studentContest.classLabel')}
-        </button>
-        <ChevronRight size={14} />
-        <span className="text-(--ws-text) font-medium truncate max-w-[200px]">{homework.title}</span>
-      </div>
-
       {/* Homework header */}
       <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl p-6 shadow-sm">
         <div className="flex items-start justify-between gap-4 mb-4">
@@ -130,7 +121,7 @@ export default function HomeworkDetail() {
         </div>
 
         {/* Stats row */}
-        <div className="flex items-center gap-6 text-sm text-(--ws-muted) pt-4 border-t border-(--ws-border) flex-wrap">
+        <div className="flex items-center gap-6 text-sm text-(--ws-muted) pt-4 border-t border-(--ws-border) flex-wrap tabular-nums">
           <span className="flex items-center gap-1.5">
             <BookOpen size={14} /> {t('studentContest.problemCount', { count: tasks.length })}
           </span>
@@ -198,7 +189,7 @@ export default function HomeworkDetail() {
                   </span>
 
                   {/* Points */}
-                  <span className="text-xs text-(--ws-muted) w-12 text-right shrink-0 font-mono">
+                  <span className="text-xs text-(--ws-muted) w-12 text-right shrink-0 font-mono tabular-nums">
                     {t('studentContest.pointsShort', { count: task.points })}
                   </span>
 

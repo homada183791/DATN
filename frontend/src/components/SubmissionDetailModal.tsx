@@ -257,16 +257,6 @@ export default function SubmissionDetailModal({
                     {isRejudging ? t('submission.rejudgingLabel') : t('submission.rejudgeBtn')}
                   </button>
                 )}
-                {isInstructor && !hideProblemActions && (
-                  <button
-                    onClick={() => navigate(`/instructor/problem/${selectedSub.problemId}`)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-(--ws-accent) bg-(--ws-accent)/10 hover:bg-(--ws-accent)/20 rounded-lg transition-colors"
-                    title={t('submission.goToProblem')}
-                  >
-                    <ExternalLink size={14} />
-                    {t('submission.goToProblem', 'Đến bài')}
-                  </button>
-                )}
                 <button aria-label={t('common.close')}
                   onClick={onClose}
                   className="p-1.5 hover:bg-(--ws-hover)/50 rounded-lg text-(--ws-muted) hover:text-(--ws-text) transition-colors"

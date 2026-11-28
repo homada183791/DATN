@@ -84,8 +84,18 @@ export default function HomeworkList() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-(--ws-accent) border-t-transparent rounded-full animate-spin" />
+      <div className="space-y-6">
+        <div className="h-12 w-64 rounded-lg ws-skeleton" />
+        <div className="grid grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-20 rounded-xl ws-skeleton" />
+          ))}
+        </div>
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-20 rounded-xl ws-skeleton" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -106,16 +116,18 @@ export default function HomeworkList() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
-          { label: t('studentContest.totalHomeworks'), value: allHomeworks.filter((h) => enrolledIds.has(h.class_id)).length, icon: <BookOpen size={18} /> },
-          { label: t('studentContest.open'), value: openCount, icon: <Clock size={18} /> },
-          { label: t('studentContest.classLabel'), value: enrolledClasses.length, icon: <GraduationCap size={18} /> },
+          { label: t('studentContest.totalHomeworks'), value: allHomeworks.filter((h) => enrolledIds.has(h.class_id)).length, icon: <BookOpen size={16} /> },
+          { label: t('studentContest.open'), value: openCount, icon: <Clock size={16} /> },
+          { label: t('studentContest.classLabel'), value: enrolledClasses.length, icon: <GraduationCap size={16} /> },
         ].map((s) => (
-          <div key={s.label} className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-4 text-center shadow-sm">
-            <div className="text-(--ws-accent) flex justify-center mb-2">{s.icon}</div>
-            <p className="text-2xl font-bold font-serif">{s.value}</p>
-            <p className="text-xs text-(--ws-muted) mt-0.5">{s.label}</p>
+          <div key={s.label} className="bg-(--ws-panel) border border-(--ws-border) rounded-xl px-4 py-3.5 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs text-(--ws-muted)">{s.label}</p>
+              <p className="text-2xl font-bold font-mono tabular-nums mt-0.5 text-(--ws-text)">{s.value}</p>
+            </div>
+            <div className="text-(--ws-accent) shrink-0">{s.icon}</div>
           </div>
         ))}
       </div>

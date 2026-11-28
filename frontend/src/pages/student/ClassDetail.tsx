@@ -50,8 +50,13 @@ export default function StudentClassDetail() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-(--ws-accent) border-t-transparent rounded-full animate-spin" />
+      <div className="space-y-6">
+        <div className="h-40 rounded-xl ws-skeleton" />
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-24 rounded-xl ws-skeleton" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -96,7 +101,7 @@ export default function StudentClassDetail() {
           </div>
         </div>
 
-        <div className="flex items-center gap-6 mt-5 pt-4 border-t border-(--ws-panel)/20 text-sm">
+        <div className="flex items-center gap-6 mt-5 pt-4 border-t border-(--ws-panel)/20 text-sm tabular-nums">
           <span className="flex items-center gap-1.5 opacity-80">
             <Users size={14} /> {t('studentClass.studentCount', { count: classInfo.students?.length ?? 0 })}
           </span>
