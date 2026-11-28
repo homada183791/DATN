@@ -47,11 +47,26 @@ export class AuthService implements OnModuleDestroy {
       this.configService.get<string>('REDIS_URL') ||
       process.env.REDIS_URL ||
       'redis://localhost:6379';
-    this.redisClient = new Redis(redisUrl);
+    this.redisClient = new Redis(redisUrl, {
+      maxRetriesPerRequest: 1,
+      connectTimeout: 1000,
+      retryStrategy: (times) => Math.min(times * 2000, 30000),
+    });
+    this.redisClient.on('error', (err) => {
+      this.logger.debug(`[AuthService] Redis unavailable: ${err.message}`);
+    });
   }
 
   async onModuleDestroy() {
-    await this.redisClient.quit();
+    try {
+      if (this.redisClient.status === 'ready') {
+        await this.redisClient.quit();
+      } else {
+        this.redisClient.disconnect();
+      }
+    } catch {
+      this.redisClient.disconnect();
+    }
   }
 
   private normalizeEmail(email: string) {

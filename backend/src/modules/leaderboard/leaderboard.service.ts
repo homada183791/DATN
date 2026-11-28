@@ -37,20 +37,40 @@ export class LeaderboardService implements OnModuleDestroy {
   private readonly logger = new Logger(LeaderboardService.name);
 
   constructor(private readonly prisma: PrismaService) {
-    // Khởi tạo kết nối Redis
+    // Khởi tạo kết nối Redis (cache tùy chọn — lỗi kết nối tự động fallback DB)
     const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-    this.redisClient = new Redis(redisUrl);
+    this.redisClient = new Redis(redisUrl, {
+      enableOfflineQueue: false,
+      maxRetriesPerRequest: 1,
+      connectTimeout: 1000,
+      retryStrategy: (times) => Math.min(times * 2000, 30000),
+    });
+    this.redisClient.on('error', (err) => {
+      this.logger.debug(`[LeaderboardService] Redis unavailable: ${err.message}`);
+    });
   }
 
   async onModuleDestroy() {
-    await this.redisClient.quit();
+    try {
+      if (this.redisClient.status === 'ready') {
+        await this.redisClient.quit();
+      } else {
+        this.redisClient.disconnect();
+      }
+    } catch {
+      this.redisClient.disconnect();
+    }
     this.logger.log('[LeaderboardService] Redis connection closed.');
   }
 
   /** Kết quả thi chi tiết từng sinh viên theo từng bài (dùng cho giảng viên xem và xuất CSV) */
   async getDetailedResults(contestId: string) {
-    // Xóa cache để kết quả xuất ra luôn mới nhất
-    await this.redisClient.del(`leaderboard:contest:${contestId}`);
+    // Xóa cache nếu Redis sẵn sàng để kết quả xuất ra luôn mới nhất
+    try {
+      await this.redisClient.del(`leaderboard:contest:${contestId}`);
+    } catch {
+      // Bỏ qua nếu Redis không khả dụng
+    }
     const standings = await this.getLeaderboard(contestId);
 
     const contest = await this.prisma.contest.findUnique({
@@ -188,13 +208,17 @@ export class LeaderboardService implements OnModuleDestroy {
   async getLeaderboard(contestId: string) {
     const cacheKey = `leaderboard:contest:${contestId}`;
 
-    // Bước 4: Đọc từ Redis Cache trước
-    const cachedData = await this.redisClient.get(cacheKey);
-    if (cachedData) {
-      this.logger.log(
-        `[Cache Hit] Trả về leaderboard từ Redis cho Contest ${contestId}`,
-      );
-      return JSON.parse(cachedData) as LeaderboardEntry[];
+    // Bước 4: Đọc từ Redis Cache trước (fail-open về DB nếu Redis không khả dụng)
+    try {
+      const cachedData = await this.redisClient.get(cacheKey);
+      if (cachedData) {
+        this.logger.log(
+          `[Cache Hit] Trả về leaderboard từ Redis cho Contest ${contestId}`,
+        );
+        return JSON.parse(cachedData) as LeaderboardEntry[];
+      }
+    } catch {
+      // Fallback sang PostgreSQL bên dưới
     }
 
     this.logger.log(
@@ -400,7 +424,11 @@ export class LeaderboardService implements OnModuleDestroy {
     });
 
     // Cấu hình lưu mảng kết quả này vào Redis với TTL là 30 giây (ex 30)
-    await this.redisClient.setex(cacheKey, 30, JSON.stringify(result));
+    try {
+      await this.redisClient.setex(cacheKey, 30, JSON.stringify(result));
+    } catch {
+      // Cache write failure không ảnh hưởng kết quả trả về từ DB
+    }
 
     return result;
   }
