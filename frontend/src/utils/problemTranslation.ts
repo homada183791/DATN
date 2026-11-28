@@ -190,6 +190,78 @@ export function parseBilingualDescription(raw: string | undefined | null): {
   return { vi: raw, en: raw, isBilingual: false };
 }
 
+function normalizeMarkdownSoftLineBreaks(markdown: string): string {
+  const lines = markdown.split('\n');
+  const result: string[] = [];
+  let previousKind: 'blank' | 'heading' | 'list' | 'prose' | 'block' = 'blank';
+  let inCodeFence = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    const isFence = /^(```+|~~~+)/.test(trimmed);
+    if (inCodeFence || isFence) {
+      result.push(line);
+      if (isFence) inCodeFence = !inCodeFence;
+      previousKind = 'block';
+      continue;
+    }
+
+    if (!trimmed) {
+      if (/^[ \t]+$/.test(line)) continue;
+      result.push(line);
+      previousKind = 'blank';
+      continue;
+    }
+
+    const isHeading = /^#{1,6}\s/.test(trimmed);
+    const isListItem = /^(?:[-*+]|\d+[.)])\s+/.test(trimmed);
+    const isBlock = isHeading || isListItem || /^>/.test(trimmed) || /^\|/.test(trimmed) || /^[-=_]{3,}$/.test(trimmed);
+    if (isBlock) {
+      result.push(line);
+      previousKind = isHeading ? 'heading' : isListItem ? 'list' : 'block';
+      continue;
+    }
+
+    const previousLine = result[result.length - 1];
+    const hasHardBreak = /(?: {2,}|\\)$/.test(previousLine ?? '');
+    if (previousKind === 'blank' || previousKind === 'heading' || previousKind === 'block' || hasHardBreak) {
+      result.push(line.trim());
+      previousKind = 'prose';
+      continue;
+    }
+
+    const power = /(^|[^\d])(2|10)\s*$/.exec(previousLine.trimEnd());
+    const exponent = /^\d{1,2}$/.test(trimmed) ? trimmed : null;
+    if (power && exponent) {
+      result[result.length - 1] = `${previousLine.trimEnd()}^${exponent}`;
+    } else {
+      const separator = /^[,.;:!?%)\]}]/.test(trimmed) ? '' : ' ';
+      result[result.length - 1] = `${previousLine.trimEnd()}${separator}${trimmed}`;
+    }
+    previousKind = previousKind === 'list' ? 'list' : 'prose';
+  }
+
+  return result.join('\n');
+}
+
+/** Rejoin soft line breaks in the English section while editing imported Markdown. */
+export function normalizeProblemDescriptionForEditing(raw: string): string {
+  const englishHeader = /\[(?:English|Tiếng Anh|EN)\]/i.exec(raw);
+  if (!englishHeader) return raw;
+
+  const contentStart = englishHeader.index + englishHeader[0].length;
+  const followingVietnameseHeader = /\[(?:Tiếng Việt|Vietnamese|VI)\]/i.exec(raw.slice(contentStart));
+  const contentEnd = followingVietnameseHeader
+    ? contentStart + followingVietnameseHeader.index
+    : raw.length;
+
+  return (
+    raw.slice(0, contentStart) +
+    normalizeMarkdownSoftLineBreaks(raw.slice(contentStart, contentEnd)) +
+    raw.slice(contentEnd)
+  );
+}
+
 /**
  * Trả về tiêu đề bài toán theo ngôn ngữ lựa chọn (VI hoặc EN)
  */

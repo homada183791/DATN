@@ -313,18 +313,24 @@ export class ClassesService {
       select: { student_code: true, created_at: true },
     });
     if (entries.length === 0) {
-      return { count: 0, joined_count: 0, uploaded_at: null as Date | null };
+      return { count: 0, joined_count: 0, uploaded_at: null as Date | null, students: [] };
     }
-    const joined = await this.prisma.classStudent.count({
+    const joinedStudents = await this.prisma.classStudent.findMany({
       where: {
         class_id: classId,
         student: { student_code: { in: entries.map((e) => e.student_code) } },
       },
+      select: { student: { select: { student_code: true } } },
     });
+    const joinedCodes = new Set(joinedStudents.map((student) => student.student.student_code));
     return {
       count: entries.length,
-      joined_count: joined,
+      joined_count: joinedCodes.size,
       uploaded_at: entries[0].created_at,
+      students: entries.map(({ student_code }) => ({
+        student_code,
+        joined: joinedCodes.has(student_code),
+      })),
     };
   }
 
@@ -332,7 +338,7 @@ export class ClassesService {
   async clearRoster(classId: string, instructorId: string) {
     await this.assertOwner(classId, instructorId);
     await this.prisma.classRosterEntry.deleteMany({ where: { class_id: classId } });
-    return { count: 0, joined_count: 0, uploaded_at: null };
+    return { count: 0, joined_count: 0, uploaded_at: null, students: [] };
   }
 
   async joinByCode(inviteCode: string, studentId: string) {

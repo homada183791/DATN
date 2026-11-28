@@ -11,6 +11,7 @@ import { notifyGlobalToast } from '../context/ToastContext';
 import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LANGUAGES, LANGUAGE_CATEGORIES } from '../config/languages';
 import ProblemImportModal from './ProblemImportModal';
+import { normalizeProblemDescriptionForEditing } from '../utils/problemTranslation';
 
 interface ProblemFormModalProps {
   isOpen: boolean;
@@ -78,7 +79,7 @@ export default function ProblemFormModal({
     if (isOpen) {
       if (initialData) {
         setTitle(initialData.title);
-        setDescription(initialData.description);
+        setDescription(normalizeProblemDescriptionForEditing(initialData.description));
         setDifficulty(initialData.difficulty);
         setTimeLimit(initialData.time_limit);
         setMemoryLimit(initialData.memory_limit);
@@ -598,6 +599,9 @@ Output: 6
                     rows={10}
                     value={description}
                     onChange={(e) => { setDescription(e.target.value); setErrors(p => ({ ...p, description: '' })); }}
+                    spellCheck={false}
+                    autoCapitalize="off"
+                    autoCorrect="off"
                     className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all font-mono leading-6 resize-y text-(--ws-text) placeholder-(--ws-faint) ${
                       errors.description ? FIELD_ERR : 'border-(--ws-border) bg-(--ws-panel) focus:border-(--ws-accent) focus:ring-1 focus:ring-(--ws-accent)'
                     }`}

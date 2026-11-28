@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Loader2, Trophy } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Loader2, Send, Target, Trophy } from 'lucide-react';
 import { ApiError } from '../../api/http';
 import { useContestsQuery, useLeaderboardQuery, type LeaderboardEntryDto } from '../../api/contests';
 import { useSubmissionsQuery } from '../../api/submissions';
@@ -108,17 +108,33 @@ export default function StudentDashboard() {
   }
 
   const stats = [
-    { label: t('studentDashboard.solvedCount'), value: solvedProblemIds.size, note: null },
-    { label: t('studentDashboard.totalSubmissions'), value: submissionCount, note: null },
+    {
+      label: t('studentDashboard.solvedCount'),
+      value: solvedProblemIds.size,
+      note: null,
+      icon: <CheckCircle2 size={20} className="text-(--ws-ok)" aria-hidden="true" />,
+      iconBackground: 'bg-(--ws-ok-soft)',
+    },
+    {
+      label: t('studentDashboard.totalSubmissions'),
+      value: submissionCount,
+      note: null,
+      icon: <Send size={20} className="text-(--ws-accent)" aria-hidden="true" />,
+      iconBackground: 'bg-(--ws-accent)/10',
+    },
     {
       label: t('studentDashboard.accuracyRate'),
       value: `${successRate}%`,
       note: t('studentDashboard.acOfTotal', { ac: acceptedCount, total: submissionCount }),
+      icon: <Target size={20} className="text-(--ws-accent)" aria-hidden="true" />,
+      iconBackground: 'bg-(--ws-accent)/10',
     },
     {
       label: t('studentDashboard.runningContestCount'),
       value: runningContests.length,
       note: runningContests.length > 0 ? t('studentDashboard.live') : null,
+      icon: <Trophy size={20} className="text-(--ws-warn)" aria-hidden="true" />,
+      iconBackground: 'bg-(--ws-warn-soft)',
     },
   ];
 
@@ -215,7 +231,12 @@ export default function StudentDashboard() {
       <section aria-label="Thống kê" className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((s) => (
           <div key={s.label} className={`${card} px-5 py-[18px]`}>
-            <div className="text-[13px] font-medium text-(--ws-muted)">{s.label}</div>
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-[13px] font-medium text-(--ws-muted)">{s.label}</div>
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${s.iconBackground}`}>
+                {s.icon}
+              </div>
+            </div>
             <div className="font-mono text-[28px] font-bold mt-1.5">{s.value}</div>
             {s.note && <div className="text-xs text-(--ws-muted) mt-1">{s.note}</div>}
           </div>

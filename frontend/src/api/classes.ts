@@ -214,6 +214,10 @@ export interface ClassRosterInfo {
   count: number;
   joined_count: number;
   uploaded_at: string | null;
+  students: Array<{
+    student_code: string;
+    joined: boolean;
+  }>;
 }
 
 export function useClassRosterQuery(classId?: string) {

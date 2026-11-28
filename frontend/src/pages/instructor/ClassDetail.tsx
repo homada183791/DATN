@@ -224,6 +224,7 @@ export default function InstructorClassDetail() {
   // Danh sách lớp (CSV MSSV)
   const { data: rosterInfo, refetch: refetchRoster } = useClassRosterQuery(classId);
   const [isUploadingRoster, setIsUploadingRoster] = useState(false);
+  const [showRosterListModal, setShowRosterListModal] = useState(false);
 
   const [showRosterModal, setShowRosterModal] = useState(false);
   type RosterFileItem = {
@@ -973,9 +974,14 @@ export default function InstructorClassDetail() {
               <span>
                 {t('instructorClassDetail.rosterInfo', { count: rosterInfo.count, joined: rosterInfo.joined_count })}
               </span>
-              <button onClick={handleClearRoster} className="font-semibold text-(--ws-danger) hover:underline">
-                {t('instructorClassDetail.rosterClear')}
-              </button>
+              <div className="flex items-center gap-3">
+                <button onClick={() => setShowRosterListModal(true)} className="font-semibold text-(--ws-accent) hover:underline">
+                  {t('instructorClassDetail.rosterView')}
+                </button>
+                <button onClick={handleClearRoster} className="font-semibold text-(--ws-danger) hover:underline">
+                  {t('instructorClassDetail.rosterClear')}
+                </button>
+              </div>
             </div>
           )}
 
@@ -1404,7 +1410,61 @@ export default function InstructorClassDetail() {
         </div>
       ), document.body)}
 
-      {/* ================= MODAL: THÊM SINH VIÊN BẰNG EMAIL ================= */}
+      {/* ================= MODAL: XEM DANH SÁCH MSSV ================= */}
+      {showRosterListModal && hasDocument && createPortal((
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setShowRosterListModal(false)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-lg max-h-[90vh] shadow-2xl animate-slide-up flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
+              <div>
+                <h3 className="font-bold font-serif text-[16px]">{t('instructorClassDetail.rosterListTitle')}</h3>
+                <p className="text-xs text-(--ws-muted) mt-0.5">
+                  {t('instructorClassDetail.rosterInfo', { count: rosterInfo?.count ?? 0, joined: rosterInfo?.joined_count ?? 0 })}
+                </p>
+              </div>
+              <button aria-label={t('common.close')} onClick={() => setShowRosterListModal(false)} className="text-(--ws-muted) hover:text-(--ws-text)">
+                <X size={18} aria-hidden="true" />
+              </button>
+            </div>
+            <div className="p-4 min-h-0 overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-(--ws-muted) border-b border-(--ws-border)">
+                    <th className="px-3 py-2 font-semibold">MSSV</th>
+                    <th className="px-3 py-2 font-semibold">{t('instructorClassDetail.rosterStatus')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...(rosterInfo?.students ?? [])]
+                    .sort((a, b) => a.student_code.localeCompare(b.student_code))
+                    .map((student) => (
+                      <tr key={student.student_code} className="border-b border-(--ws-border) last:border-0">
+                        <td className="px-3 py-2.5 font-mono">{student.student_code}</td>
+                        <td className="px-3 py-2.5">
+                          <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${
+                            student.joined
+                              ? 'bg-(--ws-ok-soft) text-(--ws-ok) border-(--ws-ok)/35'
+                              : 'bg-(--ws-warn-soft) text-(--ws-warn) border-(--ws-warn)/35'
+                          }`}>
+                            {student.joined
+                              ? t('instructorClassDetail.rosterJoined')
+                              : t('instructorClassDetail.rosterNotJoined')}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="px-6 py-4 border-t border-(--ws-border) flex justify-end">
+              <button onClick={() => setShowRosterListModal(false)} className="px-4 py-2 text-sm text-(--ws-muted) hover:text-(--ws-text)">
+                {t('common.close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      ), document.body)}
+
+      {/* ================= MODAL: TẢI LÊN DANH SÁCH LỚP ================= */}
       {showRosterModal && hasDocument && createPortal((
         <div className="fixed inset-0 bg-black/70 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={closeRosterModal}>
           <div className="bg-(--ws-panel) border border-(--ws-border) text-(--ws-text) rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up" onClick={(e) => e.stopPropagation()}>
