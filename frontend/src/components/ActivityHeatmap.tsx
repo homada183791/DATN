@@ -96,7 +96,7 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
   return (
     <section
       aria-label={t('activityHeatmap.title', { count: totalContributions })}
-      className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-6 shadow-sm"
+      className="bg-(--ws-panel) border border-(--ws-border) rounded-md p-5"
     >
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold text-(--ws-text) font-serif flex items-center gap-2">

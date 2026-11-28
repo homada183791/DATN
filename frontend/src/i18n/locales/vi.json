@@ -168,7 +168,8 @@
     "noActiveHomework": "Hiện không có bài tập nào đang mở.",
     "verdictDistribution": "Phân bố kết quả chấm bài",
     "verdictDistributionSubtitle": "Tỷ lệ các verdict trên toàn bộ các bài nộp",
-    "totalSubmissionsLabel": "Tổng {{count}} bài nộp"
+    "totalSubmissionsLabel": "Tổng {{count}} bài nộp",
+    "manageClasses": "Quản lý lớp học"
   },
   "instructorClass": {
     "errors": {
@@ -203,6 +204,7 @@
     "fieldSubject": "Môn học *",
     "fieldSubjectPlaceholder": "VD: Cấu trúc dữ liệu & Giải thuật",
     "fieldSemester": "Học kỳ",
+    "fieldSemesterPlaceholder": "VD: HK1 2026-2027",
     "fieldDescription": "Mô tả",
     "fieldDescriptionPlaceholder": "Giới thiệu ngắn về nội dung môn học…",
     "createHint": "Mã mời và link mời sẽ được tạo tự động — bạn chỉ cần chia sẻ cho sinh viên.",
@@ -868,7 +870,11 @@
     "notFoundClass": "Không tìm thấy lớp học",
     "backToClasses": "← Quay lại Lớp học",
     "classHomework": "Danh sách bài tập",
-    "teacherNoClassHomework": "Giảng viên chưa giao bài tập cho lớp này."
+    "teacherNoClassHomework": "Giảng viên chưa giao bài tập cho lớp này.",
+    "sectionActiveUpcoming": "Đang diễn ra & Sắp tới",
+    "sectionPast": "Đã kết thúc",
+    "durationMinutes": "{{count}} phút",
+    "colDuration": "Thời lượng"
   },
   "deadline": {
     "closed": "Đã đóng",
@@ -946,7 +952,9 @@
     "homeworkDetails": "Chi tiết bài tập",
     "doHomework": "Làm bài tập",
     "classPrivate": "Lớp học riêng",
-    "allSchoolEvents": "Toàn trường"
+    "allSchoolEvents": "Toàn trường",
+    "footerTitle": "Lịch biểu Kỳ thi & Bài tập Lập trình",
+    "footerTimezone": "Giờ hiển thị theo múi giờ: (GMT+07:00) Giờ Đông Dương - TP. Hồ Chí Minh"
   },
   "problemForm": {
     "easy": "Dễ",
@@ -982,12 +990,50 @@
     "cancel": "Huỷ",
     "saving": "Đang lưu...",
     "saveChanges": "Lưu thay đổi",
-    "create": "Tạo bài tập"
+    "create": "Tạo bài tập",
+    "bilingualTemplate": "Mẫu song ngữ (VI / EN)",
+    "bilingualTemplateTitle": "Chèn mẫu song ngữ [Tiếng Việt] và [English]",
+    "singleTemplate": "Mẫu đơn (# TODO)",
+    "singleTemplateTitle": "Chèn mẫu khung mô tả bài toán có sẵn # TODO để điền nhanh",
+    "testCasesBadge": "{{count}} bộ test (~{{pct}}% điểm/test)",
+    "aiGenerateBtn": "Sinh Test Cases với AI",
+    "aiGenerateTooltip": "Sử dụng AI tự động sinh các bộ test cases mẫu và biên",
+    "bulkImportBtn": "Nhập hàng loạt (Bulk)",
+    "bulkImportTooltip": "Dán hàng loạt test case hoặc tải lên tệp",
+    "batchSummary": "Tổng số: {{total}} test cases ({{hidden}} ẩn, {{sample}} mẫu)",
+    "hideAllBtn": "Ẩn tất cả",
+    "showAllBtn": "Mẫu tất cả",
+    "clearAllBtn": "Xóa tất cả",
+    "confirmClearAllBtn": "Xác nhận xóa?",
+    "aiTitle": "Trợ lý AI Sinh Test Cases",
+    "aiSubtitle": "Tự động suy luận và sinh các bộ test kiểm thử chất lượng cao",
+    "aiStrategyLabel": "Phương thức sinh Test Cases:",
+    "aiOptionDescTitle": "Option 1: Từ Đề bài",
+    "aiOptionDescSub": "AI đọc Tiêu đề & Mô tả đề bài để tự suy luận các trường hợp test.",
+    "aiOptionSolTitle": "Option 2: Từ Code giải mẫu",
+    "aiOptionSolSub": "Dán mã nguồn đáp án chuẩn của giảng viên để AI chạy sinh Output chính xác.",
+    "aiSolutionCodeLabel": "Mã nguồn đáp án của giảng viên:",
+    "aiSolutionPlaceholder": "Dán code giải mẫu hoàn chỉnh vào đây...",
+    "aiCountLabel": "Số lượng Test Cases cần sinh:",
+    "aiCountBadge": "{{count}} bộ test",
+    "aiGenerating": "AI đang phân tích & sinh test...",
+    "aiStartBtn": "Bắt đầu sinh Test Cases",
+    "aiEmptyError": "AI không trả về test case nào.",
+    "aiFailedError": "Không thể sinh testcase bằng AI.",
+    "bulkTitle": "Nhập hàng loạt Test Cases",
+    "bulkSubtitle": "Hỗ trợ định dạng ngắn gọn (input => output), cặp khối hoặc tải file",
+    "bulkUploadBtn": "Tải lên file (.txt, .json, .csv)",
+    "bulkSampleBtn": "Chèn mẫu ngắn gọn (input => output)",
+    "bulkSyntaxTitle": "Các cú pháp được hỗ trợ tự động:",
+    "bulkSyntaxCompact": "1. Cú pháp gọn (input => output):",
+    "bulkSyntaxBlock": "2. Định dạng phân tách khối:",
+    "bulkPlaceholder": "Dán nội dung test cases hoặc bấm 'Tải lên file'...",
+    "bulkAddBtn": "Thêm vào danh sách Test Cases"
   },
   "problemManager": {
     "duplicate": "Bài này đã có trong danh sách.",
     "createFailed": "Có lỗi khi tạo bài tập.",
-    "problemsTitle": "Bài tập trong bài tập",
+    "problemsTitle": "Danh sách bài gán kèm",
     "problemCount": "({{count}} bài • {{points}} điểm)",
     "fromBank": "Từ ngân hàng",
     "createNew": "Soạn mới",
@@ -1008,7 +1054,7 @@
     "add": "Thêm bài",
     "bankCount": "Hiển thị {{count}} bài tập trong thư viện",
     "close": "Đóng",
-    "createForHomework": "Soạn bài tập mới cho bài tập",
+    "createForHomework": "Soạn đề bài mới cho bài tập này",
     "createSubtitle": "Bài tập sẽ được thêm vào bài tập này",
     "createAndAdd": "Tạo & Thêm vào bài tập"
   },
@@ -1072,7 +1118,18 @@
     "categoryLabel": "Danh mục",
     "contributePublicHint": "Bài đóng góp sẽ hiển thị công khai kèm tên bạn, mọi sinh viên đều xem và giải được.",
     "statusLabel": "Trạng thái",
-    "pointsWord": "điểm"
+    "pointsWord": "điểm",
+    "statusAll": "Tất cả trạng thái",
+    "statusSolved": "Đã giải",
+    "statusAttempted": "Đang thử",
+    "statusTodo": "Chưa làm",
+    "pickRandom": "Chọn ngẫu nhiên",
+    "colStatus": "TT",
+    "colProblem": "Bài tập",
+    "colLimits": "Giới hạn",
+    "colActions": "Thao tác",
+    "showPreview": "Hiện mô tả",
+    "hidePreview": "Ẩn mô tả"
   },
   "settings": {
     "tabProfile": "Hồ sơ",
@@ -1130,7 +1187,17 @@
     "fontSizeLabel": "Cỡ chữ",
     "tabSizeLabel": "Độ rộng Tab",
     "spacesOption": "{{count}} khoảng trắng",
-    "savePreferencesBtn": "Lưu tuỳ chỉnh"
+    "savePreferencesBtn": "Lưu tuỳ chỉnh",
+    "errors": {
+      "saveProfileFailed": "Không thể lưu hồ sơ.",
+      "currentPasswordRequired": "Vui lòng nhập mật khẩu hiện tại.",
+      "newPasswordRequired": "Vui lòng nhập mật khẩu mới.",
+      "newPasswordTooShort": "Mật khẩu mới phải có ít nhất 6 ký tự.",
+      "confirmPasswordMismatch": "Xác nhận mật khẩu mới không khớp.",
+      "changePasswordFailed": "Đổi mật khẩu thất bại.",
+      "saveNotificationsFailed": "Lỗi khi lưu cài đặt thông báo.",
+      "savePreferencesFailed": "Lỗi khi lưu tuỳ chỉnh."
+    }
   },
   "problemSolve": {
     "fallbackProblemTitle": "Bài tập",
@@ -1326,7 +1393,13 @@
     "problemsHideRaw": "Ẩn thông báo gốc",
     "problemsNoLocation": "Không xác định được dòng lỗi. Bấm \"Xem thông báo gốc\" để đọc đầy đủ.",
     "problemsJumpHint": "Bấm để tới chỗ lỗi trong code",
-    "problemsLocation": "[Dòng {{line}}, Cột {{col}}]"
+    "problemsLocation": "[Dòng {{line}}, Cột {{col}}]",
+    "dragSplitLabel": "Kéo để đổi tỷ lệ khung đề bài và khung code",
+    "copied": "Đã chép",
+    "runShortcutTitle": "Chạy test mẫu (Ctrl+')",
+    "submitShortcutTitle": "Nộp bài (Ctrl+Enter)",
+    "addSampleCase": "Thêm test",
+    "removeSampleCase": "Xóa test"
   },
   "auth": {
     "login": "Đăng nhập",

@@ -168,7 +168,8 @@
     "noActiveHomework": "There is no active homework right now.",
     "verdictDistribution": "Grading Result Breakdown",
     "verdictDistributionSubtitle": "Verdict ratio across all submissions",
-    "totalSubmissionsLabel": "Total {{count}} submissions"
+    "totalSubmissionsLabel": "Total {{count}} submissions",
+    "manageClasses": "Manage classes"
   },
   "instructorClass": {
     "errors": {
@@ -203,6 +204,7 @@
     "fieldSubject": "Subject *",
     "fieldSubjectPlaceholder": "e.g. Data Structures & Algorithms",
     "fieldSemester": "Semester",
+    "fieldSemesterPlaceholder": "e.g. Semester 1 2026-2027",
     "fieldDescription": "Description",
     "fieldDescriptionPlaceholder": "A short intro to the course content…",
     "createHint": "An invite code and invite link will be generated automatically — just share it with students.",
@@ -868,7 +870,11 @@
     "notFoundClass": "Class not found",
     "backToClasses": "← Back to classes",
     "classHomework": "Homework list",
-    "teacherNoClassHomework": "The instructor hasn't assigned homework to this class yet."
+    "teacherNoClassHomework": "The instructor hasn't assigned homework to this class yet.",
+    "sectionActiveUpcoming": "Active & Upcoming",
+    "sectionPast": "Past Contests",
+    "durationMinutes": "{{count}} min",
+    "colDuration": "Duration"
   },
   "deadline": {
     "closed": "Closed",
@@ -946,7 +952,9 @@
     "homeworkDetails": "Homework details",
     "doHomework": "Open homework",
     "classPrivate": "Private class",
-    "allSchoolEvents": "All school"
+    "allSchoolEvents": "All school",
+    "footerTitle": "Programming Contests & Assignments Calendar",
+    "footerTimezone": "Events shown in time zone: (GMT+07:00) Indochina Time - Ho Chi Minh City"
   },
   "problemForm": {
     "easy": "Easy",
@@ -982,7 +990,45 @@
     "cancel": "Cancel",
     "saving": "Saving...",
     "saveChanges": "Save changes",
-    "create": "Create problem"
+    "create": "Create problem",
+    "bilingualTemplate": "Bilingual template (VI / EN)",
+    "bilingualTemplateTitle": "Insert [Tiếng Việt] and [English] bilingual template",
+    "singleTemplate": "Single template (# TODO)",
+    "singleTemplateTitle": "Insert starter problem template with # TODO markers",
+    "testCasesBadge": "{{count}} cases (~{{pct}}% score/test)",
+    "aiGenerateBtn": "Generate Test Cases with AI",
+    "aiGenerateTooltip": "Use AI to generate sample and edge test cases automatically",
+    "bulkImportBtn": "Bulk Import",
+    "bulkImportTooltip": "Paste multiple test cases or upload from file",
+    "batchSummary": "Total: {{total}} test cases ({{hidden}} hidden, {{sample}} sample)",
+    "hideAllBtn": "Hide all",
+    "showAllBtn": "Make all sample",
+    "clearAllBtn": "Clear all",
+    "confirmClearAllBtn": "Confirm clear?",
+    "aiTitle": "AI Test Case Generator",
+    "aiSubtitle": "Automatically infer and generate high-quality test cases",
+    "aiStrategyLabel": "Generation strategy:",
+    "aiOptionDescTitle": "Option 1: From Statement",
+    "aiOptionDescSub": "AI reads the title and statement to infer input/output cases.",
+    "aiOptionSolTitle": "Option 2: From Reference Solution",
+    "aiOptionSolSub": "Paste reference code so AI generates accurate outputs.",
+    "aiSolutionCodeLabel": "Instructor reference solution:",
+    "aiSolutionPlaceholder": "Paste the complete reference solution here...",
+    "aiCountLabel": "Number of test cases to generate:",
+    "aiCountBadge": "{{count}} cases",
+    "aiGenerating": "AI is analyzing & generating...",
+    "aiStartBtn": "Generate Test Cases",
+    "aiEmptyError": "AI returned no test cases.",
+    "aiFailedError": "Could not generate test cases with AI.",
+    "bulkTitle": "Bulk Import Test Cases",
+    "bulkSubtitle": "Supports compact (input => output), block format, or file upload",
+    "bulkUploadBtn": "Upload file (.txt, .json, .csv)",
+    "bulkSampleBtn": "Insert sample (input => output)",
+    "bulkSyntaxTitle": "Supported formats:",
+    "bulkSyntaxCompact": "1. Compact (input => output):",
+    "bulkSyntaxBlock": "2. Block delimited format:",
+    "bulkPlaceholder": "Paste test cases or click 'Upload file'...",
+    "bulkAddBtn": "Add to Test Cases"
   },
   "problemManager": {
     "duplicate": "This problem is already in the list.",
@@ -1072,7 +1118,18 @@
     "categoryLabel": "Category",
     "contributePublicHint": "Contributed problems are shown publicly with your name; every student can view and solve them.",
     "statusLabel": "Status",
-    "pointsWord": "points"
+    "pointsWord": "points",
+    "statusAll": "All statuses",
+    "statusSolved": "Solved",
+    "statusAttempted": "Attempted",
+    "statusTodo": "Todo",
+    "pickRandom": "Pick Random",
+    "colStatus": "St.",
+    "colProblem": "Problem",
+    "colLimits": "Limits",
+    "colActions": "Actions",
+    "showPreview": "Show preview",
+    "hidePreview": "Hide preview"
   },
   "settings": {
     "tabProfile": "Profile",
@@ -1130,7 +1187,17 @@
     "fontSizeLabel": "Font Size",
     "tabSizeLabel": "Tab Width",
     "spacesOption": "{{count}} spaces",
-    "savePreferencesBtn": "Save Preferences"
+    "savePreferencesBtn": "Save Preferences",
+    "errors": {
+      "saveProfileFailed": "Could not save profile.",
+      "currentPasswordRequired": "Please enter your current password.",
+      "newPasswordRequired": "Please enter a new password.",
+      "newPasswordTooShort": "New password must be at least 6 characters.",
+      "confirmPasswordMismatch": "New password confirmation does not match.",
+      "changePasswordFailed": "Failed to change password.",
+      "saveNotificationsFailed": "Error saving notification settings.",
+      "savePreferencesFailed": "Error saving preferences."
+    }
   },
   "problemSolve": {
     "fallbackProblemTitle": "Assignment",
@@ -1326,7 +1393,13 @@
     "problemsHideRaw": "Hide raw output",
     "problemsNoLocation": "Could not find the error location. Open \"Show raw output\" for the full message.",
     "problemsJumpHint": "Click to jump to the error in your code",
-    "problemsLocation": "[Ln {{line}}, Col {{col}}]"
+    "problemsLocation": "[Ln {{line}}, Col {{col}}]",
+    "dragSplitLabel": "Drag to resize statement and editor panes",
+    "copied": "Copied",
+    "runShortcutTitle": "Run sample tests (Ctrl+')",
+    "submitShortcutTitle": "Submit solution (Ctrl+Enter)",
+    "addSampleCase": "Add case",
+    "removeSampleCase": "Remove case"
   },
   "auth": {
     "login": "Sign in",

@@ -29,6 +29,8 @@ import {
   Download,
   Play,
   Copy,
+  Check,
+  Plus,
   RotateCcw,
   ClipboardPaste,
   RefreshCw,
@@ -1228,6 +1230,69 @@ export default function ProblemSolve() {
     stopResizeRef.current?.();
   }, []);
 
+  /* split pane horizontal resize (left statement vs right editor) */
+  const [splitPercent, setSplitPercent] = useState<number>(() => {
+    try {
+      const saved = Number(localStorage.getItem('jh-solve-split'));
+      return Number.isFinite(saved) && saved >= 28 && saved <= 72 ? saved : 46;
+    } catch {
+      return 46;
+    }
+  });
+  const splitContainerRef = useRef<HTMLDivElement>(null);
+  const splitDraggingRef = useRef(false);
+  const stopSplitResizeRef = useRef<(() => void) | null>(null);
+
+  const startSplitResize = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const container = splitContainerRef.current;
+    if (!container) return;
+
+    splitDraggingRef.current = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    function onMouseMove(event: MouseEvent) {
+      if (!splitDraggingRef.current || !container) return;
+      const rect = container.getBoundingClientRect();
+      if (rect.width <= 0) return;
+      const pct = ((event.clientX - rect.left) / rect.width) * 100;
+      const clamped = Math.min(72, Math.max(28, Math.round(pct * 10) / 10));
+      setSplitPercent(clamped);
+    }
+
+    function stopSplitResize() {
+      splitDraggingRef.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', stopSplitResize);
+      stopSplitResizeRef.current = null;
+    }
+
+    stopSplitResizeRef.current = stopSplitResize;
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', stopSplitResize);
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('jh-solve-split', String(splitPercent));
+    } catch {
+      // ignore storage failures
+    }
+  }, [splitPercent]);
+
+  useEffect(() => () => {
+    stopSplitResizeRef.current?.();
+  }, []);
+
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const copyTimerRef = useRef<number | null>(null);
+  useEffect(() => () => {
+    if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current);
+  }, []);
+
   const [samples, setSamples] = useState(() => getInitialSamples());
   // test của đề SQL (input là JSON) → hiển thị output cũng dạng JSON cho đồng nhất
   const displayOutput = (s: { input: string; output: string }) =>
@@ -1925,11 +1990,11 @@ export default function ProblemSolve() {
   /* -------- misc actions -------- */
   const copyText = (text: string, btnId: string) => {
     navigator.clipboard?.writeText(text);
-    const el = document.getElementById(btnId);
-    if (el) {
-      el.dataset.copied = '1';
-      setTimeout(() => (el.dataset.copied = ''), 1200);
-    }
+    setCopiedKey(btnId);
+    if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current);
+    copyTimerRef.current = window.setTimeout(() => {
+      setCopiedKey((current) => (current === btnId ? null : current));
+    }, 1500);
   };
 
   const uploadFile = (file: File) => {
@@ -2028,14 +2093,44 @@ export default function ProblemSolve() {
 
   const isSubmitLocked = running || judging || cooldownSeconds > 0;
 
+  const shortcutActionsRef = useRef({
+    runSamples,
+    submit,
+    running,
+    judging,
+    isSubmitLocked,
+  });
+  shortcutActionsRef.current = { runSamples, submit, running, judging, isSubmitLocked };
+
+  useEffect(() => {
+    const handleShortcut = (e: KeyboardEvent) => {
+      if (e.isComposing || e.keyCode === 229) return;
+      if (!(e.metaKey || e.ctrlKey)) return;
+
+      if (e.key === "'") {
+        e.preventDefault();
+        e.stopPropagation();
+        const s = shortcutActionsRef.current;
+        if (!s.running && !s.judging) void s.runSamples();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        const s = shortcutActionsRef.current;
+        if (!s.isSubmitLocked) void s.submit();
+      }
+    };
+    window.addEventListener('keydown', handleShortcut, true);
+    return () => window.removeEventListener('keydown', handleShortcut, true);
+  }, []);
+
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center h-full bg-(--ws-bg) text-(--ws-text)">
-        <div className="w-full max-w-3xl px-6">
-          <div className="h-5 w-44 rounded bg-(--ws-panel2) animate-pulse mb-4" />
+        <div className="w-full max-w-4xl px-6">
+          <div className="h-5 w-44 rounded ws-skeleton mb-4" />
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="h-112 rounded-2xl border border-(--ws-border) bg-(--ws-panel) animate-pulse" />
-            <div className="h-112 rounded-2xl border border-(--ws-border) bg-(--ws-panel) animate-pulse" />
+            <div className="h-112 rounded-md border border-(--ws-border) bg-(--ws-panel) ws-skeleton" />
+            <div className="h-112 rounded-md border border-(--ws-border) bg-(--ws-panel) ws-skeleton" />
           </div>
         </div>
       </div>
@@ -2045,12 +2140,12 @@ export default function ProblemSolve() {
   if (homeworkClosed) {
     return (
       <div className="flex-1 flex items-center justify-center h-full bg-(--ws-bg) text-(--ws-text) px-6">
-        <div className="max-w-lg w-full rounded-3xl border border-(--ws-border) bg-(--ws-panel) p-8 text-center shadow-sm">
-          <h1 className="text-2xl font-bold">{t('problemSolve.homeworkClosedTitle')}</h1>
-          <p className="mt-3 text-sm text-(--ws-muted)">{t('problemSolve.homeworkClosedSubtitle')}</p>
+        <div className="max-w-lg w-full rounded-lg border border-(--ws-border) bg-(--ws-panel) p-8 text-center">
+          <h1 className="text-xl font-bold">{t('problemSolve.homeworkClosedTitle')}</h1>
+          <p className="mt-2.5 text-sm text-(--ws-muted)">{t('problemSolve.homeworkClosedSubtitle')}</p>
           <button
             onClick={() => navigate(`/student/class/${classId}/homework/${homeworkId}`)}
-            className="mt-6 px-5 py-2 rounded-xl bg-(--ws-accent) text-(--ws-on-accent) text-sm font-semibold"
+            className="mt-5 px-4 py-2 rounded bg-(--ws-accent) text-(--ws-on-accent) text-sm font-semibold hover:bg-(--ws-accent-strong) transition-colors"
           >
             {t('problemSolve.homeworkClosedBack')}
           </button>
@@ -2062,10 +2157,10 @@ export default function ProblemSolve() {
   if (error instanceof ApiError && error.status === 404) {
     return (
       <div className="flex-1 flex items-center justify-center h-full bg-(--ws-bg) text-(--ws-text) px-6">
-        <div className="max-w-lg w-full rounded-3xl border border-(--ws-border) bg-(--ws-panel) p-8 text-center shadow-sm">
-          <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-(--ws-faint)">404</p>
-          <h1 className="mt-3 text-2xl font-bold">{t('problemSolve.notFoundTitle')}</h1>
-          <p className="mt-3 text-sm text-(--ws-muted)">{t('problemSolve.notFoundSubtitle')}</p>
+        <div className="max-w-lg w-full rounded-lg border border-(--ws-border) bg-(--ws-panel) p-8 text-center">
+          <p className="text-[11px] font-bold font-mono uppercase tracking-[0.25em] text-(--ws-faint)">404</p>
+          <h1 className="mt-2.5 text-xl font-bold">{t('problemSolve.notFoundTitle')}</h1>
+          <p className="mt-2 text-sm text-(--ws-muted)">{t('problemSolve.notFoundSubtitle')}</p>
         </div>
       </div>
     );
@@ -2074,10 +2169,10 @@ export default function ProblemSolve() {
   if (error) {
     return (
       <div className="flex-1 flex items-center justify-center h-full bg-(--ws-bg) text-(--ws-text) px-6">
-        <div className="max-w-lg w-full rounded-3xl border border-(--ws-border) bg-(--ws-panel) p-8 text-center shadow-sm">
-          <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-(--ws-faint)">{t('problemSolve.loadErrorBadge')}</p>
-          <h1 className="mt-3 text-2xl font-bold">{t('problemSolve.loadErrorHeading')}</h1>
-          <p className="mt-3 text-sm text-(--ws-muted)">{t('problemSolve.tryAgainLater')}</p>
+        <div className="max-w-lg w-full rounded-lg border border-(--ws-border) bg-(--ws-panel) p-8 text-center">
+          <p className="text-[11px] font-bold font-mono uppercase tracking-[0.25em] text-(--ws-faint)">{t('problemSolve.loadErrorBadge')}</p>
+          <h1 className="mt-2.5 text-xl font-bold">{t('problemSolve.loadErrorHeading')}</h1>
+          <p className="mt-2 text-sm text-(--ws-muted)">{t('problemSolve.tryAgainLater')}</p>
         </div>
       </div>
     );
@@ -2086,7 +2181,7 @@ export default function ProblemSolve() {
   return (
     <div className="flex-1 flex flex-col min-h-0 h-full text-(--ws-text)">
       {/* problem header */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-(--ws-border) bg-(--ws-panel) flex-wrap">
+        <div className="flex items-center gap-2.5 px-3 py-2 min-h-[44px] border-b border-(--ws-border) bg-(--ws-panel) flex-wrap">
           {/* Back button (ẩn khi đang lockdown) */}
           {!lockdownActive && (classId && homeworkId ? (
             <button
@@ -2241,24 +2336,28 @@ export default function ProblemSolve() {
 
         {/* ============ SPLIT BODY ============ */}
         <div className="flex-1 flex min-h-0">
-          <div className="flex-1 flex min-h-0 min-w-0">
+          <div
+            ref={splitContainerRef}
+            style={{ '--split-left': `${splitPercent}%` } as React.CSSProperties}
+            className="flex-1 flex min-h-0 min-w-0"
+          >
             {/* ---- statement / submissions pane ---- */}
             {(layout !== 'editor') && (
               <section
-                className={`flex flex-col min-h-0 bg-(--ws-bg) ${
+                className={`flex flex-col min-h-0 min-w-0 bg-(--ws-bg) ${
                   layout === 'split'
-                    ? `${mobilePane === 'statement' ? 'flex' : 'hidden'} md:flex md:w-1/2 border-r border-(--ws-border)`
+                    ? `${mobilePane === 'statement' ? 'flex w-full' : 'hidden'} md:flex md:w-[var(--split-left)] md:shrink-0`
                     : 'w-full flex'
                 }`}
               >
                 {/* Left Pane Navigation Tabs */}
-                <div role="tablist" className="flex items-stretch gap-1 px-4 min-h-[52px] border-b border-(--ws-border) bg-(--ws-panel) shrink-0 overflow-x-auto">
+                <div role="tablist" className="flex items-stretch gap-0.5 px-3 min-h-[42px] border-b border-(--ws-border) bg-(--ws-panel) shrink-0 overflow-x-auto">
                   <button
                     type="button"
                     role="tab"
                     aria-selected={leftTab === 'statement'}
                     onClick={() => setLeftTab('statement')}
-                    className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all whitespace-nowrap ${
+                    className={`flex items-center gap-1.5 px-3 py-2 text-[12.5px] font-semibold border-b-2 transition-all whitespace-nowrap ${
                       leftTab === 'statement'
                         ? 'border-(--ws-accent) text-(--ws-accent)'
                         : 'border-transparent text-(--ws-muted) hover:text-(--ws-text)'
@@ -2272,7 +2371,7 @@ export default function ProblemSolve() {
                     role="tab"
                     aria-selected={leftTab === 'submissions'}
                     onClick={() => setLeftTab('submissions')}
-                    className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all whitespace-nowrap ${
+                    className={`flex items-center gap-1.5 px-3 py-2 text-[12.5px] font-semibold border-b-2 transition-all whitespace-nowrap ${
                       leftTab === 'submissions'
                         ? 'border-(--ws-accent) text-(--ws-accent)'
                         : 'border-transparent text-(--ws-muted) hover:text-(--ws-text)'
@@ -2281,7 +2380,7 @@ export default function ProblemSolve() {
                     <Clock size={14} aria-hidden="true" />
                     {t('problemSolve.submissionHistory', 'Lịch sử nộp')}
                     {problemSubmissions.length > 0 && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-(--ws-accent-soft) text-(--ws-accent) font-bold tabular-nums">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-(--ws-accent-soft) text-(--ws-accent) font-mono font-bold tabular-nums">
                         {problemSubmissions.length}
                       </span>
                     )}
@@ -2291,7 +2390,7 @@ export default function ProblemSolve() {
                     role="tab"
                     aria-selected={leftTab === 'ai_tutor'}
                     onClick={() => setLeftTab('ai_tutor')}
-                    className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all whitespace-nowrap ${
+                    className={`flex items-center gap-1.5 px-3 py-2 text-[12.5px] font-semibold border-b-2 transition-all whitespace-nowrap ${
                       leftTab === 'ai_tutor'
                         ? 'border-(--ws-accent) text-(--ws-accent)'
                         : 'border-transparent text-(--ws-muted) hover:text-(--ws-text)'
@@ -2306,7 +2405,7 @@ export default function ProblemSolve() {
                     role="tab"
                     aria-selected={leftTab === 'resources'}
                     onClick={() => setLeftTab('resources')}
-                    className={`flex items-center gap-2 px-3.5 py-2.5 text-[12.5px] font-semibold border-b-2 transition-all whitespace-nowrap ${
+                    className={`flex items-center gap-1.5 px-3 py-2 text-[12.5px] font-semibold border-b-2 transition-all whitespace-nowrap ${
                       leftTab === 'resources'
                         ? 'border-(--ws-accent) text-(--ws-accent)'
                         : 'border-transparent text-(--ws-muted) hover:text-(--ws-text)'
@@ -2431,14 +2530,21 @@ export default function ProblemSolve() {
                       </div>
 
                       {isLoadingSubmissions ? (
-                        <div className="flex flex-col items-center justify-center py-16 text-(--ws-muted)">
-                          <Loader2 size={28} className="animate-spin mb-3 text-(--ws-accent)" />
-                          <p className="text-sm">{t('problemSolve.loadingSubmissionHistory')}</p>
+                        <div className="space-y-2.5">
+                          {Array.from({ length: 4 }, (_, i) => (
+                            <div key={i} className="rounded-md border border-(--ws-border) bg-(--ws-panel) p-4 space-y-2.5">
+                              <div className="flex items-center justify-between">
+                                <div className="h-5 w-24 rounded ws-skeleton" />
+                                <div className="h-3.5 w-28 rounded ws-skeleton" />
+                              </div>
+                              <div className="h-3.5 w-48 rounded ws-skeleton" />
+                            </div>
+                          ))}
                         </div>
                       ) : problemSubmissions.length === 0 ? (
-                        <div className="rounded-2xl border border-(--ws-border) bg-(--ws-panel) p-12 text-center">
-                          <Clock size={36} className="text-(--ws-muted) mx-auto mb-3 opacity-60" />
-                          <h3 className="font-semibold text-base mb-1">{t('problemSolve.noSubmissionsYet')}</h3>
+                        <div className="rounded-md border border-(--ws-border) bg-(--ws-panel) p-10 text-center">
+                          <Clock size={32} className="text-(--ws-muted) mx-auto mb-3 opacity-60" />
+                          <h3 className="font-semibold text-sm mb-1">{t('problemSolve.noSubmissionsYet')}</h3>
                           <p className="text-xs text-(--ws-muted) max-w-xs mx-auto">
                             {t('problemSolve.noSubmissionsHint')}
                           </p>
@@ -2474,17 +2580,17 @@ export default function ProblemSolve() {
                             return (
                               <div
                                 key={sub.id}
-                                className={`rounded-xl border transition-all ${
+                                className={`rounded-md border transition-colors ${
                                   isInspecting
-                                    ? 'border-(--ws-accent) bg-(--ws-panel) shadow-sm'
+                                    ? 'border-(--ws-accent) bg-(--ws-panel)'
                                     : 'border-(--ws-border) bg-(--ws-panel) hover:border-(--ws-accent)/50'
                                 }`}
                               >
-                                <div className="p-4 flex flex-col gap-3">
+                                <div className="p-3.5 flex flex-col gap-2.5">
                                   <div className="flex items-center justify-between gap-2 flex-wrap">
                                     <div className="flex items-center gap-2">
                                       <span
-                                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border ${badgeClass}`}
+                                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-mono font-bold border ${badgeClass}`}
                                       >
                                         {badgeIcon}
                                         {sub.status}
@@ -2493,7 +2599,7 @@ export default function ProblemSolve() {
                                         {formatLanguageName(sub.language, sub.language_version)}
                                       </span>
                                     </div>
-                                    <span className="text-xs text-(--ws-muted) flex items-center gap-1">
+                                    <span className="text-xs font-mono tabular-nums text-(--ws-muted) flex items-center gap-1">
                                       <Clock size={12} />
                                       {formatVNFull(sub.created_at)}
                                     </span>
@@ -2501,10 +2607,10 @@ export default function ProblemSolve() {
 
                                   <div className="flex items-center gap-4 text-xs text-(--ws-muted)">
                                     <span>
-                                      {t('problemSolve.executionTimeLabel')} <strong className="text-(--ws-text)">{sub.execution_time != null ? `${sub.execution_time} ms` : '—'}</strong>
+                                      {t('problemSolve.executionTimeLabel')} <strong className="font-mono tabular-nums text-(--ws-text)">{sub.execution_time != null ? `${sub.execution_time} ms` : '—'}</strong>
                                     </span>
                                     <span>
-                                      {t('problemSolve.memoryUsedLabel')} <strong className="text-(--ws-text)">{sub.memory_used != null ? `${sub.memory_used.toFixed(1)} MB` : '—'}</strong>
+                                      {t('problemSolve.memoryUsedLabel')} <strong className="font-mono tabular-nums text-(--ws-text)">{sub.memory_used != null ? `${sub.memory_used.toFixed(1)} MB` : '—'}</strong>
                                     </span>
                                   </div>
 
@@ -2583,9 +2689,9 @@ export default function ProblemSolve() {
                   {leftTab === 'ai_tutor' && (
                     <div className="p-6 max-w-3xl">
                       {contestId ? (
-                        <div className="rounded-2xl border border-(--ws-warn)/35 bg-(--ws-warn-soft)/70 p-8 text-center text-(--ws-warn) shadow-sm">
-                          <div className="w-16 h-16 rounded-full bg-(--ws-warn-soft)/80 flex items-center justify-center mx-auto mb-4 text-2xl">
-                            <ShieldAlert size={28} className="inline-block align-[-2px]" aria-hidden="true" />
+                        <div className="rounded-md border border-(--ws-warn)/35 bg-(--ws-warn-soft)/70 p-8 text-center text-(--ws-warn)">
+                          <div className="w-14 h-14 rounded-full bg-(--ws-warn-soft)/80 flex items-center justify-center mx-auto mb-4 text-2xl">
+                            <ShieldAlert size={26} className="inline-block align-[-2px]" aria-hidden="true" />
                           </div>
                           <h3 className="font-bold text-lg mb-2">{t('problemSolve.aiTutorDisabledTitle')}</h3>
                           <p className="text-xs text-(--ws-warn)/90 max-w-md mx-auto leading-relaxed mb-4">
@@ -2612,7 +2718,7 @@ export default function ProblemSolve() {
                             <button
                               onClick={() => requestAiHint('HINT')}
                               disabled={aiTutorLoading}
-                              className={`p-3 rounded-xl border text-left transition-all ${
+                              className={`p-3 rounded-md border text-left transition-colors ${
                                 aiTutorHintType === 'HINT'
                                   ? 'border-(--ws-accent) bg-(--ws-accent-soft) text-(--ws-accent)'
                                   : 'border-(--ws-border) bg-(--ws-panel) hover:border-(--ws-accent) text-(--ws-text)'
@@ -2624,7 +2730,7 @@ export default function ProblemSolve() {
                             <button
                               onClick={() => requestAiHint('COMPLEXITY')}
                               disabled={aiTutorLoading}
-                              className={`p-3 rounded-xl border text-left transition-all ${
+                              className={`p-3 rounded-md border text-left transition-colors ${
                                 aiTutorHintType === 'COMPLEXITY'
                                   ? 'border-(--ws-accent) bg-(--ws-accent-soft) text-(--ws-accent)'
                                   : 'border-(--ws-border) bg-(--ws-panel) hover:border-(--ws-accent) text-(--ws-text)'
@@ -2636,7 +2742,7 @@ export default function ProblemSolve() {
                             <button
                               onClick={() => requestAiHint('EDGE_CASE')}
                               disabled={aiTutorLoading}
-                              className={`p-3 rounded-xl border text-left transition-all ${
+                              className={`p-3 rounded-md border text-left transition-colors ${
                                 aiTutorHintType === 'EDGE_CASE'
                                   ? 'border-(--ws-accent) bg-(--ws-accent-soft) text-(--ws-accent)'
                                   : 'border-(--ws-border) bg-(--ws-panel) hover:border-(--ws-accent) text-(--ws-text)'
@@ -2648,7 +2754,7 @@ export default function ProblemSolve() {
                             <button
                               onClick={() => requestAiHint('EXPLAIN_LOGIC')}
                               disabled={aiTutorLoading}
-                              className={`p-3 rounded-xl border text-left transition-all ${
+                              className={`p-3 rounded-md border text-left transition-colors ${
                                 aiTutorHintType === 'EXPLAIN_LOGIC'
                                   ? 'border-(--ws-accent) bg-(--ws-accent-soft) text-(--ws-accent)'
                                   : 'border-(--ws-border) bg-(--ws-panel) hover:border-(--ws-accent) text-(--ws-text)'
@@ -2660,7 +2766,7 @@ export default function ProblemSolve() {
                           </div>
 
                           {/* AI Tutor Response Area */}
-                          <div className="rounded-2xl border border-(--ws-border) bg-(--ws-panel) p-5 shadow-sm min-h-[220px] flex flex-col">
+                          <div className="rounded-md border border-(--ws-border) bg-(--ws-panel) p-5 min-h-[220px] flex flex-col">
                             {aiTutorLoading ? (
                               <div className="flex-1 flex flex-col items-center justify-center py-12 text-(--ws-muted)">
                                 <Loader2 size={28} className="animate-spin text-(--ws-accent) mb-3" />
@@ -2673,14 +2779,20 @@ export default function ProblemSolve() {
                                     <Sparkles size={14} /> {t('problemSolve.aiTutorResponseTitle')}
                                   </span>
                                   <button
+                                    type="button"
                                     onClick={() => {
-                                      navigator.clipboard?.writeText(aiTutorResponse);
+                                      copyText(aiTutorResponse, 'ai-tutor-copy');
                                       showToast(t('problemSolve.aiTutorCopied'), 'success');
                                     }}
-                                    className="p-1 rounded hover:bg-(--ws-panel2) text-(--ws-muted) hover:text-(--ws-text)"
+                                    className="inline-flex items-center gap-1 px-2 py-1 rounded hover:bg-(--ws-panel2) text-(--ws-muted) hover:text-(--ws-text)"
                                     title={t('problemSolve.aiTutorCopy')}
                                   >
-                                    <Copy size={13} />
+                                    {copiedKey === 'ai-tutor-copy' ? (
+                                      <Check size={13} className="text-(--ws-ok)" aria-hidden="true" />
+                                    ) : (
+                                      <Copy size={13} aria-hidden="true" />
+                                    )}
+                                    <span className="text-[11px]">{copiedKey === 'ai-tutor-copy' ? t('problemSolve.copied') : t('problemSolve.aiTutorCopy')}</span>
                                   </button>
                                 </div>
                                 <div className="prose prose-sm max-w-none text-(--ws-text) leading-relaxed">
@@ -2774,11 +2886,11 @@ export default function ProblemSolve() {
                         </p>
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         {ALLOWED_RESOURCES.map((res) => (
                           <details
                             key={res.id}
-                            className="group rounded-2xl border border-(--ws-border) bg-(--ws-panel) overflow-hidden transition-all open:ring-1 open:ring-(--ws-accent)"
+                            className="group rounded-md border border-(--ws-border) bg-(--ws-panel) overflow-hidden transition-all open:ring-1 open:ring-(--ws-accent)"
                             open={res.id === 'cpp_stl'}
                           >
                             <summary className="flex items-center justify-between p-4 cursor-pointer select-none font-semibold text-sm hover:bg-(--ws-panel2) transition-colors">
@@ -2802,21 +2914,61 @@ export default function ProblemSolve() {
               </section>
             )}
 
+            {layout === 'split' && (
+              <div
+                onMouseDown={(e) => {
+                  e.currentTarget.focus();
+                  startSplitResize(e);
+                }}
+                onDoubleClick={() => {
+                  setSplitPercent(46);
+                  try {
+                    localStorage.setItem('jh-solve-split', '46');
+                  } catch {
+                    // ignore storage failures
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    setSplitPercent((p) => Math.max(28, p - 3));
+                  } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    setSplitPercent((p) => Math.min(72, p + 3));
+                  } else if (e.key === 'Home') {
+                    e.preventDefault();
+                    setSplitPercent(46);
+                  }
+                }}
+                tabIndex={0}
+                role="separator"
+                aria-orientation="vertical"
+                aria-valuenow={Math.round(splitPercent)}
+                aria-valuemin={28}
+                aria-valuemax={72}
+                aria-label={t('problemSolve.dragSplitLabel')}
+                title={t('problemSolve.dragSplitLabel')}
+                className="group hidden md:flex w-1.5 shrink-0 cursor-col-resize items-center justify-center bg-(--ws-border) hover:bg-(--ws-accent) focus-visible:bg-(--ws-accent) transition-colors relative outline-none"
+              >
+                <div className="w-0.5 h-8 rounded-full bg-(--ws-faint) group-hover:bg-(--ws-on-accent) transition-colors" />
+              </div>
+            )}
+
             {/* ---- editor pane ---- */}
             {(layout !== 'statement') && (
               <section
                 className={`@container min-w-0 bg-(--ws-editor) ${
                   layout === 'split'
-                    ? `${mobilePane === 'editor' ? 'flex' : 'hidden'} md:flex md:w-1/2 flex-col`
+                    ? `${mobilePane === 'editor' ? 'flex w-full' : 'hidden'} md:flex md:flex-1 flex-col`
                     : 'flex w-full flex-col'
                 }`}
               >
               {/* editor toolbar */}
-              <div className="flex items-center gap-1.5 px-3 py-2 min-h-[52px] border-b border-(--ws-border) flex-nowrap overflow-hidden">
+              <div className="flex items-center flex-wrap gap-1.5 px-3 py-1.5 min-h-[42px] border-b border-(--ws-border) bg-(--ws-panel)">
                 {!contestId && (
-                  <div className="flex items-center rounded-lg border border-(--ws-border) overflow-hidden shrink-0 whitespace-nowrap text-[12.5px] font-semibold">
-                    <button className="px-2.5 py-1.5 bg-(--ws-accent-soft) text-(--ws-accent)">{t('problemSolve.writeCode')}</button>
-                    <label className="px-2.5 py-1.5 text-(--ws-muted) hover:text-(--ws-text) cursor-pointer whitespace-nowrap">
+                  <div className="flex items-center rounded border border-(--ws-border) overflow-hidden shrink-0 whitespace-nowrap text-[12px] font-semibold">
+                    <button type="button" className="px-2.5 py-1 bg-(--ws-accent-soft) text-(--ws-accent)">{t('problemSolve.writeCode')}</button>
+                    <label className="px-2.5 py-1 text-(--ws-muted) hover:text-(--ws-text) cursor-pointer whitespace-nowrap">
                       {t('problemSolve.uploadFile')}
                       <input
                         type="file"
@@ -2834,7 +2986,8 @@ export default function ProblemSolve() {
                   <select
                     value={selectedLangId}
                     onChange={(e) => setSelectedLangId(e.target.value)}
-                    className="w-[92px] px-1.5 py-1.5 bg-(--ws-panel2) border border-(--ws-border) rounded-lg text-[12px] font-semibold text-(--ws-text) focus:outline-none focus:border-(--ws-accent) cursor-pointer"
+                    aria-label="Programming language"
+                    className="h-7 px-2 bg-(--ws-panel2) border border-(--ws-border) rounded text-[12px] font-semibold text-(--ws-text) focus:outline-none focus:border-(--ws-accent) cursor-pointer"
                   >
                     {allowedLangConfigs.map((language) => (
                       <option key={language.id} value={language.id}>
@@ -2844,54 +2997,54 @@ export default function ProblemSolve() {
                   </select>
                   {apiProblem?.allowed_languages && apiProblem.allowed_languages.length > 0 && (
                     <span
-                      className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-md bg-(--ws-warn)/10 border border-(--ws-warn)/25 text-(--ws-warn) text-[11px] font-medium"
+                      className="hidden @[560px]:inline-flex items-center gap-1 px-2 py-0.5 rounded bg-(--ws-warn)/10 border border-(--ws-warn)/25 text-(--ws-warn) text-[11px] font-medium"
                       title="This problem restricts allowed languages"
                     >
-                      <Lock size={11} /> Allowed: {allowedLangConfigs.length} languages
+                      <Lock size={11} aria-hidden="true" /> {allowedLangConfigs.length}
                     </span>
                   )}
                 </div>
-                <label className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] text-(--ws-muted) cursor-pointer hover:text-(--ws-text) whitespace-nowrap">
+                <label className="inline-flex items-center gap-1.5 h-7 px-2 rounded border border-(--ws-border) text-[12px] text-(--ws-muted) cursor-pointer hover:text-(--ws-text) whitespace-nowrap">
                   <input type="checkbox" checked={wrap} onChange={(e) => setWrap(e.target.checked)} className="accent-(--ws-accent)" />
                   {t('problemSolve.wordWrap')}
                 </label>
                 <button
+                  type="button"
                   onClick={() => onCodeChange(currentLangConfig.template)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-(--ws-border) text-[12.5px] text-(--ws-muted) hover:text-(--ws-text) transition-colors whitespace-nowrap shrink-0"
+                  className="inline-flex items-center gap-1 h-7 px-2 rounded border border-(--ws-border) text-[12px] text-(--ws-muted) hover:text-(--ws-text) transition-colors whitespace-nowrap shrink-0"
                   title={t('problemSolve.resetCode')}
                 >
-                  <RotateCcw size={13} /> <span>{t('problemSolve.resetCode')}</span>
+                  <RotateCcw size={12} aria-hidden="true" /> <span>{t('problemSolve.resetCode')}</span>
                 </button>
                 <select
                   value={fontSize}
                   onChange={(e) => setFontSize(+e.target.value)}
-                  className="px-1.5 py-1.5 bg-(--ws-panel2) border border-(--ws-border) rounded-lg text-[12.5px] focus:outline-none"
+                  aria-label={t('settings.fontSizeLabel')}
+                  className="h-7 px-1.5 bg-(--ws-panel2) border border-(--ws-border) rounded text-[12px] font-mono tabular-nums focus:outline-none"
                 >
                   {[12, 13, 14, 16, 18].map((s) => <option key={s} value={s}>{s}px</option>)}
                 </select>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={intelli}
+                  onClick={() => setIntelli(!intelli)}
+                  className={`inline-flex items-center gap-1.5 h-7 px-2 rounded border text-[11.5px] font-medium transition-colors whitespace-nowrap ${
+                    intelli
+                      ? 'border-(--ws-accent)/40 bg-(--ws-accent-soft) text-(--ws-accent)'
+                      : 'border-(--ws-border) bg-(--ws-panel2) text-(--ws-muted)'
+                  }`}
+                >
+                  <span>IntelliSense</span>
+                </button>
 
                 <div className="flex-1" />
+                <span className="text-[11px] font-mono tabular-nums text-(--ws-faint) hidden @[900px]:inline whitespace-nowrap">
+                  {t('problemSolve.lineCount', { count: lineCount })} · {t('problemSolve.charCount', { count: code.length })}
+                </span>
                 <span className={`text-[11.5px] whitespace-nowrap ${saveState === 'saved' ? 'text-(--ws-faint)' : 'text-(--ws-warn)'}`}>
                   {saveState === 'saved' ? t('problemSolve.saved') : saveState === 'saving' ? t('problemSolve.saving') : t('problemSolve.unsaved')}
                 </span>
-              </div>
-
-              {/* intellisense row */}
-              <div className="flex items-center justify-between px-3 py-1.5 border-b border-(--ws-border-soft)">
-                <label className="flex items-center gap-2 text-[12.5px] text-(--ws-muted) cursor-pointer select-none">
-                  IntelliSense
-                  <button
-                    onClick={() => setIntelli(!intelli)}
-                    className={`relative w-9 h-5 rounded-full transition-colors ${intelli ? 'bg-(--ws-accent)' : 'bg-(--ws-border)'}`}
-                  >
-                    <span className={`absolute top-0.5 w-4 h-4 bg-(--ws-panel) rounded-full transition-all ${intelli ? 'left-[18px]' : 'left-0.5'}`} />
-                  </button>
-                </label>
-                {intelli && (
-                  <span className="text-[11px] text-(--ws-faint) hidden sm:block">
-                    {t('problemSolve.lineCount', { count: lineCount })} • {t('problemSolve.charCount', { count: code.length })} • {getLanguageLabel(currentLangConfig)}
-                  </span>
-                )}
               </div>
 
               {/* code area */}
@@ -2929,62 +3082,73 @@ export default function ProblemSolve() {
                 className="border-t border-(--ws-border) bg-(--ws-panel) flex flex-col shrink-0 overflow-hidden"
                 style={{ height: bottomPanelOpen ? bottomHeight : COLLAPSED_BOTTOM_PANEL_HEIGHT }}
               >
-                <div role="tablist" className={`flex items-center gap-0.5 px-3 ${bottomPanelOpen ? 'pt-2 border-b border-(--ws-border-soft)' : 'h-12'}`}>
-                  {([
-                    ['tests', t('problemSolve.tabSamples'), <FlaskConical size={13} key="i" aria-hidden="true" />],
-                    ['console', t('problemSolve.consoleTab'), <Terminal size={13} key="i" aria-hidden="true" />],
-                    ['results', t('problemSolve.tabResults'), <CheckCircle2 size={13} key="i" aria-hidden="true" />],
-                    ['debug', t('problemSolve.debugTab'), <Bug size={13} key="i" aria-hidden="true" />],
-                  ] as [BottomTab, string, React.ReactNode][]).map(([tab, label, icon]) => (
-                    <button
-                      key={tab}
-                      type="button"
-                      role="tab"
-                      aria-selected={bottomTab === tab && bottomPanelOpen}
-                      onClick={() => {
-                        setBottomTab(tab);
-                        if (!bottomPanelOpen) {
-                          setBottomHeight(DEFAULT_BOTTOM_PANEL_HEIGHT);
-                          setBottomPanelOpen(true);
-                        }
-                      }}
-                      className={`flex items-center gap-1.5 px-2 py-2 text-[12.5px] font-semibold border-b-2 -mb-px transition-colors whitespace-nowrap shrink-0 ${
-                        bottomTab === tab
-                          ? 'text-(--ws-accent) border-(--ws-accent)'
-                          : 'text-(--ws-muted) border-transparent hover:text-(--ws-text)'
-                      }`}
-                    >
-                      <span className="inline-flex">{icon}</span>{label}
-                      {tab === 'console' && diagnostics.some((d) => d.severity === 'error') && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-(--ws-danger)/15 text-(--ws-danger)">
-                          {diagnostics.filter((d) => d.severity === 'error').length}
-                        </span>
-                      )}
-                      {tab === 'results' && finalVerdict && (
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded ${finalVerdict === 'AC' ? 'bg-(--ws-accent-soft) text-(--ws-ok)' : 'bg-(--ws-danger)/15 text-(--ws-danger)'}`}>
-                          {finalVerdict}
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                  <div className="flex-1" />
+                <div className={`flex items-center justify-between gap-2 px-3 ${bottomPanelOpen ? 'pt-2 border-b border-(--ws-border-soft)' : 'h-12'}`}>
+                  <div role="tablist" className="flex items-center gap-0.5 min-w-0 flex-1 overflow-x-auto">
+                    {([
+                      ['tests', t('problemSolve.tabSamples'), <FlaskConical size={13} key="i" aria-hidden="true" />],
+                      ['console', t('problemSolve.consoleTab'), <Terminal size={13} key="i" aria-hidden="true" />],
+                      ['results', t('problemSolve.tabResults'), <CheckCircle2 size={13} key="i" aria-hidden="true" />],
+                      ['debug', t('problemSolve.debugTab'), <Bug size={13} key="i" aria-hidden="true" />],
+                    ] as [BottomTab, string, React.ReactNode][]).map(([tab, label, icon]) => (
+                      <button
+                        key={tab}
+                        type="button"
+                        role="tab"
+                        aria-selected={bottomTab === tab && bottomPanelOpen}
+                        onClick={() => {
+                          setBottomTab(tab);
+                          if (!bottomPanelOpen) {
+                            setBottomHeight(DEFAULT_BOTTOM_PANEL_HEIGHT);
+                            setBottomPanelOpen(true);
+                          }
+                        }}
+                        className={`flex items-center gap-1.5 px-2 py-2 text-[12.5px] font-semibold border-b-2 -mb-px transition-colors whitespace-nowrap shrink-0 ${
+                          bottomTab === tab
+                            ? 'text-(--ws-accent) border-(--ws-accent)'
+                            : 'text-(--ws-muted) border-transparent hover:text-(--ws-text)'
+                        }`}
+                      >
+                        <span className="inline-flex">{icon}</span>{label}
+                        {tab === 'console' && diagnostics.some((d) => d.severity === 'error') && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-(--ws-danger)/15 text-(--ws-danger)">
+                            {diagnostics.filter((d) => d.severity === 'error').length}
+                          </span>
+                        )}
+                        {tab === 'results' && finalVerdict && (
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded ${finalVerdict === 'AC' ? 'bg-(--ws-accent-soft) text-(--ws-ok)' : 'bg-(--ws-danger)/15 text-(--ws-danger)'}`}>
+                            {finalVerdict}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
                   <div className={`flex items-center gap-1.5 shrink-0 ${bottomPanelOpen ? 'pb-1.5' : ''}`}>
                     <button
+                      type="button"
                       onClick={runSamples}
                       disabled={running || judging}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 whitespace-nowrap rounded-lg border border-(--ws-border) text-[12.5px] font-semibold text-(--ws-text) hover:border-(--ws-accent) hover:text-(--ws-accent) transition-colors disabled:opacity-50"
+                      title={t('problemSolve.runShortcutTitle')}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 whitespace-nowrap rounded border border-(--ws-border) text-[12px] font-semibold text-(--ws-text) hover:border-(--ws-accent) hover:text-(--ws-accent) transition-colors disabled:opacity-50"
                     >
-                      {running ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} />} {t('problemSolve.runBtn')}
+                      {running ? <Loader2 size={13} className="animate-spin" aria-hidden="true" /> : <Play size={13} aria-hidden="true" />}
+                      <span>{t('problemSolve.runBtn')}</span>
+                      <kbd className="hidden @[520px]:inline text-[10px] font-mono px-1 py-0.2 rounded border border-(--ws-border) bg-(--ws-panel2) text-(--ws-muted)">Ctrl+'</kbd>
                     </button>
                     <button
                       type="button"
                       onClick={submit}
                       disabled={isSubmitLocked}
-                      className="flex items-center gap-1.5 px-3 py-1.5 whitespace-nowrap rounded-lg bg-(--ws-accent) text-(--ws-on-accent) text-[12.5px] font-bold hover:bg-(--ws-accent-strong) transition-colors disabled:opacity-50 shadow-sm"
+                      title={t('problemSolve.submitShortcutTitle')}
+                      className="flex items-center gap-1.5 px-3 py-1.5 whitespace-nowrap rounded bg-(--ws-accent) text-(--ws-on-accent) text-[12px] font-bold hover:bg-(--ws-accent-strong) transition-colors disabled:opacity-50"
                     >
-                      {judging ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />} {cooldownSeconds > 0 ? t('problemSolve.submitCooldown', { seconds: cooldownSeconds }) : t('problemSolve.submitBtn')}
+                      {judging ? <Loader2 size={13} className="animate-spin" aria-hidden="true" /> : <Send size={13} aria-hidden="true" />}
+                      <span>{cooldownSeconds > 0 ? t('problemSolve.submitCooldown', { seconds: cooldownSeconds }) : t('problemSolve.submitBtn')}</span>
+                      {cooldownSeconds === 0 && (
+                        <kbd className="hidden @[520px]:inline text-[10px] font-mono px-1 py-0.2 rounded border border-current/25 bg-black/15">Ctrl+Enter</kbd>
+                      )}
                     </button>
                     <button
+                      type="button"
                       onClick={() => {
                         if (bottomPanelOpen) {
                           setBottomPanelOpen(false);
@@ -2993,7 +3157,7 @@ export default function ProblemSolve() {
                           setBottomPanelOpen(true);
                         }
                       }}
-                      className="p-1.5 rounded-lg border border-(--ws-border) text-(--ws-muted) hover:text-(--ws-accent) hover:border-(--ws-accent) transition-colors"
+                      className="p-1.5 rounded border border-(--ws-border) text-(--ws-muted) hover:text-(--ws-accent) hover:border-(--ws-accent) transition-colors"
                       title={t(bottomPanelOpen ? 'problemSolve.collapsePanel' : 'problemSolve.expandPanel')}
                       aria-label={t(bottomPanelOpen ? 'problemSolve.collapsePanel' : 'problemSolve.expandPanel')}
                       aria-expanded={bottomPanelOpen}
@@ -3017,12 +3181,27 @@ export default function ProblemSolve() {
                   )}
 
                   {bottomTab === 'tests' && (
-                    <div className="space-y-5">
-                      {samples.map((s, i) => (
+                    <div className="space-y-4">
+                      {samples.map((s, i) => {
+                        const inKey = `copy-in-${i}`;
+                        const outKey = `copy-out-${i}`;
+                        return (
                         <div key={i}>
-                          <p className="text-[10.5px] font-bold uppercase tracking-widest text-(--ws-faint) mb-2">{t('problemSolve.groupLabel', { index: i + 1 })}</p>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <p className="text-[10.5px] font-bold uppercase tracking-widest text-(--ws-faint)">{t('problemSolve.groupLabel', { index: i + 1 })}</p>
+                            {samples.length > 1 && sqlJsonToTables(s.input) === null && (
+                              <button
+                                type="button"
+                                onClick={() => setSamples((prev) => prev.filter((_, j) => j !== i))}
+                                className="text-[11px] text-(--ws-muted) hover:text-(--ws-danger) transition-colors"
+                                title={t('problemSolve.removeSampleCase')}
+                              >
+                                {t('problemSolve.removeSampleCase')}
+                              </button>
+                            )}
+                          </div>
                           <div className="grid grid-cols-2 gap-3">
-                            <div className="relative rounded-lg border border-(--ws-border) bg-(--ws-editor) overflow-hidden group">
+                            <div className="relative rounded-md border border-(--ws-border) bg-(--ws-editor) overflow-hidden group">
                               <textarea
                                 value={s.input}
                                 onChange={(e) => setSamples(samples.map((x, j) => (j === i ? { ...x, input: e.target.value } : x)))}
@@ -3033,29 +3212,37 @@ export default function ProblemSolve() {
                                 rows={Math.min(12, Math.max(3, s.input.split('\n').length))}
                                 className="block w-full px-3 py-2.5 bg-transparent font-mono text-[12.5px] leading-5 resize-none outline-none whitespace-pre overflow-auto text-(--ws-text)"
                               />
-                              <button type="button" aria-label={t('common.copy')}
-                                id={`copy-in-${i}`}
-                                onClick={() => copyText(s.input, `copy-in-${i}`)}
-                                className="absolute top-2 right-2 p-1.5 rounded-md bg-(--ws-panel2) text-(--ws-muted) hover:text-(--ws-text) opacity-75 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+                              <button type="button" aria-label={copiedKey === inKey ? t('problemSolve.copied') : t('common.copy')}
+                                id={inKey}
+                                onClick={() => copyText(s.input, inKey)}
+                                className={`absolute top-2 right-2 p-1.5 rounded border border-(--ws-border) bg-(--ws-panel2) transition-opacity ${
+                                  copiedKey === inKey
+                                    ? 'opacity-100 text-(--ws-ok)'
+                                    : 'text-(--ws-muted) hover:text-(--ws-text) opacity-75 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100'
+                                }`}
                               >
-                                <Copy size={12} aria-hidden="true" />
+                                {copiedKey === inKey ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
                               </button>
                             </div>
-                            <div className="relative rounded-lg border border-(--ws-border) bg-(--ws-editor) overflow-hidden group">
+                            <div className="relative rounded-md border border-(--ws-border) bg-(--ws-editor) overflow-hidden group">
                               <pre className="px-3 py-2.5 font-mono text-[12.5px] leading-5 whitespace-pre overflow-x-auto max-h-60 overflow-y-auto text-(--ws-text)">{displayOutput(s)}</pre>
-                              <button type="button" aria-label={t('common.copy')}
-                                id={`copy-out-${i}`}
-                                onClick={() => copyText(displayOutput(s), `copy-out-${i}`)}
-                                className="absolute top-2 right-2 p-1.5 rounded-md bg-(--ws-panel2) text-(--ws-muted) hover:text-(--ws-text) opacity-75 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+                              <button type="button" aria-label={copiedKey === outKey ? t('problemSolve.copied') : t('common.copy')}
+                                id={outKey}
+                                onClick={() => copyText(displayOutput(s), outKey)}
+                                className={`absolute top-2 right-2 p-1.5 rounded border border-(--ws-border) bg-(--ws-panel2) transition-opacity ${
+                                  copiedKey === outKey
+                                    ? 'opacity-100 text-(--ws-ok)'
+                                    : 'text-(--ws-muted) hover:text-(--ws-text) opacity-75 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100'
+                                }`}
                               >
-                                <Copy size={12} aria-hidden="true" />
+                                {copiedKey === outKey ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
                               </button>
                             </div>
                           </div>
                           {sampleOutputs[i] !== undefined && (
-                            <div className={`mt-2 rounded-lg border px-3 py-2 text-[12px] font-mono ${sampleOutputs[i].ok ? 'border-(--ws-ok)/30 bg-(--ws-ok)/5' : 'border-(--ws-danger)/30 bg-(--ws-danger)/5'}`}>
+                            <div className={`mt-2 rounded-md border px-3 py-2 text-[12px] font-mono ${sampleOutputs[i].ok ? 'border-(--ws-ok)/30 bg-(--ws-ok)/5' : 'border-(--ws-danger)/30 bg-(--ws-danger)/5'}`}>
                               <div className="flex items-center gap-2 mb-1">
-                                <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${sampleOutputs[i].ok ? 'bg-(--ws-ok)/20 text-(--ws-ok)' : 'bg-(--ws-danger)/20 text-(--ws-danger)'}`}>
+                                <span className={`text-[10px] font-bold tabular-nums uppercase px-1.5 py-0.5 rounded ${sampleOutputs[i].ok ? 'bg-(--ws-ok)/20 text-(--ws-ok)' : 'bg-(--ws-danger)/20 text-(--ws-danger)'}`}>
                                   {sampleOutputs[i].ok ? `OK${sampleOutputs[i].time !== undefined ? ` · ${sampleOutputs[i].time}ms` : ''}` : 'WRONG ANSWER'}
                                 </span>
                                 <span className="text-(--ws-faint) text-[11px]">{t('problemSolve.actualResult')}</span>
@@ -3064,10 +3251,22 @@ export default function ProblemSolve() {
                             </div>
                           )}
                         </div>
-                      ))}
-                      <p className="text-[11.5px] italic text-(--ws-faint)">
-                        {t('problemSolve.runSamplesHint')}
-                      </p>
+                        );
+                      })}
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                        <p className="text-[11.5px] italic text-(--ws-faint)">
+                          {t('problemSolve.runSamplesHint')}
+                        </p>
+                        {samples.every((s) => sqlJsonToTables(s.input) === null) && (
+                          <button
+                            type="button"
+                            onClick={() => setSamples((prev) => [...prev, { id: prev.length + 1, input: '', output: '', explanation: '' }])}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-(--ws-border) bg-(--ws-panel2) text-[11.5px] font-medium text-(--ws-text) hover:border-(--ws-accent) hover:text-(--ws-accent) transition-colors"
+                          >
+                            <Plus size={12} aria-hidden="true" /> {t('problemSolve.addSampleCase')}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
 
@@ -3120,14 +3319,14 @@ export default function ProblemSolve() {
                               <div
                                 key={tv.id}
                                 title={`Test ${tv.id}: ${tv.status} • ${tv.time}ms • ${tv.memory}MB`}
-                                className={`rounded-lg border px-2 py-2 text-center transition-transform hover:scale-105 ${
+                                className={`rounded border px-2 py-1.5 text-center font-mono tabular-nums ${
                                   tv.status === 'AC'
                                     ? 'border-(--ws-ok)/40 bg-(--ws-ok)/10 text-(--ws-ok)'
                                     : 'border-(--ws-danger)/40 bg-(--ws-danger)/10 text-(--ws-danger)'
                                 }`}
                               >
                                 <p className="text-[10px] font-bold">#{tv.id}</p>
-                                <p className="text-[13px] font-extrabold">{tv.status}</p>
+                                <p className="text-[12.5px] font-extrabold">{tv.status}</p>
                                 <p className="text-[9.5px] opacity-75">{tv.time}ms</p>
                               </div>
                             ))}
@@ -3171,14 +3370,14 @@ export default function ProblemSolve() {
               <div className="flex-1 overflow-y-auto ws-editor-scroll p-3 space-y-2 bg-(--ws-bg)">
                 {assistantMessages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-(--ws-accent) text-(--ws-on-accent)' : 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border)'}`}>
+                    <div className={`max-w-[88%] rounded-md px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-(--ws-accent) text-(--ws-on-accent)' : 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border)'}`}>
                       {msg.content}
                     </div>
                   </div>
                 ))}
                 {assistantBusy && (
                   <div className="flex justify-start">
-                    <div className="rounded-2xl border border-(--ws-border) bg-(--ws-panel) px-3 py-2 text-[13px] text-(--ws-muted)">
+                    <div className="rounded-md border border-(--ws-border) bg-(--ws-panel) px-3 py-2 text-[13px] text-(--ws-muted)">
                       {t('problemSolve.thinking')}
                     </div>
                   </div>
@@ -3187,14 +3386,14 @@ export default function ProblemSolve() {
               </div>
 
               <form onSubmit={askAssistant} className="border-t border-(--ws-border) bg-(--ws-panel) p-3">
-                <div className="flex items-center gap-2 rounded-xl border border-(--ws-border) bg-(--ws-editor) px-3 py-2">
+                <div className="flex items-center gap-2 rounded-md border border-(--ws-border) bg-(--ws-editor) px-3 py-2">
                   <input
                     value={assistantInput}
                     onChange={(e) => setAssistantInput(e.target.value)}
                     placeholder={t('problemSolve.askPlaceholder')}
                     className="flex-1 bg-transparent text-[13px] text-(--ws-text) outline-none placeholder:text-(--ws-faint)"
                   />
-                  <button aria-label={t('common.send')} type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-(--ws-accent) hover:bg-(--ws-accent-strong) p-2 text-(--ws-on-accent) disabled:opacity-50 transition-colors">
+                  <button aria-label={t('common.send')} type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded bg-(--ws-accent) hover:bg-(--ws-accent-strong) p-2 text-(--ws-on-accent) disabled:opacity-50 transition-colors">
                     <Send size={14} aria-hidden="true" />
                   </button>
                 </div>
@@ -3205,35 +3404,35 @@ export default function ProblemSolve() {
 
       <button
         onClick={() => setShowAssistantMobile(true)}
-        className="fixed bottom-4 right-4 z-85 flex lg:hidden items-center gap-2 rounded-full bg-(--ws-accent) px-4 py-3 text-[13px] font-semibold text-(--ws-on-accent) shadow-xl transition-transform hover:scale-105 hover:bg-(--ws-accent-strong)"
+        className="fixed bottom-4 right-4 z-85 flex lg:hidden items-center gap-2 rounded-md bg-(--ws-accent) px-3.5 py-2.5 text-[13px] font-semibold text-(--ws-on-accent) border border-(--ws-accent-strong) hover:bg-(--ws-accent-strong) transition-colors"
       >
-        <MessageCircle size={16} />
+        <MessageCircle size={16} aria-hidden="true" />
         {t('problemSolve.aiAssistantTitle')}
       </button>
 
       {showAssistantMobile && (
-        <div className="fixed inset-0 z-90 bg-black/55 backdrop-blur-[2px] lg:hidden" onClick={() => setShowAssistantMobile(false)}>
-          <div className="absolute bottom-0 left-0 right-0 h-[72vh] rounded-t-2xl border-t border-x border-(--ws-border) bg-(--ws-panel) flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-90 bg-black/60 lg:hidden" onClick={() => setShowAssistantMobile(false)}>
+          <div className="absolute bottom-0 left-0 right-0 h-[72vh] rounded-t-lg border-t border-x border-(--ws-border) bg-(--ws-panel) flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-4 py-3 border-b border-(--ws-border)">
               <div className="flex items-center gap-2">
-                <MessageCircle size={15} className="text-(--ws-accent)" />
-                <p className="text-[13px] font-semibold">Leet Coach</p>
+                <MessageCircle size={15} className="text-(--ws-accent)" aria-hidden="true" />
+                <p className="text-[13px] font-semibold">{t('problemSolve.aiAssistantTitle')}</p>
               </div>
-              <button aria-label={t('common.close')} onClick={() => setShowAssistantMobile(false)} className="rounded-lg p-1.5 text-(--ws-muted) hover:bg-(--ws-panel2) hover:text-(--ws-text)">
+              <button aria-label={t('common.close')} onClick={() => setShowAssistantMobile(false)} className="rounded p-1.5 text-(--ws-muted) hover:bg-(--ws-panel2) hover:text-(--ws-text)">
                 <X size={16} aria-hidden="true" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto ws-editor-scroll p-3 space-y-2 bg-(--ws-bg)">
               {assistantMessages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[88%] rounded-2xl px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-(--ws-accent) text-(--ws-on-accent)' : 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border)'}`}>
+                  <div className={`max-w-[88%] rounded-md px-3 py-2 text-[13px] leading-6 ${msg.role === 'user' ? 'bg-(--ws-accent) text-(--ws-on-accent)' : 'bg-(--ws-panel) text-(--ws-text) border border-(--ws-border)'}`}>
                     {msg.content}
                   </div>
                 </div>
               ))}
               {assistantBusy && (
                 <div className="flex justify-start">
-                  <div className="rounded-2xl border border-(--ws-border) bg-(--ws-panel) px-3 py-2 text-[13px] text-(--ws-muted)">
+                  <div className="rounded-md border border-(--ws-border) bg-(--ws-panel) px-3 py-2 text-[13px] text-(--ws-muted)">
                     {t('problemSolve.thinking')}
                   </div>
                 </div>
@@ -3241,14 +3440,14 @@ export default function ProblemSolve() {
               <div ref={messagesEndRef} />
             </div>
             <form onSubmit={askAssistant} className="border-t border-(--ws-border) bg-(--ws-panel) p-3">
-              <div className="flex items-center gap-2 rounded-xl border border-(--ws-border) bg-(--ws-editor) px-3 py-2">
+              <div className="flex items-center gap-2 rounded-md border border-(--ws-border) bg-(--ws-editor) px-3 py-2">
                 <input
                   value={assistantInput}
                   onChange={(e) => setAssistantInput(e.target.value)}
                   placeholder={t('problemSolve.askPlaceholder')}
                   className="flex-1 bg-transparent text-[13px] text-(--ws-text) outline-none placeholder:text-(--ws-faint)"
                 />
-                <button aria-label={t('common.send')} type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded-lg bg-(--ws-accent) hover:bg-(--ws-accent-strong) p-2 text-(--ws-on-accent) disabled:opacity-50 transition-colors">
+                <button aria-label={t('common.send')} type="submit" disabled={assistantBusy || !assistantInput.trim()} className="rounded bg-(--ws-accent) hover:bg-(--ws-accent-strong) p-2 text-(--ws-on-accent) disabled:opacity-50 transition-colors">
                   <Send size={14} aria-hidden="true" />
                 </button>
               </div>
@@ -3259,29 +3458,29 @@ export default function ProblemSolve() {
 
       {/* ============ GUIDE MODAL ============ */}
       {showGuide && hasDocument && createPortal((
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-[2px] z-90 flex items-center justify-center p-4" onClick={() => setShowGuide(false)}>
-          <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl w-full max-w-lg shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-(--ws-border)">
-              <h3 className="flex items-center gap-2.5 text-[18px] font-extrabold tracking-tight text-(--ws-text)">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-(--ws-accent-soft) text-(--ws-accent)">
-                  <HelpCircle size={17} />
+        <div className="fixed inset-0 bg-black/75 z-90 flex items-center justify-center p-4" onClick={() => setShowGuide(false)}>
+          <div className="bg-(--ws-panel) border border-(--ws-border) rounded-lg w-full max-w-lg shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-(--ws-border)">
+              <h3 className="flex items-center gap-2 text-[16px] font-bold tracking-tight text-(--ws-text)">
+                <span className="flex h-7 w-7 items-center justify-center rounded bg-(--ws-accent-soft) text-(--ws-accent)">
+                  <HelpCircle size={15} aria-hidden="true" />
                 </span>
                 {t('problemSolve.usageGuide')}
               </h3>
               <button aria-label={t('common.close')} onClick={() => setShowGuide(false)} className="text-(--ws-muted) hover:text-(--ws-text)"><X size={18} aria-hidden="true" /></button>
             </div>
-            <div className="p-6 space-y-3 text-[13.5px] leading-6 text-(--ws-muted)">
+            <div className="p-5 space-y-2.5 text-[13px] leading-6 text-(--ws-muted)">
               {[
                 // trong kỳ thi bỏ dòng ⌘K (tìm kiếm) và "Tải lên / Dán vào"
                 ...(contestId ? [] : [['⌘K', t('problemSolve.guideSearch')]]),
-                [t('problemSolve.runBtn'), t('problemSolve.guideRun')],
-                [t('problemSolve.submitBtn'), t('problemSolve.guideSubmit')],
+                [`Ctrl+' · ${t('problemSolve.runBtn')}`, t('problemSolve.guideRun')],
+                [`Ctrl+Enter · ${t('problemSolve.submitBtn')}`, t('problemSolve.guideSubmit')],
                 [t('problemSolve.resetCode'), t('problemSolve.guideReset')],
                 ...(contestId ? [] : [[t('problemSolve.guideUploadPasteLabel'), t('problemSolve.guideUploadPaste')]]),
                 [t('problemSolve.guideModeLabel'), t('problemSolve.guideMode')],
               ].map(([k, v], i) => (
-                <div key={i} className="flex gap-3">
-                  <span className="shrink-0 text-[11px] font-bold px-2 py-0.5 h-fit rounded-md bg-(--ws-accent-soft) text-(--ws-accent)">{k}</span>
+                <div key={i} className="flex gap-3 items-baseline">
+                  <kbd className="shrink-0 text-[11px] font-mono font-semibold px-2 py-0.5 h-fit rounded border border-(--ws-border) bg-(--ws-panel2) text-(--ws-text)">{k}</kbd>
                   <span>{v}</span>
                 </div>
               ))}

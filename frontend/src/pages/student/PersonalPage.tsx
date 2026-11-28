@@ -6,16 +6,8 @@ import ActivityHeatmap from '../../components/ActivityHeatmap';
 import {
   MapPin,
   Calendar,
-  Award,
-  BookOpen,
-  Send,
-  Trophy,
-  TrendingUp,
-  CheckCircle2,
   BarChart3,
-  Users,
   GraduationCap,
-  Loader2,
   HelpCircle,
 } from 'lucide-react';
 
@@ -93,47 +85,47 @@ export default function PersonalPage() {
   const isInstructor = user?.role === 'instructor';
 
   return (
-    <div className="space-y-6 text-(--ws-text)">
+    <div className="space-y-5 text-(--ws-text)">
       {/* Profile Header */}
-      <div className="bg-(--ws-panel) border border-(--ws-border) rounded-2xl overflow-hidden shadow-sm">
-        <div className="px-6 pt-6 pb-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
-            <div className="w-24 h-24 bg-linear-to-br from-(--ws-accent-strong) to-(--ws-accent) rounded-2xl flex items-center justify-center text-(--ws-on-accent) text-3xl font-bold font-serif border-4 border-(--ws-panel) shadow-lg overflow-hidden">
+      <div className="bg-(--ws-panel) border border-(--ws-border) rounded-md overflow-hidden">
+        <div className="p-5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="w-20 h-20 bg-(--ws-accent) rounded-lg flex items-center justify-center text-(--ws-on-accent) text-2xl font-bold font-serif border border-(--ws-border) overflow-hidden shrink-0">
               {user?.avatar ? (
                 <img src={user.avatar} alt={user.fullName || user.username} className="w-full h-full object-cover" />
               ) : (
                 user?.fullName?.charAt(0) || user?.username?.charAt(0) || 'U'
               )}
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h2 className="text-2xl font-bold text-(--ws-text) font-serif">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h2 className="text-xl font-bold text-(--ws-text) font-serif">
                   {user?.fullName || user?.username}
                 </h2>
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                  isInstructor ? 'bg-(--ws-warn-soft) text-(--ws-warn)' : 'bg-(--ws-ok-soft) text-(--ws-ok)'
+                <span className={`px-2 py-0.5 rounded border text-xs font-semibold ${
+                  isInstructor ? 'bg-(--ws-warn-soft) text-(--ws-warn) border-(--ws-warn)/30' : 'bg-(--ws-ok-soft) text-(--ws-ok) border-(--ws-ok)/30'
                 }`}>
                   {isInstructor ? t('personal.roleInstructor') : t('personal.roleStudent')}
                 </span>
               </div>
 
-              <p className="text-(--ws-muted) text-sm mt-0.5">@{user?.username}</p>
+              <p className="text-(--ws-muted) font-mono text-xs mt-0.5">@{user?.username}</p>
 
-              <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-(--ws-text)">
+              <div className="flex flex-wrap items-center gap-4 mt-2 text-xs text-(--ws-muted)">
                 {user?.institution && (
                   <span className="flex items-center gap-1.5">
-                    <MapPin size={15} className="text-(--ws-muted)" /> {user.institution}
+                    <MapPin size={13} aria-hidden="true" /> {user.institution}
                   </span>
                 )}
                 <span className="flex items-center gap-1.5">
-                  <Calendar size={15} className="text-(--ws-muted)" /> {t('personal.joined', { date: user?.joinDate })}
+                  <Calendar size={13} aria-hidden="true" /> {t('personal.joined', { date: user?.joinDate })}
                 </span>
               </div>
             </div>
           </div>
 
           {user?.bio && (
-            <p className="mt-4 text-(--ws-text) text-sm leading-relaxed p-3 bg-(--ws-panel2)/60 rounded-xl border border-(--ws-border)/60">
+            <p className="mt-4 text-(--ws-text) text-sm leading-relaxed px-3 py-2.5 bg-(--ws-panel2)/60 rounded border border-(--ws-border)">
               {user.bio}
             </p>
           )}
@@ -141,33 +133,37 @@ export default function PersonalPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center p-12 bg-(--ws-panel) border border-(--ws-border) rounded-xl shadow-sm">
-          <Loader2 className="animate-spin text-(--ws-accent)" size={28} />
-          <span className="ml-3 text-sm text-(--ws-text)">{t('personal.loading')}</span>
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {Array.from({ length: 4 }, (_, i) => (
+              <div key={i} className="rounded-md border border-(--ws-border) bg-(--ws-panel) p-4 space-y-2">
+                <div className="h-3 w-20 rounded ws-skeleton" />
+                <div className="h-7 w-16 rounded ws-skeleton" />
+              </div>
+            ))}
+          </div>
+          <div className="h-44 rounded-md border border-(--ws-border) bg-(--ws-panel) ws-skeleton" />
         </div>
       ) : (
         <>
           {/* Nếu là Giảng viên: Hiển thị Khối quản lý giảng dạy */}
           {isInstructor && stats?.instructor_stats && (
-            <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-6 shadow-sm">
-              <h3 className="text-lg font-bold text-(--ws-text) font-serif mb-4 flex items-center gap-2">
-                <GraduationCap size={20} className="text-(--ws-accent)" /> {t('personal.teachingActivity')}
+            <div className="bg-(--ws-panel) border border-(--ws-border) rounded-md p-5">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-(--ws-muted) mb-3 flex items-center gap-2">
+                <GraduationCap size={16} className="text-(--ws-accent)" aria-hidden="true" /> {t('personal.teachingActivity')}
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-4 bg-(--ws-panel2)/60 rounded-xl border border-(--ws-border) text-center">
-                  <BookOpen size={22} className="text-(--ws-accent) mx-auto mb-1.5" />
-                  <p className="text-2xl font-bold font-serif text-(--ws-text)">{stats.instructor_stats.classes_count}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-3.5 bg-(--ws-panel2)/60 rounded border border-(--ws-border)">
                   <p className="text-xs text-(--ws-muted)">{t('personal.classesManaged')}</p>
+                  <p className="text-2xl font-bold font-mono tabular-nums text-(--ws-text) mt-1">{stats.instructor_stats.classes_count}</p>
                 </div>
-                <div className="p-4 bg-(--ws-panel2)/60 rounded-xl border border-(--ws-border) text-center">
-                  <Users size={22} className="text-(--ws-info) mx-auto mb-1.5" />
-                  <p className="text-2xl font-bold font-serif text-(--ws-text)">{stats.instructor_stats.total_students_count}</p>
+                <div className="p-3.5 bg-(--ws-panel2)/60 rounded border border-(--ws-border)">
                   <p className="text-xs text-(--ws-muted)">{t('personal.studentsEnrolled')}</p>
+                  <p className="text-2xl font-bold font-mono tabular-nums text-(--ws-text) mt-1">{stats.instructor_stats.total_students_count}</p>
                 </div>
-                <div className="p-4 bg-(--ws-panel2)/60 rounded-xl border border-(--ws-border) text-center">
-                  <Trophy size={22} className="text-(--ws-warn) mx-auto mb-1.5" />
-                  <p className="text-2xl font-bold font-serif text-(--ws-text)">{stats.instructor_stats.contests_count}</p>
+                <div className="p-3.5 bg-(--ws-panel2)/60 rounded border border-(--ws-border)">
                   <p className="text-xs text-(--ws-muted)">{t('personal.contestsHosted')}</p>
+                  <p className="text-2xl font-bold font-mono tabular-nums text-(--ws-text) mt-1">{stats.instructor_stats.contests_count}</p>
                 </div>
               </div>
             </div>
@@ -175,26 +171,22 @@ export default function PersonalPage() {
 
           {/* Stats Grid (ẩn với giảng viên) */}
           {!isInstructor && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-5 text-center shadow-sm">
-                <CheckCircle2 size={24} className="text-(--ws-accent) mx-auto mb-2" />
-                <p className="text-2xl font-bold font-serif text-(--ws-text)">{stats?.solved_count || 0}</p>
-                <p className="text-xs text-(--ws-muted) mt-0.5">{t('personal.solvedCount')}</p>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="bg-(--ws-panel) border border-(--ws-border) rounded-md px-4 py-3.5">
+                <p className="text-xs font-medium text-(--ws-muted)">{t('personal.solvedCount')}</p>
+                <p className="text-2xl font-bold font-mono tabular-nums text-(--ws-ok) mt-1">{stats?.solved_count || 0}</p>
               </div>
-              <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-5 text-center shadow-sm">
-                <Send size={24} className="text-(--ws-info) mx-auto mb-2" />
-                <p className="text-2xl font-bold font-serif text-(--ws-text)">{stats?.total_submissions || 0}</p>
-                <p className="text-xs text-(--ws-muted) mt-0.5">{t('personal.totalSubmissions')}</p>
+              <div className="bg-(--ws-panel) border border-(--ws-border) rounded-md px-4 py-3.5">
+                <p className="text-xs font-medium text-(--ws-muted)">{t('personal.totalSubmissions')}</p>
+                <p className="text-2xl font-bold font-mono tabular-nums text-(--ws-text) mt-1">{stats?.total_submissions || 0}</p>
               </div>
-              <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-5 text-center shadow-sm">
-                <Award size={24} className="text-(--ws-warn) mx-auto mb-2" />
-                <p className="text-2xl font-bold font-serif text-(--ws-text)">{user?.rating ?? 1200}</p>
-                <p className="text-xs text-(--ws-muted) mt-0.5">{t('personal.ratingElo')}</p>
+              <div className="bg-(--ws-panel) border border-(--ws-border) rounded-md px-4 py-3.5">
+                <p className="text-xs font-medium text-(--ws-muted)">{t('personal.ratingElo')}</p>
+                <p className="text-2xl font-bold font-mono tabular-nums text-(--ws-accent) mt-1">{user?.rating ?? 1200}</p>
               </div>
-              <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-5 text-center shadow-sm">
-                <TrendingUp size={24} className="text-(--ws-info) mx-auto mb-2" />
-                <p className="text-2xl font-bold font-serif text-(--ws-text)">{stats?.ac_rate || 0}%</p>
-                <p className="text-xs text-(--ws-muted) mt-0.5">{t('personal.acceptanceRate')}</p>
+              <div className="bg-(--ws-panel) border border-(--ws-border) rounded-md px-4 py-3.5">
+                <p className="text-xs font-medium text-(--ws-muted)">{t('personal.acceptanceRate')}</p>
+                <p className="text-2xl font-bold font-mono tabular-nums text-(--ws-text) mt-1">{stats?.ac_rate || 0}%</p>
               </div>
             </div>
           )}
@@ -202,20 +194,20 @@ export default function PersonalPage() {
           {/* Activity Heatmap */}
           <ActivityHeatmap data={heatmap} />
 
-          <div className="grid lg:grid-cols-2 gap-6">
+          <div className="grid lg:grid-cols-2 gap-4">
             {/* Verdict Distribution (Thực tế) */}
-            <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-6 shadow-sm">
-              <h3 className="text-lg font-bold text-(--ws-text) font-serif mb-4 flex items-center gap-2">
-                <BarChart3 size={20} className="text-(--ws-info)" /> {t('personal.verdictDistributionTitle')}
+            <div className="bg-(--ws-panel) border border-(--ws-border) rounded-md p-5">
+              <h3 className="text-base font-bold text-(--ws-text) font-serif mb-4 flex items-center gap-2">
+                <BarChart3 size={17} className="text-(--ws-info)" aria-hidden="true" /> {t('personal.verdictDistributionTitle')}
               </h3>
 
               {totalSubs === 0 ? (
                 <div className="text-center py-8 text-(--ws-muted) text-sm">
-                  <HelpCircle size={28} className="mx-auto mb-2 opacity-50" />
+                  <HelpCircle size={26} className="mx-auto mb-2 opacity-50" aria-hidden="true" />
                   {t('personal.noSubmissionsRecorded')}
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {[
                     { verdict: 'AC', label: 'Accepted', color: 'bg-(--ws-ok)', text: 'text-(--ws-ok)' },
                     { verdict: 'WA', label: 'Wrong Answer', color: 'bg-(--ws-danger)', text: 'text-(--ws-danger)' },
@@ -228,13 +220,13 @@ export default function PersonalPage() {
                     return (
                       <div key={item.verdict} className="flex items-center gap-3">
                         <span className={`text-xs font-bold font-mono w-9 ${item.text}`}>{item.verdict}</span>
-                        <div className="flex-1 bg-(--ws-panel2) rounded-full h-3 overflow-hidden">
+                        <div className="flex-1 bg-(--ws-panel2) rounded-sm h-2.5 overflow-hidden">
                           <div
-                            className={`${item.color} h-3 rounded-full transition-all duration-500`}
+                            className={`${item.color} h-2.5 rounded-sm transition-all duration-500`}
                             style={{ width: `${pct}%` }}
                           />
                         </div>
-                        <span className="text-xs text-(--ws-text) w-12 text-right">
+                        <span className="text-xs font-mono tabular-nums text-(--ws-text) w-20 text-right">
                           {count} ({pct}%)
                         </span>
                       </div>
@@ -245,31 +237,31 @@ export default function PersonalPage() {
             </div>
 
             {/* Solved Problems List (Thực tế) */}
-            <div className="bg-(--ws-panel) border border-(--ws-border) rounded-xl p-6 shadow-sm">
-              <h3 className="text-lg font-bold text-(--ws-text) font-serif mb-4 flex items-center justify-between">
+            <div className="bg-(--ws-panel) border border-(--ws-border) rounded-md p-5">
+              <h3 className="text-base font-bold text-(--ws-text) font-serif mb-4 flex items-center justify-between">
                 <span>{t('personal.solvedProblems')}</span>
-                <span className="text-xs px-2 py-0.5 bg-(--ws-accent)/10 text-(--ws-accent) font-semibold rounded-full">
+                <span className="text-xs font-mono tabular-nums px-2 py-0.5 bg-(--ws-accent-soft) text-(--ws-accent) font-semibold rounded">
                   {t('personal.solvedCountLabel', { count: stats?.solved_problems?.length ?? 0 })}
                 </span>
               </h3>
 
               {!stats?.solved_problems || stats.solved_problems.length === 0 ? (
                 <div className="text-center py-8 text-(--ws-muted) text-sm">
-                  <HelpCircle size={28} className="mx-auto mb-2 opacity-50" />
+                  <HelpCircle size={26} className="mx-auto mb-2 opacity-50" aria-hidden="true" />
                   {t('personal.noSolvedYet')}
                 </div>
               ) : (
-                <div className="flex flex-wrap gap-2 max-h-56 overflow-y-auto pr-1">
+                <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto pr-1">
                   {stats.solved_problems.map((p) => {
                     const diffColors: Record<string, string> = {
-                      EASY: 'bg-(--ws-ok-soft) text-(--ws-ok) border-(--ws-ok)/35',
-                      MEDIUM: 'bg-(--ws-warn-soft) text-(--ws-warn) border-(--ws-warn)/35',
-                      HARD: 'bg-(--ws-danger-soft) text-(--ws-danger) border-(--ws-danger)/35',
+                      EASY: 'bg-(--ws-ok-soft) text-(--ws-ok) border-(--ws-ok)/30',
+                      MEDIUM: 'bg-(--ws-warn-soft) text-(--ws-warn) border-(--ws-warn)/30',
+                      HARD: 'bg-(--ws-danger-soft) text-(--ws-danger) border-(--ws-danger)/30',
                     };
                     return (
                       <span
                         key={p.id}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${diffColors[p.difficulty] || 'bg-(--ws-panel2) text-(--ws-text) border-(--ws-border)'}`}
+                        className={`px-2.5 py-1 rounded text-xs font-medium border ${diffColors[p.difficulty] || 'bg-(--ws-panel2) text-(--ws-text) border-(--ws-border)'}`}
                       >
                         {p.title}
                       </span>
