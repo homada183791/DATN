@@ -67,6 +67,7 @@ export default function ProblemFormModal({
   const [showImport, setShowImport] = useState(false);
   const [bulkText,    setBulkText]    = useState('');
   const [bulkError,   setBulkError]   = useState('');
+  const [confirmClearCases, setConfirmClearCases] = useState(false);
 
   // ── AI Testcase Generation States ──
   const [showAiModal, setShowAiModal] = useState(false);
@@ -367,10 +368,10 @@ Output: 6
         setShowAiModal(false);
         setActiveTab('cases');
       } else {
-        setAiError('AI không trả về test case nào.');
+        setAiError(t('problemForm.aiEmptyError'));
       }
     } catch (err: any) {
-      setAiError(err.message || 'Không thể sinh testcase bằng AI');
+      setAiError(err.message || t('problemForm.aiFailedError'));
     } finally {
       setIsAiGenerating(false);
     }
@@ -381,9 +382,13 @@ Output: 6
   };
 
   const clearAllTestCases = () => {
-    if (window.confirm('Bạn có chắc muốn xóa tất cả test cases hiện tại?')) {
-      setTestCases([]);
+    if (!confirmClearCases) {
+      setConfirmClearCases(true);
+      setTimeout(() => setConfirmClearCases(false), 3500);
+      return;
     }
+    setTestCases([]);
+    setConfirmClearCases(false);
   };
 
   const isEdit = !!initialData;
@@ -595,19 +600,19 @@ Output: 6
                         type="button"
                         onClick={handleInsertBilingualTemplate}
                         className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-(--ws-accent)/30 bg-(--ws-accent)/5 text-(--ws-accent) hover:bg-(--ws-accent)/10 text-xs font-semibold transition-colors shadow-2xs"
-                        title="Chèn mẫu song ngữ [Tiếng Việt] và [English] chuẩn Hard_450"
+                        title={t('problemForm.bilingualTemplateTitle')}
                       >
                         <FileCode size={13} className="text-(--ws-accent)" />
-                        Mẫu song ngữ (VI / EN)
+                        {t('problemForm.bilingualTemplate')}
                       </button>
                       <button
                         type="button"
                         onClick={handleInsertTemplate}
                         className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-(--ws-border) bg-(--ws-panel) text-(--ws-text) hover:text-(--ws-text) hover:bg-(--ws-hover) text-xs font-semibold transition-colors shadow-2xs"
-                        title="Chèn mẫu khung mô tả bài toán có sẵn # TODO để điền nhanh"
+                        title={t('problemForm.singleTemplateTitle')}
                       >
                         <FileCode size={13} className="text-(--ws-muted)" />
-                        Mẫu đơn (# TODO)
+                        {t('problemForm.singleTemplate')}
                       </button>
                       <button
                         type="button"
@@ -844,8 +849,8 @@ Output: 6
                     <h3 className="font-semibold text-(--ws-text) flex items-center gap-2">
                       <span>Test Cases</span>
                       {testCases.length > 0 && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-(--ws-accent)/10 text-(--ws-accent) font-bold">
-                          {testCases.length} bộ test (~{Math.round(100 / testCases.length)}% điểm/test)
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-(--ws-accent)/10 text-(--ws-accent) font-bold font-mono tabular-nums">
+                          {t('problemForm.testCasesBadge', { count: testCases.length, pct: Math.round(100 / testCases.length) })}
                         </span>
                       )}
                     </h3>
@@ -858,19 +863,19 @@ Output: 6
                       type="button"
                       onClick={() => setShowAiModal(true)}
                       className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-(--ws-ok)/35 bg-(--ws-ok-soft) text-(--ws-ok) hover:bg-(--ws-ok-soft) text-xs font-semibold transition-colors shadow-2xs"
-                      title="Sử dụng AI tự động sinh các bộ test cases mẫu và biên"
+                      title={t('problemForm.aiGenerateTooltip')}
                     >
                       <Sparkles size={14} className="text-(--ws-ok)" />
-                      Sinh Test Cases với AI
+                      {t('problemForm.aiGenerateBtn')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowBulkModal(true)}
                       className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-(--ws-border) bg-(--ws-panel) text-(--ws-text) hover:text-(--ws-text) hover:bg-(--ws-hover) text-xs font-semibold transition-colors shadow-2xs"
-                      title="Dán hàng loạt test case hoặc tải lên tệp"
+                      title={t('problemForm.bulkImportTooltip')}
                     >
                       <Upload size={14} className="text-(--ws-accent)" />
-                      Nhập hàng loạt (Bulk)
+                      {t('problemForm.bulkImportBtn')}
                     </button>
                     <button
                       type="button"
@@ -885,8 +890,12 @@ Output: 6
                 {/* Batch toolbar if testCases.length > 1 */}
                 {testCases.length > 1 && (
                   <div className="flex items-center justify-between px-3.5 py-2 bg-(--ws-panel2)/80 rounded-xl border border-(--ws-border) mb-4 text-xs text-(--ws-text)">
-                    <span className="font-medium">
-                      Tổng số: <strong>{testCases.length}</strong> test cases ({testCases.filter(c => c.is_hidden).length} ẩn, {testCases.filter(c => !c.is_hidden).length} mẫu)
+                    <span className="font-medium tabular-nums">
+                      {t('problemForm.batchSummary', {
+                        total: testCases.length,
+                        hidden: testCases.filter(c => c.is_hidden).length,
+                        sample: testCases.filter(c => !c.is_hidden).length,
+                      })}
                     </span>
                     <div className="flex items-center gap-2">
                       <button
@@ -894,7 +903,7 @@ Output: 6
                         onClick={() => markAllHidden(true)}
                         className="hover:text-(--ws-accent) font-medium transition-colors"
                       >
-                        Ẩn tất cả
+                        {t('problemForm.hideAllBtn')}
                       </button>
                       <span>•</span>
                       <button
@@ -902,15 +911,19 @@ Output: 6
                         onClick={() => markAllHidden(false)}
                         className="hover:text-(--ws-accent) font-medium transition-colors"
                       >
-                        Mẫu tất cả
+                        {t('problemForm.showAllBtn')}
                       </button>
                       <span>•</span>
                       <button
                         type="button"
                         onClick={clearAllTestCases}
-                        className="hover:text-(--ws-danger) font-medium transition-colors"
+                        className={`font-medium transition-colors ${
+                          confirmClearCases
+                            ? 'text-(--ws-danger) font-bold underline'
+                            : 'hover:text-(--ws-danger)'
+                        }`}
                       >
-                        Xóa tất cả
+                        {confirmClearCases ? t('problemForm.confirmClearAllBtn') : t('problemForm.clearAllBtn')}
                       </button>
                     </div>
                   </div>
@@ -1088,8 +1101,8 @@ Output: 6
                   <Upload size={18} />
                 </div>
                 <div>
-                  <h3 className="font-serif font-bold text-base text-(--ws-text)">Nhập hàng loạt Test Cases</h3>
-                  <p className="text-xs text-(--ws-muted)">Hỗ trợ định dạng ngắn gọn (input =&gt; output), cặp khối hoặc tải file</p>
+                  <h3 className="font-serif font-bold text-base text-(--ws-text)">{t('problemForm.bulkTitle')}</h3>
+                  <p className="text-xs text-(--ws-muted)">{t('problemForm.bulkSubtitle')}</p>
                 </div>
               </div>
               <button aria-label={t('common.close')}
@@ -1106,7 +1119,7 @@ Output: 6
               <div className="flex items-center gap-2">
                 <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-(--ws-border) bg-(--ws-panel) text-(--ws-text) hover:text-(--ws-text) hover:bg-(--ws-hover) text-xs font-semibold cursor-pointer transition-colors shadow-2xs">
                   <FileUp size={13} className="text-(--ws-accent)" />
-                  Tải lên file (.txt, .json, .csv)
+                  {t('problemForm.bulkUploadBtn')}
                   <input type="file" accept=".txt,.json,.csv,.in,.out" onChange={handleUploadTestFile} className="hidden" />
                 </label>
                 <button
@@ -1115,20 +1128,20 @@ Output: 6
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-(--ws-border) bg-(--ws-panel) text-(--ws-text) hover:text-(--ws-text) hover:bg-(--ws-hover) text-xs font-semibold transition-colors shadow-2xs"
                 >
                   <Sparkles size={13} className="text-(--ws-accent)" />
-                  Chèn mẫu ngắn gọn (input =&gt; output)
+                  {t('problemForm.bulkSampleBtn')}
                 </button>
               </div>
             </div>
 
             <div className="bg-(--ws-panel) p-3 rounded-xl border border-(--ws-border) text-xs text-(--ws-text) space-y-1">
-              <p className="font-semibold text-(--ws-text)">Các cú pháp được hỗ trợ tự động:</p>
+              <p className="font-semibold text-(--ws-text)">{t('problemForm.bulkSyntaxTitle')}</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono text-(--ws-text)">
                 <div className="bg-(--ws-panel2) p-2 rounded-lg">
-                  <span className="font-sans font-bold text-(--ws-accent) block mb-1">1. Cú pháp gọn (input =&gt; output):</span>
+                  <span className="font-sans font-bold text-(--ws-accent) block mb-1">{t('problemForm.bulkSyntaxCompact')}</span>
                   {`1 2 => 3\n5 10 => 15\n-2 8 => 6`}
                 </div>
                 <div className="bg-(--ws-panel2) p-2 rounded-lg">
-                  <span className="font-sans font-bold text-(--ws-accent) block mb-1">2. Định dạng phân tách khối:</span>
+                  <span className="font-sans font-bold text-(--ws-accent) block mb-1">{t('problemForm.bulkSyntaxBlock')}</span>
                   {`=== INPUT ===\n5\n=== OUTPUT ===\n15`}
                 </div>
               </div>
@@ -1139,7 +1152,7 @@ Output: 6
                 rows={8}
                 value={bulkText}
                 onChange={(e) => { setBulkText(e.target.value); setBulkError(''); }}
-                placeholder="Dán nội dung test cases hoặc bấm 'Tải lên file'..."
+                placeholder={t('problemForm.bulkPlaceholder')}
                 className="w-full rounded-xl border border-(--ws-border) bg-(--ws-panel) p-3 font-mono text-xs text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
               />
               {bulkError && <p className="mt-1.5 text-xs text-(--ws-danger) font-medium whitespace-pre-wrap">{bulkError}</p>}
@@ -1151,14 +1164,14 @@ Output: 6
                 onClick={() => setShowBulkModal(false)}
                 className="px-4 py-2 border border-(--ws-border) bg-(--ws-panel) rounded-xl text-xs font-semibold text-(--ws-text) hover:bg-(--ws-hover) transition-colors"
               >
-                Hủy
+                {t('problemForm.cancel')}
               </button>
               <button
                 type="button"
                 onClick={handleParseBulk}
                 className="px-5 py-2 bg-(--ws-accent) text-(--ws-on-accent) rounded-xl text-xs font-semibold hover:bg-(--ws-accent-strong) transition-colors shadow-sm flex items-center gap-1.5"
               >
-                <CheckCheck size={14} /> Thêm vào danh sách Test Cases
+                <CheckCheck size={14} /> {t('problemForm.bulkAddBtn')}
               </button>
             </div>
           </div>
@@ -1181,8 +1194,8 @@ Output: 6
                   <Sparkles size={18} />
                 </div>
                 <div>
-                  <h3 className="font-serif font-bold text-base text-(--ws-text)">Trợ lý AI Sinh Test Cases</h3>
-                  <p className="text-xs text-(--ws-muted)">Tự động suy luận và sinh các bộ test kiểm thử chất lượng cao</p>
+                  <h3 className="font-serif font-bold text-base text-(--ws-text)">{t('problemForm.aiTitle')}</h3>
+                  <p className="text-xs text-(--ws-muted)">{t('problemForm.aiSubtitle')}</p>
                 </div>
               </div>
               <button aria-label={t('common.close')}
@@ -1198,7 +1211,7 @@ Output: 6
             {/* Strategy selector */}
             <div>
               <label className="block text-xs font-bold text-(--ws-text) mb-1.5 uppercase tracking-wide">
-                Phương thức sinh Test Cases:
+                {t('problemForm.aiStrategyLabel')}
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
@@ -1210,8 +1223,8 @@ Output: 6
                       : 'border-(--ws-border) bg-(--ws-panel2) text-(--ws-text) hover:bg-(--ws-panel)'
                   }`}
                 >
-                  <div className="font-bold mb-0.5">Option 1: Từ Đề bài</div>
-                  <div className="text-[11px] text-(--ws-muted)">AI đọc Tiêu đề & Mô tả đề bài để tự suy luận các trường hợp test.</div>
+                  <div className="font-bold mb-0.5">{t('problemForm.aiOptionDescTitle')}</div>
+                  <div className="text-[11px] text-(--ws-muted)">{t('problemForm.aiOptionDescSub')}</div>
                 </button>
                 <button
                   type="button"
@@ -1222,8 +1235,8 @@ Output: 6
                       : 'border-(--ws-border) bg-(--ws-panel2) text-(--ws-text) hover:bg-(--ws-panel)'
                   }`}
                 >
-                  <div className="font-bold mb-0.5">Option 2: Từ Code giải mẫu</div>
-                  <div className="text-[11px] text-(--ws-muted)">Dán mã nguồn đáp án chuẩn của giảng viên để AI chạy sinh Output chính xác.</div>
+                  <div className="font-bold mb-0.5">{t('problemForm.aiOptionSolTitle')}</div>
+                  <div className="text-[11px] text-(--ws-muted)">{t('problemForm.aiOptionSolSub')}</div>
                 </button>
               </div>
             </div>
@@ -1232,7 +1245,7 @@ Output: 6
             {aiStrategy === 'FROM_SOLUTION' && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-(--ws-text)">Mã nguồn đáp án của giảng viên:</label>
+                  <label className="text-xs font-semibold text-(--ws-text)">{t('problemForm.aiSolutionCodeLabel')}</label>
                   <select
                     value={aiSolutionLang}
                     onChange={(e) => setAiSolutionLang(e.target.value)}
@@ -1247,7 +1260,7 @@ Output: 6
                   rows={6}
                   value={aiSolutionCode}
                   onChange={(e) => setAiSolutionCode(e.target.value)}
-                  placeholder="Dán code giải mẫu hoàn chỉnh vào đây..."
+                  placeholder={t('problemForm.aiSolutionPlaceholder')}
                   className="w-full rounded-xl border border-(--ws-border) bg-(--ws-panel) p-3 font-mono text-xs text-(--ws-text) placeholder-(--ws-faint) focus:outline-none focus:ring-2 focus:ring-(--ws-accent)"
                 />
               </div>
@@ -1256,8 +1269,10 @@ Output: 6
             {/* Test count slider */}
             <div>
               <div className="flex items-center justify-between mb-1 text-xs">
-                <span className="font-semibold text-(--ws-text)">Số lượng Test Cases cần sinh:</span>
-                <span className="font-bold text-(--ws-accent) bg-(--ws-accent)/10 px-2 py-0.5 rounded-full">{aiCount} bộ test</span>
+                <span className="font-semibold text-(--ws-text)">{t('problemForm.aiCountLabel')}</span>
+                <span className="font-bold font-mono tabular-nums text-(--ws-accent) bg-(--ws-accent)/10 px-2 py-0.5 rounded-full">
+                  {t('problemForm.aiCountBadge', { count: aiCount })}
+                </span>
               </div>
               <input
                 type="range"
@@ -1282,7 +1297,7 @@ Output: 6
                 disabled={isAiGenerating}
                 className="px-4 py-2 border border-(--ws-border) bg-(--ws-panel) rounded-xl text-xs font-semibold text-(--ws-text) hover:bg-(--ws-hover) transition-colors disabled:opacity-50"
               >
-                Hủy
+                {t('problemForm.cancel')}
               </button>
               <button
                 type="button"
@@ -1293,12 +1308,12 @@ Output: 6
                 {isAiGenerating ? (
                   <>
                     <Loader2 size={14} className="animate-spin" />
-                    AI đang phân tích &amp; sinh test...
+                    {t('problemForm.aiGenerating')}
                   </>
                 ) : (
                   <>
                     <Sparkles size={14} />
-                    Bắt đầu sinh Test Cases
+                    {t('problemForm.aiStartBtn')}
                   </>
                 )}
               </button>

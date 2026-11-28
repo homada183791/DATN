@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { HomeworkProblem } from '../context/HomeworkContext';
 import { useProblemsQuery, createProblem, fetchProblem, type CreateProblemDto, type ProblemDto } from '../api/problems';
+import { notifyGlobalToast } from '../context/ToastContext';
 import ProblemFormModal from './ProblemFormModal';
 import {
   Plus,
@@ -117,7 +118,7 @@ export default function ProblemManager({ problems, onChange }: Props) {
       onChange([...problems, task]);
       setModalType(null);
     } catch (err: any) {
-      alert(err?.message || t('problemManager.createFailed'));
+      notifyGlobalToast(err?.message || t('problemManager.createFailed'), 'error');
     } finally {
       setComposeSaving(false);
     }

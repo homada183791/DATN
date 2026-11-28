@@ -120,7 +120,7 @@ export default function SettingsPage() {
 
       triggerSavedFeedback(t('settings.savedSuccess'));
     } catch (err: any) {
-      const msg = err instanceof ApiError ? err.message : 'Không thể lưu hồ sơ';
+      const msg = err instanceof ApiError ? err.message : t('settings.errors.saveProfileFailed');
       showToast(msg, 'error');
     } finally {
       setIsSaving(false);
@@ -132,22 +132,22 @@ export default function SettingsPage() {
     setPasswordError('');
 
     if (!passwordForm.currentPassword) {
-      setPasswordError('Vui lòng nhập mật khẩu hiện tại.');
+      setPasswordError(t('settings.errors.currentPasswordRequired'));
       return;
     }
 
     if (!passwordForm.newPassword) {
-      setPasswordError('Vui lòng nhập mật khẩu mới.');
+      setPasswordError(t('settings.errors.newPasswordRequired'));
       return;
     }
 
     if (passwordForm.newPassword.length < 6) {
-      setPasswordError('Mật khẩu mới phải có ít nhất 6 ký tự.');
+      setPasswordError(t('settings.errors.newPasswordTooShort'));
       return;
     }
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordError('Xác nhận mật khẩu mới không khớp.');
+      setPasswordError(t('settings.errors.confirmPasswordMismatch'));
       return;
     }
 
@@ -169,7 +169,7 @@ export default function SettingsPage() {
 
       triggerSavedFeedback(t('settings.savedSuccess'));
     } catch (err: any) {
-      const msg = err instanceof ApiError ? err.message : 'Đổi mật khẩu thất bại';
+      const msg = err instanceof ApiError ? err.message : t('settings.errors.changePasswordFailed');
       setPasswordError(msg);
       showToast(msg, 'error');
     } finally {
@@ -191,7 +191,7 @@ export default function SettingsPage() {
       updateUser({ notificationSettings: notifications });
       triggerSavedFeedback(t('settings.savedSuccess'));
     } catch (err: any) {
-      const msg = err instanceof ApiError ? err.message : 'Lỗi khi lưu thông báo';
+      const msg = err instanceof ApiError ? err.message : t('settings.errors.saveNotificationsFailed');
       showToast(msg, 'error');
     } finally {
       setIsSaving(false);
@@ -213,7 +213,7 @@ export default function SettingsPage() {
       updateUser({ preferences });
       triggerSavedFeedback(t('settings.savedSuccess'));
     } catch (err: any) {
-      const msg = err instanceof ApiError ? err.message : 'Lỗi khi lưu tuỳ chỉnh';
+      const msg = err instanceof ApiError ? err.message : t('settings.errors.savePreferencesFailed');
       showToast(msg, 'error');
     } finally {
       setIsSaving(false);
@@ -392,6 +392,7 @@ export default function SettingsPage() {
                 </div>
 
                 <button
+                  type="button"
                   onClick={handleSaveProfile}
                   disabled={isSaving}
                   className="flex items-center gap-2 px-6 py-2.5 bg-(--ws-accent) text-(--ws-on-accent) font-medium rounded-xl hover:bg-(--ws-accent-strong) transition-colors shadow-md disabled:opacity-50 cursor-pointer"
@@ -465,6 +466,7 @@ export default function SettingsPage() {
                 </div>
 
                 <button
+                  type="button"
                   onClick={handleChangePassword}
                   disabled={isSaving}
                   className="flex items-center gap-2 px-6 py-2.5 bg-(--ws-accent) text-(--ws-on-accent) font-medium rounded-xl hover:bg-(--ws-accent-strong) transition-colors shadow-md disabled:opacity-50 cursor-pointer"
@@ -494,6 +496,9 @@ export default function SettingsPage() {
                       </div>
                       <button
                         type="button"
+                        role="switch"
+                        aria-checked={notifications[item.key as keyof typeof notifications]}
+                        aria-label={item.label}
                         onClick={() =>
                           setNotifications({
                             ...notifications,
@@ -515,6 +520,7 @@ export default function SettingsPage() {
                 </div>
 
                 <button
+                  type="button"
                   onClick={handleSaveNotifications}
                   disabled={isSaving}
                   className="flex items-center gap-2 px-6 py-2.5 bg-(--ws-accent) text-(--ws-on-accent) font-medium rounded-xl hover:bg-(--ws-accent-strong) transition-colors shadow-md disabled:opacity-50 cursor-pointer"
@@ -583,6 +589,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <button
+                  type="button"
                   onClick={handleSavePreferences}
                   disabled={isSaving}
                   className="flex items-center gap-2 px-6 py-2.5 bg-(--ws-accent) text-(--ws-on-accent) font-medium rounded-xl hover:bg-(--ws-accent-strong) transition-colors shadow-md disabled:opacity-50 cursor-pointer"
