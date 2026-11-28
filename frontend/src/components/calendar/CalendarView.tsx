@@ -744,17 +744,10 @@ export default function CalendarView({ events, userRole = 'student', classes = [
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 px-4 text-xs text-(--ws-muted) border-t border-(--ws-border) bg-(--ws-panel2)/25">
           <div>
             <p className="font-semibold text-(--ws-text) text-[11.5px]">
-              Programming Contests & Assignments Calendar
+              {t('calendar.footerTitle')}
             </p>
             <div className="flex flex-wrap items-center gap-2 text-[10.5px] mt-0.5">
-              <span>Events shown in time zone: (GMT+07:00) Indochina Time - Ho Chi Minh City</span>
-              <span>•</span>
-              <button
-                onClick={downloadICS}
-                className="hover:underline font-semibold text-(--ws-accent)"
-              >
-                {t('calendar.export')}
-              </button>
+              <span>{t('calendar.footerTimezone')}</span>
             </div>
           </div>
 

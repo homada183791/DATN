@@ -214,7 +214,7 @@ export default function InstructorClass() {
                       <Link2 size={13} />
                     </div>
                     <span className="text-[11.5px] font-mono font-medium text-(--ws-text) truncate">
-                      judgehub.edu.vn/join/<span className="font-bold text-(--ws-accent)">{getCleanCode(cls.code)}</span>
+                      {typeof window !== 'undefined' ? `${window.location.host}/join/` : '/join/'}<span className="font-bold text-(--ws-accent)">{getCleanCode(cls.code)}</span>
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">

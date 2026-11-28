@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { X, Calendar, Clock, BookOpen, Trophy, ExternalLink, GraduationCap } from 'lucide-react';
 import { formatVNFull } from '../../utils/dateTime';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +27,16 @@ interface Props {
 
 export default function EventDetailModal({ event, onClose, userRole = 'student' }: Props) {
   const { t } = useTranslation();
+
+  useEffect(() => {
+    if (!event) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [event, onClose]);
+
   if (!event) return null;
 
   const isContest = event.type === 'contest';
@@ -50,8 +62,16 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-      <div className="w-full max-w-lg bg-(--ws-panel) border border-(--ws-border) rounded-2xl shadow-xl overflow-hidden text-(--ws-text)">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="w-full max-w-lg bg-(--ws-panel) border border-(--ws-border) rounded-2xl shadow-xl overflow-hidden text-(--ws-text)"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-start justify-between p-5 border-b border-(--ws-border)">
           <div className="flex items-center gap-3">
@@ -150,8 +170,9 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
             <ExternalLink size={13} /> {t('calendar.addGoogleCalendar')}
           </a>
 
-          <a
-            href={event.link}
+          <Link
+            to={event.link}
+            onClick={onClose}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--ws-accent) text-(--ws-on-accent) text-xs font-bold hover:bg-(--ws-accent-strong) transition-colors shadow-xs"
           >
             {isContest
@@ -161,7 +182,7 @@ export default function EventDetailModal({ event, onClose, userRole = 'student' 
               : userRole === 'instructor'
               ? t('calendar.homeworkDetails')
               : t('calendar.doHomework')}
-          </a>
+          </Link>
         </div>
       </div>
     </div>

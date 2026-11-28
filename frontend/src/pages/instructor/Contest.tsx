@@ -539,7 +539,11 @@ export default function InstructorContest() {
                   <BookOpen size={14} /> {t('instructorContest.manageProblems')}
                 </button>
                 <button
-                  onClick={() => setShowResultsModal(selectedContestData.id)}
+                  onClick={() => {
+                    const id = selectedContestData.id;
+                    setSelectedContest(null);
+                    setTimeout(() => setShowResultsModal(id), 50);
+                  }}
                   className="flex items-center gap-2 px-4 py-2 bg-(--ws-info-soft) text-(--ws-info) border border-(--ws-info)/35 text-sm font-medium rounded-xl hover:bg-(--ws-info-soft) transition-colors shadow-sm"
                   title={t('instructorContest.resultsTooltip')}
                 >
@@ -547,7 +551,11 @@ export default function InstructorContest() {
                 </button>
                 {!selectedContestData.lockdownEnabled && (
                   <button
-                    onClick={() => setShowMonitorModal(selectedContestData.id)}
+                    onClick={() => {
+                      const id = selectedContestData.id;
+                      setSelectedContest(null);
+                      setTimeout(() => setShowMonitorModal(id), 50);
+                    }}
                     className="flex items-center gap-2 px-4 py-2 bg-(--ws-warn-soft) text-(--ws-warn) border border-(--ws-warn)/35 text-sm font-medium rounded-xl hover:bg-(--ws-warn-soft) transition-colors shadow-sm"
                     title={t('instructorContest.monitorTooltip')}
                   >

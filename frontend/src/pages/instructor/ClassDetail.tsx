@@ -339,7 +339,8 @@ export default function InstructorClassDetail() {
   const displayCode = classData?.invite_code
     ? (classData.invite_code.length > 10 ? `JH-${classData.invite_code.slice(0, 6).toUpperCase()}` : classData.invite_code.toUpperCase())
     : 'CODE';
-  const displayInviteUrl = classData?.invite_code ? `judgehub.edu.vn/join/${displayCode}` : 'judgehub.edu.vn/join';
+  const hostPrefix = typeof window !== 'undefined' ? window.location.host : '';
+  const displayInviteUrl = classData?.invite_code ? `${hostPrefix}/join/${displayCode}` : `${hostPrefix}/join`;
   const fullInviteUrl = classData?.invite_code ? `${window.location.origin}/join/${classData.invite_code}` : '';
 
   const activeHwCount = useMemo(() => {
@@ -933,22 +934,6 @@ export default function InstructorClassDetail() {
               >
                 <Upload size={14} />
                 <span>{t('instructorClassDetail.rosterUploadBtn')}</span>
-              </button>
-              <button
-                onClick={() => copy(classData.invite_code || '', 'code')}
-                className="inline-flex items-center gap-1 px-2.5 py-2 bg-(--ws-panel2) border border-(--ws-border) text-xs font-semibold text-(--ws-accent) rounded-xl hover:bg-(--ws-hover) transition-colors"
-                title={t('instructorClass.copyClassCode')}
-              >
-                {copied === 'code' ? <Check size={14} className="text-(--ws-ok)" /> : <Hash size={14} />}
-                {t('instructorClassDetail.codeWithPrefix', { code: displayCode })}
-              </button>
-              <button
-                onClick={() => copy(fullInviteUrl, 'link')}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-(--ws-panel2) text-(--ws-text) border border-(--ws-border) text-xs font-semibold rounded-xl hover:bg-(--ws-hover) transition-colors shadow-xs"
-                title={t('instructorClassDetail.copyInviteLinkTooltip')}
-              >
-                {copied === 'link' ? <Check size={14} className="text-(--ws-ok)" /> : <Link2 size={14} />}
-                {t('instructorClass.copyLinkLabel')}
               </button>
             </div>
           </div>

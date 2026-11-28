@@ -9,7 +9,6 @@ import {
   GraduationCap,
   BarChart3,
   ArrowRight,
-  Plus,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useClass } from '../../context/ClassContext';
@@ -86,8 +85,8 @@ export default function InstructorDashboard() {
             to="/instructor/classes"
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-(--ws-accent) text-(--ws-on-accent) text-sm font-semibold hover:bg-(--ws-accent-strong) transition-colors shadow-xs"
           >
-            <Plus size={16} />
-            {t('instructorClass.pageTitle')}
+            {t('instructorDashboard.manageClasses')}
+            <ArrowRight size={15} aria-hidden="true" />
           </Link>
         </div>
       </div>
@@ -266,7 +265,7 @@ export default function InstructorDashboard() {
                 <h3 className="text-sm font-bold font-serif text-(--ws-text)">{t('instructorDashboard.homeworkDeadlines')}</h3>
                 <p className="text-[11px] text-(--ws-muted)">{t('instructorDashboard.homeworkDeadlinesSubtitle')}</p>
               </div>
-              <Link to="/instructor/classes" className="text-xs text-(--ws-accent) font-semibold hover:underline">
+              <Link to="/instructor/homework" className="text-xs text-(--ws-accent) font-semibold hover:underline">
                 {t('instructorDashboard.details')}
               </Link>
             </div>
